@@ -21,7 +21,7 @@ export default function CreateWalletBtn({ onWalletCreated }) {
       <Button
         variant="submit"
         onClick={() => setShowPopup(true)}
-        className="w-full mt-4"
+        className="w-full mt-4 hover:scale-none"
       >
         + Create Wallet
       </Button>
