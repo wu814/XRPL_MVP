@@ -4,8 +4,9 @@ import React, { useState , useEffect} from "react";
 import Button from "./Button";
 
 class Wallet {
-    constructor(classic_address, wallet_type, xrp_balance) {
+    constructor(classic_address, wallet_name, wallet_type, xrp_balance) {
       this.classic_address = classic_address;
+      this.wallet_name = wallet_name;
       this.wallet_type = wallet_type;
       this.xrp_balance = xrp_balance;
     }
@@ -21,8 +22,7 @@ const WalletsDisplay = () => {
         try {
             const response = await fetch("/api/wallets/selectAllWallets");
             const data = await response.json();
-            console.log("Fetched wallets:", data);
-            const walletsData = data.data.map(wallet => new Wallet(wallet.classic_address, wallet.wallet_type, wallet.xrp_balance));
+            const walletsData = data.data.map(wallet => new Wallet(wallet.classic_address, wallet.wallet_name, wallet.wallet_type, wallet.xrp_balance));
             setWallets(walletsData);
         } catch (error) {
             console.error("Error fetching wallets:", error);
@@ -48,8 +48,9 @@ const WalletsDisplay = () => {
                         <div key={wallet.classic_address} className="relative bg-white p-4 rounded-lg shadow">
                             <h3 className="text-xl font-bold">{wallet.classic_address}</h3>
                             <p>Type: {wallet.wallet_type}</p>
+                            <p>Name: {wallet.wallet_name}</p>
                             <p>XRP Balance: {wallet.xrp_balance}</p>
-                            <Button className="absolute bottom-3 right-4" variant="secondary">
+                            <Button className="absolute bottom-3 right-4" variant="submit">
                                 View Details
                             </Button>
                         </div>

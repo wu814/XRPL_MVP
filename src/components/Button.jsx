@@ -10,8 +10,8 @@ const Button = ({
 
   const variantStyles = {
     primary: "bg-[#D25875] text-white hover:bg-[#D4365B]",
-    secondary: "bg-[#83B592] text-white hover:bg-[#6DAB7F]",
-    danger: "bg-red-500 text-white hover:bg-red-600",
+    submit: "bg-[#83B592] text-white hover:bg-[#6DAB7F]",
+    cancel: "bg-red-500 text-white hover:bg-red-600",
     basic: "bg-[#DFD9CF] text-black hover:bg-[#BDB8AF]",
   };
 

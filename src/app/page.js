@@ -5,6 +5,7 @@ import Button from "@/components/Button";
 import Searchbar from "@/components/Searchbar";
 import Navbar from "@/components/Navbar";
 import WalletsDisplay from "@/components/WalletsDisplay";
+import CreateWalletBtn from "@/components/CreateWalletBtn";
 
 export default function Home() {
   return (
@@ -17,8 +18,11 @@ export default function Home() {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto p-4 flex">
-        <WalletsDisplay />
+      <main className="flex p-4">
+        <div className="flex-col mr-4 container mx-auto">
+          <WalletsDisplay />
+          <CreateWalletBtn />
+        </div>
 
         {/* Top Earning Pools Sidebar */}
         <section className="w-1/3 bg-white p-6 rounded-lg shadow">
