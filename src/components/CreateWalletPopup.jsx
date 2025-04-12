@@ -71,7 +71,7 @@ export default function CreateWalletPopup({ onClose, onWalletCreated }) {
             if (!res.ok) {
                 throw new Error(result.error || "Failed to add wallet");
             }
-            onWalletCreated(result.data);
+            onWalletCreated(walletData);
             onClose();
         } catch (err) {
             setError(err.message);

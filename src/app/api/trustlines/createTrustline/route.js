@@ -1,19 +1,21 @@
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function POST() {
+export async function POST(req) {
     try {
         const supabase = await createSupabaseAnonClient();
+        const { wallet_address, issuer_address, currency, limit_amount, is_authorized, is_activated, created_at, updated_at} = await req.json();
+        console.log("Received data:", { wallet_address, issuer_address, currency, limit_amount, is_authorized, is_activated, created_at, updated_at });
         const { data, error } = await supabase.from("trustlines").insert([
             {
-                wallet_address: "aaaaaaaaaaaa",
-                issuer_address: "aaaaaaaaaaaa",
-                currency_code: "USD",
-                limit_amount: 1000,
-                is_activated: false,
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-                is_authorized: false
+                wallet_address,
+                issuer_address,
+                currency,
+                limit_amount,
+                is_authorized,
+                is_activated,
+                created_at,
+                updated_at
             },
         ]);
 
