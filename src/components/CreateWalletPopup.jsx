@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Button from "./Button";
+import ErrorPopup from "./ErrorPopup";
 import { client, connectXrplClient } from "@/utils/xrpl/testnet";
 import * as xrpl from "xrpl";
 
@@ -22,14 +23,20 @@ export default function CreateWalletPopup({ onClose, onWalletCreated }) {
             setWalletName("STANDBY");
         } else {
             // For other wallet types, allow the user to type in a value.
-            setWalletName(""); // Clear the field so they can input their own wallet name.
+            setWalletName("");
         }
     };
 
     // Allow the user to change walletName only when walletType is not Issuer or Standby.
     const handleWalletNameChange = (e) => {
-        setWalletName(e.target.value);
-    };
+        const value = e.target.value.toUpperCase();
+        // Ensuring it only contains letters:
+        if (/^[A-Z]*$/.test(value)) {
+          setWalletName(value);
+        } else {
+          setError("Wallet Name must contain only uppercase English letters.");
+        }
+      };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -45,8 +52,10 @@ export default function CreateWalletPopup({ onClose, onWalletCreated }) {
                 command: 'account_info',
                 account: wallet.address,
                 ledger_index: 'validated'
-              });
+            });
 
+            
+            // Store the wallet in the database
             const walletData = {
                 classic_address: wallet.address,
                 wallet_type: walletType,
@@ -57,8 +66,6 @@ export default function CreateWalletPopup({ onClose, onWalletCreated }) {
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString(),
             };
-            console.log("Wallet Data:", walletData);
-
             const res = await fetch("/api/wallets/createWallet", {
                 method: "POST",
                 headers: {
@@ -81,7 +88,6 @@ export default function CreateWalletPopup({ onClose, onWalletCreated }) {
     };
 
     return (
-        // Popup Overlay with a semi-transparent background
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/50">
             {/* Popup Box */}
             <div className="bg-white p-6 rounded-lg shadow-lg w-96">
@@ -115,7 +121,8 @@ export default function CreateWalletPopup({ onClose, onWalletCreated }) {
                         />
                     </div>
 
-                    {error && <p className="text-red-500 mb-4">{error}</p>}
+                    {error && <ErrorPopup errorMessage={error} onClose={() => setError(null)} />}
+
 
                     <div className="flex justify-end space-x-2">
                         <Button variant="cancel" onClick={onClose}>

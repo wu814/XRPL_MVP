@@ -4,12 +4,14 @@ import React, { useState, useEffect } from "react";
 import Button from "./Button";
 import CreateWalletBtn from "./CreateWalletBtn";
 import DeleteWalletBtn from "./DeleteWalletBtn";
+import RequestTrustlineBtn from "./RequestTrustlineBtn";
 
 class Wallet {
-    constructor(classic_address, wallet_type, wallet_name, xrp_balance) {
+    constructor(classic_address, wallet_type, wallet_name, seed, xrp_balance) {
         this.classic_address = classic_address;
         this.wallet_type = wallet_type;
         this.wallet_name = wallet_name;
+        this.seed = seed;
         this.xrp_balance = xrp_balance;
     }
 }
@@ -18,6 +20,7 @@ class Wallet {
 const WalletsDisplay = () => {
     const [wallets, setWallets] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [issuerWallets, setIssuerWallets] = useState([]);
 
     // Define a sort order for wallet types. Issuer always on top, then Standby, then Operational.
     const typeOrder = {
@@ -26,18 +29,33 @@ const WalletsDisplay = () => {
         "Operational": 2,
     };
 
+    const updateIssuerWallets = (walletsArray) => {
+        const issuerWallets = walletsArray.filter(
+            (wallet) => wallet.wallet_type === "Issuer"
+        );
+        setIssuerWallets(issuerWallets);
+    };
+
+    //// useEffect to log the issuerWallets state whenever it changes
+    // useEffect(() => {
+    //     console.log("Issuer wallets state updated:", issuerWallets);
+    // }, [issuerWallets]);
+
+
     const fetchWallets = async () => {
         setLoading(true);
         try {
             const response = await fetch("/api/wallets/selectAllWallets");
             const data = await response.json();
             const walletsData = data.data
-                .map(wallet => new Wallet(wallet.classic_address, wallet.wallet_type, wallet.wallet_name, wallet.xrp_balance))
+                .map(wallet => new Wallet(wallet.classic_address, wallet.wallet_type, wallet.wallet_name, wallet.seed, wallet.xrp_balance))
                 .sort((a, b) => typeOrder[a.wallet_type] - typeOrder[b.wallet_type]);
             setWallets(walletsData);
+            updateIssuerWallets(walletsData);
         } catch (error) {
             console.error("Error fetching wallets:", error);
         } finally {
+
             setLoading(false);
         }
 
@@ -47,19 +65,31 @@ const WalletsDisplay = () => {
         fetchWallets();
     }, []);
 
-    // Instead of re-fetching wallets, update the state with the new wallet.
+
+    // Instead of re-fetching wallets, update the state with the new wallet, and update the issuer wallets.
     const handleWalletCreated = (newWalletData) => {
-        setWallets((prevWallets) => [...prevWallets, newWalletData].sort((a, b) => typeOrder[a.wallet_type] - typeOrder[b.wallet_type]));
+        setWallets((prevWallets) => {
+            const updatedWallets = [...prevWallets, newWalletData].sort(
+                (a, b) => typeOrder[a.wallet_type] - typeOrder[b.wallet_type]
+            );
+            updateIssuerWallets(updatedWallets);
+            return updatedWallets;
+        });
+
     };
 
-    // Instead of re-fetching wallets, filter out the deleted wallet.
+    // Instead of re-fetching wallets, filter out the deleted wallet, and update the issuer wallets.
     const handleDeleteWallet = (deletedClassicAddress) => {
-        setWallets((prevWallets) =>
-            prevWallets.filter(
+        setWallets((prevWallets) => {
+            const updatedWallets = prevWallets.filter(
                 (wallet) => wallet.classic_address !== deletedClassicAddress
-            )
-        );
+            );
+            updateIssuerWallets(updatedWallets);
+            return updatedWallets;
+        });
+
     };
+
 
 
     return (
@@ -81,7 +111,7 @@ const WalletsDisplay = () => {
                                 onWalletDeleted={handleDeleteWallet}
 
                             />
-                            <div className="flex-row absolute bottom-3 right-4 space-x-2">
+                            <div className="flex flex-row absolute bottom-3 right-3 space-x-2">
                                 {/* Conditionally render trustline buttons */}
                                 {wallet.wallet_type === "Issuer" && (
                                     <>
@@ -103,22 +133,17 @@ const WalletsDisplay = () => {
                                             Approve Trustline
                                         </Button>
                                     </>
-
                                 )}
                                 {(wallet.wallet_type === "Standby" ||
                                     wallet.wallet_type === "Operational") && (
-                                        <Button
-                                            variant="submit"
-                                        // onClick={() =>
-                                        //     handleRequestTrustline(wallet.classic_address)
-                                        // }
-                                        >
-                                            Request Trustline
-                                        </Button>
+                                        <RequestTrustlineBtn requester_wallet={wallet} issuer_wallets={issuerWallets} />
                                     )}
-                                <Button className="" variant="submit">
-                                    View Details
-                                </Button>
+                                <div>
+                                    <Button className="" variant="submit">
+                                        View Details
+                                    </Button>
+                                </div>
+
                             </div>
                         </div>
                     ))}

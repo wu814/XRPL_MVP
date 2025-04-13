@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import Button from "./Button"; // Optional: if you want to use your custom Button component
+import Button from "./Button";
+import ErrorPopup from "./ErrorPopup";
 
 export default function DeleteWalletBtn({ classic_address, onWalletDeleted }) {
     const [loading, setLoading] = useState(false);
@@ -44,7 +45,7 @@ export default function DeleteWalletBtn({ classic_address, onWalletDeleted }) {
             <button
                 onClick={() => setShowConfirm(true)}
                 disabled={loading}
-                className="absolute top-2 right-4 transition duration-300 ease-in-out hover:scale-110"
+                className="absolute top-2 right-3 transition duration-300 ease-in-out hover:scale-110"
             >
                 <svg
                     className="w-7 h-7 text-red-600"
@@ -58,7 +59,7 @@ export default function DeleteWalletBtn({ classic_address, onWalletDeleted }) {
                 </svg>
             </button>
 
-            {error && <p className="mt-2 text-red-500">{error}</p>}
+            {error && <ErrorPopup errorMessage={error} onClose={() => setError(null)} />}
 
             {/* Confirmation Popup */}
             {showConfirm && (

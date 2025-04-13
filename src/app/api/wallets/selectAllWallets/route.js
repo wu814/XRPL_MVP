@@ -5,7 +5,7 @@ export async function GET() {
     try {
         const supabase = await createSupabaseAnonClient();
 
-        const { data, error } = await supabase.from("wallets").select("classic_address, wallet_name, wallet_type, xrp_balance");
+        const { data, error } = await supabase.from("wallets").select("classic_address, wallet_type, wallet_name, seed, xrp_balance");
 
         if (error) throw error;
 
