@@ -2,7 +2,7 @@
 
 const Searchbar = () => {
     return (
-        <div className="flex-1 mx-4">
+        <div className="flex-1 mx-4">    
             <input
                 type="text"
                 placeholder="Search..."

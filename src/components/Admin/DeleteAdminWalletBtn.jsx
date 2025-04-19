@@ -1,18 +1,20 @@
 "use client";
 
-import React, { useState } from "react";
-import Button from "./Button";
-import ErrorPopup from "./ErrorPopup";
+import React, { useState, useEffect } from "react";
+import Button from "../Button";
+import ErrorModal from "../ErrorModal";
+import SuccessModal from "../SuccessModal";
 
-export default function DeleteWalletBtn({ classic_address, onWalletDeleted }) {
+export default function DeleteAdminWalletBtn({ classic_address, onWalletDeleted }) {
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
+    const [errorMessage, setErrorMessage] = useState(null);
+    const [successMessage, setSuccessMessage] = useState(null);
     const [showConfirm, setShowConfirm] = useState(false);
+    const [adminPassword, setAdminPassword] = useState("");
 
     // The actual delete handler
     const handleDelete = async () => {
         setLoading(true);
-        setError(null);
 
         try {
             const res = await fetch("/api/wallets/deleteWallet", {
@@ -20,28 +22,31 @@ export default function DeleteWalletBtn({ classic_address, onWalletDeleted }) {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ classic_address }),
+                body: JSON.stringify({ classic_address, adminPassword }),
             });
 
             const result = await res.json();
             if (!res.ok) {
                 throw new Error(result.error || "Failed to delete wallet");
             }
-            // Notify the parent that the wallet is deleted.
-            if (onWalletDeleted) {
-                onWalletDeleted(classic_address);
-            }
+            setSuccessMessage("Wallet deleted successfully!");
         } catch (err) {
-            setError(err.message);
+            setErrorMessage(err.message);
         } finally {
             setLoading(false);
-            setShowConfirm(false); // Close the confirmation popup
+            setAdminPassword("");
+            //setShowConfirm(false); 
         }
     };
+    useEffect(() => {
+        if (successMessage) {
+            console.log("Success modal message updated:", successMessage);
+        }
+    }, [successMessage]);
+    
 
     return (
         <div>
-            {/* Delete Button (trash icon) */}
             <button
                 onClick={() => setShowConfirm(true)}
                 disabled={loading}
@@ -59,20 +64,40 @@ export default function DeleteWalletBtn({ classic_address, onWalletDeleted }) {
                 </svg>
             </button>
 
-            {error && <ErrorPopup errorMessage={error} onClose={() => setError(null)} />}
+            {errorMessage && (
+                <ErrorModal
+                    errorMessage={errorlMessage}
+                    onClose={() => setErrorMessage(null)}
+                />
+            )}
 
-            {/* Confirmation Popup */}
+            {successMessage && (
+                <SuccessModal
+                    successMessage={successMessage}
+                    onClose={() => {
+                        setSuccessMessage(null);
+                        onWalletDeleted(classic_address);
+                    }}
+                />
+            )}
+
+            {/* ConfirmationrModal */}
             {showConfirm && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/50">
+                <div className="fixed inset-0 z-25 flex items-center justify-center bg-stone-950/50">
                     <div className="bg-white p-6 rounded-lg shadow-lg w-96">
                         <h2 className="text-xl font-bold mb-4 text-center">
                             Confirm Deletion
                         </h2>
-                        <p className="mb-6">
-                            Are you sure you want to remove this wallet from dashboard?
-                            <br />
-                            <span className="font-bold">Classic Address: {classic_address}</span>
+                        <p className="mb-4 text-center">
+                            Please enter the admin password to confirm deletion.
                         </p>
+                        <input
+                            type="password"
+                            value={adminPassword}
+                            onChange={(e) => setAdminPassword(e.target.value)}
+                            className="w-full border border-gray-300 rounded p-2 mb-4"
+                            placeholder="Admin Password"
+                        />
                         <div className="flex justify-end space-x-2">
                             <Button
                                 variant="cancel"

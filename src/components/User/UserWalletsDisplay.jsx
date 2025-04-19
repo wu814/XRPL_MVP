@@ -1,10 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Button from "./Button";
-import CreateWalletBtn from "./CreateWalletBtn";
-import DeleteWalletBtn from "./DeleteWalletBtn";
-import RequestTrustlineBtn from "./RequestTrustlineBtn";
+import Button from "../Button";
+import CreateUserWalletBtn from "./CreateUserWalletBtn";
+import DeleteUserWalletBtn from "./DeleteUserWalletBtn";
 
 class Wallet {
     constructor(classic_address, wallet_type, wallet_name, seed, xrp_balance) {
@@ -17,7 +16,7 @@ class Wallet {
 }
 
 
-const WalletsDisplay = () => {
+const UserWalletsDisplay = () => {
     const [wallets, setWallets] = useState([]);
     const [loading, setLoading] = useState(false);
     const [issuerWallets, setIssuerWallets] = useState([]);
@@ -35,11 +34,6 @@ const WalletsDisplay = () => {
         );
         setIssuerWallets(issuerWallets);
     };
-
-    //// useEffect to log the issuerWallets state whenever it changes
-    // useEffect(() => {
-    //     console.log("Issuer wallets state updated:", issuerWallets);
-    // }, [issuerWallets]);
 
 
     const fetchWallets = async () => {
@@ -106,52 +100,19 @@ const WalletsDisplay = () => {
                             <p>Type: {wallet.wallet_type}</p>
                             <p>Name: {wallet.wallet_name}</p>
                             <p>XRP Balance: {wallet.xrp_balance}</p>
-                            <DeleteWalletBtn
+                            <DeleteUserWalletBtn
                                 classic_address={wallet.classic_address}
                                 onWalletDeleted={handleDeleteWallet}
 
                             />
-                            <div className="flex flex-row absolute bottom-3 right-3 space-x-2">
-                                {/* Conditionally render trustline buttons */}
-                                {wallet.wallet_type === "Issuer" && (
-                                    <>
-                                        <Button
-                                            variant="primary"
-                                        // onClick={() =>
-                                        //     handleCreateTrustline(wallet.classic_address)
-                                        // }
-                                        >
-                                            Set Flags
-                                        </Button>
-
-                                        <Button
-                                            variant="submit"
-                                        // onClick={() =>
-                                        //     handleApproveTrustline(wallet.classic_address)
-                                        // }
-                                        >
-                                            Approve Trustline
-                                        </Button>
-                                    </>
-                                )}
-                                {(wallet.wallet_type === "Standby" ||
-                                    wallet.wallet_type === "Operational") && (
-                                        <RequestTrustlineBtn requester_wallet={wallet} issuer_wallets={issuerWallets} />
-                                    )}
-                                <div>
-                                    <Button className="" variant="submit">
-                                        View Details
-                                    </Button>
-                                </div>
-
-                            </div>
+                            
                         </div>
                     ))}
                 </div>
             )}
-            <CreateWalletBtn onWalletCreated={handleWalletCreated} />
+            <CreateUserWalletBtn onWalletCreated={handleWalletCreated} />
         </div>
     );
 };
 
-export default WalletsDisplay;
+export default UserWalletsDisplay;

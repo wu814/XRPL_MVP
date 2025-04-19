@@ -4,8 +4,8 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(req) {
     try {
         const supabase = await createSupabaseAnonClient();
-        const { classic_address, wallet_type, wallet_name, seed, xrp_balance, last_sequence, created_at, updated_at } = await req.json();
-        console.log("Received data:", { classic_address, wallet_type, wallet_name, seed, xrp_balance, last_sequence, created_at, updated_at });
+        const { classic_address, wallet_type, wallet_name, seed, xrp_balance, last_sequence, created_at} = await req.json();
+        console.log("New Wallet data:", { classic_address, wallet_type, wallet_name, seed, xrp_balance, last_sequence, created_at});
         const { data, error } = await supabase
             .from("wallets")
             .insert([{
@@ -15,8 +15,7 @@ export async function POST(req) {
                 seed,
                 xrp_balance,
                 last_sequence,
-                created_at,
-                updated_at
+                created_at
             }]);
 
         if (error) throw error;

@@ -1,18 +1,18 @@
 "use client";
 
 import React, { useState } from "react";
-import Button from "./Button";
-import CreateWalletPopup from "./CreateWalletPopup";
+import Button from "../Button";
+import CreateUserWalletModal from "./CreateUserWalletModal";
 
 
-export default function CreateWalletBtn({ onWalletCreated }) {
-    const [showPopup, setShowPopup] = useState(false);
+export default function CreateAdminWalletBtn({ onWalletCreated }) {
+    const [showModal, setShowModal] = useState(false);
 
-    const handleWalletCreated = (newWalletData) => {
+    const handleWalletCreated = (currency) => {
         // Forward the new wallet data to the parent via the onWalletCreated callback,
         // if you want to update your state accordingly.
         if (onWalletCreated) {
-            onWalletCreated(newWalletData);
+            onWalletCreated(currency);
         }
     };
 
@@ -20,15 +20,15 @@ export default function CreateWalletBtn({ onWalletCreated }) {
         <div>
             <Button
                 variant="submit"
-                onClick={() => setShowPopup(true)}
+                onClick={() => setShowModal(true)}
                 className="w-full mt-4 hover:scale-none"
             >
                 + Create Wallet
             </Button>
 
-            {showPopup && (
-                <CreateWalletPopup
-                    onClose={() => setShowPopup(false)}
+            {showModal && (
+                <CreateUserWalletModal
+                    onClose={() => setShowModal(false)}
                     onWalletCreated={handleWalletCreated}
                 />
             )}

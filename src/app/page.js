@@ -1,44 +1,22 @@
 "use client";
 
-import Image from "next/image";
+import { signIn, signOut, useSession } from "next-auth/react";
 import Button from "@/components/Button";
-import Searchbar from "@/components/Searchbar";
-import Navbar from "@/components/Navbar";
-import WalletsDisplay from "@/components/WalletsDisplay";
+import AuthRedirect from "@/components/AuthRedirect";
 
-export default function Home() {
-  return (
-    <div className="min-h-screen bg-gray-100">
-      
-      {/* Top Navigation */}
-      <header className="flex items-center justify-between p-4 bg-white shadow">
-        <Navbar />
-        <Searchbar />
-      </header>
 
-      {/* Main Content */}
-      <main className="container mx-auto p-4 flex">
-        <WalletsDisplay />
-
-        {/* Top Earning Pools Sidebar */}
-        <section className="w-1/3 bg-white p-6 rounded-lg shadow">
-          <h3 className="text-xl font-bold mb-4">Top Earning Pools (24hr)</h3>
-          <ul className="space-y-3">
-            <li className="flex justify-between bg-gray-100 p-3 rounded">
-              <span>XRP/USD</span>
-              <span>2.75%</span>
-            </li>
-            <li className="flex justify-between bg-gray-100 p-3 rounded">
-              <span>XRP/BTC</span>
-              <span>1.58%</span>
-            </li>
-            <li className="flex justify-between bg-gray-100 p-3 rounded">
-              <span>USD/BTC</span>
-              <span>1.23%</span>
-            </li>
-          </ul>
-        </section>
-      </main>
-    </div>
-  );
+export default function Login() {
+    const { data: session, status } = useSession();
+    return (
+        <div className="min-h-screen bg-gray-100 items-center justify-center flex flex-col">
+            <AuthRedirect />
+            <Button
+                variant="submit"
+                onClick={() => signIn("google")}
+                className="mt-6 px-6 py-3 text-lg font-semibold"
+            >
+                {"Log in with Google"}
+            </Button>
+        </div>
+    );
 }
