@@ -34,7 +34,7 @@ export default function CreateAdminWalletModal({
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/50">
+        <div className="fixed inset-0 z-20 flex items-center justify-center bg-stone-950/50">
             <div className="bg-white p-6 rounded-lg shadow-lg w-96">
                 <h2 className="text-xl font-bold mb-4">Create Wallet</h2>
 
@@ -78,23 +78,21 @@ export default function CreateAdminWalletModal({
                         </Button>
                     </div>
                 </form>
-
-                {/* ErrorModal now uses the real onErrorClose */}
-                {errorMessage && (
-                    <ErrorModal
-                        errorMessage={errorMessage}
-                        onClose={onErrorClose}
-                    />
-                )}
-
-                {/* SuccessModal now uses the real onSuccessClose */}
-                {successMessage && (
-                    <SuccessModal
-                        successMessage={successMessage}
-                        onClose={onSuccessClose}
-                    />
-                )}
             </div>
+
+            {errorMessage && (
+                <ErrorModal
+                    errorMessage={errorMessage}
+                    onClose={onErrorClose}
+                />
+            )}
+
+            {successMessage && (
+                <SuccessModal
+                    successMessage={successMessage}
+                    onClose={onSuccessClose}
+                />
+            )}
         </div>
     );
 }

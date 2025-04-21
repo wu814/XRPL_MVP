@@ -83,7 +83,7 @@ export default function DeleteAdminWalletBtn({ classic_address, onWalletDeleted 
 
             {/* ConfirmationrModal */}
             {showConfirm && (
-                <div className="fixed inset-0 z-25 flex items-center justify-center bg-stone-950/50">
+                <div className="fixed inset-0 z-20 flex items-center justify-center bg-stone-950/50">
                     <div className="bg-white p-6 rounded-lg shadow-lg w-96">
                         <h2 className="text-xl font-bold mb-4 text-center">
                             Confirm Deletion

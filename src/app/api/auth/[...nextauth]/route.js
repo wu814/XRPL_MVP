@@ -58,7 +58,7 @@ export const authOptions = {
                     console.error("Error finding user:", error);
                     throw new Error('No user found');
                 }
-                token.id = userData.user_id;
+                token.user_id = userData.user_id;
                 token.is_admin = userData.is_admin;
                 token.username = userData.username;
             }

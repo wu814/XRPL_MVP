@@ -70,7 +70,6 @@ const AdminWalletsDisplay = () => {
             updateIssuerWallets(updatedWallets);
             return updatedWallets;
         });
-
     };
 
     // Instead of re-fetching wallets, filter out the deleted wallet, and update the issuer wallets.
@@ -82,7 +81,6 @@ const AdminWalletsDisplay = () => {
             updateIssuerWallets(updatedWallets);
             return updatedWallets;
         });
-
     };
 
 
