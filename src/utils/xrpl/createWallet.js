@@ -1,5 +1,6 @@
 import { client, connectXrplClient } from "./testnet";
 import * as xrpl from "xrpl";
+import { setWalletFlags } from "./setWalletFlags";
 
 export async function createWallet(walletType, walletName) {
     try {
@@ -10,9 +11,11 @@ export async function createWallet(walletType, walletName) {
 
         const accountInfo = await client.request({
             command: "account_info",
-            account: wallet.address,
+            account: wallet.classicAddress,
             ledger_index: "validated",
         });
+
+        setWalletFlags(wallet);
 
         return {
             classic_address: wallet.address,
@@ -27,3 +30,5 @@ export async function createWallet(walletType, walletName) {
         throw new Error(error.message || "Failed to create XRPL wallet");
     }
 }
+
+

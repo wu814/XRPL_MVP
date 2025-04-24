@@ -1,3 +1,4 @@
+// Change this file when there are more than 1 issuer wallet
 import { client, connectXrplClient } from "./testnet";
 import * as xrpl from "xrpl";
 
@@ -37,7 +38,6 @@ export async function requestTrustline(requester_wallet, issuer_wallets, currenc
         }
     }
     catch (error) {
-        console.error("Error requesting trustline:", error);
         throw new Error(error.message || "Failed to request trustline");
     }
 }
