@@ -1,4 +1,4 @@
-import { getServerSession } from 'next-auth';
+import { getServerSession } from "next-auth";
 
 export const session = async ({ session, token }) => {
   session.user.user_id = token.user_id;

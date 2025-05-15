@@ -19,7 +19,7 @@ export default function AuthRedirect() {
       } else {
         router.push("/user"); // Redirect to user/page.js or your designated user page
       }
-    } 
+    }
   }, [session, status, router]);
 
   // Optionally, you can return a loading indicator or null

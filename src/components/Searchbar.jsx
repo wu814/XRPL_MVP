@@ -1,15 +1,15 @@
 "use client";
 
 const Searchbar = () => {
-    return (
-        <div className="flex-1 mx-4">    
-            <input
-                type="text"
-                placeholder="Search..."
-                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
-            />
-        </div>
-    );
+  return (
+    <div className="mx-4 flex-1">
+      <input
+        type="text"
+        placeholder="Search..."
+        className="w-full rounded border border-[#D4D7E9] p-2 focus:border-[#F8FFA7] focus:outline-none"
+      />
+    </div>
+  );
 };
 
 export default Searchbar;

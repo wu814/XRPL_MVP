@@ -1,7 +1,7 @@
 const bcrypt = require("bcryptjs");
 
 async function generateHashedPassword() {
-  const adminPlaintext = "xrptothemoon"; // Replace with your desired password
+  const adminPlaintext = "fullsend"; // Replace with your desired password
   const saltRounds = 12; // Adjust cost factor as needed
 
   try {

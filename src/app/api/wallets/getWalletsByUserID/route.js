@@ -5,29 +5,23 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 export async function GET() {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.email) {
+  if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-
   try {
     const supabase = await createSupabaseAnonClient();
+
     const { data, error } = await supabase
-      .from("users")
-      .select("username")
-      .eq("email_address", session.user.email)
-      .single();
+      .from("wallets")
+      .select("classic_address, wallet_type, seed")
+      .eq("user_id", session.user.user_id);
 
-    if (error) {
-      return NextResponse.json(
-        { error: "Failed to fetch username." },
-        { status: 500 },
-      );
-    }
+    if (error) throw error;
 
-    return NextResponse.json({ username: data.username }, { status: 200 });
+    return NextResponse.json({ data }, { status: 200 });
   } catch (error) {
     return NextResponse.json(
-      { error: `${error.message} [getUsernameByEmail/route.js]` }, 
+      { error: `${error.message} [getWalletsByUserID/route.js]` }, 
       { status: 500 }
     );
   }

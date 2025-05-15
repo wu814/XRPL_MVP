@@ -2,73 +2,75 @@
 
 import React, { useState } from "react";
 import Button from "../Button";
-import CreateAdminWalletModal from "./CreateAdminWalletModal";
+import CreateAdminWalletModal from "./CreateAdminWalletMdl";
+import ErrorModal from "../ErrorMdl";
+import SuccessModal from "../SuccessMdl";
 import { createWallet } from "@/utils/xrpl/createWallet";
 
 export default function CreateAdminWalletBtn({ onWalletCreated }) {
-    const [showModal, setShowModal] = useState(false);
-    const [loading, setLoading] = useState(false);
-    const [errorMessage, setErrorMessage] = useState(null);
-    const [successMessage, setSuccessMessage] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
 
-    // 1) handles creation + persistence
-    const handleCreateWallet = async (walletType, walletName) => {
-        setLoading(true);
-        setErrorMessage(null);
+  const handleCreateWallet = async (walletType) => {
+    setLoading(true);
+    setErrorMessage(null);
 
-        try {
-            const walletData = await createWallet(walletType, walletName);
+    try {
+      const walletData = await createWallet(walletType);
 
-            const res = await fetch("/api/wallets/createWallet", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(walletData),
-            });
-            const result = await res.json();
-            if (!res.ok) throw new Error(result.error || "Failed to add wallet");
+      const res = await fetch("/api/wallets/createWallet", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(walletData),
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || "Failed to add wallet");
 
-            if (onWalletCreated) onWalletCreated(walletData);
+      if (onWalletCreated) onWalletCreated(walletData);
+      setSuccessMessage(result.message);
+    } catch (err) {
+      setErrorMessage(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-            setSuccessMessage(`${walletType} wallet created successfully!`);
-        } catch (err) {
-            setErrorMessage(err.message);
-        } finally {
-            setLoading(false);
-        }
-    };
+  return (
+    <div>
+      <Button
+        variant="primary"
+        onClick={() => setShowModal(true)}
+        className="mt-4 w-full hover:scale-none"
+      >
+        + Create Wallet
+      </Button>
 
-    // 2) user closes the error modal
-    const handleErrorClose = () => {
-        setErrorMessage(null);
-    };
+      {showModal && (
+        <CreateAdminWalletModal
+          onClose={() => setShowModal(false)}
+          onSubmit={handleCreateWallet}
+          loading={loading}
+        />
+      )}
 
-    // 3) user closes the success modal (and the dialog)
-    const handleSuccessClose = () => {
-        setSuccessMessage(null);
-        setShowModal(false);
-    };
+      {errorMessage && (
+        <ErrorModal
+          errorMessage={errorMessage}
+          onClose={() => setErrorMessage(null)}
+        />
+      )}
 
-    return (
-        <div>
-            <Button
-                variant="submit"
-                onClick={() => setShowModal(true)}
-                className="w-full mt-4 hover:scale-none"
-            >
-                + Create Wallet
-            </Button>
-
-            {showModal && (
-                <CreateAdminWalletModal
-                    onClose={() => setShowModal(false)}
-                    onSubmit={handleCreateWallet}
-                    loading={loading}
-                    errorMessage={errorMessage}
-                    onErrorClose={handleErrorClose}
-                    successMessage={successMessage}
-                    onSuccessClose={handleSuccessClose}
-                />
-            )}
-        </div>
-    );
+      {successMessage && (
+        <SuccessModal
+          successMessage={successMessage}
+          onClose={() => {
+            setSuccessMessage(null);
+            setShowModal(false);
+          }}
+        />
+      )}
+    </div>
+  );
 }

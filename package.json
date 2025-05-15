@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@headlessui/react": "^2.2.2",
     "@supabase/ssr": "^0.6.1",
     "bcryptjs": "^3.0.2",
     "next": "15.3.0",
@@ -25,6 +26,8 @@
     "@types/react": "19.1.0",
     "eslint": "^9",
     "eslint-config-next": "15.3.0",
+    "prettier": "^3.5.3",
+    "prettier-plugin-tailwindcss": "^0.6.11",
     "tailwindcss": "^4"
   }
 }

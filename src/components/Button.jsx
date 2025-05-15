@@ -8,28 +8,27 @@ const Button = ({
   ...props
 }) => {
   // Base button styles, including hover scaling
-  const baseStyles = "px-4 py-2 rounded-md font-semibold transition duration-300 ease-in-out hover:scale-105";
+  const baseStyles =
+    "px-4 py-2 rounded-lg font-semibold text-sm transition duration-100 ease-in-out hover:scale-100";
 
-  // Styles for each variant
+  //
+  // tyles for each variant
   const variantStyles = {
-    primary: "bg-[#D25875] text-white hover:bg-[#D4365B]",
-    submit:  "bg-[#83B592] text-white hover:bg-[#6DAB7F]",
-    cancel:  "bg-red-500 text-white hover:bg-red-600",
-    basic:   "bg-[#DFD9CF] text-black hover:bg-[#BDB8AF]",
+    primary:
+      "border-2 border-transparent bg-[#F8FFA7] text-black hover:text-[#F8FFA7] hover:bg-transparent hover:border-[#F8FFA7]",
+    cancel:
+      "border-2 border-transparent bg-[#E65A5A] text-black hover:text-[#E65A5A] hover:bg-transparent hover:border-[#E65A5A]",
+    login: "border-2 border-[#F8FFA7] text-[#F8FFA7] bg-transparent hover:text-black hover:bg-[#F8FFA7] hover:border-transparent",
   };
 
   // Styles to apply when the button is disabled
-  const disabledStyles = "disabled:bg-gray-400 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100";
+  const disabledStyles =
+    "disabled:bg-gray-400 disabled:border-transparent disabled:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100";
 
   return (
     <button
       disabled={disabled}
-      className={`
-        ${baseStyles}
-        ${variantStyles[variant]}
-        ${disabledStyles}
-        ${className}
-      `}
+      className={` ${baseStyles} ${variantStyles[variant]} ${disabledStyles} ${className} `}
       {...props}
     >
       {children}

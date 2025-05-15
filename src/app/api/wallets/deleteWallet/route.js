@@ -1,49 +1,60 @@
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import bcrypt from "bcryptjs";
 
 export async function DELETE(req) {
-    try {
-        const { classic_address, adminPassword } = await req.json();
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.user_id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  try {
+    const { classicAddress, enteredPassword } = await req.json();
 
-        if (!classic_address) {
-            return NextResponse.json({ error: "Missing classic_address" }, { status: 400 });
-
-        }
-
-        const supabase = await createSupabaseAnonClient();
-
-        const { data: passwordData, error: passwordError } = await supabase
-            .from('passwords') // assuming a table named "passwords"
-            .select('admin_password')
-            .eq('id', 1)
-            .single();
-
-        if (passwordError) {
-            throw new Error(passwordError.message);
-        }
-
-        // Compare the entered password to the stored hash
-        const isMatch = await bcrypt.compare(adminPassword, passwordData.admin_password);
-        if (!isMatch) {
-            return new Response(JSON.stringify({ error: 'Invalid admin password.' }), {
-                status: 403,
-                headers: { "Content-Type": "application/json" },
-            });
-        }
-
-        const { data, error } = await supabase
-            .from("wallets")
-            .delete()
-            .eq("classic_address", classic_address);
-
-        if (error) throw error;
-
-        return NextResponse.json({ message: "Wallet deleted successfully" });
+    if (!classicAddress) {
+      return NextResponse.json(
+        { error: "Missing classic address" },
+        { status: 400 },
+      );
     }
 
-    catch (error) {
-        console.error("Error deleting wallet:", error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    const supabase = await createSupabaseAnonClient();
+
+    const { data: passwordData, error: passwordError } = await supabase
+      .from("passwords")
+      .select("password")
+      .eq("user_id", session.user.user_id)
+      .single();
+
+    if (passwordError) {
+      throw new Error(passwordError.message);
     }
+
+    // Compare the entered password to the stored hash
+    const isMatch = await bcrypt.compare(
+      enteredPassword,
+      passwordData.password,
+    );
+    if (!isMatch) {
+      return new Response(JSON.stringify({ error: "Invalid password." }), {
+        status: 403,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    const { data, error } = await supabase
+      .from("wallets")
+      .delete()
+      .eq("classic_address", classicAddress);
+
+    if (error) throw error;
+
+    return NextResponse.json({ message: "Wallet deleted successfully!" });
+  } catch (error) {
+    return NextResponse.json(
+      { error: `${error.message} [deleteWallet/route.js]` }, 
+      { status: 500 }
+    );
+  }
 }
