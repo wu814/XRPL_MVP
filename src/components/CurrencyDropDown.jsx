@@ -27,7 +27,7 @@ export default function CurrencyDropDown({
   return (
     <Listbox value={value} onChange={onChange}>
       <div className="relative w-full">
-        <ListboxButton className="flex w-full items-center justify-between rounded-lg bg-[#2c2e44] px-3 py-2 text-white">
+        <ListboxButton className="flex w-full mt-1 items-center justify-between border border-[#D4D7E9] rounded bg-[#3F4359] px-3 py-2 text-white">
           <div className="flex items-center space-x-2">
             {selectedCurrency ? (
               <>
@@ -72,13 +72,13 @@ export default function CurrencyDropDown({
                   value={c.id}
                   disabled={isDisabled}
                   className={({ focus, selected, disabled }) =>
-                    `flex cursor-pointer items-center space-x-2 p-2 select-none ${
+                    `flex items-center space-x-2 p-2 select-none ${
                       disabled
-                        ? "cursor-not-allowed opacity-50"
+                        ? "cursor-not-allowed opacity-30"
                         : focus
-                          ? "bg-[#33354D]"
+                          ? "cursor-pointer bg-[#2C2E44]"
                           : selected
-                            ? "bg-[#33354D]"
+                            ? "cursor-pointer bg-[#33354D]"
                             : ""
                     }`
                   }

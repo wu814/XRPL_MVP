@@ -17,7 +17,6 @@ export async function setPathfindWalletFlags(wallet) {
 
   // Define flags to be set with corresponding offsets
   const flags = [
-    { name: "asfDefaultRipple", flag: 8, offset: 20 },
   ];
 
   for (let i = 0; i < flags.length; i++) {

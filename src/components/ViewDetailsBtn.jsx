@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Button from "./Button";
 import ErrorModal from "./ErrorMdl";
 import ViewDetailsMdl from "./ViewDetailsMdl";
+import ViewIssuerDetailsMdl from "./ViewIssuerDetailsMdl";
 import { getAccountInfo, getAccountLines } from "@/utils/xrpl/getWalletInfo";
 
 
@@ -53,12 +54,21 @@ export default function ViewDetailsBtn({ wallet }) {
 
       {showDetails && (
         <div>
-          <ViewDetailsMdl
-            infoData={accountInfo}
-            linesData={accountLines}
-            loading={loading}
-            onClose={() => setShowDetails(false)}
-          />
+          {wallet.walletType === "ISSUER" ? (
+            <ViewIssuerDetailsMdl
+              infoData={accountInfo}
+              linesData={accountLines}
+              loading={loading}
+              onClose={() => setShowDetails(false)}
+            />
+          ) : (
+            <ViewDetailsMdl
+              infoData={accountInfo}
+              linesData={accountLines}
+              loading={loading}
+              onClose={() => setShowDetails(false)}
+            />
+          )}
         </div>
       )}
     </div>

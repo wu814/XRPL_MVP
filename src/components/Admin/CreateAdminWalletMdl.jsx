@@ -12,7 +12,7 @@ export default function CreateAdminWalletModal({ onClose, onSubmit, loading }) {
   };
 
   return (
-    <div className="fixed inset-0 z-30 flex items-center justify-center bg-stone-900/20">
+    <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/10">
       <div className="w-96 rounded-lg bg-[#3F4359] p-6 shadow-xl">
         <h2 className="mb-4 text-xl font-bold">Create Wallet</h2>
 

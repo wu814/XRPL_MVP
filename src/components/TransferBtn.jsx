@@ -1,7 +1,5 @@
 "use client";
 
-// Change this file when there are more than 1 issuer wallet
-
 import { useState } from "react";
 import Button from "./Button";
 import sendXRP from "@/utils/xrpl/sendXRP";
@@ -15,24 +13,23 @@ export default function TransferBtn({ senderWallet, issuerWallets }) {
   const [recipientAddress, setRecipientAddress] = useState("");
   const [amount, setAmount] = useState("");
   const [currency, setCurrency] = useState("");
+  const [destinationTag, setDestinationTag] = useState(""); 
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
 
-  
   const handleSubmit = async () => {
     setLoading(true);
     setErrorMessage(null);
 
     try {
+      const tag = destinationTag.trim() !== "" ? Number(destinationTag) : null;
       if (currency === "XRP") {
-        // senderWallet is an object, we need to access the seed of this object in the xrpl code to generate the actual wallet object to sign the transaction
-        const result = await sendXRP(senderWallet, recipientAddress, amount);
-        setSuccessMessage(`✅ Sent ${result.amount} XRP to ${recipientAddress}`);
+        const result = await sendXRP(senderWallet, recipientAddress, amount, tag);
+        setSuccessMessage(result.message);
       } else {
-        const result = await sendIOU(senderWallet, recipientAddress, amount, currency, issuerWallets);
-        if (!result.success) throw new Error(result.error);
-        setSuccessMessage(`✅ Sent ${result.amount} ${currency} to ${recipientAddress}`);
+        const result = await sendIOU(senderWallet, recipientAddress, amount, currency, issuerWallets, tag);
+        setSuccessMessage(result.message);
       }
     } catch (err) {
       setErrorMessage(err.message);
@@ -42,6 +39,7 @@ export default function TransferBtn({ senderWallet, issuerWallets }) {
       setRecipientAddress("");
       setAmount("");
       setCurrency("");
+      setDestinationTag(""); 
     }
   };
 
@@ -52,8 +50,8 @@ export default function TransferBtn({ senderWallet, issuerWallets }) {
       </Button>
 
       {showModal && (
-        <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/40">
-          <div className="w-96 space-y-4 rounded-lg bg-white p-6 text-black shadow-lg">
+        <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/10">
+          <div className="w-96 space-y-4 rounded-lg bg-[#3F4359] p-6 shadow-lg">
             <h2 className="text-xl font-semibold text-center">Transfer</h2>
 
             <div>
@@ -71,8 +69,8 @@ export default function TransferBtn({ senderWallet, issuerWallets }) {
                 type="text"
                 value={recipientAddress}
                 onChange={(e) => setRecipientAddress(e.target.value)}
-                className="w-full mt-1 p-2 border rounded"
-                placeholder="r..."
+                className="w-full mt-1 p-2 border border-[#D4D7E9] rounded"
+                placeholder="Enter recipient address"
               />
             </div>
 
@@ -83,8 +81,19 @@ export default function TransferBtn({ senderWallet, issuerWallets }) {
                 min="0"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="w-full mt-1 p-2 border rounded"
-                placeholder="e.g. 50"
+                className="w-full mt-1 p-2 border border-[#D4D7E9] rounded"
+                placeholder="Enter amount"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium">Destination Tag (optional)</label>
+              <input
+                type="text"
+                value={destinationTag}
+                onChange={(e) => setDestinationTag(e.target.value)}
+                className="w-full mt-1 p-2 border border-[#D4D7E9] rounded"
+                placeholder="Enter destination tag"
               />
             </div>
 

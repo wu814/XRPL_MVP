@@ -3,16 +3,23 @@
 import React from "react";
 import Button from "./Button";
 
-export default function ViewDetailsMdl({
-  infoData,
-  linesData,
-  loading,
-  onClose,
-}) {
+export default function ViewIssuerDetailsMdl({ infoData, linesData, loading, onClose }) {
+  // Group and sum balances by currency
+  const groupedBalances = linesData?.reduce((acc, line) => {
+    const currency = line.currency;
+    const balance = parseFloat(line.balance);
+
+    if (!acc[currency]) {
+      acc[currency] = 0;
+    }
+    acc[currency] += balance;
+    return acc;
+  }, {}) || {};
+
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/10">
-      <div className="relative w-11/12 max-w-3xl rounded-lg bg-[#3F4359] p-6 text-white shadow-lg">
-        <h2 className="text-center mb-4 text-xl font-bold">Wallet Details</h2>
+      <div className="relative w-11/12 max-w-3xl overflow-y-auto rounded-lg bg-[#3F4359] p-6 shadow-lg text-white">
+        <h2 className="mb-4 text-xl font-bold text-center">Issuer Wallet Details</h2>
 
         {/* Loading */}
         {loading && <p className="text-center text-gray-300">Loading...</p>}
@@ -38,14 +45,10 @@ export default function ViewDetailsMdl({
             {linesData.length === 0 ? (
               <p className="text-sm text-gray-300">No trustline data available.</p>
             ) : (
-              <ul className="space-y-2 max-h-60 overflow-y-auto text-sm">
-                {linesData.map((line, idx) => (
-                  <li key={idx} className="border-b border-gray-600 pb-2">
-                    <div><strong>Currency:</strong> {line.currency}</div>
-                    <div><strong>Balance:</strong> {line.balance}</div>
-                    <div><strong>Issuer:</strong> {line.account}</div>
-                    <div><strong>Limit:</strong> {line.limit}</div>
-                    <div><strong>Limit Peer:</strong> {line.limit_peer}</div>
+              <ul className="space-y-3">
+                {Object.entries(groupedBalances).map(([currency, totalBalance]) => (
+                  <li key={currency} className="border-b border-gray-600 pb-2">
+                    <strong>{currency}</strong>: {totalBalance.toFixed(6)}
                   </li>
                 ))}
               </ul>

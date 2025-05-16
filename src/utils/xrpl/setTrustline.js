@@ -8,7 +8,7 @@ export async function setTrustline(
   currency,
 ) {
   await connectXrplClient();
-  const MAX_TRUST_LIMIT = "1000000000"; // 1 billion of the currency
+  const MAX_TRUST_LIMIT = "1000000000000000"; 
 
   // Build the TrustSet transaction with the determined currency.
   const trustSetTx = {
@@ -19,7 +19,6 @@ export async function setTrustline(
       issuer: issuerWallets[0].classicAddress,
       value: MAX_TRUST_LIMIT,
     },
-    Flags: 131072, // tfSetNoRipple
   };
 
   const wallet = xrpl.Wallet.fromSeed(setterWallet.seed);
@@ -32,7 +31,7 @@ export async function setTrustline(
       `Setting trustline failed: ${response.result.meta.TransactionResult} [setTrustline.js]`
     );
   }
-  const msg = `✅ Trustline setted from ${wallet.classicAddress} to ${issuerWallets[0].classicAddress} for ${currency}.`
+  const msg = `Trustline set from ${wallet.classicAddress} to ${issuerWallets[0].classicAddress} for ${currency}.`
   console.log(msg);
 
   return msg;

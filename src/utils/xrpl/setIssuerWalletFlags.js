@@ -18,9 +18,7 @@ export async function setIssuerWalletFlags(wallet) {
   // Define flags to be set with corresponding offsets
   const flags = [
     { name: "asfDisallowXRP", flag: 3, offset: 20},
-    { name: "asfGlobalFreeze", flag: 7, offset: 30 },
     { name: "asfDefaultRipple", flag: 8, offset: 40 },
-    { name: "asfDepositAuth", flag: 9, offset: 50 },
     { name: "asfAllowTrustLineClawback", flag: 16, offset: 60 },
   ];
 
