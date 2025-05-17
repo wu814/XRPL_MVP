@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import Button from "./Button";
-import ErrorModal from "./ErrorMdl";
+import Button from "../Button";
+import ErrorModal from "../ErrorMdl";
 import ViewDetailsMdl from "./ViewDetailsMdl";
 import ViewIssuerDetailsMdl from "./ViewIssuerDetailsMdl";
 import { getAccountInfo, getAccountLines } from "@/utils/xrpl/getWalletInfo";

@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import Button from "./Button";
+import Button from "../Button";
 import sendXRP from "@/utils/xrpl/sendXRP";
 import sendIOU from "@/utils/xrpl/sendIOU";
-import ErrorModal from "./ErrorMdl";
-import SuccessModal from "./SuccessMdl";
-import CurrencyDropDown from "./CurrencyDropDown";
+import ErrorModal from "../ErrorMdl";
+import SuccessModal from "../SuccessMdl";
+import CurrencyDropDown from "../CurrencyDropDown";
 
 export default function TransferBtn({ senderWallet, issuerWallets }) {
   const [showModal, setShowModal] = useState(false);
@@ -69,7 +69,7 @@ export default function TransferBtn({ senderWallet, issuerWallets }) {
                 type="text"
                 value={recipientAddress}
                 onChange={(e) => setRecipientAddress(e.target.value)}
-                className="w-full mt-1 p-2 border border-[#D4D7E9] rounded"
+                className="w-full mt-1 p-2 border border-[#8E909D] rounded"
                 placeholder="Enter recipient address"
               />
             </div>
@@ -81,7 +81,7 @@ export default function TransferBtn({ senderWallet, issuerWallets }) {
                 min="0"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="w-full mt-1 p-2 border border-[#D4D7E9] rounded"
+                className="w-full mt-1 p-2 border border-[#8E909D] rounded"
                 placeholder="Enter amount"
               />
             </div>
@@ -92,7 +92,7 @@ export default function TransferBtn({ senderWallet, issuerWallets }) {
                 type="text"
                 value={destinationTag}
                 onChange={(e) => setDestinationTag(e.target.value)}
-                className="w-full mt-1 p-2 border border-[#D4D7E9] rounded"
+                className="w-full mt-1 p-2 border border-[#8E909D] rounded"
                 placeholder="Enter destination tag"
               />
             </div>

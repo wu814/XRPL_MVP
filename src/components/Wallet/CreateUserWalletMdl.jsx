@@ -24,7 +24,7 @@ export default function CreateUserWalletModal({ onClose, onSubmit, loading }) {
             <select
               value={method}
               onChange={(e) => setMethod(e.target.value)}
-              className="w-full rounded border border-[#D4D7E9] p-2"
+              className="w-full rounded border border-[#8E909D] p-2"
             >
               <option value="custodial">Custodial Wallet</option>
               <option value="import">Import Non-Custodial Wallet</option>

@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect } from "react";
 import CreateUserWalletBtn from "./CreateUserWalletBtn";
-import DeleteWalletBtn from "../DeleteWalletBtn";
-import SetTrustlineBtn from "../SetTrustlineBtn";
-import ViewDetailsBtn from "../ViewDetailsBtn";
-import TransferBtn from "../TransferBtn";
+import DeleteWalletBtn from "./DeleteWalletBtn";
+import SetTrustlineBtn from "./SetTrustlineBtn";
+import ViewDetailsBtn from "./ViewDetailsBtn";
+import TransferBtn from "./TransferBtn";
 
 class Wallet {
   constructor(classicAddress, walletType, seed) {
@@ -15,7 +15,7 @@ class Wallet {
   }
 }
 
-const UserWalletsDisplay = () => {
+const DisplayUserWallets = () => {
   const [wallets, setWallets] = useState([]);
   const [loading, setLoading] = useState(false);
   const [issuerWallets, setIssuerWallets] = useState([]);
@@ -122,4 +122,4 @@ const UserWalletsDisplay = () => {
   );
 };
 
-export default UserWalletsDisplay;
+export default DisplayUserWallets;

@@ -2,10 +2,11 @@
 
 import React, { useState, useEffect } from "react";
 import CreateAdminWalletBtn from "./CreateAdminWalletBtn";
-import DeleteWalletBtn from "../DeleteWalletBtn";
-import SetTrustlineBtn from "../SetTrustlineBtn";
-import ViewDetailsBtn from "../ViewDetailsBtn";
-import TransferBtn from "../TransferBtn";
+import DeleteWalletBtn from "./DeleteWalletBtn";
+import SetTrustlineBtn from "./SetTrustlineBtn";
+import ViewDetailsBtn from "./ViewDetailsBtn";
+import TransferBtn from "./TransferBtn";
+import ErrorModal from "../ErrorMdl";
 
 class Wallet {
   constructor(classicAddress, walletType, seed) {
@@ -15,10 +16,11 @@ class Wallet {
   }
 }
 
-const AdminWalletsDisplay = () => {
+const DisplayAdminWallets = () => {
   const [wallets, setWallets] = useState([]);
   const [loading, setLoading] = useState(false);
   const [issuerWallets, setIssuerWallets] = useState([]);
+  const [errorMessage, setErrorMessage] = useState(null);
 
   // Define a sort order for wallet types. Issuer always on top, then Standby, then Operational.
   const typeOrder = {
@@ -53,7 +55,7 @@ const AdminWalletsDisplay = () => {
       setWallets(walletsData);
       updateIssuerWallets(walletsData);
     } catch (error) {
-      console.error("Error fetching wallets:", error);
+      setErrorMessage("Error fetching wallets: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -96,7 +98,7 @@ const AdminWalletsDisplay = () => {
           {wallets.map((wallet) => (
             <div
               key={wallet.classicAddress}
-              className="relative rounded-lg bg-[#242639] p-4 -lg"
+              className="relative rounded-lg bg-[#242639] p-4 shadow-lg"
             >
               <h3 className="text-xl font-bold mb-3">{wallet.classicAddress}</h3>
               <p>Type: {wallet.walletType}</p>
@@ -124,8 +126,15 @@ const AdminWalletsDisplay = () => {
         </div>
       )}
       <CreateAdminWalletBtn onWalletCreated={handleWalletCreated} />
+
+      {errorMessage && (
+        <ErrorModal
+          errorMessage={errorMessage}
+          onClose={() => setErrorMessage(null)}
+        />
+      )}
     </div>
   );
 };
 
-export default AdminWalletsDisplay;
+export default DisplayAdminWallets;

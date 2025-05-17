@@ -2,7 +2,7 @@
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
-import UserWalletsDisplay from "@/components/User/UserWalletsDisplay";
+import DisplayUserWallets from "@/components/Wallet/DisplayUserWallets";
 import UpdateUsernameModal from "@/components/UpdateUsernameMdl";
 
 export default function UserHome() {
@@ -35,7 +35,7 @@ export default function UserHome() {
       <Navbar />
       {/* Main Content */}
       <main className="container mx-auto flex p-4">
-        <UserWalletsDisplay />
+        <DisplayUserWallets />
 
         {/* Top Earning Pools Sidebar */}
         <section className="h-[40rem] w-1/3 rounded-lg bg-[#242639] p-6 shadow-lg">

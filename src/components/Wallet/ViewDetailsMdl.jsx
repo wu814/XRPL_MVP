@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import Button from "./Button";
+import Button from "../Button";
 
 export default function ViewDetailsMdl({
   infoData,
@@ -40,7 +40,7 @@ export default function ViewDetailsMdl({
             ) : (
               <ul className="space-y-2 max-h-60 overflow-y-auto text-sm">
                 {linesData.map((line, idx) => (
-                  <li key={idx} className="border-b border-gray-600 pb-2">
+                  <li key={idx} className="border-b border-[#8E909D] pb-2">
                     <div><strong>Currency:</strong> {line.currency}</div>
                     <div><strong>Balance:</strong> {line.balance}</div>
                     <div><strong>Issuer:</strong> {line.account}</div>

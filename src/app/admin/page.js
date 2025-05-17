@@ -2,7 +2,7 @@
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
-import AdminWalletsDisplay from "@/components/Admin/AdminWalletsDisplay";
+import DisplayAdminWallets from "@/components/Wallet/DisplayAdminWallets";
 import UpdateUsernameModal from "@/components/UpdateUsernameMdl";
 
 export default function AdminHome() {
@@ -35,7 +35,7 @@ export default function AdminHome() {
       <Navbar />
       {/* Main Content */}
       <main className="container mx-auto flex p-4">
-        <AdminWalletsDisplay />
+        <DisplayAdminWallets />
 
         {/* Top Earning Pools Sidebar */}
         <section className="h-[40rem] w-1/3 rounded-lg bg-[#242639] p-6 shadow-lg">

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import Button from "./Button";
+import Button from "../Button";
 
 export default function ViewIssuerDetailsMdl({ infoData, linesData, loading, onClose }) {
   // Group and sum balances by currency
@@ -47,7 +47,7 @@ export default function ViewIssuerDetailsMdl({ infoData, linesData, loading, onC
             ) : (
               <ul className="space-y-3">
                 {Object.entries(groupedBalances).map(([currency, totalBalance]) => (
-                  <li key={currency} className="border-b border-gray-600 pb-2">
+                  <li key={currency} className="border-b border-[#8E909D] pb-2">
                     <strong>{currency}</strong>: {totalBalance.toFixed(6)}
                   </li>
                 ))}

@@ -50,7 +50,7 @@ export default function UpdateUsernameModal({ onClose, onUpdated }) {
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           placeholder="no spaces allowed"
-          className="mb-2 w-full rounded border border-[#D4D7E9] p-2"
+          className="mb-2 w-full rounded border border-[#8E909D] p-2"
         />
 
         {error && <p className="mb-2 text-sm text-red-500">{error}</p>}

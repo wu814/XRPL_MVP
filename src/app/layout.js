@@ -30,7 +30,7 @@ export default function RootLayout({ children }) {
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <SessionWrapper>
-          <div className="bg-[#1C2033] text-white">{children}</div>
+          <div className="bg-[#1C2033] min-h-screen text-white">{children}</div>
         </SessionWrapper>
       </body>
     </html>

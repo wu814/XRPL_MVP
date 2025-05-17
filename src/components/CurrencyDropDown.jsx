@@ -27,7 +27,7 @@ export default function CurrencyDropDown({
   return (
     <Listbox value={value} onChange={onChange}>
       <div className="relative w-full">
-        <ListboxButton className="flex w-full mt-1 items-center justify-between border border-[#D4D7E9] rounded bg-[#3F4359] px-3 py-2 text-white">
+        <ListboxButton className="flex w-full mt-1 items-center justify-between border border-[#8E909D] rounded bg-[#3F4359] px-3 py-2 text-white">
           <div className="flex items-center space-x-2">
             {selectedCurrency ? (
               <>

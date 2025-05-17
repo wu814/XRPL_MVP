@@ -3,16 +3,13 @@
 // Change this file when there are more than 1 issuer wallet
 
 import React, { useState } from "react";
-import Button from "./Button";
-import ErrorModal from "./ErrorMdl";
-import SuccessModal from "./SuccessMdl";
-import CurrencyDropDown from "./CurrencyDropDown";
+import Button from "../Button";
+import ErrorModal from "../ErrorMdl";
+import SuccessModal from "../SuccessMdl";
+import CurrencyDropDown from "../CurrencyDropDown";
 import { setTrustline } from "@/utils/xrpl/setTrustline";
 
-export default function SetTrustlineBtn({
-  setterWallet,
-  issuerWallets,
-}) {
+export default function SetTrustlineBtn({ setterWallet, issuerWallets }) {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
@@ -31,7 +28,7 @@ export default function SetTrustlineBtn({
         issuerWallets,
         selectedCurrency,
       );
-      
+
       setSuccessMessage(res);
     } catch (err) {
       setErrorMessage(err.message);
@@ -83,6 +80,7 @@ export default function SetTrustlineBtn({
           </div>
         </div>
       )}
+
       {errorMessage && (
         <ErrorModal
           errorMessage={errorMessage}

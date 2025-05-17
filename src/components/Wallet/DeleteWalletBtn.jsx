@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import ErrorModal from "./ErrorMdl";
-import SuccessModal from "./SuccessMdl";
-import PasswordConfirmModal from "./PasswordConfirmMdl";
+import ErrorModal from "../ErrorMdl";
+import SuccessModal from "../SuccessMdl";
+import PasswordConfirmModal from "../PasswordConfirmMdl";
 
 export default function DeleteWalletBtn({ classicAddress, onWalletDeleted }) {
   const [loading, setLoading] = useState(false);

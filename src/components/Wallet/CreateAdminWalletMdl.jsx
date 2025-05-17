@@ -23,7 +23,7 @@ export default function CreateAdminWalletModal({ onClose, onSubmit, loading }) {
             <select
               value={walletType}
               onChange={(e) => setWalletType(e.target.value)}
-              className="w-full rounded border border-[#D4D7E9] p-2"
+              className="w-full rounded border border-[#8E909D] p-2"
             >
               <option value="ISSUER">Issuer</option>
               <option value="STANDBY TREASURY">Standby Treasury</option>

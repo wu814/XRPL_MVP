@@ -21,7 +21,7 @@ export default function PasswordConfirmModal({
           type="password"
           value={passwordValue}
           onChange={(e) => setPasswordValue(e.target.value)}
-          className="mb-4 w-full rounded border border-[#D4D7E9] p-2"
+          className="mb-4 w-full rounded border border-[#8E909D] p-2"
           placeholder="Enter Password"
         />
         <div className="flex justify-end space-x-2">
