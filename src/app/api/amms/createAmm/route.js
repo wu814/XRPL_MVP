@@ -38,7 +38,7 @@ export async function POST(req) {
     const supabase = await createSupabaseAnonClient();
     const { data, error } = await supabase.from("amms").insert([
       {
-        account_address: ammData.accountAddress,
+        amm_address: ammData.ammAddress,
         pair: ammData.pair,
         created_at: new Date().toISOString(),
       },
@@ -46,7 +46,7 @@ export async function POST(req) {
 
     if (error) throw error;
     return NextResponse.json(
-      { message: `${ammData.pair} AMM created! Address: ${ammData.accountAddress}`,
+      { message: `${ammData.pair} AMM created! Address: ${ammData.ammAddress}`,
         data: ammData 
       },
       { status: 201 },

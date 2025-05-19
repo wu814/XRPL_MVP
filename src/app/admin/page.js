@@ -5,7 +5,7 @@ import Navbar from "@/components/Navbar";
 import DisplayAdminWallets from "@/components/Wallet/DisplayAdminWallets";
 import UpdateUsernameMdl from "@/components/UpdateUsernameMdl";
 
-export default function AdminHome() {
+export default function AdminWallet() {
   const { data: session, status } = useSession();
   const [showUsernameMdl, setShowUsernameMdl] = useState(false);
   const [username, setUsername] = useState(null);

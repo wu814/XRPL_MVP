@@ -5,7 +5,7 @@ import Navbar from "@/components/Navbar";
 import DisplayUserWallets from "@/components/Wallet/DisplayUserWallets";
 import UpdateUsernameMdl from "@/components/UpdateUsernameMdl";
 
-export default function UserHome() {
+export default function UserWallet() {
   const { data: session, status } = useSession();
   const [showUsernameMdl, setShowUsernameMdl] = useState(false);
   const [username, setUsername] = useState(null);

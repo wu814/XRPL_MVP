@@ -96,7 +96,7 @@ export default async function createAmm(
   const poolKey = [A, B].sort().join("/");
 
   return {
-    accountAddress: amm.account,
+    ammAddress: amm.account,
     pair: poolKey,
     // currency_a: A === "XRP" ? { currency: "XRP" } : assetA,
     // currency_b: B === "XRP" ? { currency: "XRP" } : assetB,

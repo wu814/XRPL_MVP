@@ -2,19 +2,21 @@
 
 // Change this file when there are more than 1 issuer wallet
 import React, { useState, useEffect, use } from "react";
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import ErrorMdl from "../ErrorMdl";
 import CurrencyIcon from "../CurrencyIcon";
 import CreateAmmBtn from "./CreateAmmBtn";
 
 class Amm {
-  constructor(accountAddress, pair) {
-    this.accountAddress = accountAddress;
+  constructor(ammAddress, pair) {
+    this.ammAddress = ammAddress;
     this.pair = pair;
   }
 }
 
 export default function DisplayAmms() {
+  const router = useRouter(); // Redirect user to the AMM page when they click on an AMM
   const { data: session, status } = useSession();
   const [amms, setAmms] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -29,12 +31,12 @@ export default function DisplayAmms() {
         const ammsData = result.data
           .map((amm) => {
             const [tokenA, tokenB] = amm.pair.split("/");
-            return new Amm(amm.account_address, [tokenA, tokenB]);
+            return new Amm(amm.amm_address, [tokenA, tokenB]);
           })
           .sort((a, b) => {
-            const tokenA = a.pair.join("/");
-            const tokenB = b.pair.join("/");
-            return tokenA.localeCompare(tokenB);
+            const pairA = a.pair.join("/");
+            const pairB = b.pair.join("/");
+            return pairA.localeCompare(pairB);
           });
         setAmms(ammsData);
       }
@@ -47,12 +49,13 @@ export default function DisplayAmms() {
 
   const handleAmmCreated = (newAmmData) => {
     const [tokenA, tokenB] = newAmmData.pair.split("/");
-    const newAmm = new Amm(newAmmData.accountAddress, [tokenA, tokenB]);
+    const newAmm = new Amm(newAmmData.ammAddress, [tokenA, tokenB]);
+    console.log("New AMM created:", newAmm);
     setAmms((prevAmms) =>
       [...prevAmms, newAmm].sort((a, b) => {
-        const tokenA = a.pair.join("/");
-        const tokenB = b.pair.join("/");
-        return tokenA.localeCompare(tokenB);
+        const pairA = a.pair.join("/");
+        const pairB = b.pair.join("/");
+        return pairA.localeCompare(pairB);
       }),
     );
   };
@@ -89,14 +92,13 @@ export default function DisplayAmms() {
             <div
               key={index}
               className="grid cursor-pointer grid-cols-[2fr_1fr_1fr_1fr] items-center px-4 py-6 hover:bg-[#2C2E44]"
-              onClick={() => onClick(amm)}
+              onClick={() => router.push(`/pools/${amm.ammAddress}`)}
             >
-              {/* <p className="pl-4 text-left">{amm.pair}</p> */}
               <div className="flex gap-2 pl-2">
                 <CurrencyIcon symbol={amm.pair[0]} />
                 <CurrencyIcon symbol={amm.pair[1]} />
               </div>
-              <p className="text-center">{amm.accountAddress}</p>
+              <p className="text-center">{amm.ammAddress}</p>
               <p className="text-center">$99999.99</p>
               <p className="text-center">0.1%</p>
             </div>

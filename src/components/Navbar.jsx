@@ -16,7 +16,7 @@ const Navbar = () => {
         href={`/${identity}`}
         className="font-semibold transition duration-200 ease-in-out hover:scale-105 hover:text-[#D8B6FF]"
       >
-        Wallets
+        Wallet
       </Link>
       <Link
         href="/pools"
