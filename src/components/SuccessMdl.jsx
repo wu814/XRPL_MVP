@@ -3,10 +3,10 @@
 import React from "react";
 import Button from "./Button";
 
-export default function SuccessModal({ successMessage, onClose }) {
+export default function SuccessMdl({ successMessage, onClose }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10">
-      <div className="h-auto w-auto min-w-xs max-w-2xl rounded-lg bg-[#3F4359] p-6 shadow-lg">
+      <div className="h-auto w-auto max-w-2xl min-w-xs rounded-lg bg-[#3F4359] p-6 shadow-lg">
         <h2 className="mb-4 text-xl font-bold text-green-500">Success</h2>
         <p className="mb-4 whitespace-pre-wrap">{successMessage}</p>
         <div className="flex justify-end">

@@ -3,23 +3,31 @@
 import React from "react";
 import Button from "../Button";
 
-export default function ViewIssuerDetailsMdl({ infoData, linesData, loading, onClose }) {
+export default function ViewIssuerDetailsMdl({
+  infoData,
+  linesData,
+  loading,
+  onClose,
+}) {
   // Group and sum balances by currency
-  const groupedBalances = linesData?.reduce((acc, line) => {
-    const currency = line.currency;
-    const balance = parseFloat(line.balance);
+  const groupedBalances =
+    linesData?.reduce((acc, line) => {
+      const currency = line.currency;
+      const balance = parseFloat(line.balance);
 
-    if (!acc[currency]) {
-      acc[currency] = 0;
-    }
-    acc[currency] += balance;
-    return acc;
-  }, {}) || {};
+      if (!acc[currency]) {
+        acc[currency] = 0;
+      }
+      acc[currency] += balance;
+      return acc;
+    }, {}) || {};
 
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/10">
-      <div className="relative w-11/12 max-w-3xl overflow-y-auto rounded-lg bg-[#3F4359] p-6 shadow-lg text-white">
-        <h2 className="mb-4 text-xl font-bold text-center">Issuer Wallet Details</h2>
+      <div className="relative w-11/12 max-w-3xl overflow-y-auto rounded-lg bg-[#3F4359] p-6 shadow-lg">
+        <h2 className="mb-4 text-center text-xl font-bold">
+          Issuer Wallet Details
+        </h2>
 
         {/* Loading */}
         {loading && <p className="text-center text-gray-300">Loading...</p>}
@@ -27,13 +35,23 @@ export default function ViewIssuerDetailsMdl({ infoData, linesData, loading, onC
         {/* Account Info */}
         {!loading && infoData && (
           <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-2">Account Info</h3>
+            <h3 className="mb-2 text-lg font-semibold">Account Info</h3>
             <ul className="space-y-1 text-sm">
-              <li><strong>Address:</strong> {infoData.address}</li>
-              <li><strong>Sequence:</strong> {infoData.sequence}</li>
-              <li><strong>Balance:</strong> {infoData.balance} XRP</li>
-              <li><strong>Owner Count:</strong> {infoData.ownerCount}</li>
-              <li><strong>Enabled Flags:</strong> {infoData.enabledFlags}</li>
+              <li>
+                <strong>Address:</strong> {infoData.address}
+              </li>
+              <li>
+                <strong>Sequence:</strong> {infoData.sequence}
+              </li>
+              <li>
+                <strong>Balance:</strong> {infoData.balance} XRP
+              </li>
+              <li>
+                <strong>Owner Count:</strong> {infoData.ownerCount}
+              </li>
+              <li>
+                <strong>Enabled Flags:</strong> {infoData.enabledFlags}
+              </li>
             </ul>
           </div>
         )}
@@ -41,16 +59,23 @@ export default function ViewIssuerDetailsMdl({ infoData, linesData, loading, onC
         {/* Trust Lines */}
         {!loading && linesData && (
           <div>
-            <h3 className="text-lg font-semibold mb-2">Trustlines</h3>
+            <h3 className="mb-2 text-lg font-semibold">Trustlines</h3>
             {linesData.length === 0 ? (
-              <p className="text-sm text-gray-300">No trustline data available.</p>
+              <p className="text-sm text-gray-300">
+                No trustline data available.
+              </p>
             ) : (
               <ul className="space-y-3">
-                {Object.entries(groupedBalances).map(([currency, totalBalance]) => (
-                  <li key={currency} className="border-b border-[#8E909D] pb-2">
-                    <strong>{currency}</strong>: {totalBalance.toFixed(6)}
-                  </li>
-                ))}
+                {Object.entries(groupedBalances).map(
+                  ([currency, totalBalance]) => (
+                    <li
+                      key={currency}
+                      className="border-b border-[#8E909D] pb-2"
+                    >
+                      <strong>{currency}</strong>: {totalBalance.toFixed(6)}
+                    </li>
+                  ),
+                )}
               </ul>
             )}
           </div>

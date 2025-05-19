@@ -3,11 +3,11 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import DisplayUserWallets from "@/components/Wallet/DisplayUserWallets";
-import UpdateUsernameModal from "@/components/UpdateUsernameMdl";
+import UpdateUsernameMdl from "@/components/UpdateUsernameMdl";
 
 export default function UserHome() {
   const { data: session, status } = useSession();
-  const [showUsernameModal, setShowUsernameModal] = useState(false);
+  const [showUsernameMdl, setShowUsernameMdl] = useState(false);
   const [username, setUsername] = useState(null);
 
   const fetchUsername = async () => {
@@ -18,10 +18,10 @@ export default function UserHome() {
       const { username: fetched } = await res.json();
       setUsername(fetched);
       // if they’re still using their email as a username, prompt them
-      setShowUsernameModal(fetched === session.user.email);
+      setShowUsernameMdl(fetched === session.user.email);
     } catch {
       setUsername("");
-      setShowUsernameModal(true);
+      setShowUsernameMdl(true);
     }
   };
 
@@ -62,9 +62,9 @@ export default function UserHome() {
         </section>
       </main>
 
-      {showUsernameModal && (
-        <UpdateUsernameModal
-          onClose={() => setShowUsernameModal(false)}
+      {showUsernameMdl && (
+        <UpdateUsernameMdl
+          onClose={() => setShowUsernameMdl(false)}
           onUpdated={fetchUsername}
         />
       )}

@@ -4,10 +4,9 @@
 
 import React, { useState } from "react";
 import Button from "../Button";
-import ErrorModal from "../ErrorMdl";
-import SuccessModal from "../SuccessMdl";
+import ErrorMdl from "../ErrorMdl";
+import SuccessMdl from "../SuccessMdl";
 import CurrencyDropDown from "../CurrencyDropDown";
-import { setTrustline } from "@/utils/xrpl/setTrustline";
 
 export default function SetTrustlineBtn({ setterWallet, issuerWallets }) {
   const [loading, setLoading] = useState(false);
@@ -16,32 +15,38 @@ export default function SetTrustlineBtn({ setterWallet, issuerWallets }) {
 
   // for Standby wallets
   const [currency, setCurrency] = useState("");
-  const [showCurrencyModal, setShowCurrencyModal] = useState(false);
+  const [showCurrencyMdl, setShowCurrencyMdl] = useState(false);
 
   // Centralized request routine
   const doRequest = async (selectedCurrency) => {
     setLoading(true);
     setErrorMessage(null);
     try {
-      const res = await setTrustline(
-        setterWallet,
-        issuerWallets,
-        selectedCurrency,
-      );
+      const res = await fetch("/api/wallets/setTrustline", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          setterWallet,
+          issuerWallets,
+          currency: selectedCurrency,
+        }),
+      });
 
-      setSuccessMessage(res);
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || "Failed to set trustline");
+
+      setSuccessMessage(result.message);
     } catch (err) {
       setErrorMessage(err.message);
     } finally {
       setLoading(false);
-      setShowCurrencyModal(false);
+      setShowCurrencyMdl(false);
     }
   };
 
-  // Entry point when the user clicks the main button
   const handleClick = () => {
     setCurrency("");
-    setShowCurrencyModal(true);
+    setShowCurrencyMdl(true);
   };
 
   return (
@@ -50,7 +55,7 @@ export default function SetTrustlineBtn({ setterWallet, issuerWallets }) {
         {loading ? "Setting..." : "Set Trustline"}
       </Button>
 
-      {showCurrencyModal && (
+      {showCurrencyMdl && (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/10">
           <div className="w-96 space-y-4 rounded-lg bg-[#3F4359] p-6 shadow-lg">
             <h2 className="text-center text-lg font-semibold">
@@ -64,7 +69,7 @@ export default function SetTrustlineBtn({ setterWallet, issuerWallets }) {
             <div className="flex justify-end space-x-2">
               <Button
                 variant="cancel"
-                onClick={() => setShowCurrencyModal(false)}
+                onClick={() => setShowCurrencyMdl(false)}
                 disabled={loading}
               >
                 Cancel
@@ -82,18 +87,18 @@ export default function SetTrustlineBtn({ setterWallet, issuerWallets }) {
       )}
 
       {errorMessage && (
-        <ErrorModal
+        <ErrorMdl
           errorMessage={errorMessage}
           onClose={() => setErrorMessage(null)}
         />
       )}
 
       {successMessage && (
-        <SuccessModal
+        <SuccessMdl
           successMessage={successMessage}
           onClose={() => {
             setSuccessMessage(null);
-            setShowCurrencyModal(false);
+            setShowCurrencyMdl(false);
           }}
         />
       )}

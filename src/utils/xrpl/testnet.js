@@ -1,6 +1,5 @@
 // src/client.js
-const xrpl = require("xrpl");
-
+import * as xrpl from "xrpl";
 const client = new xrpl.Client("wss://s.altnet.rippletest.net:51233");
 
 const connectXrplClient = async () => {
@@ -16,4 +15,4 @@ const connectXrplClient = async () => {
   }
 };
 
-module.exports = { client, connectXrplClient };
+export { client, connectXrplClient };

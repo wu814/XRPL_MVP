@@ -22,18 +22,15 @@ const DisplayUserWallets = () => {
 
   const fetchIssuerWallets = async () => {
     try {
-      const response = await fetch("/api/wallets/getIssuerWallets");
-      const data = await response.json();
-      const issuerWalletsData = data.data.map(
-        (wallet) =>
-          new Wallet(
-            wallet.classic_address,
-            wallet.wallet_type,
-            wallet.seed,
-            wallet.xrp_balance,
-          ),
-      );
-      setIssuerWallets(issuerWalletsData);
+      const res = await fetch("/api/wallets/getIssuerWallets");
+      const result = await res.json();
+      if (Array.isArray(result.data) && result.data.length > 0) {
+        const issuerWalletsData = result.data.map(
+          (wallet) =>
+            new Wallet(wallet.classic_address, wallet.wallet_type, wallet.seed),
+        );
+        setIssuerWallets(issuerWalletsData);
+      }
     } catch (error) {
       console.error("Error fetching issuer wallets:", error);
     }
@@ -42,18 +39,15 @@ const DisplayUserWallets = () => {
   const fetchWallets = async () => {
     setLoading(true);
     try {
-      const response = await fetch("/api/wallets/getWalletsByUserID");
-      const data = await response.json();
-      const walletsData = data.data.map(
-        (wallet) =>
-          new Wallet(
-            wallet.classic_address,
-            wallet.wallet_type,
-            wallet.seed,
-            wallet.xrp_balance,
-          ),
-      );
-      setWallets(walletsData);
+      const res = await fetch("/api/wallets/getWalletsByUserID");
+      const result = await res.json();
+      if (Array.isArray(result.data) && result.data.length > 0) {
+        const walletsData = result.data.map(
+          (wallet) =>
+            new Wallet(wallet.classic_address, wallet.wallet_type, wallet.seed),
+        );
+        setWallets(walletsData);
+      }
     } catch (error) {
       console.error("Error fetching wallets:", error);
     } finally {
@@ -95,7 +89,9 @@ const DisplayUserWallets = () => {
               key={wallet.classicAddress}
               className="relative rounded-lg bg-[#242639] p-4 shadow-lg"
             >
-              <h3 className="text-xl font-bold mb-3">{wallet.classicAddress}</h3>
+              <h3 className="mb-6 text-xl font-bold">
+                {wallet.classicAddress}
+              </h3>
               <p>Type: {wallet.walletType}</p>
               <DeleteWalletBtn
                 classicAddress={wallet.classicAddress}
@@ -117,7 +113,10 @@ const DisplayUserWallets = () => {
           ))}
         </div>
       )}
-      <CreateUserWalletBtn issuerWallets={issuerWallets} onWalletCreated={handleWalletCreated} />
+      <CreateUserWalletBtn
+        issuerWallets={issuerWallets}
+        onWalletCreated={handleWalletCreated}
+      />
     </div>
   );
 };

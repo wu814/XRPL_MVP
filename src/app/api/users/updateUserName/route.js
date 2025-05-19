@@ -48,8 +48,8 @@ export async function PUT(req) {
     );
   } catch (error) {
     return NextResponse.json(
-      { error: `${error.message} [updateUserName/route.js]` }, 
-      { status: 500 }
+      { error: `Error updating username: ${error.message} [updateUserName/route.js]` },
+      { status: 500 },
     );
   }
 }

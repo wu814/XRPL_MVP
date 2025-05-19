@@ -6,7 +6,7 @@ const Searchbar = () => {
       <input
         type="text"
         placeholder="Search..."
-        className="w-full rounded border border-[#8E909D] p-2 focus:border-[#F8FFA7] focus:outline-none"
+        className="w-full rounded border border-[#8E909D] p-2 focus:border-[#D8B6FF] focus:outline-none"
       />
     </div>
   );

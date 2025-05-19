@@ -15,8 +15,8 @@ export async function GET() {
     return NextResponse.json({ data }, { status: 200 });
   } catch (error) {
     return NextResponse.json(
-      { error: `${error.message} [getIssuerWallets/route.js]` }, 
-      { status: 500 }
+      { error: `Error fetching issuer wallet: ${error.message} [getIssuerWallets/route.js]` },
+      { status: 500 },
     );
   }
 }

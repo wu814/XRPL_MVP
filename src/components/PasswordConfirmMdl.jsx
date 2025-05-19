@@ -3,7 +3,7 @@
 import React from "react";
 import Button from "./Button";
 
-export default function PasswordConfirmModal({
+export default function PasswordConfirmMdl({
   onClose,
   onConfirm,
   loading,

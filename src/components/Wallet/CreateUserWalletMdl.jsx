@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Button from "../Button";
 
-export default function CreateUserWalletModal({ onClose, onSubmit, loading }) {
+export default function CreateUserWalletMdl({ onClose, onSubmit, loading }) {
   const [walletType, setWalletType] = useState("USER");
   const [method, setMethod] = useState("custodial"); // custodial, nonCustodial, or import
 

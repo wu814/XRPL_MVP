@@ -10,11 +10,11 @@ import {
 import { Fragment } from "react";
 
 const currencies = [
-  { id: "XRP", name: "XRP", avatar: "/icons/xrp.svg" },
-  { id: "ETH", name: "ETH", avatar: "/icons/eth.svg" },
-  { id: "BTC", name: "BTC", avatar: "/icons/btc.svg" },
-  { id: "USD", name: "USD", avatar: "/icons/usd.svg" },
-  { id: "SOL", name: "SOL", avatar: "/icons/sol.svg" },
+  { id: "XRP", name: "XRP", avatar: "/icons/XRP.svg" },
+  { id: "ETH", name: "ETH", avatar: "/icons/ETH.svg" },
+  { id: "BTC", name: "BTC", avatar: "/icons/BTC.svg" },
+  { id: "USD", name: "USD", avatar: "/icons/USD.svg" },
+  { id: "SOL", name: "SOL", avatar: "/icons/SOL.svg" },
 ];
 
 export default function CurrencyDropDown({
@@ -27,7 +27,7 @@ export default function CurrencyDropDown({
   return (
     <Listbox value={value} onChange={onChange}>
       <div className="relative w-full">
-        <ListboxButton className="flex w-full mt-1 items-center justify-between border border-[#8E909D] rounded bg-[#3F4359] px-3 py-2 text-white">
+        <ListboxButton className="mt-1 flex w-full items-center justify-between rounded border border-[#8E909D] bg-[#3F4359] px-3 py-2">
           <div className="flex items-center space-x-2">
             {selectedCurrency ? (
               <>

@@ -4,6 +4,6 @@
     "paths": {
       "@/*": ["src/*"]
     },
-    "checkJs": false,
+    "checkJs": false
   }
 }

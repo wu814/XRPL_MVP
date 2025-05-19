@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Button from "../Button";
 
-export default function CreateAdminWalletModal({ onClose, onSubmit, loading }) {
+export default function CreateAdminWalletMdl({ onClose, onSubmit, loading }) {
   const [walletType, setWalletType] = useState("ISSUER");
 
   const handleSubmit = (e) => {

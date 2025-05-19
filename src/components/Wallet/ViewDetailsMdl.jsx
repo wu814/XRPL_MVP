@@ -11,8 +11,8 @@ export default function ViewDetailsMdl({
 }) {
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/10">
-      <div className="relative w-11/12 max-w-3xl rounded-lg bg-[#3F4359] p-6 text-white shadow-lg">
-        <h2 className="text-center mb-4 text-xl font-bold">Wallet Details</h2>
+      <div className="relative w-11/12 max-w-3xl rounded-lg bg-[#3F4359] p-6 shadow-lg">
+        <h2 className="mb-4 text-center text-xl font-bold">Wallet Details</h2>
 
         {/* Loading */}
         {loading && <p className="text-center text-gray-300">Loading...</p>}
@@ -20,13 +20,23 @@ export default function ViewDetailsMdl({
         {/* Account Info */}
         {!loading && infoData && (
           <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-2">Account Info</h3>
+            <h3 className="mb-2 text-lg font-semibold">Account Info</h3>
             <ul className="space-y-1 text-sm">
-              <li><strong>Address:</strong> {infoData.address}</li>
-              <li><strong>Sequence:</strong> {infoData.sequence}</li>
-              <li><strong>Balance:</strong> {infoData.balance} XRP</li>
-              <li><strong>Owner Count:</strong> {infoData.ownerCount}</li>
-              <li><strong>Enabled Flags:</strong> {infoData.enabledFlags}</li>
+              <li>
+                <strong>Address:</strong> {infoData.address}
+              </li>
+              <li>
+                <strong>Sequence:</strong> {infoData.sequence}
+              </li>
+              <li>
+                <strong>Balance:</strong> {infoData.balance} XRP
+              </li>
+              <li>
+                <strong>Owner Count:</strong> {infoData.ownerCount}
+              </li>
+              <li>
+                <strong>Enabled Flags:</strong> {infoData.enabledFlags}
+              </li>
             </ul>
           </div>
         )}
@@ -34,18 +44,30 @@ export default function ViewDetailsMdl({
         {/* Trust Lines */}
         {!loading && linesData && (
           <div>
-            <h3 className="text-lg font-semibold mb-2">Trustlines</h3>
+            <h3 className="mb-2 text-lg font-semibold">Trustlines</h3>
             {linesData.length === 0 ? (
-              <p className="text-sm text-gray-300">No trustline data available.</p>
+              <p className="text-sm text-gray-300">
+                No trustline data available.
+              </p>
             ) : (
-              <ul className="space-y-2 max-h-60 overflow-y-auto text-sm">
+              <ul className="max-h-60 space-y-2 overflow-y-auto text-sm">
                 {linesData.map((line, idx) => (
                   <li key={idx} className="border-b border-[#8E909D] pb-2">
-                    <div><strong>Currency:</strong> {line.currency}</div>
-                    <div><strong>Balance:</strong> {line.balance}</div>
-                    <div><strong>Issuer:</strong> {line.account}</div>
-                    <div><strong>Limit:</strong> {line.limit}</div>
-                    <div><strong>Limit Peer:</strong> {line.limit_peer}</div>
+                    <div>
+                      <strong>Currency:</strong> {line.currency}
+                    </div>
+                    <div>
+                      <strong>Balance:</strong> {line.balance}
+                    </div>
+                    <div>
+                      <strong>Issuer:</strong> {line.account}
+                    </div>
+                    <div>
+                      <strong>Limit:</strong> {line.limit}
+                    </div>
+                    <div>
+                      <strong>Limit Peer:</strong> {line.limit_peer}
+                    </div>
                   </li>
                 ))}
               </ul>

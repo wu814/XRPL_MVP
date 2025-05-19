@@ -14,31 +14,25 @@ const Navbar = () => {
     <nav className="flex w-full items-center justify-between space-x-5 bg-[#1C2033] p-6">
       <Link
         href={`/${identity}`}
-        className="font-semibold transition duration-200 ease-in-out hover:scale-105 hover:text-[#F8FFA7]"
+        className="font-semibold transition duration-200 ease-in-out hover:scale-105 hover:text-[#D8B6FF]"
       >
-        Home
+        Wallets
       </Link>
       <Link
-        href="/stake"
-        className="font-semibold transition duration-200 ease-in-out hover:scale-105 hover:text-[#F8FFA7]"
+        href="/pools"
+        className="font-semibold transition duration-200 ease-in-out hover:scale-105 hover:text-[#D8B6FF]"
       >
-        Stake
-      </Link>
-      <Link
-        href="/earn-yield"
-        className="font-semibold transition duration-200 ease-in-out hover:scale-105 hover:text-[#F8FFA7]"
-      >
-        Earn Yield
+        Pools
       </Link>
       <Link
         href="/profile"
-        className="font-semibold transition duration-200 ease-in-out hover:scale-105 hover:text-[#F8FFA7]"
+        className="font-semibold transition duration-200 ease-in-out hover:scale-105 hover:text-[#D8B6FF]"
       >
         Profile
       </Link>
       <Link
         href="/settings"
-        className="font-semibold transition duration-200 ease-in-out hover:scale-105 hover:text-[#F8FFA7]"
+        className="font-semibold transition duration-200 ease-in-out hover:scale-105 hover:text-[#D8B6FF]"
       >
         Settings
       </Link>

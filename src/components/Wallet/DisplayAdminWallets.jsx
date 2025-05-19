@@ -4,9 +4,10 @@ import React, { useState, useEffect } from "react";
 import CreateAdminWalletBtn from "./CreateAdminWalletBtn";
 import DeleteWalletBtn from "./DeleteWalletBtn";
 import SetTrustlineBtn from "./SetTrustlineBtn";
+import AuthorizeDepositBtn from "./AuthorizeDepositBtn";
 import ViewDetailsBtn from "./ViewDetailsBtn";
 import TransferBtn from "./TransferBtn";
-import ErrorModal from "../ErrorMdl";
+import ErrorMdl from "../ErrorMdl";
 
 class Wallet {
   constructor(classicAddress, walletType, seed) {
@@ -24,7 +25,7 @@ const DisplayAdminWallets = () => {
 
   // Define a sort order for wallet types. Issuer always on top, then Standby, then Operational.
   const typeOrder = {
-    "ISSUER": 0,
+    ISSUER: 0,
     "STANDBY TREASURY": 1,
     "STANDBY PATHFIND": 2,
   };
@@ -39,23 +40,23 @@ const DisplayAdminWallets = () => {
   const fetchWallets = async () => {
     setLoading(true);
     try {
-      const response = await fetch("/api/wallets/getWalletsByUserID");
-      const data = await response.json();
-      const walletsData = data.data
+      const res = await fetch("/api/wallets/getWalletsByUserID");
+      
+      const result = await res.json();
+      const walletsData = result.data
         .map(
           (wallet) =>
             new Wallet(
               wallet.classic_address,
               wallet.wallet_type,
               wallet.seed,
-              wallet.xrp_balance,
             ),
         )
         .sort((a, b) => typeOrder[a.walletType] - typeOrder[b.walletType]);
       setWallets(walletsData);
       updateIssuerWallets(walletsData);
     } catch (error) {
-      setErrorMessage("Error fetching wallets: " + error.message);
+      setErrorMessage(error.message);
     } finally {
       setLoading(false);
     }
@@ -100,7 +101,9 @@ const DisplayAdminWallets = () => {
               key={wallet.classicAddress}
               className="relative rounded-lg bg-[#242639] p-4 shadow-lg"
             >
-              <h3 className="text-xl font-bold mb-3">{wallet.classicAddress}</h3>
+              <h3 className="mb-6 text-xl font-bold">
+                {wallet.classicAddress}
+              </h3>
               <p>Type: {wallet.walletType}</p>
               <DeleteWalletBtn
                 classicAddress={wallet.classicAddress}
@@ -114,11 +117,18 @@ const DisplayAdminWallets = () => {
                 {/* Conditionally render set trustline buttons */}
                 {(wallet.walletType === "STANDBY TREASURY" ||
                   wallet.walletType === "STANDBY PATHFIND") && (
-                    <SetTrustlineBtn
-                      setterWallet={wallet}
-                      issuerWallets={issuerWallets}
-                    />
-                  )}
+                  <SetTrustlineBtn
+                    setterWallet={wallet}
+                    issuerWallets={issuerWallets}
+                  />
+                )}
+                {/* Conditionally render authorize deposit button */}
+                {wallet.walletType === "STANDBY TREASURY" && (
+                  <AuthorizeDepositBtn
+                    treasuryWallet={wallet}
+                  />
+                )}
+                {/* View details button */}
                 <ViewDetailsBtn wallet={wallet} />
               </div>
             </div>
@@ -128,7 +138,7 @@ const DisplayAdminWallets = () => {
       <CreateAdminWalletBtn onWalletCreated={handleWalletCreated} />
 
       {errorMessage && (
-        <ErrorModal
+        <ErrorMdl
           errorMessage={errorMessage}
           onClose={() => setErrorMessage(null)}
         />

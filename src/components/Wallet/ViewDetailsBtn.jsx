@@ -2,11 +2,9 @@
 
 import React, { useState } from "react";
 import Button from "../Button";
-import ErrorModal from "../ErrorMdl";
+import ErrorMdl from "../ErrorMdl";
 import ViewDetailsMdl from "./ViewDetailsMdl";
 import ViewIssuerDetailsMdl from "./ViewIssuerDetailsMdl";
-import { getAccountInfo, getAccountLines } from "@/utils/xrpl/getWalletInfo";
-
 
 export default function ViewDetailsBtn({ wallet }) {
   const [loading, setLoading] = useState(false);
@@ -22,10 +20,29 @@ export default function ViewDetailsBtn({ wallet }) {
     setAccountLines(null);
 
     try {
-      const info = await getAccountInfo(wallet.classicAddress);
-      const lines = await getAccountLines(wallet.classicAddress);
-      setAccountInfo(info);
-      setAccountLines(lines);
+      const [infoRes, linesRes] = await Promise.all([
+        fetch("/api/wallets/getAccountInfo", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ address: wallet.classicAddress }),
+        }),
+        fetch("/api/wallets/getAccountLines", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ address: wallet.classicAddress }),
+        }),
+      ]);
+
+      const infoResult = await infoRes.json();
+      const linesResult = await linesRes.json();
+
+      if (!infoRes.ok)
+        throw new Error(infoResult.error || "Failed to fetch account info");
+      if (!linesRes.ok)
+        throw new Error(linesResult.error || "Failed to fetch account lines");
+
+      setAccountInfo(infoResult.data);
+      setAccountLines(linesResult.data.lines);
     } catch (error) {
       setErrorMessage(error.message);
     } finally {
@@ -46,7 +63,7 @@ export default function ViewDetailsBtn({ wallet }) {
       </Button>
 
       {errorMessage && (
-        <ErrorModal
+        <ErrorMdl
           message={errorMessage}
           onClose={() => setErrorMessage(null)}
         />

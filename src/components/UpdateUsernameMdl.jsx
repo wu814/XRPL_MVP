@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Button from "./Button";
 import { useSession } from "next-auth/react";
 
-export default function UpdateUsernameModal({ onClose, onUpdated }) {
+export default function UpdateUsernameMdl({ onClose, onUpdated }) {
   const { data: session } = useSession();
   const [username, setUsername] = useState("");
   const [error, setError] = useState(null);

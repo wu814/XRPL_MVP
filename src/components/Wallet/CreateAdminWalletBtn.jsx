@@ -2,13 +2,12 @@
 
 import React, { useState } from "react";
 import Button from "../Button";
-import CreateAdminWalletModal from "./CreateAdminWalletMdl";
-import ErrorModal from "../ErrorMdl";
-import SuccessModal from "../SuccessMdl";
-import { createWallet } from "@/utils/xrpl/createWallet";
+import CreateAdminWalletMdl from "./CreateAdminWalletMdl";
+import ErrorMdl from "../ErrorMdl";
+import SuccessMdl from "../SuccessMdl";
 
 export default function CreateAdminWalletBtn({ onWalletCreated }) {
-  const [showModal, setShowModal] = useState(false);
+  const [showMdl, setShowMdl] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
@@ -18,17 +17,14 @@ export default function CreateAdminWalletBtn({ onWalletCreated }) {
     setErrorMessage(null);
 
     try {
-      const walletData = await createWallet(walletType);
-
       const res = await fetch("/api/wallets/createWallet", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(walletData),
-      });
-      const result = await res.json();
+        body: JSON.stringify({ walletType }),
+      }); 
+      const result = await res.json();  
       if (!res.ok) throw new Error(result.error || "Failed to add wallet");
-
-      if (onWalletCreated) onWalletCreated(walletData);
+      if (onWalletCreated) onWalletCreated(result.data);
       setSuccessMessage(result.message);
     } catch (err) {
       setErrorMessage(err.message);
@@ -41,33 +37,33 @@ export default function CreateAdminWalletBtn({ onWalletCreated }) {
     <div>
       <Button
         variant="primary"
-        onClick={() => setShowModal(true)}
-        className="mt-4 w-full hover:scale-none"
+        onClick={() => setShowMdl(true)}
+        className="mt-4 w-full"
       >
         + Create Wallet
       </Button>
 
-      {showModal && (
-        <CreateAdminWalletModal
-          onClose={() => setShowModal(false)}
+      {showMdl && (
+        <CreateAdminWalletMdl
+          onClose={() => setShowMdl(false)}
           onSubmit={handleCreateWallet}
           loading={loading}
         />
       )}
 
       {errorMessage && (
-        <ErrorModal
+        <ErrorMdl
           errorMessage={errorMessage}
           onClose={() => setErrorMessage(null)}
         />
       )}
 
       {successMessage && (
-        <SuccessModal
+        <SuccessMdl
           successMessage={successMessage}
           onClose={() => {
             setSuccessMessage(null);
-            setShowModal(false);
+            setShowMdl(false);
           }}
         />
       )}

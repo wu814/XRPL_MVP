@@ -15,10 +15,11 @@ const Button = ({
   // tyles for each variant
   const variantStyles = {
     primary:
-      "border-2 border-transparent bg-[#F8FFA7] text-black hover:text-[#F8FFA7] hover:bg-transparent hover:border-[#F8FFA7]",
+      "border-2 border-transparent bg-[#D8B6FF] text-black hover:text-[#D8B6FF] hover:bg-transparent hover:border-[#D8B6FF]",
     cancel:
-      "border-2 border-transparent bg-[#E65A5A] text-black hover:text-[#E65A5A] hover:bg-transparent hover:border-[#E65A5A]",
-    login: "border-2 border-[#F8FFA7] text-[#F8FFA7] bg-transparent hover:text-black hover:bg-[#F8FFA7] hover:border-transparent",
+      "border-2 border-transparent bg-[#FAFDB8] text-black hover:text-[#FAFDB8] hover:bg-transparent hover:border-[#FAFDB8]",
+    login:
+      "border-2 border-[#D8B6FF] text-[#D8B6FF] bg-transparent hover:text-black hover:bg-[#D8B6FF] hover:border-transparent",
   };
 
   // Styles to apply when the button is disabled

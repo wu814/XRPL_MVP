@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import ErrorModal from "../ErrorMdl";
-import SuccessModal from "../SuccessMdl";
-import PasswordConfirmModal from "../PasswordConfirmMdl";
+import ErrorMdl from "../ErrorMdl";
+import SuccessMdl from "../SuccessMdl";
+import PasswordConfirmMdl from "../PasswordConfirmMdl";
 
 export default function DeleteWalletBtn({ classicAddress, onWalletDeleted }) {
   const [loading, setLoading] = useState(false);
@@ -46,7 +46,7 @@ export default function DeleteWalletBtn({ classicAddress, onWalletDeleted }) {
         className="absolute top-2 right-3 transition duration-200 ease-in-out hover:scale-110"
       >
         <svg
-          className="h-7 w-7 text-[#E65A5A]"
+          className="h-7 w-7 text-[#FAFDB8]"
           aria-hidden="true"
           xmlns="http://www.w3.org/2000/svg"
           width="24"
@@ -65,7 +65,7 @@ export default function DeleteWalletBtn({ classicAddress, onWalletDeleted }) {
       </button>
 
       {showConfirm && (
-        <PasswordConfirmModal
+        <PasswordConfirmMdl
           onClose={() => setShowConfirm(false)}
           onConfirm={handleDelete}
           loading={loading}
@@ -75,14 +75,14 @@ export default function DeleteWalletBtn({ classicAddress, onWalletDeleted }) {
       )}
 
       {errorMessage && (
-        <ErrorModal
+        <ErrorMdl
           errorMessage={errorMessage}
           onClose={() => setErrorMessage(null)}
         />
       )}
 
       {successMessage && (
-        <SuccessModal
+        <SuccessMdl
           successMessage={successMessage}
           onClose={() => {
             setSuccessMessage(null);
