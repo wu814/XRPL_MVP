@@ -11,7 +11,7 @@ const Navbar = () => {
   const identity = session?.user?.is_admin ? "admin" : "user";
 
   return (
-    <nav className="flex w-full items-center justify-between space-x-5 bg-[#1C2033] p-6">
+    <nav className="flex w-full items-center justify-between space-x-5 bg-[#1C2033] p-6 mb-8">
       <Link
         href={`/${identity}`}
         className="font-semibold transition duration-200 ease-in-out hover:scale-105 hover:text-[#D8B6FF]"

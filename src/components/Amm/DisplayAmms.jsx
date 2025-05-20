@@ -34,9 +34,9 @@ export default function DisplayAmms() {
             return new Amm(amm.amm_address, [tokenA, tokenB]);
           })
           .sort((a, b) => {
-            const pairA = a.pair.join("/");
-            const pairB = b.pair.join("/");
-            return pairA.localeCompare(pairB);
+            const pair1 = a.pair.join("/");
+            const pair2 = b.pair.join("/");
+            return pair1.localeCompare(pair2);
           });
         setAmms(ammsData);
       }
@@ -53,9 +53,9 @@ export default function DisplayAmms() {
     console.log("New AMM created:", newAmm);
     setAmms((prevAmms) =>
       [...prevAmms, newAmm].sort((a, b) => {
-        const pairA = a.pair.join("/");
-        const pairB = b.pair.join("/");
-        return pairA.localeCompare(pairB);
+        const pair1 = a.pair.join("/");
+        const pair2 = b.pair.join("/");
+        return pair1.localeCompare(pair2);
       }),
     );
   };
@@ -65,7 +65,7 @@ export default function DisplayAmms() {
   }, []);
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto">
       <div className="mx-6 mb-5 flex items-center justify-between">
         <h1 className="text-3xl font-bold text-[#D8B6FF]">AMM List</h1>
         {/* Only show the button if the user is an admin and there are issuer wallet and treasury wallet */}
@@ -94,7 +94,7 @@ export default function DisplayAmms() {
               className="grid cursor-pointer grid-cols-[2fr_1fr_1fr_1fr] items-center px-4 py-6 hover:bg-[#2C2E44]"
               onClick={() => router.push(`/pools/${amm.ammAddress}`)}
             >
-              <div className="flex gap-2 pl-2">
+              <div className="flex gap-1 pl-2">
                 <CurrencyIcon symbol={amm.pair[0]} />
                 <CurrencyIcon symbol={amm.pair[1]} />
               </div>

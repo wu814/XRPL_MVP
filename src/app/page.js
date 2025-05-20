@@ -15,10 +15,10 @@ export default function Login() {
     >
       <AuthRedirect />
       <div></div>
-      <div className="mt-25 mr-10 flex flex-col content-end items-center">
-        <h1 className="mb-17 text-4xl font-bold text-[#D8B6FF]">XRPL MVP</h1>
-        <h3 className="mb-7 text-7xl font-semibold">Control the Ledger</h3>
-        <h3 className="mb-7 text-7xl font-semibold">Shape the Future.</h3>
+      <div className="mt-25 mr-18 flex flex-col content-end items-center">
+        <h1 className="mb-15 text-4xl font-bold text-[#D8B6FF]">XRPL MVP</h1>
+        <h3 className="mb-7 text-6xl font-semibold">Control the Ledger</h3>
+        <h3 className="mb-7 text-6xl font-semibold">Shape the Future.</h3>
         <Button
           variant="login"
           onClick={() => signIn("google")}
