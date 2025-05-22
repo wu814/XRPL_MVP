@@ -12,8 +12,15 @@ export async function POST(req) {
   try {
     const { setterWallet, issuerWallets, currency } = await req.json();
 
-    if (!setterWallet?.seed || !issuerWallets?.[0]?.classicAddress || !currency) {
-      return NextResponse.json({ error: "Invalid or missing input data." }, { status: 400 });
+    if (
+      !setterWallet?.seed ||
+      !issuerWallets?.[0]?.classicAddress ||
+      !currency
+    ) {
+      return NextResponse.json(
+        { error: "Invalid or missing input data." },
+        { status: 400 },
+      );
     }
 
     const result = await setTrustline(setterWallet, issuerWallets, currency);
@@ -22,7 +29,7 @@ export async function POST(req) {
   } catch (err) {
     return NextResponse.json(
       { error: `Trustline setup failed: ${err.message}` },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

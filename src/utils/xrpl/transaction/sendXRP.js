@@ -22,7 +22,7 @@ const handlePaymentError = (errorCode, errorMessage = "") => {
 
 const sendXRP = async (wallet, destination, amount, destinationTag = null) => {
   await connectXrplClient();
-  
+
   // Recreate the sender wallet from the seed
   const senderWallet = xrpl.Wallet.fromSeed(wallet.seed);
 

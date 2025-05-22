@@ -3,7 +3,8 @@ import sendXRP from "@/utils/xrpl/transaction/sendXRP";
 
 export async function POST(req) {
   try {
-    const { senderWallet, recipientAddress, amount, destinationTag } =await req.json();
+    const { senderWallet, recipientAddress, amount, destinationTag } =
+      await req.json();
 
     if (!senderWallet || !recipientAddress || !amount) {
       return NextResponse.json(

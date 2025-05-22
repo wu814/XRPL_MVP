@@ -32,7 +32,7 @@ export default async function createAmm(
   const parsedAmountA = parseFloat(amountA);
   const parsedAmountB = parseFloat(amountB);
   const tradingFee = parseFloat(fee);
-  
+
   if (isNaN(parsedAmountA) || parsedAmountA <= 0) {
     throw new Error("Invalid or missing amount for Asset A.");
   }
@@ -82,7 +82,9 @@ export default async function createAmm(
   await new Promise((r) => setTimeout(r, 3800));
 
   const formatForAmmInfo = (type, obj) =>
-    type === "XRP" ? { currency: "XRP" } : { currency: obj.currency, issuer: obj.issuer };
+    type === "XRP"
+      ? { currency: "XRP" }
+      : { currency: obj.currency, issuer: obj.issuer };
 
   const ammInfo = await client.request({
     command: "amm_info",

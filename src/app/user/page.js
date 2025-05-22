@@ -34,11 +34,11 @@ export default function UserWallet() {
     <div>
       <Navbar />
       {/* Main Content */}
-      <main className="container mx-auto flex p-4">
+      <main className="container mx-auto flex">
         <DisplayUserWallets />
 
         {/* Top Earning Pools Sidebar */}
-        <section className="h-[40rem] w-1/3 rounded-lg bg-[#242639] p-6 shadow-lg">
+        <section className="h-[40rem] w-1/3 rounded-lg bg-color2 p-6 shadow-lg">
           <h2 className="mb-4 text-center text-2xl font-bold">
             Welcome, {username || "User"}
           </h2>
@@ -46,15 +46,15 @@ export default function UserWallet() {
             Top Earning Pools (24hr)
           </h3>
           <ul className="space-y-3">
-            <li className="flex justify-between rounded bg-[#2C2E44] p-3">
+            <li className="flex justify-between rounded bg-color3 p-3">
               <span>XRP/USD</span>
               <span>2.75%</span>
             </li>
-            <li className="flex justify-between rounded bg-[#2C2E44] p-3">
+            <li className="flex justify-between rounded bg-color3 p-3">
               <span>XRP/BTC</span>
               <span>1.58%</span>
             </li>
-            <li className="flex justify-between rounded bg-[#2C2E44] p-3">
+            <li className="flex justify-between rounded bg-color3 p-3">
               <span>USD/BTC</span>
               <span>1.23%</span>
             </li>

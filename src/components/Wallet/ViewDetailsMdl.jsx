@@ -11,7 +11,7 @@ export default function ViewDetailsMdl({
 }) {
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/10">
-      <div className="relative w-11/12 max-w-3xl rounded-lg bg-[#3F4359] p-6 shadow-lg">
+      <div className="relative w-11/12 max-w-3xl rounded-lg bg-modal p-6 shadow-lg">
         <h2 className="mb-4 text-center text-xl font-bold">Wallet Details</h2>
 
         {/* Loading */}
@@ -52,7 +52,7 @@ export default function ViewDetailsMdl({
             ) : (
               <ul className="max-h-60 space-y-2 overflow-y-auto text-sm">
                 {linesData.map((line, idx) => (
-                  <li key={idx} className="border-b border-[#8E909D] pb-2">
+                  <li key={idx} className="border-b border-border pb-2">
                     <div>
                       <strong>Currency:</strong> {line.currency}
                     </div>
@@ -76,7 +76,7 @@ export default function ViewDetailsMdl({
         )}
 
         {/* Close Button */}
-        <div className="absolute right-6 bottom-5 mt-4 flex">
+        <div className="absolute bottom-5 right-6 mt-4 flex">
           <Button variant="cancel" onClick={onClose}>
             Close
           </Button>

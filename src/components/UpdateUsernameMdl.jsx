@@ -40,7 +40,7 @@ export default function UpdateUsernameMdl({ onClose, onUpdated }) {
 
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/50">
-      <div className="w-80 rounded-lg bg-[#3F4359] p-6 shadow-lg">
+      <div className="w-80 rounded-lg bg-modal p-6 shadow-lg">
         <h2 className="mb-4 text-center text-xl font-bold">
           Choose a Username
         </h2>
@@ -50,7 +50,7 @@ export default function UpdateUsernameMdl({ onClose, onUpdated }) {
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           placeholder="no spaces allowed"
-          className="mb-2 w-full rounded border border-[#8E909D] p-2"
+          className="mb-2 w-full rounded border border-border bg-modal p-2 focus:border-primary focus:outline-none"
         />
 
         {error && <p className="mb-2 text-sm text-red-500">{error}</p>}

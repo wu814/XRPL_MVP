@@ -5,7 +5,7 @@ import * as xrpl from "xrpl";
 export default async function setTrustline(wallet, issuerWallets, currency) {
   await connectXrplClient();
   const MAX_TRUST_LIMIT = "1000000000000000";
-  
+
   // Recreate the setter wallet from the seed.
   const setterWallet = xrpl.Wallet.fromSeed(wallet.seed);
 
@@ -37,5 +37,5 @@ for ${currency}.`;
 
   return {
     message: msg,
-  }
+  };
 }

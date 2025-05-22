@@ -13,7 +13,10 @@ export async function POST(req) {
     const { treasuryWallet, authorizedAddress } = await req.json();
 
     if (!treasuryWallet?.seed || !authorizedAddress) {
-      return NextResponse.json({ error: "Missing wallet or address." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing wallet or address." },
+        { status: 400 },
+      );
     }
 
     const result = await authorizeDeposit(treasuryWallet, authorizedAddress);
@@ -22,7 +25,7 @@ export async function POST(req) {
   } catch (error) {
     return NextResponse.json(
       { error: `Failed to authorize deposit: ${error.message}` },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

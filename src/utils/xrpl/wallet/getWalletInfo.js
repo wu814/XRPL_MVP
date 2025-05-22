@@ -72,6 +72,6 @@ export async function getAccountLines(address) {
 
   const lines = accountLines.result.lines;
   return {
-    lines
+    lines,
   };
 }

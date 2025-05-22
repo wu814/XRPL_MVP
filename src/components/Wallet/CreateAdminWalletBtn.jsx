@@ -13,47 +13,46 @@ export default function CreateAdminWalletBtn({ onWalletCreated }) {
   const [successMessage, setSuccessMessage] = useState(null);
 
   const handleCreateWallet = async (walletType) => {
-  setLoading(true);
-  setErrorMessage(null);
+    setLoading(true);
+    setErrorMessage(null);
 
-  try {
-    const res = await fetch("/api/wallets/createWallet", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ walletType }),
-    }); 
-    const result = await res.json();  
-    if (!res.ok) throw new Error(result.error || "Failed to add wallet");
+    try {
+      const res = await fetch("/api/wallets/createWallet", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ walletType }),
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || "Failed to add wallet");
 
-    // Notify frontend immediately
-    if (onWalletCreated) onWalletCreated(result.data);
-    setSuccessMessage(result.message);
+      // Notify frontend immediately
+      if (onWalletCreated) onWalletCreated(result.data);
+      setSuccessMessage(result.message);
 
-    // Background call to set wallet flags
-    setTimeout(async () => {
-      try {
-        const flagRes = await fetch("/api/wallets/setWalletFlags", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ wallet: result.data }), 
-        });
-        const flagResult = await flagRes.json();
-        if (!flagRes.ok) {
-          throw new Error(`setWalletFlags failed: ${flagResult.error}`);
-        } else {
-          console.log("✅ Flags set:", flagResult.message);
+      // Background call to set wallet flags
+      setTimeout(async () => {
+        try {
+          const flagRes = await fetch("/api/wallets/setWalletFlags", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ wallet: result.data }),
+          });
+          const flagResult = await flagRes.json();
+          if (!flagRes.ok) {
+            throw new Error(`setWalletFlags failed: ${flagResult.error}`);
+          } else {
+            console.log("✅ Flags set:", flagResult.message);
+          }
+        } catch (e) {
+          setErrorMessage(e.message);
         }
-      } catch (e) {
-        setErrorMessage(e.message);
-      }
-    }, 0); // Run this immediately (0s) after everything else in the current call stack is done.
-
-  } catch (err) {
-    setErrorMessage(err.message);
-  } finally {
-    setLoading(false);
-  }
-};
+      }, 0); // Run this immediately (0s) after everything else in the current call stack is done.
+    } catch (err) {
+      setErrorMessage(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div>

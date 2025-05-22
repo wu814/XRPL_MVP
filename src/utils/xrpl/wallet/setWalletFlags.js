@@ -53,7 +53,6 @@ export async function setIssuerWalletFlags(wallet) {
   return;
 }
 
-
 export async function setTreasuryWalletFlags(wallet) {
   await connectXrplClient();
   if (!wallet || !wallet.classicAddress) {
@@ -102,7 +101,6 @@ export async function setTreasuryWalletFlags(wallet) {
   }
   return;
 }
-
 
 export async function setPathfindWalletFlags(wallet) {
   await connectXrplClient();

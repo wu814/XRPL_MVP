@@ -38,7 +38,7 @@ export default function CreateAmmBtn({ onAmmCreated }) {
       if (Array.isArray(result.data) && result.data.length > 0) {
         const issuerWalletsData = result.data.map(
           (wallet) =>
-            new Wallet(wallet.classic_address, wallet.wallet_type, wallet.seed)
+            new Wallet(wallet.classic_address, wallet.wallet_type, wallet.seed),
         );
         setIssuerWallets(issuerWalletsData);
       }
@@ -56,7 +56,7 @@ export default function CreateAmmBtn({ onAmmCreated }) {
         const treasuryWalletData = new Wallet(
           wallet.classic_address,
           wallet.wallet_type,
-          wallet.seed
+          wallet.seed,
         );
         setTreasuryWallet(treasuryWalletData);
       }

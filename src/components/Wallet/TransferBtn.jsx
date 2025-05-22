@@ -74,11 +74,13 @@ export default function TransferBtn({ senderWallet, issuerWallets }) {
 
       {showMdl && (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/10">
-          <div className="w-96 space-y-4 rounded-lg bg-[#3F4359] p-6 shadow-lg">
+          <div className="w-96 space-y-4 rounded-lg bg-modal p-6 shadow-lg">
             <h2 className="text-center text-xl font-semibold">Transfer</h2>
 
             <div>
-              <label className="block text-sm font-medium">Currency</label>
+              <label className="block text-sm font-medium text-mutedText">
+                Currency
+              </label>
               <CurrencyDropDown
                 value={currency}
                 onChange={setCurrency}
@@ -87,39 +89,41 @@ export default function TransferBtn({ senderWallet, issuerWallets }) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium">
+              <label className="block text-sm font-medium text-mutedText">
                 Recipient Address
               </label>
               <input
                 type="text"
                 value={recipientAddress}
                 onChange={(e) => setRecipientAddress(e.target.value)}
-                className="mt-1 w-full rounded border border-[#8E909D] p-2"
+                className="mt-1 w-full rounded border border-border bg-modal p-2 focus:border-primary focus:outline-none"
                 placeholder="Enter recipient address..."
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium">Amount</label>
+              <label className="block text-sm font-medium text-mutedText">
+                Amount
+              </label>
               <input
                 type="number"
                 min="0"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="mt-1 w-full rounded border border-[#8E909D] p-2"
+                className="mt-1 w-full rounded border border-border bg-modal p-2 focus:border-primary focus:outline-none"
                 placeholder="Enter amount..."
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium">
+              <label className="block text-sm font-medium text-mutedText">
                 Destination Tag (optional)
               </label>
               <input
                 type="text"
                 value={destinationTag}
                 onChange={(e) => setDestinationTag(e.target.value)}
-                className="mt-1 w-full rounded border border-[#8E909D] p-2"
+                className="mt-1 w-full rounded border border-border bg-modal p-2 focus:border-primary focus:outline-none"
                 placeholder="Enter destination tag..."
               />
             </div>

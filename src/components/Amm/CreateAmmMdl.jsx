@@ -26,7 +26,7 @@ export default function CreateAmmMdl({
 
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/10">
-      <div className="w-96 rounded-lg bg-[#3F4359] p-6 shadow-xl">
+      <div className="w-96 rounded-lg bg-modal p-6 shadow-xl">
         <h2 className="mb-4 text-xl font-bold">Create AMM</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -39,7 +39,7 @@ export default function CreateAmmMdl({
             <label className="mb-1 block">Amount A</label>
             <input
               type="number"
-              className="w-full rounded border border-[#8E909D] p-2"
+              className="w-full rounded border border-border bg-modal p-2 focus:border-primary focus:outline-none"
               value={amountA}
               placeholder="Enter amount..."
               onChange={(e) => setAmountA(e.target.value)}
@@ -55,7 +55,7 @@ export default function CreateAmmMdl({
             <label className="mb-1 block">Amount B</label>
             <input
               type="number"
-              className="w-full rounded border border-[#8E909D] p-2"
+              className="w-full rounded border border-border bg-modal p-2 focus:border-primary focus:outline-none"
               value={amountB}
               placeholder="Enter amount..."
               onChange={(e) => setAmountB(e.target.value)}
@@ -66,10 +66,10 @@ export default function CreateAmmMdl({
             <label className="mb-1 block">Fee (0-1000)</label>
             <input
               type="number"
-              className="w-full rounded border border-[#8E909D] p-2"
+              className="w-full rounded border border-border bg-modal p-2 focus:border-primary focus:outline-none"
               value={fee}
               placeholder="1000 = 1%"
-              onChange={(e) => setFee((e.target.value))}
+              onChange={(e) => setFee(e.target.value)}
             />
           </div>
 

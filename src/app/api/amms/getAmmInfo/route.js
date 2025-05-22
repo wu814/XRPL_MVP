@@ -4,7 +4,7 @@ import getAmmInfo from "@/utils/xrpl/amm/getAmmInfo";
 export async function POST(req) {
   try {
     const { asset1, asset2, asset1Issuer, asset2Issuer } = await req.json();
-    
+
     if (!asset1) {
       return NextResponse.json(
         { error: "Missing required parameter: asset1" },

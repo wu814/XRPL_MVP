@@ -27,7 +27,7 @@ export default function CurrencyDropDown({
   return (
     <Listbox value={value} onChange={onChange}>
       <div className="relative w-full">
-        <ListboxButton className="mt-1 flex w-full items-center justify-between rounded border border-[#8E909D] bg-[#3F4359] px-3 py-2">
+        <ListboxButton className="mt-1 flex w-full items-center justify-between rounded border border-border bg-modal px-3 py-2 focus:border-primary">
           <div className="flex items-center space-x-2">
             {selectedCurrency ? (
               <>
@@ -63,7 +63,7 @@ export default function CurrencyDropDown({
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <ListboxOptions className="absolute z-30 mt-1 max-h-60 w-full overflow-auto rounded-lg bg-[#242639] shadow-2xl">
+          <ListboxOptions className="absolute z-30 mt-1 max-h-60 w-full overflow-auto rounded-lg bg-color2 shadow-2xl">
             {currencies.map((c) => {
               const isDisabled = disabledOptions.includes(c.id);
               return (
@@ -72,13 +72,13 @@ export default function CurrencyDropDown({
                   value={c.id}
                   disabled={isDisabled}
                   className={({ focus, selected, disabled }) =>
-                    `flex items-center space-x-2 p-2 select-none ${
+                    `flex select-none items-center space-x-2 p-2 ${
                       disabled
                         ? "cursor-not-allowed opacity-30"
                         : focus
-                          ? "cursor-pointer bg-[#2C2E44]"
+                          ? "cursor-pointer bg-color4"
                           : selected
-                            ? "cursor-pointer bg-[#33354D]"
+                            ? "cursor-pointer bg-color3"
                             : ""
                     }`
                   }

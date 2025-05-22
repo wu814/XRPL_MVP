@@ -3,7 +3,7 @@ import * as xrpl from "xrpl";
 
 /**
  * Get information about an AMM instance from the XRPL ledger.
- * 
+ *
  * @param {string} asset1 - First asset code, AMM account (r...), or pair string (e.g., "XRP/USD").
  * @param {string|null} asset2 - Second asset code (optional).
  * @param {string|null} asset1Issuer - Issuer address for asset1 (if not XRP).
@@ -14,7 +14,7 @@ export default async function getAmmInfo(
   asset1,
   asset2 = null,
   asset1Issuer = null,
-  asset2Issuer = null
+  asset2Issuer = null,
 ) {
   await connectXrplClient();
 
@@ -47,7 +47,10 @@ export default async function getAmmInfo(
       const buildAsset = (currency, issuer) =>
         currency === "XRP" ? { currency: "XRP" } : { currency, issuer };
 
-      if ((asset1 !== "XRP" && !asset1Issuer) || (asset2 !== "XRP" && !asset2Issuer)) {
+      if (
+        (asset1 !== "XRP" && !asset1Issuer) ||
+        (asset2 !== "XRP" && !asset2Issuer)
+      ) {
         throw new Error("Issuer required for non-XRP assets");
       }
 

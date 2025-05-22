@@ -24,7 +24,7 @@ export default function ViewIssuerDetailsMdl({
 
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/10">
-      <div className="relative w-11/12 max-w-3xl overflow-y-auto rounded-lg bg-[#3F4359] p-6 shadow-lg">
+      <div className="relative w-11/12 max-w-3xl overflow-y-auto rounded-lg bg-modal p-6 shadow-lg">
         <h2 className="mb-4 text-center text-xl font-bold">
           Issuer Wallet Details
         </h2>
@@ -68,10 +68,7 @@ export default function ViewIssuerDetailsMdl({
               <ul className="space-y-3">
                 {Object.entries(groupedBalances).map(
                   ([currency, totalBalance]) => (
-                    <li
-                      key={currency}
-                      className="border-b border-[#8E909D] pb-2"
-                    >
+                    <li key={currency} className="border-b border-border pb-2">
                       <strong>{currency}</strong>: {totalBalance.toFixed(6)}
                     </li>
                   ),
@@ -82,7 +79,7 @@ export default function ViewIssuerDetailsMdl({
         )}
 
         {/* Close Button */}
-        <div className="absolute right-6 bottom-5 mt-4 flex">
+        <div className="absolute bottom-5 right-6 mt-4 flex">
           <Button variant="cancel" onClick={onClose}>
             Close
           </Button>

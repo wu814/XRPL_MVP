@@ -30,8 +30,8 @@ export default function DisplayAmms() {
       if (Array.isArray(result.data) && result.data.length > 0) {
         const ammsData = result.data
           .map((amm) => {
-            const [tokenA, tokenB] = amm.pair.split("/");
-            return new Amm(amm.amm_address, [tokenA, tokenB]);
+            const [token1, token2] = amm.pair.split("/");
+            return new Amm(amm.amm_address, [token1, token2]);
           })
           .sort((a, b) => {
             const pair1 = a.pair.join("/");
@@ -48,8 +48,8 @@ export default function DisplayAmms() {
   };
 
   const handleAmmCreated = (newAmmData) => {
-    const [tokenA, tokenB] = newAmmData.pair.split("/");
-    const newAmm = new Amm(newAmmData.ammAddress, [tokenA, tokenB]);
+    const [token1, token2] = newAmmData.pair.split("/");
+    const newAmm = new Amm(newAmmData.ammAddress, [token1, token2]);
     console.log("New AMM created:", newAmm);
     setAmms((prevAmms) =>
       [...prevAmms, newAmm].sort((a, b) => {
@@ -67,20 +67,57 @@ export default function DisplayAmms() {
   return (
     <div className="container mx-auto">
       <div className="mx-6 mb-5 flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-[#D8B6FF]">AMM List</h1>
+        <h1 className="text-3xl font-bold text-primary">Liquidity Pools</h1>
         {/* Only show the button if the user is an admin and there are issuer wallet and treasury wallet */}
         {session?.user?.is_admin && (
           <CreateAmmBtn onAmmCreated={handleAmmCreated} />
         )}
       </div>
+
       {loading ? (
-        <p className="text-center">Loading AMMs...</p>
+        <div className="flex flex-col rounded-xl bg-color2">
+          {/* Table Header */}
+          <div className="grid grid-cols-[2fr_1fr_1fr_1fr] border-b border-border px-4 py-4 text-lg font-semibold text-white">
+            <h3 className="pl-7 text-left">Pair</h3>
+            <h3 className="text-center">Address</h3>
+            <h3 className="text-center">Volume (24hr)</h3>
+            <h3 className="text-center">Fee</h3>
+          </div>
+
+          {/* Skeleton Rows */}
+          <div className="animate-pulse">
+            {[...Array(3)].map((_, index) => (
+              <div
+                key={index}
+                className="grid grid-cols-[2fr_1fr_1fr_1fr] items-center px-4 py-6"
+              >
+                {/* Pair */}
+                <div className="flex gap-2 pl-2">
+                  <div className="flex items-center gap-2 rounded-lg bg-color4 px-3 py-2">
+                    <div className="h-6 w-6 rounded-full bg-pulse" />
+                    <div className="h-4 w-8 rounded bg-pulse" />
+                  </div>
+                  <div className="flex items-center gap-2 rounded-lg bg-color4 px-3 py-2">
+                    <div className="h-6 w-6 rounded-full bg-pulse" />
+                    <div className="h-4 w-8 rounded bg-pulse" />
+                  </div>
+                </div>
+                {/* Address */}
+                <div className="mx-auto h-4 w-48 rounded bg-pulse" />
+                {/* Volume */}
+                <div className="mx-auto h-4 w-24 rounded bg-pulse" />
+                {/* Fee */}
+                <div className="mx-auto h-4 w-12 rounded bg-pulse" />
+              </div>
+            ))}
+          </div>
+        </div>
       ) : amms.length === 0 ? (
         <p className="text-center">No AMMs found.</p>
       ) : (
-        <div className="flex flex-col rounded-xl bg-[#242639]">
+        <div className="flex flex-col rounded-xl bg-color2">
           {/* Header row */}
-          <div className="grid grid-cols-[2fr_1fr_1fr_1fr] border-b border-[#8E909D] px-4 py-4 text-lg font-semibold">
+          <div className="grid grid-cols-[2fr_1fr_1fr_1fr] border-b border-border px-4 py-4 text-lg font-semibold">
             <h3 className="pl-7 text-left">Pair</h3>
             <h3 className="text-center">Address</h3>
             <h3 className="text-center">Volume (24hr)</h3>
@@ -91,8 +128,8 @@ export default function DisplayAmms() {
           {amms.map((amm, index) => (
             <div
               key={index}
-              className="grid cursor-pointer grid-cols-[2fr_1fr_1fr_1fr] items-center px-4 py-6 hover:bg-[#2C2E44]"
-              onClick={() => router.push(`/pools/${amm.ammAddress}`)}
+              className="grid cursor-pointer grid-cols-[2fr_1fr_1fr_1fr] items-center px-4 py-6 hover:bg-color3"
+              onClick={() => router.push(`/trade/amm/${amm.ammAddress}`)}
             >
               <div className="flex gap-1 pl-2">
                 <CurrencyIcon symbol={amm.pair[0]} />

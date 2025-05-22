@@ -38,7 +38,9 @@ export async function POST(req) {
     );
   } catch (error) {
     return NextResponse.json(
-      { error: `Error creating wallet: ${error.message} [createWallet/route.js]`},
+      {
+        error: `Error creating wallet: ${error.message} [createWallet/route.js]`,
+      },
       { status: 500 },
     );
   }

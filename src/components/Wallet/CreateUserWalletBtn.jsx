@@ -23,8 +23,8 @@ export default function CreateUserWalletBtn({ onWalletCreated }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ walletType }),
-      }); 
-      const result = await res.json();  
+      });
+      const result = await res.json();
       if (!res.ok) throw new Error(result.error || "Failed to add wallet");
 
       if (onWalletCreated) onWalletCreated(result.data);
@@ -41,7 +41,7 @@ export default function CreateUserWalletBtn({ onWalletCreated }) {
       <Button
         variant="primary"
         onClick={() => setShowMdl(true)}
-        className="mt-4 w-full hover:scale-none"
+        className="hover:scale-none mt-4 w-full"
       >
         + Create / Import Wallet
       </Button>

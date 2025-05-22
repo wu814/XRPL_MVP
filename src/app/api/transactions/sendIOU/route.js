@@ -21,7 +21,7 @@ export async function POST(req) {
     ) {
       return NextResponse.json(
         { error: "Missing required parameters" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -31,7 +31,7 @@ export async function POST(req) {
       amount,
       currency,
       issuerWallets,
-      destinationTag ?? null
+      destinationTag ?? null,
     );
 
     return NextResponse.json({ message: result.message }, { status: 200 });
@@ -39,7 +39,7 @@ export async function POST(req) {
     console.error("Error in /api/transactions/sendIOU:", error);
     return NextResponse.json(
       { error: `sendIOU failed: ${error.message}` },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

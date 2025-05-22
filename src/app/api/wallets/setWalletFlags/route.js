@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
-import { setIssuerWalletFlags, setTreasuryWalletFlags, setPathfindWalletFlags } from "@/utils/xrpl/wallet/setWalletFlags";
+import {
+  setIssuerWalletFlags,
+  setTreasuryWalletFlags,
+  setPathfindWalletFlags,
+} from "@/utils/xrpl/wallet/setWalletFlags";
 import * as xrpl from "xrpl";
 
 export async function POST(req) {
@@ -9,7 +13,7 @@ export async function POST(req) {
     if (!wallet) {
       return NextResponse.json(
         { error: "Missing wallet information." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -28,18 +32,18 @@ export async function POST(req) {
       default:
         return NextResponse.json(
           { error: `Unsupported walletType: ${wallet.walletType}` },
-          { status: 400 }
+          { status: 400 },
         );
     }
 
     return NextResponse.json(
       { message: `✅ Flags successfully set for ${wallet.walletType} wallet.` },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     return NextResponse.json(
       { error: `❌ Error setting wallet flags: ${error.message}` },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

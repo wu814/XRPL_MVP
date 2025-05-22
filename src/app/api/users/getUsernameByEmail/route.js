@@ -27,7 +27,9 @@ export async function GET() {
     return NextResponse.json({ username: data.username }, { status: 200 });
   } catch (error) {
     return NextResponse.json(
-      { error: `Error fetching username: ${error.message} [getUsernameByEmail/route.js]` },
+      {
+        error: `Error fetching username: ${error.message} [getUsernameByEmail/route.js]`,
+      },
       { status: 500 },
     );
   }

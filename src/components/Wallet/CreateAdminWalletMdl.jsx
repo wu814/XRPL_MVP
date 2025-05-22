@@ -13,17 +13,17 @@ export default function CreateAdminWalletMdl({ onClose, onSubmit, loading }) {
 
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/10">
-      <div className="w-96 rounded-lg bg-[#3F4359] p-6 shadow-xl">
+      <div className="w-96 rounded-lg bg-modal p-6 shadow-xl">
         <h2 className="mb-4 text-xl font-bold">Create Wallet</h2>
 
         <form onSubmit={handleSubmit}>
           {/* Wallet Type */}
           <div className="mb-4">
-            <label className="mb-1 block">Wallet Type</label>
+            <label className="text-mutedText">Wallet Type</label>
             <select
               value={walletType}
               onChange={(e) => setWalletType(e.target.value)}
-              className="w-full rounded border border-[#8E909D] p-2"
+              className="mt-1 w-full rounded border border-border bg-modal p-2 focus:border-primary focus:outline-none"
             >
               <option value="ISSUER">Issuer</option>
               <option value="STANDBY TREASURY">Standby Treasury</option>

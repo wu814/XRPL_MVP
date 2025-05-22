@@ -14,17 +14,17 @@ export default function CreateUserWalletMdl({ onClose, onSubmit, loading }) {
 
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/10">
-      <div className="w-96 rounded-lg bg-[#3F4359] p-6 shadow-lg">
+      <div className="w-96 rounded-lg bg-modal p-6 shadow-lg">
         <h2 className="mb-4 text-xl font-bold">Create / Import Wallet</h2>
 
         <form onSubmit={handleSubmit}>
           {/* Wallet Method */}
           <div className="mb-4">
-            <label className="mb-1 block">Wallet Type</label>
+            <label className="text-mutedText">Wallet Type</label>
             <select
               value={method}
               onChange={(e) => setMethod(e.target.value)}
-              className="w-full rounded border border-[#8E909D] p-2"
+              className="mt-1 w-full rounded border border-border bg-modal p-2 focus:border-primary focus:outline-none"
             >
               <option value="custodial">Custodial Wallet</option>
               <option value="import">Import Non-Custodial Wallet</option>

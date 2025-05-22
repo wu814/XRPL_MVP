@@ -53,7 +53,9 @@ export async function DELETE(req) {
     return NextResponse.json({ message: "Wallet deleted successfully!" });
   } catch (error) {
     return NextResponse.json(
-      { error: `Error deleting wallet: ${error.message} [deleteWallet/route.js]` },
+      {
+        error: `Error deleting wallet: ${error.message} [deleteWallet/route.js]`,
+      },
       { status: 500 },
     );
   }

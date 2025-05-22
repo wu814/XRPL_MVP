@@ -3,10 +3,10 @@ export default function AmmCompositionBar({ amount1, amount2 }) {
   if (!amount1 || !amount2) {
     return (
       <div className="animate-pulse p-4">
-        <div className="h-2 w-full rounded-full bg-[#374151]" />
+        <div className="h-2 w-full rounded-full bg-pulse" />
         <div className="mt-2 flex justify-between">
-          <div className="h-3 w-20 rounded bg-[#374151]" />
-          <div className="h-3 w-20 rounded bg-[#374151]" />
+          <div className="h-3 w-20 rounded bg-pulse" />
+          <div className="h-3 w-20 rounded bg-pulse" />
         </div>
       </div>
     );
@@ -19,15 +19,15 @@ export default function AmmCompositionBar({ amount1, amount2 }) {
     <div className="p-4">
       {/* Bar */}
       <div className="flex h-2 w-full overflow-hidden rounded-full">
-        <div className="bg-[#D8B6FF]" style={{ width: `${amount1Percent}%` }} />
-        <div className="bg-[#FAFDB8]" style={{ width: `${amount2Percent}%` }} />
+        <div className="bg-primary" style={{ width: `${amount1Percent}%` }} />
+        <div className="bg-cancel" style={{ width: `${amount2Percent}%` }} />
       </div>
       {/* Labels */}
       <div className="mt-2 flex justify-between">
-        <span className="text-xs text-[#D8B6FF]">
+        <span className="text-xs text-primary">
           {amount1.value} {amount1.currency}
         </span>
-        <span className="text-xs text-[#FAFDB8]">
+        <span className="text-xs text-cancel">
           {amount2.value} {amount2.currency}
         </span>
       </div>

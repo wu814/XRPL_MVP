@@ -43,10 +43,10 @@ export default function DeleteWalletBtn({ classicAddress, onWalletDeleted }) {
       <button
         onClick={() => setShowConfirm(true)}
         disabled={loading}
-        className="absolute top-2 right-3 transition duration-200 ease-in-out hover:scale-110"
+        className="absolute right-3 top-2 transition duration-200 ease-in-out hover:scale-110"
       >
         <svg
-          className="h-7 w-7 text-[#FAFDB8]"
+          className="h-7 w-7 text-cancel"
           aria-hidden="true"
           xmlns="http://www.w3.org/2000/svg"
           width="24"

@@ -46,8 +46,9 @@ export async function POST(req) {
 
     if (error) throw error;
     return NextResponse.json(
-      { message: `${ammData.pair} AMM created! Address: ${ammData.ammAddress}`,
-        data: ammData 
+      {
+        message: `${ammData.pair} AMM created! Address: ${ammData.ammAddress}`,
+        data: ammData,
       },
       { status: 201 },
     );

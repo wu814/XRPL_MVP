@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAccountLines } from "@/utils/xrpl/wallet/getWalletInfo"; 
+import { getAccountLines } from "@/utils/xrpl/wallet/getWalletInfo";
 
 export async function POST(req) {
   try {
@@ -13,7 +13,7 @@ export async function POST(req) {
   } catch (error) {
     return NextResponse.json(
       { error: `getAccountInfo failed: ${error.message}` },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

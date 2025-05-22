@@ -43,18 +43,18 @@ export default function AuthorizeDepositBtn({ treasuryWallet }) {
 
       {showMdl && (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/10">
-          <div className="w-96 rounded-lg bg-[#3F4359] p-6 shadow-lg">
-            <h2 className="mb-4 text-center text-xl font-semibold text-white">
+          <div className="w-96 rounded-lg bg-modal p-6 shadow-lg">
+            <h2 className="mb-4 text-center text-xl font-semibold">
               Authorize Deposit
             </h2>
-            <label className="block text-sm font-medium text-white">
+            <label className="text-md font-medium text-mutedText">
               Wallet Address
             </label>
             <input
               type="text"
               value={authorizedAddress}
               onChange={(e) => setAuthorizedAddress(e.target.value)}
-              className="mt-2 w-full rounded border border-[#8E909D] p-2"
+              className="mt-1 w-full rounded border border-border bg-modal p-2 focus:border-primary focus:outline-none"
               placeholder="Enter wallet address to authorize"
             />
             <div className="mt-4 flex justify-end space-x-2">

@@ -87,7 +87,7 @@ const DisplayUserWallets = () => {
           {wallets.map((wallet) => (
             <div
               key={wallet.classicAddress}
-              className="relative rounded-lg bg-[#242639] p-4 shadow-lg"
+              className="relative rounded-lg bg-color2 p-4 shadow-lg"
             >
               <h3 className="mb-6 text-xl font-bold">
                 {wallet.classicAddress}
@@ -97,7 +97,7 @@ const DisplayUserWallets = () => {
                 classicAddress={wallet.classicAddress}
                 onWalletDeleted={handleDeleteWallet}
               />
-              <div className="absolute right-3 bottom-3 flex flex-row space-x-2">
+              <div className="absolute bottom-3 right-3 flex flex-row space-x-2">
                 <TransferBtn
                   senderWallet={wallet}
                   issuerWallets={issuerWallets}
