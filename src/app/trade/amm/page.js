@@ -7,9 +7,9 @@ export default function Trade() {
   return (
     <div>
       <Navbar />
-      <Breadcrumbs />
       {/* Main Content */}
-      <main className="container mx-auto flex p-4">
+      <main className="container mx-auto flex flex-col">
+        <Breadcrumbs/>
         <DisplayAmms />
       </main>
     </div>

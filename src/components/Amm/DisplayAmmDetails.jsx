@@ -4,11 +4,14 @@ import ErrorMdl from "../ErrorMdl";
 import CurrencyIcon from "../CurrencyIcon";
 import AmmCompositionBar from "./AmmCompositionBar";
 import ManageAmmBalance from "./ManageAmmBalance";
+import Breadcrumbs from "../Breadcrumbs";
 
 export default function DisplayAmmDetails({ ammAddress }) {
   const [ammInfo, setAmmInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState(null);
+  const [currency1, setCurrency1] = useState(null);
+  const [currency2, setCurrency2] = useState(null);
 
   const fetchAmmInfo = async () => {
     try {
@@ -30,6 +33,20 @@ export default function DisplayAmmDetails({ ammAddress }) {
   };
 
   useEffect(() => {
+    // Retrieve cached AMM data from localStorage
+    const cached = localStorage.getItem("selectedAMM");
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        if (parsed?.ammAddress === ammAddress) {
+          setCurrency1(parsed.pair[0]);
+          setCurrency2(parsed.pair[1]);
+          localStorage.removeItem("selectedAMM"); // Clear after use
+        }
+      } catch (e) {
+        console.error("Failed to parse cached AMM", e);
+      }
+    }
     fetchAmmInfo();
   }, [ammAddress]);
 
@@ -68,7 +85,7 @@ export default function DisplayAmmDetails({ ammAddress }) {
 
   const renderTradingFee = () => (
     <div>
-      <h3 className="mb-2 text-mutedText">Trading Fee</h3>
+      <h3 className="text-mutedText mb-2">Trading Fee</h3>
       <p className="text-lg font-semibold">
         {ammInfo?.trading_fee !== undefined
           ? `${(ammInfo.trading_fee / 1000).toFixed(2)}%`
@@ -77,24 +94,26 @@ export default function DisplayAmmDetails({ ammAddress }) {
     </div>
   );
 
+
   return (
     <div>
       <Navbar />
       <div className="container mx-auto">
-        <div className="flex flex-row gap-2 p-6">
+        <Breadcrumbs customLabel={`${currency1}/${currency2}`} />
+        <div className="flex flex-row gap-2 py-6">
           <CurrencyIcon
-            symbol={ammInfo?.amount?.currency}
+            symbol={currency1}
             heightClass="h-8"
             widthClass="w-8"
           />
           <CurrencyIcon
-            symbol={ammInfo?.amount2?.currency}
+            symbol={currency2}
             heightClass="h-8"
             widthClass="w-8"
           />
         </div>
-        <div className="grid grid-cols-6 gap-4 p-6">
-          <div className="col-span-2 rounded-xl bg-color2 p-4">
+        <div className="grid grid-cols-6 gap-4 py-6">
+          <div className="bg-color2 col-span-2 rounded-xl p-4">
             <h3 className="text-mutedText">Pool Composition</h3>
             <AmmCompositionBar
               amount1={ammInfo?.amount}
@@ -102,30 +121,30 @@ export default function DisplayAmmDetails({ ammAddress }) {
             />
             {renderPriceInfo()}
           </div>
-          <div className="col-span-1 rounded-xl bg-color2 p-4">
-            <h3 className="mb-2 text-mutedText">Pool Value</h3>
+          <div className="bg-color2 col-span-1 rounded-xl p-4">
+            <h3 className="text-mutedText mb-2">Pool Value</h3>
             <p className="text-lg font-semibold">$99999.99</p>
           </div>
-          <div className="col-span-1 rounded-xl bg-color2 p-4">
-            <h3 className="mb-2 text-mutedText">Volume (24h)</h3>
+          <div className="bg-color2 col-span-1 rounded-xl p-4">
+            <h3 className="text-mutedText mb-2">Volume (24h)</h3>
             <p className="text-lg font-semibold">$99999.99</p>
           </div>
-          <div className="col-span-1 rounded-xl bg-color2 p-4">
-            <h3 className="mb-2 text-mutedText">APR</h3>
+          <div className="bg-color2 col-span-1 rounded-xl p-4">
+            <h3 className="text-mutedText mb-2">APR</h3>
             <p className="text-lg font-semibold">$99999.99</p>
           </div>
-          <div className="col-span-1 rounded-xl bg-color2 p-4">
+          <div className="bg-color2 col-span-1 rounded-xl p-4">
             {renderTradingFee()}
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-4 px-6 pb-6">
+        <div className="grid grid-cols-3 gap-4">
           {/* Swap/Add/Withdraw Panel */}
-          <div className="col-span-1 rounded-xl bg-color2 p-4">
+          <div className="bg-color2 col-span-1 rounded-xl p-4">
             <ManageAmmBalance ammInfo={ammInfo} />
           </div>
           {/* Volume/TVL/Fees Graph */}
-          <div className="col-span-2 rounded-xl bg-color2 p-4 text-mutedText">
+          <div className="bg-color2 text-mutedText col-span-2 rounded-xl p-4">
             Volume/TVL/Fees Chart
           </div>
         </div>

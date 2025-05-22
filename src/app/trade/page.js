@@ -11,7 +11,7 @@ export default function Trade() {
     <div>
       <Navbar />
       <div className="container mx-auto">
-        <div className="grid grid-cols-3 gap-10 p- text-center">
+        <div className="grid grid-cols-3 gap-10 pt-10 text-center">
           <div className="rounded-xl bg-color2 p-8">
             <Link href="/trade/amm" className={linkClass("/trade/amm")}>
               Liquidity Pool
