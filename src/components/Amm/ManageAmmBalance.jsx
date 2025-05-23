@@ -3,7 +3,7 @@ import { useState } from "react";
 import AddLiquidity from "./AddLiquidity";
 import WithdrawLiquidity from "./WithdrawLiquidity";
 
-export default function ManageAmmBalance({ ammInfo }) {
+export default function ManageAmmBalance({ ammInfo, wallets, onChange }) {
   const [activeTab, setActiveTab] = useState("add");
 
   return (
@@ -31,7 +31,7 @@ export default function ManageAmmBalance({ ammInfo }) {
       </div>
 
       {/* Panels */}
-      {activeTab === "add" && <AddLiquidity ammInfo={ammInfo} />}
+      {activeTab === "add" && <AddLiquidity ammInfo={ammInfo} wallets={wallets} onAdded={onChange} />}
       {activeTab === "withdraw" && <WithdrawLiquidity ammInfo={ammInfo} />}
       {activeTab === "swap" && (
         <div className="text-gray-400">Swap feature coming soon...</div>

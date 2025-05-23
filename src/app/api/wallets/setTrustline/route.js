@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import setTrustline from "@/utils/xrpl/wallet/setTrustline";
+import { setTrustline } from "@/utils/xrpl/wallet/setTrustline";
 
 export async function POST(req) {
   const session = await getServerSession(authOptions);
@@ -23,7 +23,7 @@ export async function POST(req) {
       );
     }
 
-    const result = await setTrustline(setterWallet, issuerWallets, currency);
+    const result = await setTrustline(setterWallet, issuerWallets[0].classicAddress, currency);
 
     return NextResponse.json({ message: result.message }, { status: 200 });
   } catch (err) {

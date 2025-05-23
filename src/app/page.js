@@ -13,7 +13,7 @@ export default function Login() {
         backgroundImage: "url('/login.jpg')",
       }}
     >
-      <AuthRedirect />
+      {status === "authenticated" && <AuthRedirect />}
       <div></div>
       <div className="mr-16 mt-24 flex flex-col content-end items-center">
         <h1 className="mb-14 text-4xl font-bold text-primary">XRPL MVP</h1>

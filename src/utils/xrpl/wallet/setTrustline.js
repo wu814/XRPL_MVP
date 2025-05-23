@@ -2,7 +2,7 @@
 import { client, connectXrplClient } from "../testnet";
 import * as xrpl from "xrpl";
 
-export default async function setTrustline(wallet, issuerWallets, currency) {
+export async function setTrustline(wallet, issuerWalletAddress, currency) {
   await connectXrplClient();
   const MAX_TRUST_LIMIT = "1000000000000000";
 
@@ -15,7 +15,7 @@ export default async function setTrustline(wallet, issuerWallets, currency) {
     Account: setterWallet.classicAddress,
     LimitAmount: {
       currency: currency,
-      issuer: issuerWallets[0].classicAddress,
+      issuer: issuerWalletAddress,
       value: MAX_TRUST_LIMIT,
     },
   };
@@ -32,10 +32,80 @@ export default async function setTrustline(wallet, issuerWallets, currency) {
   const msg = `Trustline set from 
 ${setterWallet.classicAddress}
 to 
-${issuerWallets[0].classicAddress} 
+${issuerWalletAddress} 
 for ${currency}.`;
 
   return {
+    success: true,
     message: msg,
   };
+}
+
+
+export async function checkTrustline(wallet, destination, currency) {
+  await connectXrplClient();
+
+  console.log(
+    `🔍 Checking trustline for ${wallet.classicAddress} to ${destination} for ${currency}...`,
+  );
+
+  const trustlineResponse = await client.request({
+    command: "account_lines",
+    account: wallet.classicAddress,
+    peer: destination,
+  });
+
+  const hasTrustline = trustlineResponse.result.lines.some(
+    (line) => line.currency === currency,
+  );
+
+  if (hasTrustline) {
+    console.log(
+      `✅ Trustline exists between ${wallet.classicAddress} and ${destination} for ${currency}.`,
+    );
+    return true;
+  } else {
+    console.log(
+      `ℹ️ No existing trustline found for ${currency}. Will need to set one up.`,
+    );
+    return false;
+  }
+}
+
+
+export async function setLPTrustlineFromAMMData(providerWallet, ammData) {
+  await connectXrplClient();
+
+  const ammAccount = ammData.account;
+
+  if (!ammAccount) {
+    throw new Error("❌ AMM account must be specified to set up LP trustline.");
+  }
+
+  if (!ammData) {
+    throw new Error(`❌ No AMM data found for account ${ammAccount}`);
+  }
+
+  if (!ammData.lp_token || !ammData.lp_token.currency || !ammData.lp_token.issuer) {
+    throw new Error("❌ Invalid LP token data in AMM data file.");
+  }
+
+  const lpToken = ammData.lp_token;
+
+  console.log(
+    `🔹 Setting up LP trustline for wallet ${providerWallet.classicAddress} to AMM ${ammAccount}`,
+  );
+  console.log(
+    `🔹 LP Token details: Currency: ${lpToken.currency}, Issuer: ${lpToken.issuer}`,
+  );
+
+  const result = await setTrustline(providerWallet, lpToken.issuer, lpToken.currency);
+
+  if (result) {
+    console.log("✅ LP Trustline successfully established.");
+  } else {
+    console.log("❌ Failed to establish LP trustline.");
+  }
+
+  return result;
 }

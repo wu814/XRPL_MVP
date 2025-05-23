@@ -6,12 +6,80 @@ import AmmCompositionBar from "./AmmCompositionBar";
 import ManageAmmBalance from "./ManageAmmBalance";
 import Breadcrumbs from "../Breadcrumbs";
 
+class Wallet {
+  constructor(classicAddress, walletType, seed) {
+    this.classicAddress = classicAddress;
+    this.walletType = walletType;
+    this.seed = seed;
+  }
+}
+
+// This class is used to parse the AMM data returned from the API
+class AmmInfo {
+  constructor(data) {
+    this.account = data.account;
+    this.trading_fee = data.trading_fee;
+
+    // LP Token (always IOU format)
+    this.lp_token = {
+      currency: data.lp_token.currency,
+      issuer: data.lp_token.issuer,
+      value: parseFloat(data.lp_token.value),
+    };
+
+    // Asset 1 and 2 (XRP or IOU)
+    this.amount = this.parseAmount(data.amount);
+    this.amount2 = this.parseAmount(data.amount2);
+  }
+
+  // Converts XRP from drops or parses IOU
+  parseAmount(amount) {
+    if (typeof amount === "string") {
+      // XRP is a string of drops
+      return {
+        currency: "XRP",
+        issuer: null,
+        value: parseFloat(amount) / 1_000_000, // Convert drops to XRP
+      };
+    } else {
+      // IOU is an object
+      return {
+        currency: amount.currency,
+        issuer: amount.issuer,
+        value: parseFloat(amount.value),
+      };
+    }
+  }
+}
+
+
 export default function DisplayAmmDetails({ ammAddress }) {
   const [ammInfo, setAmmInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState(null);
-  const [currency1, setCurrency1] = useState(null);
-  const [currency2, setCurrency2] = useState(null);
+  const [currency1, setCurrency1] = useState("");
+  const [currency2, setCurrency2] = useState("");
+  const [wallets, setWallets] = useState([]);
+
+  // Get wallet seed so we can add liquidity
+  const fetchWallets = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/wallets/getWalletsByUserID");
+      const result = await res.json();
+      if (Array.isArray(result.data) && result.data.length > 0) {
+        const walletsData = result.data.map(
+          (wallet) =>
+            new Wallet(wallet.classic_address, wallet.wallet_type, wallet.seed),
+        );
+        setWallets(walletsData);
+      }
+    } catch (error) {
+      console.error("Error fetching wallets:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchAmmInfo = async () => {
     try {
@@ -23,8 +91,7 @@ export default function DisplayAmmDetails({ ammAddress }) {
 
       const result = await res.json();
       if (!res.ok) throw new Error(result.error || "Failed to fetch AMM info");
-      setAmmInfo(result.data);
-      console.log("AMM Info:", result.data);
+      setAmmInfo(new AmmInfo(result.data));
     } catch (error) {
       setErrorMessage(error.message);
     } finally {
@@ -41,22 +108,28 @@ export default function DisplayAmmDetails({ ammAddress }) {
         if (parsed?.ammAddress === ammAddress) {
           setCurrency1(parsed.pair[0]);
           setCurrency2(parsed.pair[1]);
-          localStorage.removeItem("selectedAMM"); // Clear after use
         }
       } catch (e) {
         console.error("Failed to parse cached AMM", e);
       }
     }
     fetchAmmInfo();
+    fetchWallets();
   }, [ammAddress]);
+
+  // Delete later
+  useEffect(() => {
+    console.log(ammInfo);
+    console.log(wallets);
+  }, [ammInfo]);
 
   const renderPriceInfo = () => {
     const a1 = parseFloat(ammInfo?.amount?.value);
     const a2 = parseFloat(ammInfo?.amount2?.value);
     if (isNaN(a1) || isNaN(a2) || a1 <= 0 || a2 <= 0) return null;
 
-    const s1 = ammInfo.amount.currency || "Asset1";
-    const s2 = ammInfo.amount2.currency || "Asset2";
+    const s1 = currency1 || "Asset1";
+    const s2 = currency2 || "Asset2";
     const price1 = (a2 / a1).toFixed(6);
     const price2 = (a1 / a2).toFixed(6);
 
@@ -70,26 +143,11 @@ export default function DisplayAmmDetails({ ammAddress }) {
     );
   };
 
-  const renderLPToken = () => (
-    <div className="mb-4">
-      <h3 className="mb-1 text-lg text-white">LP Token</h3>
-      <p className="text-lg">
-        Currency: {ammInfo?.lp_token?.currency || "Unknown"}
-      </p>
-      <p className="text-lg">
-        Issuer: {ammInfo?.lp_token?.issuer || "Unknown"}
-      </p>
-      <p className="text-lg">Total Supply: {ammInfo?.lp_token?.value || "0"}</p>
-    </div>
-  );
-
   const renderTradingFee = () => (
     <div>
       <h3 className="text-mutedText mb-2">Trading Fee</h3>
       <p className="text-lg font-semibold">
-        {ammInfo?.trading_fee !== undefined
-          ? `${(ammInfo.trading_fee / 1000).toFixed(2)}%`
-          : "Unknown"}
+        {`${(ammInfo?.trading_fee / 1000).toFixed(2)}%`}
       </p>
     </div>
   );
@@ -141,7 +199,7 @@ export default function DisplayAmmDetails({ ammAddress }) {
         <div className="grid grid-cols-3 gap-4">
           {/* Swap/Add/Withdraw Panel */}
           <div className="bg-color2 col-span-1 rounded-xl p-4">
-            <ManageAmmBalance ammInfo={ammInfo} />
+            <ManageAmmBalance ammInfo={ammInfo} wallets={wallets} onChange={fetchAmmInfo} />
           </div>
           {/* Volume/TVL/Fees Graph */}
           <div className="bg-color2 text-mutedText col-span-2 rounded-xl p-4">
