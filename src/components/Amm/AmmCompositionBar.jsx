@@ -25,10 +25,10 @@ export default function AmmCompositionBar({ amount1, amount2 }) {
       {/* Labels */}
       <div className="mt-2 flex justify-between">
         <span className="text-xs text-primary">
-          {amount1.value} {amount1.currency}
+          {Number(amount1.value).toFixed(6)} {amount1.currency}
         </span>
         <span className="text-xs text-cancel">
-          {amount2.value} {amount2.currency}
+          {Number(amount2.value).toFixed(6)} {amount2.currency}
         </span>
       </div>
     </div>

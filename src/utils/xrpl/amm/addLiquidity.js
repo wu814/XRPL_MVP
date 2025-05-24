@@ -135,7 +135,7 @@ export async function extractLPTokensReceived(
               lpTokensReceived = {
                 currency: balance.currency,
                 issuer: ammAccount,
-                value: value.toFixed(6),
+                value: value,
               };
               break;
             }
@@ -177,7 +177,7 @@ export async function extractLPTokensReceived(
           return {
             currency: lpTokens.currency,
             issuer: ammAccount,
-            value: lpTokens.balance,
+            value: lpTokens.balance.toFixed(6),
           };
         } else {
           console.log("❌ Could not find any LP token balance");
@@ -326,7 +326,7 @@ const extractActualAssetsDeposited = (result) => {
             const xrpValue = xrpl.dropsToXrp(xrpSent.toString());
             assetsDeposited.push({
               currency: "XRP",
-              value: xrpValue,
+              value: xrpValue.toFixed(6),
             });
 
             // Mark XRP as processed
@@ -700,7 +700,7 @@ export async function addLiquidityTwoAsset(
       tx.Amount = {
         currency: assetAObj.currency,
         issuer: assetAObj.issuer,
-        value: assetAObj.value.toString(),
+        value: assetAObj.value,
       };
     }
 
@@ -716,7 +716,7 @@ export async function addLiquidityTwoAsset(
       tx.Amount2 = {
         currency: assetBObj.currency,
         issuer: assetBObj.issuer,
-        value: assetBObj.value.toString(),
+        value: assetBObj.value,
       };
     }
 
@@ -996,7 +996,7 @@ export async function addLiquidityLPToken(
       LPTokenOut: {
         currency: lpTokenOut.currency,
         issuer: lpTokenOut.issuer,
-        value: lpTokenOut.value.toString(),
+        value: lpTokenOut.value,
       },
     };
 
@@ -1196,7 +1196,7 @@ export async function addLiquidityIfEmpty(
       amount1 = {
         currency: assetAObj.currency,
         issuer: assetAObj.issuer,
-        value: assetAObj.value.toString(),
+        value: assetAObj.value,
       };
       console.log(
         `🔹 Asset A: ${assetAObj.currency} - Amount: ${assetAObj.value} - Issuer: ${assetAObj.issuer}`,
@@ -1210,7 +1210,7 @@ export async function addLiquidityIfEmpty(
       amount2 = {
         currency: assetBObj.currency,
         issuer: assetBObj.issuer,
-        value: assetBObj.value.toString(),
+        value: assetBObj.value,
       };
       console.log(
         `🔹 Asset B: ${assetBObj.currency} - Amount: ${assetBObj.value} - Issuer: ${assetBObj.issuer}`,
@@ -1610,7 +1610,7 @@ export async function addLiquiditySingleAsset(
       tx.Amount = {
         currency: assetObj.currency,
         issuer: assetObj.issuer,
-        value: assetObj.value.toString(),
+        value: assetObj.value,
       };
     }
 
@@ -1871,7 +1871,7 @@ export async function addLiquidityOneAssetLPToken(
       LPTokenOut: {
         currency: lpTokenOut.currency,
         issuer: lpTokenOut.issuer,
-        value: lpTokenOut.value.toString(),
+        value: lpTokenOut.value,
       },
     };
 
@@ -1916,7 +1916,7 @@ export async function addLiquidityOneAssetLPToken(
       tx.Amount = {
         currency: assetObj.currency,
         issuer: assetObj.issuer,
-        value: assetObj.value.toString(),
+        value: assetObj.value,
       };
     }
 
@@ -2245,7 +2245,7 @@ export async function addLiquidityLimitLPToken(
       tx.Amount = {
         currency: assetObj.currency,
         issuer: assetObj.issuer,
-        value: assetObj.value.toString(),
+        value: assetObj.value,
       };
     }
 

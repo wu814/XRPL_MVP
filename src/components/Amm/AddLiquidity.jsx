@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import BigNumber from "bignumber.js";
 import CurrencyIcon from "../CurrencyIcon";
 import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
@@ -25,57 +26,61 @@ export default function AddLiquidity({ ammInfo, wallets, onAdded }) {
    * Calculates estimated required token amounts (for both-asset or one-asset LP deposit)
    * Includes slippage-aware logic for one-asset deposits
    */
-  const estimatedAmounts = useMemo(() => {
-    const totalLP = parseFloat(ammInfo?.lp_token?.value);
-    const poolA = parseFloat(token1?.value);
-    const poolB = parseFloat(token2?.value);
-    const desiredLP = parseFloat(lpAmount);
-    const fee = parseFloat(ammInfo?.trading_fee) / 1000000; // Convert fee to decimal
-    const weight = 0.5;
+    const estimatedAmounts = useMemo(() => {
+    const totalLP = new BigNumber(ammInfo?.lp_token?.value);
+    const poolA = new BigNumber(token1?.value);
+    const poolB = new BigNumber(token2?.value);
+    const desiredLP = new BigNumber(lpAmount);
+    const fee = new BigNumber(ammInfo?.trading_fee).div(1000000);
+    const weight = new BigNumber(0.5);
 
-    if (!desiredLP || !totalLP || isNaN(poolA) || isNaN(poolB)) {
+    if (
+      desiredLP.isNaN() ||
+      totalLP.isNaN() ||
+      poolA.isNaN() ||
+      poolB.isNaN()
+    ) {
       return { assetA: null, assetB: null, singleAsset: null };
     }
 
-    const ratio = desiredLP / totalLP;
+    const ratio = desiredLP.div(totalLP);
 
     const assetA = {
       currency: token1.currency,
       issuer: token1.issuer,
-      value: (ratio * poolA).toFixed(6),
+      value: ratio.times(poolA).toFixed(6),
     };
     const assetB = {
       currency: token2.currency,
       issuer: token2.issuer,
-      value: (ratio * poolB).toFixed(6),
+      value: ratio.times(poolB).toFixed(6),
     };
 
-    // Utility: LP output for single-asset input
+    // xrpl doc on single asset deposit fee
     const computeLPFromSingleAsset = (B, P, T, F, W) => {
-      const adjustedB = B - F * (1 - W) * B;
-      const base = 1 + adjustedB / P;
-      const power = Math.pow(base, W);
-      return T * (power - 1);
+      const adjustedB = B.minus(F.times(new BigNumber(1).minus(W)).times(B));
+      const base = new BigNumber(1).plus(adjustedB.div(P));
+      const power = new BigNumber(Math.pow(base.toNumber(), 0.5));
+
+      return T.times(power.minus(1));
     };
 
-    // Invert function: solve for B using binary search
     const solveDepositAmount = (P, T, F, W, desiredL) => {
-      let low = 0;
-      let high = P * 2; // max 2x pool for safety margin
+      let low = new BigNumber(0);
+      let high = P.times(2);
       let mid;
-      const epsilon = 1e-8;
+      const epsilon = new BigNumber(1e-8);
 
       for (let i = 0; i < 100; i++) {
-        mid = (low + high) / 2;
+        mid = low.plus(high).div(2);
         const result = computeLPFromSingleAsset(mid, P, T, F, W);
-        if (Math.abs(result - desiredL) < epsilon) break;
-        if (result < desiredL) low = mid;
+        if (result.minus(desiredL).abs().lt(epsilon)) break;
+        if (result.lt(desiredL)) low = mid;
         else high = mid;
       }
       return mid;
     };
 
-    // Estimate for token1 or token2
     let singleAsset = null;
     let maxSingleAsset = null;
 
@@ -84,22 +89,22 @@ export default function AddLiquidity({ ammInfo, wallets, onAdded }) {
       singleAsset = {
         currency: token1.currency,
         issuer: token1.issuer,
-        value: value.toFixed(8),
+        value: value.toFixed(6),
       };
       maxSingleAsset = {
         ...singleAsset,
-        value: (value * 1.3).toFixed(8),
+        value: value.times(1.3).toFixed(6),
       };
     } else if (payWith === token2.currency) {
       const value = solveDepositAmount(poolB, totalLP, fee, weight, desiredLP);
       singleAsset = {
         currency: token2.currency,
         issuer: token2.issuer,
-        value: value.toFixed(8),
+        value: value.toFixed(6),
       };
       maxSingleAsset = {
         ...singleAsset,
-        value: (value * 1.3).toFixed(8),
+        value: value.times(1.3).toFixed(6),
       };
     }
 
@@ -112,7 +117,14 @@ export default function AddLiquidity({ ammInfo, wallets, onAdded }) {
    * - Deposit type (oneAsset, twoAsset, oneAssetLPToken, twoAssetLPToken)
    */
   const buildPayload = () => {
-    const walletSeed = wallets[0].seed;
+    // Assume only User and Standby Treasury are going to deposit into AMM
+    const wallet = wallets.find(
+      (wallet) =>
+        wallet.walletType === "USER" ||
+        wallet.walletType === "STANDBY TREASURY",
+    );
+
+    const walletSeed = wallet.seed;
 
     const assetA = {
       currency: token1.currency,
@@ -250,8 +262,7 @@ export default function AddLiquidity({ ammInfo, wallets, onAdded }) {
                 Estimated: {estimatedAmounts.singleAsset?.value} {payWith}
               </p>
               <p>
-                Max to send: {estimatedAmounts.maxSingleAsset?.value}{" "}
-                {payWith}
+                Max to send: {estimatedAmounts.maxSingleAsset?.value} {payWith}
               </p>
             </>
           )}

@@ -93,14 +93,10 @@ export async function POST(req) {
         );
     }
 
-    if (result) {
-      return NextResponse.json({ message: "AMM deposit successful." }, { status: 200 });
-    } else {
-      return NextResponse.json(
-        { success: false, error: "AMM deposit failed." },
-        { status: 500 }
-      );
-    }
+    return NextResponse.json(
+      { message: "Liquidity added successfully!", result },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Error adding liquidity", error.message);
     return NextResponse.json(

@@ -13,7 +13,7 @@ const handlePaymentError = (errorCode, errorMessage = "") => {
       "No path found: There is no viable path between the sender and recipient for this IOU. Ensure both accounts have trustlines to the same issuer and sufficient liquidity exists.",
 
     tecNO_PERMISSION:
-      "No permission: The transaction tried to use a trustline that doesn't allow rippling. Check if the trustline was set with the `noRipple` flag or if the issuer hasn't enabled rippling.",
+      "No permission: The transaction tried to use a trustline that doesn't allow rippling. Check if the trustline was set with the `noRipple` flag or if the issuer hasn't enabled rippling. Or recipient has lsfDepositAuth",
 
     tecDST_TAG_NEEDED:
       "Destination tag required: The destination account requires a destination tag to distinguish between incoming payments. Please provide a valid destination tag.",
