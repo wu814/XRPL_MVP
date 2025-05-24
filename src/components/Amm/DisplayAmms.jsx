@@ -50,7 +50,6 @@ export default function DisplayAmms() {
   const handleAmmCreated = (newAmmData) => {
     const [token1, token2] = newAmmData.pair.split("/");
     const newAmm = new Amm(newAmmData.ammAddress, [token1, token2]);
-    console.log("New AMM created:", newAmm);
     setAmms((prevAmms) =>
       [...prevAmms, newAmm].sort((a, b) => {
         const pair1 = a.pair.join("/");

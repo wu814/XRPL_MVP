@@ -120,7 +120,6 @@ export default function DisplayAmmDetails({ ammAddress }) {
   // Delete later
   useEffect(() => {
     console.log(ammInfo);
-    console.log(wallets);
   }, [ammInfo]);
 
   const renderPriceInfo = () => {
