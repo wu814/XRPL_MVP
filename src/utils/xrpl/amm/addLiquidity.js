@@ -212,6 +212,8 @@ const extractActualAssetsDeposited = (result) => {
 
     // Look for both token balance changes and XRP balance changes
     for (const node of nodes) {
+      console.log(JSON.stringify(node, null, 2));
+
       // For token deposits (check trustline modifications)
       if (
         node.ModifiedNode &&
@@ -225,6 +227,8 @@ const extractActualAssetsDeposited = (result) => {
           state.FinalFields.Balance &&
           state.PreviousFields.Balance
         ) {
+          
+
           // Get the previous and current balances
           const finalBalance = state.FinalFields.Balance;
           const prevBalance = state.PreviousFields.Balance;
@@ -238,10 +242,10 @@ const extractActualAssetsDeposited = (result) => {
           const highAccount = state.FinalFields.HighLimit?.issuer;
           const lowAccount = state.FinalFields.LowLimit?.issuer;
 
-          // Only process entries where one of the accounts is the sender
-          if (highAccount !== senderAddress && lowAccount !== senderAddress) {
-            continue;
-          }
+          // // Only process entries where one of the accounts is the sender
+          // if (highAccount !== senderAddress && lowAccount !== senderAddress) {
+          //   continue;
+          // }
 
           // Create a unique key for this asset to avoid duplicates
           // Include the currency and issuer, but not whose perspective the balance is from
