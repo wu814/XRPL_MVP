@@ -6,6 +6,8 @@ import AuthRedirect from "@/components/AuthRedirect";
 
 export default function Login() {
   const { data: session, status } = useSession();
+  console.log("Session data:", session);
+  console.log("Session status:", status);
   return (
     <div
       className="flex min-h-screen flex-row items-center justify-between bg-cover bg-center"

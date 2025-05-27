@@ -204,15 +204,14 @@ const extractActualAssetsDeposited = (result) => {
     // Track assets we've already added to avoid duplicates
     const addedAssets = new Set();
 
-    // Get transaction sender address
-    const senderAddress = result.result.Account;
+    // Get transaction sender address, make sure this is the exact format result.result.tx_json?.Account
+    const senderAddress = result.result.tx_json?.Account;
 
     // Get AMM account address if present in the transaction
     const ammAccount = result.result.AMMAccount;
 
     // Look for both token balance changes and XRP balance changes
     for (const node of nodes) {
-      console.log(JSON.stringify(node, null, 2));
 
       // For token deposits (check trustline modifications)
       if (
@@ -227,8 +226,6 @@ const extractActualAssetsDeposited = (result) => {
           state.FinalFields.Balance &&
           state.PreviousFields.Balance
         ) {
-          
-
           // Get the previous and current balances
           const finalBalance = state.FinalFields.Balance;
           const prevBalance = state.PreviousFields.Balance;
@@ -239,13 +236,14 @@ const extractActualAssetsDeposited = (result) => {
           }
 
           // Skip non-transaction related trustlines
+
           const highAccount = state.FinalFields.HighLimit?.issuer;
           const lowAccount = state.FinalFields.LowLimit?.issuer;
 
-          // // Only process entries where one of the accounts is the sender
-          // if (highAccount !== senderAddress && lowAccount !== senderAddress) {
-          //   continue;
-          // }
+          // // // Only process entries where one of the accounts is the sender
+          if (highAccount !== senderAddress && lowAccount !== senderAddress) {
+            continue;
+          }
 
           // Create a unique key for this asset to avoid duplicates
           // Include the currency and issuer, but not whose perspective the balance is from
@@ -315,7 +313,7 @@ const extractActualAssetsDeposited = (result) => {
           const prevDrops = parseInt(state.PreviousFields.Balance);
 
           // The fee is directly deducted from the account, we need to consider it
-          const fee = parseInt(result.result.Fee) || 0;
+          const fee = parseInt(result.result.tx_json?.Fee) || 0;
 
           // Calculate how much XRP was sent
           const xrpSent = prevDrops - finalDrops - fee;
@@ -362,6 +360,7 @@ const displayTransactionDetails = (
   console.log("\n===== Transaction Details =====");
 
   // Display transaction hash and result
+  console.log(result);
   console.log(`🔑 Transaction Hash: ${result.result.hash}`);
   console.log(`🎯 Result: ${result.result.meta.TransactionResult}`);
 
@@ -450,9 +449,9 @@ const displayTransactionDetails = (
   }
 
   // Display transaction cost
-  if (result.result.Fee) {
+  if (result.result.tx_json?.Fee) {
     console.log(
-      `\n💸 Transaction Cost: ${xrpl.dropsToXrp(result.result.Fee)} XRP`,
+      `\n💸 Transaction Cost: ${xrpl.dropsToXrp(result.result.tx_json?.Fee)} XRP`,
     );
   }
 
