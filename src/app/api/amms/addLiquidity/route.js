@@ -33,7 +33,7 @@ export async function POST(req) {
     // Initialize data
     const ammAccount = ammInfo.account;
     const providerWallet = xrpl.Wallet.fromSeed(walletSeed);
-    let result = false;
+    let result;
 
     const hasLPTrustline = await checkTrustline(providerWallet, ammAccount, ammInfo.lp_token.currency);
     if (!hasLPTrustline) {
@@ -94,7 +94,7 @@ export async function POST(req) {
     }
 
     return NextResponse.json(
-      { message: "Liquidity added successfully!", result },
+      { message: result },
       { status: 200 }
     );
   } catch (error) {

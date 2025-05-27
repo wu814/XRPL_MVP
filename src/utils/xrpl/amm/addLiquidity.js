@@ -9,375 +9,333 @@ export async function extractLPTokensReceived(
   providerWallet,
   ammAccount,
 ) {
-  try {
-    // The LPTokenOut is in the AffectedNodes array
-    let lpTokensReceived = null;
-    const nodes = result.result.meta.AffectedNodes || [];
+  // The LPTokenOut is in the AffectedNodes array
+  let lpTokensReceived = null;
+  const nodes = result.result.meta.AffectedNodes || [];
 
-    console.log(`🔍 Searching for LP token changes in transaction metadata...`);
-    console.log(`   AMM Account: ${ammAccount}`);
-    console.log(`   User Account: ${providerWallet.classicAddress}`);
+  // First pass: Look for trustline modifications to find LP token receipt
+  for (const node of nodes) {
+    // Check for modified trustlines to find LP token change
+    if (
+      node.ModifiedNode &&
+      node.ModifiedNode.LedgerEntryType === "RippleState"
+    ) {
+      const state = node.ModifiedNode;
 
-    // First pass: Look for trustline modifications to find LP token receipt
-    for (const node of nodes) {
-      // Check for modified trustlines to find LP token change
+      // LP tokens typically have a 40-character currency code
       if (
-        node.ModifiedNode &&
-        node.ModifiedNode.LedgerEntryType === "RippleState"
+        !state.FinalFields?.Balance?.currency ||
+        state.FinalFields.Balance.currency.length !== 40
       ) {
-        const state = node.ModifiedNode;
+        continue;
+      }
+
+      // Check if this trustline involves the AMM account (issuer of LP tokens)
+      const highAccount = state.FinalFields?.HighLimit?.issuer;
+      const lowAccount = state.FinalFields?.LowLimit?.issuer;
+
+      // Check if this involves both the wallet and the AMM account
+      const involvesWallet =
+        highAccount === providerWallet.classicAddress ||
+        lowAccount === providerWallet.classicAddress;
+      const involvesAMM =
+        highAccount === ammAccount || lowAccount === ammAccount;
+
+      if (
+        involvesWallet &&
+        involvesAMM &&
+        state.FinalFields?.Balance &&
+        state.PreviousFields?.Balance
+      ) {
+        const balance = state.FinalFields.Balance;
+        const prevBalance = state.PreviousFields.Balance;
+
+        // Calculate the change in token balance from the perspective of the user
+        let prevValue = parseFloat(prevBalance.value || "0");
+        let finalValue = parseFloat(balance.value || "0");
+
+        // Adjust for balance perspective (RippleState Balance is from LowLimit's perspective)
+        const isUserLow = lowAccount === providerWallet.classicAddress;
+
+        // If the user is HighLimit (not LowLimit), we need to negate the balances
+        // because the Balance is from LowLimit's perspective
+        if (!isUserLow) {
+          prevValue = -prevValue;
+          finalValue = -finalValue;
+        }
+
+        // If final value is higher than previous value, tokens were received
+        const diff = finalValue - prevValue;
+
+        if (diff > 0) {
+          lpTokensReceived = {
+            currency: balance.currency,
+            issuer: ammAccount,
+            value: diff.toFixed(6),
+          };
+          break;
+        } else {
+          console.log(
+            `ℹ️ Found LP token entry but balance change was ${diff.toFixed(6)}`,
+          );
+        }
+      }
+    }
+  }
+
+  // Second pass: Look for created trustlines (for first-time LP token receipts)
+  if (!lpTokensReceived) {
+    for (const node of nodes) {
+      if (
+        node.CreatedNode &&
+        node.CreatedNode.LedgerEntryType === "RippleState"
+      ) {
+        const state = node.CreatedNode;
 
         // LP tokens typically have a 40-character currency code
         if (
-          !state.FinalFields?.Balance?.currency ||
-          state.FinalFields.Balance.currency.length !== 40
+          !state.NewFields?.Balance?.currency ||
+          state.NewFields.Balance.currency.length !== 40
         ) {
           continue;
         }
 
-        // Check if this trustline involves the AMM account (issuer of LP tokens)
-        const highAccount = state.FinalFields?.HighLimit?.issuer;
-        const lowAccount = state.FinalFields?.LowLimit?.issuer;
+        // Check if this involves the AMM account
+        const highAccount = state.NewFields?.HighLimit?.issuer;
+        const lowAccount = state.NewFields?.LowLimit?.issuer;
 
-        // Check if this involves both the wallet and the AMM account
         const involvesWallet =
           highAccount === providerWallet.classicAddress ||
           lowAccount === providerWallet.classicAddress;
         const involvesAMM =
           highAccount === ammAccount || lowAccount === ammAccount;
 
-        if (
-          involvesWallet &&
-          involvesAMM &&
-          state.FinalFields?.Balance &&
-          state.PreviousFields?.Balance
-        ) {
-          const balance = state.FinalFields.Balance;
-          const prevBalance = state.PreviousFields.Balance;
+        if (involvesWallet && involvesAMM && state.NewFields?.Balance) {
+          const balance = state.NewFields.Balance;
+          let value = parseFloat(balance.value || "0");
 
-          // Calculate the change in token balance from the perspective of the user
-          let prevValue = parseFloat(prevBalance.value || "0");
-          let finalValue = parseFloat(balance.value || "0");
-
-          // Adjust for balance perspective (RippleState Balance is from LowLimit's perspective)
+          // Adjust for balance perspective
           const isUserLow = lowAccount === providerWallet.classicAddress;
-
-          // If the user is HighLimit (not LowLimit), we need to negate the balances
-          // because the Balance is from LowLimit's perspective
           if (!isUserLow) {
-            prevValue = -prevValue;
-            finalValue = -finalValue;
+            value = -value;
           }
 
-          // If final value is higher than previous value, tokens were received
-          const diff = finalValue - prevValue;
-
-          if (diff > 0) {
+          if (value > 0) {
             console.log(
-              `✅ Found LP token change in metadata: ${diff.toFixed(6)} ${balance.currency}`,
+              `✅ Found newly created LP token trustline: ${value.toFixed(6)} ${balance.currency}`,
             );
             lpTokensReceived = {
               currency: balance.currency,
               issuer: ammAccount,
-              value: diff.toFixed(6),
+              value: value.toFixed(6),
             };
             break;
-          } else {
-            console.log(
-              `ℹ️ Found LP token entry but balance change was ${diff.toFixed(6)}`,
-            );
           }
         }
       }
     }
-
-    // Second pass: Look for created trustlines (for first-time LP token receipts)
-    if (!lpTokensReceived) {
-      for (const node of nodes) {
-        if (
-          node.CreatedNode &&
-          node.CreatedNode.LedgerEntryType === "RippleState"
-        ) {
-          const state = node.CreatedNode;
-
-          // LP tokens typically have a 40-character currency code
-          if (
-            !state.NewFields?.Balance?.currency ||
-            state.NewFields.Balance.currency.length !== 40
-          ) {
-            continue;
-          }
-
-          // Check if this involves the AMM account
-          const highAccount = state.NewFields?.HighLimit?.issuer;
-          const lowAccount = state.NewFields?.LowLimit?.issuer;
-
-          const involvesWallet =
-            highAccount === providerWallet.classicAddress ||
-            lowAccount === providerWallet.classicAddress;
-          const involvesAMM =
-            highAccount === ammAccount || lowAccount === ammAccount;
-
-          if (involvesWallet && involvesAMM && state.NewFields?.Balance) {
-            const balance = state.NewFields.Balance;
-            let value = parseFloat(balance.value || "0");
-
-            // Adjust for balance perspective
-            const isUserLow = lowAccount === providerWallet.classicAddress;
-            if (!isUserLow) {
-              value = -value;
-            }
-
-            if (value > 0) {
-              console.log(
-                `✅ Found newly created LP token trustline: ${value.toFixed(6)} ${balance.currency}`,
-              );
-              lpTokensReceived = {
-                currency: balance.currency,
-                issuer: ammAccount,
-                value: value,
-              };
-              break;
-            }
-          }
-        }
-      }
-    }
-
-    if (lpTokensReceived) {
-      console.log(
-        `💰 LP Tokens received: ${lpTokensReceived.value} ${lpTokensReceived.currency}`,
-      );
-      return lpTokensReceived;
-    } else {
-      console.log(
-        "⚠️ Could not determine exact LP tokens received from transaction metadata",
-      );
-
-      // As a fallback, get current LP token balance and report it
-      try {
-        // Get the latest LP token balance as a fallback
-        const accountLines = await client.request({
-          command: "account_lines",
-          account: providerWallet.classicAddress,
-          peer: ammAccount,
-        });
-
-        const lpTokens = accountLines.result.lines.find(
-          (line) =>
-            line.account === ammAccount &&
-            line.currency &&
-            line.currency.length === 40,
-        );
-
-        if (lpTokens) {
-          console.log(
-            `💰 Current LP Token balance: ${lpTokens.balance} ${lpTokens.currency}`,
-          );
-          return {
-            currency: lpTokens.currency,
-            issuer: ammAccount,
-            value: lpTokens.balance.toFixed(6),
-          };
-        } else {
-          console.log("❌ Could not find any LP token balance");
-        }
-      } catch (error) {
-        console.log(
-          "❌ Error retrieving current LP token balance:",
-          error.message,
-        );
-      }
-    }
-  } catch (err) {
-    console.log("⚠️ Error extracting LP token information:", err.message);
-    console.error(err);
   }
-  return null;
+
+  if (lpTokensReceived) {
+    return lpTokensReceived;
+  } else {
+    // As a fallback, get current LP token balance and report it
+    const accountLines = await client.request({
+      command: "account_lines",
+      account: providerWallet.classicAddress,
+      peer: ammAccount,
+    });
+
+    const lpTokens = accountLines.result.lines.find(
+      (line) =>
+        line.account === ammAccount &&
+        line.currency &&
+        line.currency.length === 40,
+    );
+
+    if (lpTokens) {
+      console.log(
+        `💰 Current LP Token balance: ${lpTokens.balance} ${lpTokens.currency}`,
+      );
+      return {
+        currency: lpTokens.currency,
+        issuer: ammAccount,
+        value: parseFloat(lpTokens.balance).toFixed(6),
+      };
+    } else {
+      throw new Error("Could not find any LP token balance.");
+    }
+  }
 }
 
 // Extract the actual assets deposited from transaction metadata
 const extractActualAssetsDeposited = (result) => {
-  try {
-    const nodes = result.result.meta.AffectedNodes || [];
-    const assetsDeposited = [];
-    // Track assets we've already added to avoid duplicates
-    const addedAssets = new Set();
+  const nodes = result.result.meta.AffectedNodes || [];
+  const assetsDeposited = [];
+  // Track assets we've already added to avoid duplicates
+  const addedAssets = new Set();
 
-    // Get transaction sender address, make sure this is the exact format result.result.tx_json?.Account
-    const senderAddress = result.result.tx_json?.Account;
+  // Get transaction sender address, make sure this is the exact format result.result.tx_json?.Account
+  const senderAddress = result.result.tx_json?.Account;
 
-    // Get AMM account address if present in the transaction
-    const ammAccount = result.result.AMMAccount;
+  // Get AMM account address if present in the transaction
+  const ammAccount = result.result.AMMAccount;
 
-    // Look for both token balance changes and XRP balance changes
-    for (const node of nodes) {
+  // Look for both token balance changes and XRP balance changes
+  for (const node of nodes) {
+    // For token deposits (check trustline modifications)
+    if (
+      node.ModifiedNode &&
+      node.ModifiedNode.LedgerEntryType === "RippleState"
+    ) {
+      const state = node.ModifiedNode;
 
-      // For token deposits (check trustline modifications)
       if (
-        node.ModifiedNode &&
-        node.ModifiedNode.LedgerEntryType === "RippleState"
+        state.FinalFields &&
+        state.PreviousFields &&
+        state.FinalFields.Balance &&
+        state.PreviousFields.Balance
       ) {
-        const state = node.ModifiedNode;
+        // Get the previous and current balances
+        const finalBalance = state.FinalFields.Balance;
+        const prevBalance = state.PreviousFields.Balance;
 
-        if (
-          state.FinalFields &&
-          state.PreviousFields &&
-          state.FinalFields.Balance &&
-          state.PreviousFields.Balance
-        ) {
-          // Get the previous and current balances
-          const finalBalance = state.FinalFields.Balance;
-          const prevBalance = state.PreviousFields.Balance;
-
-          // Skip if it's not a currency or if it's the LP token (usually has a 40-char currency code)
-          if (!finalBalance.currency || finalBalance.currency.length === 40) {
-            continue;
-          }
-
-          // Skip non-transaction related trustlines
-
-          const highAccount = state.FinalFields.HighLimit?.issuer;
-          const lowAccount = state.FinalFields.LowLimit?.issuer;
-
-          // // // Only process entries where one of the accounts is the sender
-          if (highAccount !== senderAddress && lowAccount !== senderAddress) {
-            continue;
-          }
-
-          // Create a unique key for this asset to avoid duplicates
-          // Include the currency and issuer, but not whose perspective the balance is from
-          const issuer =
-            lowAccount === senderAddress ? highAccount : lowAccount;
-          const assetKey = `${finalBalance.currency}:${issuer}`;
-
-          // Skip if we've already added this asset
-          if (addedAssets.has(assetKey)) {
-            continue;
-          }
-
-          // Check if balance changed
-          const prevValue = parseFloat(prevBalance.value || "0");
-          const finalValue = parseFloat(finalBalance.value || "0");
-
-          // Determine if this is an incoming or outgoing balance
-          // For the sender, a positive value means a decrease in their balance (outgoing/deposit)
-          // For the sender, a negative value means an increase in their balance (incoming)
-          const isFromSenderPerspective = lowAccount === senderAddress;
-
-          // In RippleState, the Balance field is from LowLimit's perspective
-          // So if the sender is LowLimit, a lower final value means they sent funds
-          // If the sender is HighLimit, a higher final value means they sent funds
-          let diff;
-          if (isFromSenderPerspective) {
-            diff = prevValue - finalValue; // If positive, sender sent funds
-          } else {
-            diff = finalValue - prevValue; // If positive, sender sent funds
-          }
-
-          // Only add if the sender's balance decreased by a significant amount
-          // (i.e., they sent funds)
-          if (diff > 0.000001) {
-            assetsDeposited.push({
-              currency: finalBalance.currency,
-              issuer: issuer,
-              value: diff.toFixed(6),
-            });
-
-            // Mark this asset as processed
-            addedAssets.add(assetKey);
-          }
-        }
-      }
-
-      // For XRP deposits (check AccountRoot modifications)
-      else if (
-        node.ModifiedNode &&
-        node.ModifiedNode.LedgerEntryType === "AccountRoot"
-      ) {
-        const state = node.ModifiedNode;
-
-        // Skip if not the sender's account
-        if (state.FinalFields?.Account !== senderAddress) {
+        // Skip if it's not a currency or if it's the LP token (usually has a 40-char currency code)
+        if (!finalBalance.currency || finalBalance.currency.length === 40) {
           continue;
         }
 
-        if (
-          state.FinalFields &&
-          state.PreviousFields &&
-          state.FinalFields.Balance &&
-          state.PreviousFields.Balance
-        ) {
-          // Calculate the difference in XRP balance (in drops)
-          const finalDrops = parseInt(state.FinalFields.Balance);
-          const prevDrops = parseInt(state.PreviousFields.Balance);
+        // Skip non-transaction related trustlines
+        const highAccount = state.FinalFields.HighLimit?.issuer;
+        const lowAccount = state.FinalFields.LowLimit?.issuer;
 
-          // The fee is directly deducted from the account, we need to consider it
-          const fee = parseInt(result.result.tx_json?.Fee) || 0;
+        // // // Only process entries where one of the accounts is the sender
+        if (highAccount !== senderAddress && lowAccount !== senderAddress) {
+          continue;
+        }
 
-          // Calculate how much XRP was sent
-          const xrpSent = prevDrops - finalDrops - fee;
+        // Create a unique key for this asset to avoid duplicates
+        // Include the currency and issuer, but not whose perspective the balance is from
+        const issuer =
+          lowAccount === senderAddress ? highAccount : lowAccount;
+        const assetKey = `${finalBalance.currency}:${issuer}`;
 
-          // Skip if we've already added XRP
-          if (addedAssets.has("XRP")) continue;
+        // Skip if we've already added this asset
+        if (addedAssets.has(assetKey)) {
+          continue;
+        }
 
-          // Only add if a significant amount of XRP was sent (more than just the fee)
-          if (xrpSent > 1000) {
-            // 1000 drops threshold (0.001 XRP)
-            // Convert drops to XRP for display
-            const xrpValue = xrpl.dropsToXrp(xrpSent.toString());
-            assetsDeposited.push({
-              currency: "XRP",
-              value: xrpValue.toFixed(6),
-            });
+        // Check if balance changed
+        const prevValue = parseFloat(prevBalance.value || "0");
+        const finalValue = parseFloat(finalBalance.value || "0");
 
-            // Mark XRP as processed
-            addedAssets.add("XRP");
-          }
+        // Determine if this is an incoming or outgoing balance
+        // For the sender, a positive value means a decrease in their balance (outgoing/deposit)
+        // For the sender, a negative value means an increase in their balance (incoming)
+        const isFromSenderPerspective = lowAccount === senderAddress;
+
+        // In RippleState, the Balance field is from LowLimit's perspective
+        // So if the sender is LowLimit, a lower final value means they sent funds
+        // If the sender is HighLimit, a higher final value means they sent funds
+        let diff;
+        if (isFromSenderPerspective) {
+          diff = prevValue - finalValue; // If positive, sender sent funds
+        } else {
+          diff = finalValue - prevValue; // If positive, sender sent funds
+        }
+
+        // Only add if the sender's balance decreased by a significant amount
+        // (i.e., they sent funds)
+        if (diff > 0.000001) {
+          assetsDeposited.push({
+            currency: finalBalance.currency,
+            issuer: issuer,
+            value: diff.toFixed(6),
+          });
+
+          // Mark this asset as processed
+          addedAssets.add(assetKey);
         }
       }
     }
 
-    // Sort assets by currency
-    assetsDeposited.sort((a, b) => a.currency.localeCompare(b.currency));
+    // For XRP deposits (check AccountRoot modifications)
+    else if (
+      node.ModifiedNode &&
+      node.ModifiedNode.LedgerEntryType === "AccountRoot"
+    ) {
+      const state = node.ModifiedNode;
 
-    if (assetsDeposited.length > 0) {
-      return assetsDeposited;
+      // Skip if not the sender's account
+      if (state.FinalFields?.Account !== senderAddress) {
+        continue;
+      }
+
+      if (
+        state.FinalFields &&
+        state.PreviousFields &&
+        state.FinalFields.Balance &&
+        state.PreviousFields.Balance
+      ) {
+        // Calculate the difference in XRP balance (in drops)
+        const finalDrops = parseInt(state.FinalFields.Balance);
+        const prevDrops = parseInt(state.PreviousFields.Balance);
+
+        // The fee is directly deducted from the account, we need to consider it
+        const fee = parseInt(result.result.tx_json?.Fee) || 0;
+
+        // Calculate how much XRP was sent
+        const xrpSent = prevDrops - finalDrops - fee;
+
+        // Skip if we've already added XRP
+        if (addedAssets.has("XRP")) continue;
+
+        // Only add if a significant amount of XRP was sent (more than just the fee)
+        if (xrpSent > 1000) {
+          // 1000 drops threshold (0.001 XRP)
+          // Convert drops to XRP for display
+          const xrpValue = xrpl.dropsToXrp(xrpSent.toString());
+          assetsDeposited.push({
+            currency: "XRP",
+            value: xrpValue.toFixed(6),
+          });
+
+          // Mark XRP as processed
+          addedAssets.add("XRP");
+        }
+      }
     }
-  } catch (err) {
-    console.log("⚠️ Error extracting assets deposited:", err.message);
   }
 
-  return null;
+  // Sort assets by currency
+  assetsDeposited.sort((a, b) => a.currency.localeCompare(b.currency));
+
+  if (assetsDeposited.length > 0) {
+    return assetsDeposited;
+  }
+
+  throw new Error("No assets were detected in the transaction metadata.");
 };
 
-// Display transaction details
+
 const displayTransactionDetails = (
   result,
   lpTokensReceived,
   assetsDeposited,
 ) => {
-  console.log("\n===== Transaction Details =====");
+  let output = "\n===== Transaction Details =====\n";
 
-  // Display transaction hash and result
-  console.log(result);
-  console.log(`🔑 Transaction Hash: ${result.result.hash}`);
-  console.log(`🎯 Result: ${result.result.meta.TransactionResult}`);
+  output += `🔑 Transaction Hash: ${result.result.hash}\n`;
+  output += `🎯 Result: ${result.result.meta.TransactionResult}\n`;
 
-  // Display LP tokens received
   if (lpTokensReceived) {
-    console.log(
-      `\n📥 LP Tokens Received: ${lpTokensReceived.value} ${lpTokensReceived.currency}`,
-    );
+    output += `\n📥 LP Tokens Received: ${lpTokensReceived.value} ${lpTokensReceived.currency}\n`;
   }
 
-  // Display assets deposited - group by currency
   if (assetsDeposited && assetsDeposited.length > 0) {
-    console.log(`\n📤 ACTUAL Assets Deposited:`);
+    output += `\n📤 ACTUAL Assets Deposited:\n`;
 
-    // Group assets by currency
     const assetsByCurrency = {};
-
     assetsDeposited.forEach((asset) => {
       const key = asset.currency;
       if (!assetsByCurrency[key]) {
@@ -386,76 +344,30 @@ const displayTransactionDetails = (
       assetsByCurrency[key].push(asset);
     });
 
-    // Display each currency group
     Object.entries(assetsByCurrency).forEach(([currency, assets]) => {
-      // Calculate total for this currency
-      const total = assets.reduce(
-        (sum, asset) => sum + parseFloat(asset.value),
-        0,
+      const total = assets.reduce((sum, a) => sum + parseFloat(a.value), 0);
+      output += `   • ${total.toFixed(6)} ${currency}\n`;
+
+      const uniqueIssuers = new Set(
+        assets.map((a) => a.issuer || "Native XRP"),
       );
-
-      // Display total for this currency
-      console.log(`   • ${total.toFixed(6)} ${currency}`);
-
-      // If there are multiple assets with the same currency but different issuers,
-      // show the breakdown
-      if (assets.length > 1) {
-        console.log(`     Breakdown:`);
+      if (uniqueIssuers.size > 1) {
+        output += `     Breakdown:\n`;
         assets.forEach((asset) => {
-          console.log(
-            `     - ${asset.value} from issuer: ${asset.issuer || "Native XRP"}`,
-          );
+          output += `     - ${asset.value} from issuer: ${asset.issuer || "Native XRP"}\n`;
         });
       }
     });
-
-    // Calculate and display the exchange rate for LP tokens
-    if (lpTokensReceived && assetsDeposited.length === 1) {
-      // For single asset deposits, show the exchange rate
-      const assetDeposited = assetsDeposited[0];
-      const lpAmount = parseFloat(lpTokensReceived.value);
-      const assetAmount = parseFloat(assetDeposited.value);
-
-      if (lpAmount > 0 && assetAmount > 0) {
-        const assetPerLP = assetAmount / lpAmount;
-        console.log(`\n📊 Exchange Rate:`);
-        console.log(
-          `   • ${assetPerLP.toFixed(6)} ${assetDeposited.currency} per LP Token`,
-        );
-        console.log(
-          `   • ${(1 / assetPerLP).toFixed(6)} LP Tokens per ${assetDeposited.currency}`,
-        );
-      }
-    } else if (lpTokensReceived && assetsDeposited.length === 2) {
-      // For two asset deposits, show the total value contributed
-      console.log(
-        `\n📊 Assets Contributed for ${lpTokensReceived.value} LP Tokens:`,
-      );
-      Object.entries(assetsByCurrency).forEach(([currency, assets]) => {
-        const total = assets.reduce(
-          (sum, asset) => sum + parseFloat(asset.value),
-          0,
-        );
-        console.log(`   • ${total.toFixed(6)} ${currency}`);
-      });
-    }
   } else {
-    console.log(
-      `\n⚠️ No assets were detected as deposited in the transaction metadata.`,
-    );
-    console.log(
-      `   This might be due to limitations in metadata parsing or transaction structure.`,
-    );
+    output += `\n⚠️ No assets were detected as deposited in the transaction metadata.\n`;
   }
 
-  // Display transaction cost
   if (result.result.tx_json?.Fee) {
-    console.log(
-      `\n💸 Transaction Cost: ${xrpl.dropsToXrp(result.result.tx_json?.Fee)} XRP`,
-    );
+    output += `\n💸 Transaction Cost: ${xrpl.dropsToXrp(result.result.tx_json?.Fee)} XRP\n`;
   }
 
-  console.log("==============================\n");
+  output += "==============================\n";
+  return output;
 };
 
 // Double-asset deposit: tfTwoAsset (existing, but now with explicit flag)
@@ -767,9 +679,12 @@ export async function addLiquidityTwoAsset(
         const assetsDeposited = extractActualAssetsDeposited(result);
 
         // Display transaction details
-        displayTransactionDetails(result, lpTokensReceived, assetsDeposited);
 
-        return true;
+        return displayTransactionDetails(
+          result,
+          lpTokensReceived,
+          assetsDeposited,
+        );
       } else {
         console.error(
           `❌ Failed to add liquidity: ${result.result.meta.TransactionResult}`,
@@ -1098,9 +1013,7 @@ export async function addLiquidityLPToken(
         const assetsDeposited = extractActualAssetsDeposited(result);
 
         // Display transaction details
-        displayTransactionDetails(result, lpTokensReceived, assetsDeposited);
-
-        return true;
+        return displayTransactionDetails(result, lpTokensReceived, assetsDeposited);
       } else {
         console.error(
           `❌ Failed to add liquidity: ${result.result.meta.TransactionResult}`,
@@ -1385,9 +1298,8 @@ export async function addLiquidityIfEmpty(
       const assetsDeposited = extractActualAssetsDeposited(result);
 
       // Display transaction details
-      displayTransactionDetails(result, lpTokensReceived, assetsDeposited);
+      return displayTransactionDetails(result, lpTokensReceived, assetsDeposited);
 
-      return true;
     } else {
       console.error(
         `❌ Failed to add liquidity: ${result.result.meta.TransactionResult}`,
@@ -1671,9 +1583,8 @@ export async function addLiquiditySingleAsset(
       const assetsDeposited = extractActualAssetsDeposited(result);
 
       // Display transaction details
-      displayTransactionDetails(result, lpTokensReceived, assetsDeposited);
+      return displayTransactionDetails(result, lpTokensReceived, assetsDeposited);
 
-      return true;
     } else {
       console.error(
         `❌ Failed to add liquidity: ${result.result.meta.TransactionResult}`,
@@ -2013,9 +1924,8 @@ export async function addLiquidityOneAssetLPToken(
       const assetsDeposited = extractActualAssetsDeposited(result);
 
       // Display transaction details
-      displayTransactionDetails(result, lpTokensReceived, assetsDeposited);
+      return displayTransactionDetails(result, lpTokensReceived, assetsDeposited);
 
-      return true;
     } else {
       console.error(
         `❌ Failed to add liquidity: ${result.result.meta.TransactionResult}`,
@@ -2301,9 +2211,8 @@ export async function addLiquidityLimitLPToken(
       const assetsDeposited = extractActualAssetsDeposited(result);
 
       // Display transaction details
-      displayTransactionDetails(result, lpTokensReceived, assetsDeposited);
+      return displayTransactionDetails(result, lpTokensReceived, assetsDeposited);
 
-      return true;
     } else {
       console.error(
         `❌ Failed to add liquidity: ${result.result.meta.TransactionResult}`,
