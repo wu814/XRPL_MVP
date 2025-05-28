@@ -100,9 +100,5 @@ export default async function createAmm(
   return {
     ammAddress: amm.account,
     pair: poolKey,
-    // currency_a: A === "XRP" ? { currency: "XRP" } : assetA,
-    // currency_b: B === "XRP" ? { currency: "XRP" } : assetB,
-    // lp_token: amm.lp_token,
-    // trading_fee: tradingFee,
   };
 }

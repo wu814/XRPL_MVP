@@ -6,6 +6,7 @@ import DeleteWalletBtn from "./DeleteWalletBtn";
 import SetTrustlineBtn from "./SetTrustlineBtn";
 import ViewDetailsBtn from "./ViewDetailsBtn";
 import TransferBtn from "./TransferBtn";
+import ErrorMdl from "../ErrorMdl";
 
 class Wallet {
   constructor(classicAddress, walletType, seed) {
@@ -19,6 +20,7 @@ const DisplayUserWallets = () => {
   const [wallets, setWallets] = useState([]);
   const [loading, setLoading] = useState(false);
   const [issuerWallets, setIssuerWallets] = useState([]);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const fetchIssuerWallets = async () => {
     try {
@@ -32,7 +34,7 @@ const DisplayUserWallets = () => {
         setIssuerWallets(issuerWalletsData);
       }
     } catch (error) {
-      console.error("Error fetching issuer wallets:", error);
+      setErrorMessage(error.message || "Failed to fetch issuer wallets");
     }
   };
 
@@ -49,7 +51,7 @@ const DisplayUserWallets = () => {
         setWallets(walletsData);
       }
     } catch (error) {
-      console.error("Error fetching wallets:", error);
+      setErrorMessage(error.message || "Failed to fetch user wallets");
     } finally {
       setLoading(false);
     }
@@ -117,6 +119,13 @@ const DisplayUserWallets = () => {
         issuerWallets={issuerWallets}
         onWalletCreated={handleWalletCreated}
       />
+
+      {errorMessage && (
+        <ErrorMdl
+          errorMessage={errorMessage}
+          onClose={() => setErrorMessage("")}
+        />
+      )}
     </div>
   );
 };

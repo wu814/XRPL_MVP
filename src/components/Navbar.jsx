@@ -9,7 +9,6 @@ import { useSession, signOut } from "next-auth/react";
 const Navbar = () => {
   const { data: session } = useSession();
   const pathname = usePathname();
-  const identity = session?.user?.is_admin ? "admin" : "user";
 
   const linkClass = (paths) =>
     `font-semibold transition duration-200 ease-in-out hover:scale-105 hover:text-primary ${
@@ -17,8 +16,8 @@ const Navbar = () => {
     }`;
 
   return (
-    <nav className="mb-4 flex w-full items-center justify-between space-x-5 bg-color1 p-6">
-      <Link href={`/${identity}`} className={linkClass(["/admin", "/user"])}>
+    <nav className="text-lg mb-4 flex w-full items-center justify-between space-x-8 bg-color1 p-8 px-10">
+      <Link href={"/wallet"} className={linkClass(["/wallet"])}>
         Wallet
       </Link>
       <Link href="/trade" className={linkClass(["/trade"])}>

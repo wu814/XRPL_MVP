@@ -1,13 +1,21 @@
 "use client";
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { signIn, signOut, useSession } from "next-auth/react";
 import Button from "@/components/Button";
 import AuthRedirect from "@/components/AuthRedirect";
 
 export default function Login() {
   const { data: session, status } = useSession();
-  console.log("Session data:", session);
-  console.log("Session status:", status);
+  const router = useRouter();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.push("/wallet");
+    }
+  }, [status, router]);
   return (
     <div
       className="flex min-h-screen flex-row items-center justify-between bg-cover bg-center"
@@ -15,7 +23,6 @@ export default function Login() {
         backgroundImage: "url('/login.jpg')",
       }}
     >
-      {status === "authenticated" && <AuthRedirect />}
       <div></div>
       <div className="mr-16 mt-24 flex flex-col content-end items-center">
         <h1 className="mb-14 text-4xl font-bold text-primary">XRPL MVP</h1>

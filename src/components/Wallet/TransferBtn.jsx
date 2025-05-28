@@ -1,14 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
 import CurrencyDropDown from "../CurrencyDropDown";
 
-export default function TransferBtn({ senderWallet, issuerWallets }) {
+export default function TransferBtn({
+  senderWallet,
+  issuerWallets,
+  presetRecipientUsername,
+}) {
   const [showMdl, setShowMdl] = useState(false);
-  const [recipientAddress, setRecipientAddress] = useState("");
+  const [recipientUsername, setRecipientUsername] = useState(
+    presetRecipientUsername || "",
+  );
   const [amount, setAmount] = useState("");
   const [currency, setCurrency] = useState("");
   const [destinationTag, setDestinationTag] = useState("");
@@ -28,7 +34,7 @@ export default function TransferBtn({ senderWallet, issuerWallets }) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             senderWallet,
-            recipientAddress,
+            recipientUsername,
             amount,
             tag,
           }),
@@ -42,7 +48,7 @@ export default function TransferBtn({ senderWallet, issuerWallets }) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             senderWallet,
-            recipientAddress,
+            recipientUsername,
             amount,
             currency,
             issuerWallets,
@@ -59,17 +65,18 @@ export default function TransferBtn({ senderWallet, issuerWallets }) {
     } finally {
       setLoading(false);
       setShowMdl(false);
-      setRecipientAddress("");
+      setRecipientUsername("");
       setAmount("");
       setCurrency("");
       setDestinationTag("");
     }
   };
 
+
   return (
     <>
       <Button variant="primary" onClick={() => setShowMdl(true)}>
-        Transfer
+        Transfer/Pay
       </Button>
 
       {showMdl && (
@@ -79,25 +86,26 @@ export default function TransferBtn({ senderWallet, issuerWallets }) {
 
             <div>
               <label className="block text-sm font-medium text-mutedText">
+                Recipient Username
+              </label>
+              <input
+                type="text"
+                value={recipientUsername}
+                onChange={(e) => setRecipientUsername(e.target.value)}
+                className="mt-1 w-full rounded border border-border bg-modal p-2 focus:border-primary focus:outline-none"
+                placeholder="Enter recipient username..."
+                disabled={Boolean(presetRecipientUsername)} // prevent editing if preset
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-mutedText">
                 Currency
               </label>
               <CurrencyDropDown
                 value={currency}
                 onChange={setCurrency}
                 disabledOptions={[]}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-mutedText">
-                Recipient Address
-              </label>
-              <input
-                type="text"
-                value={recipientAddress}
-                onChange={(e) => setRecipientAddress(e.target.value)}
-                className="mt-1 w-full rounded border border-border bg-modal p-2 focus:border-primary focus:outline-none"
-                placeholder="Enter recipient address..."
               />
             </div>
 
@@ -139,7 +147,7 @@ export default function TransferBtn({ senderWallet, issuerWallets }) {
               <Button
                 variant="primary"
                 onClick={handleSubmit}
-                disabled={loading || !recipientAddress || !amount || !currency}
+                disabled={loading || !recipientUsername || !amount || !currency}
               >
                 {loading ? "Sending..." : "Send"}
               </Button>

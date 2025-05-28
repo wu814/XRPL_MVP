@@ -140,13 +140,20 @@ export default function AddLiquidity({ ammInfo, wallets, onAdded }) {
     const basePayload = { walletSeed, ammInfo };
 
     if (mode === "quantity") {
-      if (amount1 && amount2)
-        return { ...basePayload, depositType: "twoAsset", assetA, assetB };
-      if (amount1) return { ...basePayload, depositType: "oneAsset", assetA };
-      if (amount2)
-        return { ...basePayload, depositType: "oneAsset", assetA: assetB };
-      throw new Error("Enter at least one amount.");
+    const val1 = parseFloat(amount1 || "0");
+    const val2 = parseFloat(amount2 || "0");
+
+    if (val1 > 0 && val2 > 0) {
+      return { ...basePayload, depositType: "twoAsset", assetA, assetB };
     }
+    if (val1 > 0) {
+      return { ...basePayload, depositType: "oneAsset", assetA };
+    }
+    if (val2 > 0) {
+      return { ...basePayload, depositType: "oneAsset", assetA: assetB };
+    }
+    throw new Error("Enter at least one amount greater than 0.");
+  }
 
     if (!lpAmount) throw new Error("Enter LP token amount.");
 
@@ -186,6 +193,16 @@ export default function AddLiquidity({ ammInfo, wallets, onAdded }) {
     setErrorMessage(null);
 
     try {
+
+      // Validate inputs
+      if (mode === "quantity") {
+        if (!amount1 && !amount2) {
+          throw new Error("Enter at least one amount greater than 0.");
+        }
+        if (parseFloat(amount1) < 0 || parseFloat(amount2) < 0) {
+          throw new Error("Amounts must be greater than 0.");
+        }
+      }
       const payload = buildPayload();
 
       const res = await fetch("/api/amms/addLiquidity", {

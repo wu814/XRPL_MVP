@@ -41,6 +41,8 @@ export async function POST(req) {
         amm_address: ammData.ammAddress,
         pair: ammData.pair,
         created_at: new Date().toISOString(),
+        issuer_address: issuerWallets[0].classicAddress,
+        treasury_address: treasuryWallet.classicAddress,
       },
     ]);
 

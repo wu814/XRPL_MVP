@@ -3,9 +3,10 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import DisplayAdminWallets from "@/components/Wallet/DisplayAdminWallets";
+import DisplayUserWallets from "@/components/Wallet/DisplayUserWallets";
 import UpdateUsernameMdl from "@/components/UpdateUsernameMdl";
 
-export default function AdminWallet() {
+export default function WalletPage() {
   const { data: session, status } = useSession();
   const [showUsernameMdl, setShowUsernameMdl] = useState(false);
   const [username, setUsername] = useState(null);
@@ -17,7 +18,6 @@ export default function AdminWallet() {
       if (!res.ok) throw new Error("Couldn’t load username");
       const { username: fetched } = await res.json();
       setUsername(fetched);
-      // if they’re still using their email as a username, prompt them
       setShowUsernameMdl(fetched === session.user.email);
     } catch {
       setUsername("");
@@ -25,24 +25,28 @@ export default function AdminWallet() {
     }
   };
 
-  // Kick off the first fetch as soon as we know we're authenticated
   useEffect(() => {
     fetchUsername();
   }, [status, session?.user?.email]);
 
+  const isAdmin = session?.user?.is_admin;
+
   return (
     <div>
       <Navbar />
+
       {/* Main Content */}
       <main className="container mx-auto flex">
-        <DisplayAdminWallets />
+        {isAdmin ? <DisplayAdminWallets /> : <DisplayUserWallets />}
 
-        {/* Top Earning Pools Sidebar */}
+        {/* Sidebar */}
         <section className="h-[40rem] w-1/3 rounded-lg bg-color2 p-6 shadow-lg">
-          <h2 className="mb-4 text-2xl font-bold">
+          <h2 className="mb-4 text-center text-2xl font-bold">
             Welcome, {username || "User"}
           </h2>
-          <h3 className="mb-4 text-xl font-bold">Top Earning Pools (24hr)</h3>
+          <h3 className="mb-4 text-center text-xl font-bold">
+            Top Earning Pools (24hr)
+          </h3>
           <ul className="space-y-3">
             <li className="flex justify-between rounded bg-color3 p-3">
               <span>XRP/USD</span>
@@ -59,13 +63,13 @@ export default function AdminWallet() {
           </ul>
         </section>
       </main>
+
       {showUsernameMdl && (
         <UpdateUsernameMdl
           onClose={() => setShowUsernameMdl(false)}
           onUpdated={fetchUsername}
         />
       )}
-      {/* Footer */}
     </div>
   );
 }
