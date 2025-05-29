@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
@@ -15,6 +15,8 @@ export default function TransferBtn({
   const [recipientUsername, setRecipientUsername] = useState(
     presetRecipientUsername || "",
   );
+  const [recipientAddress, setRecipientAddress] = useState("");
+  const [useUsername, setUseUsername] = useState(true);
   const [amount, setAmount] = useState("");
   const [currency, setCurrency] = useState("");
   const [destinationTag, setDestinationTag] = useState("");
@@ -28,44 +30,35 @@ export default function TransferBtn({
 
     try {
       const tag = destinationTag.trim() !== "" ? Number(destinationTag) : null;
-      if (currency === "XRP") {
-        const res = await fetch("/api/transactions/sendXRP", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            senderWallet,
-            recipientUsername,
-            amount,
-            tag,
-          }),
-        });
-        const result = await res.json();
-        if (!res.ok) throw new Error(result.error);
-        setSuccessMessage(result.message);
-      } else {
-        const res = await fetch("/api/transactions/sendIOU", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            senderWallet,
-            recipientUsername,
-            amount,
-            currency,
-            issuerWallets,
-            destinationTag: tag,
-          }),
-        });
+      const recipient = useUsername ? recipientUsername : recipientAddress;
+      const endpoint =
+        currency === "XRP"
+          ? "/api/transactions/sendXRP"
+          : "/api/transactions/sendIOU";
 
-        const result = await res.json();
-        if (!res.ok) throw new Error(result.error);
-        setSuccessMessage(result.message);
-      }
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          senderWallet,
+          recipient,
+          amount,
+          ...(currency !== "XRP" && { currency, issuerWallets }),
+          destinationTag: tag,
+          useUsername,
+        }),
+      });
+
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error);
+      setSuccessMessage(result.message);
     } catch (err) {
       setErrorMessage(err.message);
     } finally {
       setLoading(false);
       setShowMdl(false);
       setRecipientUsername("");
+      setRecipientAddress("");
       setAmount("");
       setCurrency("");
       setDestinationTag("");
@@ -84,19 +77,46 @@ export default function TransferBtn({
           <div className="w-96 space-y-4 rounded-lg bg-modal p-6 shadow-lg">
             <h2 className="text-center text-xl font-semibold">Transfer</h2>
 
-            <div>
-              <label className="block text-sm font-medium text-mutedText">
-                Recipient Username
+            <div className="flex items-center space-x-2">
+              <label className="text-sm font-medium text-mutedText">
+                Use Username
               </label>
               <input
-                type="text"
-                value={recipientUsername}
-                onChange={(e) => setRecipientUsername(e.target.value)}
-                className="mt-1 w-full rounded border border-border bg-modal p-2 focus:border-primary focus:outline-none"
-                placeholder="Enter recipient username..."
-                disabled={Boolean(presetRecipientUsername)} // prevent editing if preset
+                type="checkbox"
+                checked={useUsername}
+                onChange={() => setUseUsername(!useUsername)}
+                disabled={Boolean(presetRecipientUsername)}
               />
             </div>
+
+            {useUsername ? (
+              <div>
+                <label className="block text-sm font-medium text-mutedText">
+                  Recipient Username
+                </label>
+                <input
+                  type="text"
+                  value={recipientUsername}
+                  onChange={(e) => setRecipientUsername(e.target.value)}
+                  className="mt-1 w-full rounded border border-border bg-modal p-2 focus:border-primary focus:outline-none"
+                  placeholder="Enter recipient username..."
+                  readOnly={Boolean(presetRecipientUsername)}
+                />
+              </div>
+            ) : (
+              <div>
+                <label className="block text-sm font-medium text-mutedText">
+                  Recipient Address
+                </label>
+                <input
+                  type="text"
+                  value={recipientAddress}
+                  onChange={(e) => setRecipientAddress(e.target.value)}
+                  className="mt-1 w-full rounded border border-border bg-modal p-2 focus:border-primary focus:outline-none"
+                  placeholder="Enter recipient address..."
+                />
+              </div>
+            )}
 
             <div>
               <label className="block text-sm font-medium text-mutedText">
@@ -147,7 +167,12 @@ export default function TransferBtn({
               <Button
                 variant="primary"
                 onClick={handleSubmit}
-                disabled={loading || !recipientUsername || !amount || !currency}
+                disabled={
+                  loading ||
+                  !(useUsername ? recipientUsername : recipientAddress) ||
+                  !amount ||
+                  !currency
+                }
               >
                 {loading ? "Sending..." : "Send"}
               </Button>

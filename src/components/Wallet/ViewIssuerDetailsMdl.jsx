@@ -44,7 +44,7 @@ export default function ViewIssuerDetailsMdl({
                 <strong>Sequence:</strong> {infoData.sequence}
               </li>
               <li>
-                <strong>Balance:</strong> {infoData.balance} XRP
+                <strong>Balance:</strong> {infoData.balance.toFixed(6)} XRP
               </li>
               <li>
                 <strong>Owner Count:</strong> {infoData.ownerCount}

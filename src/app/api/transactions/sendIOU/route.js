@@ -6,16 +6,19 @@ export async function POST(req) {
   try {
     const {
       senderWallet,
-      recipientUsername,
+      recipient,
       amount,
       currency,
       issuerWallets,
       destinationTag,
+      useUsername,
     } = await req.json();
+
+    let recipientAddress;
 
     if (
       !senderWallet ||
-      !recipientUsername ||
+      !recipient ||
       !amount ||
       !currency ||
       !issuerWallets
@@ -26,30 +29,36 @@ export async function POST(req) {
       );
     }
 
-    
-    // fetching recipient's wallet address by username
-    const supabase = await createSupabaseAnonClient();
-    const { data: userData, error: userError } = await supabase
-      .from("users")
-      .select("user_id")
-      .eq("username", recipientUsername)
-      .single();
-
-    if (userError || !userData) {
-      throw new Error("User not found");
+    // If username is provided instead of address
+    if (useUsername) {
+      // fetching recipient's wallet address by username
+      const supabase = await createSupabaseAnonClient();
+      const { data: userData, error: userError } = await supabase
+        .from("users")
+        .select("user_id")
+        .eq("username", recipient)
+        .single();
+  
+      if (userError || !userData) {
+        throw new Error("User not found");
+      }
+  
+      const { data: walletData, error: walletError } = await supabase
+        .from("wallets")
+        .select("classic_address")
+        .eq("user_id", userData.user_id)
+        .single();
+  
+      if (walletError || walletData.length === 0) {
+        throw new Error("Wallet not found");
+      }
+  
+      recipientAddress = walletData.classic_address;
+    } 
+    // if an address is provided instead of a username
+    else { 
+      recipientAddress = recipient; 
     }
-
-    const { data: walletData, error: walletError } = await supabase
-      .from("wallets")
-      .select("classic_address")
-      .eq("user_id", userData.user_id)
-      .single();
-
-    if (walletError || walletData.length === 0) {
-      throw new Error("Wallet not found");
-    }
-
-    const recipientAddress = walletData.classic_address;
 
     const result = await sendIOU(
       senderWallet,

@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import Button from "../Button";
-import CreateAdminWalletMdl from "./CreateAdminWalletMdl";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
 
@@ -11,8 +10,9 @@ export default function CreateAdminWalletBtn({ onWalletCreated }) {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
+  const [walletType, setWalletType] = useState("ISSUER");
 
-  const handleCreateWallet = async (walletType) => {
+  const handleCreateWallet = async () => {
     setLoading(true);
     setErrorMessage(null);
 
@@ -25,7 +25,7 @@ export default function CreateAdminWalletBtn({ onWalletCreated }) {
       const result = await res.json();
       if (!res.ok) throw new Error(result.error || "Failed to add wallet");
 
-      // Notify frontend immediately
+      // Notify frontend
       if (onWalletCreated) onWalletCreated(result.data);
       setSuccessMessage(result.message);
 
@@ -46,12 +46,17 @@ export default function CreateAdminWalletBtn({ onWalletCreated }) {
         } catch (e) {
           setErrorMessage(e.message);
         }
-      }, 0); // Run this immediately (0s) after everything else in the current call stack is done.
+      }, 0);
     } catch (err) {
       setErrorMessage(err.message);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    handleCreateWallet();
   };
 
   return (
@@ -65,11 +70,39 @@ export default function CreateAdminWalletBtn({ onWalletCreated }) {
       </Button>
 
       {showMdl && (
-        <CreateAdminWalletMdl
-          onClose={() => setShowMdl(false)}
-          onSubmit={handleCreateWallet}
-          loading={loading}
-        />
+        <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/10">
+          <div className="w-96 rounded-lg bg-modal p-6 shadow-xl">
+            <h2 className="mb-4 text-xl font-bold">Create Wallet</h2>
+
+            <form onSubmit={handleSubmit}>
+              <div className="mb-4">
+                <label className="text-mutedText">Wallet Type</label>
+                <select
+                  value={walletType}
+                  onChange={(e) => setWalletType(e.target.value)}
+                  className="mt-1 w-full rounded border border-border bg-modal p-2 focus:border-primary focus:outline-none"
+                >
+                  <option value="ISSUER">Issuer</option>
+                  <option value="STANDBY TREASURY">Standby Treasury</option>
+                  <option value="STANDBY PATHFIND">Standby Pathfind</option>
+                </select>
+              </div>
+
+              <div className="flex justify-end space-x-2">
+                <Button
+                  variant="cancel"
+                  onClick={() => setShowMdl(false)}
+                  disabled={loading}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" variant="primary" disabled={loading}>
+                  {loading ? "Creating..." : "Add Wallet"}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
 
       {errorMessage && (
