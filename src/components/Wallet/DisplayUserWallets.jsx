@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import CreateUserWalletBtn from "./CreateUserWalletBtn";
+import AddFundsBtn from "./AddFunds";
 import DeleteWalletBtn from "./DeleteWalletBtn";
 import SetTrustlineBtn from "./SetTrustlineBtn";
 import ViewDetailsBtn from "./ViewDetailsBtn";
@@ -115,10 +116,14 @@ const DisplayUserWallets = () => {
           ))}
         </div>
       )}
-      <CreateUserWalletBtn
-        issuerWallets={issuerWallets}
-        onWalletCreated={handleWalletCreated}
-      />
+      {wallets.length === 0 ? (
+        <CreateUserWalletBtn
+          issuerWallets={issuerWallets}
+          onWalletCreated={handleWalletCreated}
+        />
+      ) : (
+          <AddFundsBtn />
+      )}
 
       {errorMessage && (
         <ErrorMdl
