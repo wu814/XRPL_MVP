@@ -2,6 +2,7 @@
 import { useState } from "react";
 import AddLiquidity from "./AddLiquidity";
 import WithdrawLiquidity from "./WithdrawLiquidity";
+import SlippagePanel from "../SlippagePanel";
 
 export default function ManageAmmBalance({ ammInfo, wallets, onChange }) {
   const [activeTab, setActiveTab] = useState("add");
@@ -9,7 +10,7 @@ export default function ManageAmmBalance({ ammInfo, wallets, onChange }) {
   return (
     <div>
       {/* Tabs */}
-      <div className="mb-4 flex gap-4 text-white">
+      <div className="mb-4 flex gap-8">
         <button
           onClick={() => setActiveTab("swap")}
           className={activeTab === "swap" ? "font-bold" : "opacity-50"}
@@ -31,7 +32,9 @@ export default function ManageAmmBalance({ ammInfo, wallets, onChange }) {
       </div>
 
       {/* Panels */}
-      {activeTab === "add" && <AddLiquidity ammInfo={ammInfo} wallets={wallets} onAdded={onChange} />}
+      {activeTab === "add" && (
+        <AddLiquidity ammInfo={ammInfo} wallets={wallets} onAdded={onChange} />
+      )}
       {activeTab === "withdraw" && <WithdrawLiquidity ammInfo={ammInfo} />}
       {activeTab === "swap" && (
         <div className="text-gray-400">Swap feature coming soon...</div>

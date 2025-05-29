@@ -5,6 +5,7 @@ import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
 import CurrencyDropDown from "../CurrencyDropDown";
+import SlippagePanel from "../SlippagePanel";
 
 export default function TransferBtn({
   senderWallet,
@@ -23,6 +24,10 @@ export default function TransferBtn({
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
+
+  // Slippage state
+  const [slippage, setSlippage] = useState("");
+  const [showSlippagePanel, setShowSlippagePanel] = useState(false);
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -65,6 +70,9 @@ export default function TransferBtn({
     }
   };
 
+  useEffect(() => {
+    console.log(slippage);
+  }, [slippage]);
 
   return (
     <>
@@ -76,17 +84,47 @@ export default function TransferBtn({
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/10">
           <div className="w-96 space-y-4 rounded-lg bg-modal p-6 shadow-lg">
             <h2 className="text-center text-xl font-semibold">Transfer</h2>
-
-            <div className="flex items-center space-x-2">
-              <label className="text-sm font-medium text-mutedText">
-                Use Username
-              </label>
-              <input
-                type="checkbox"
-                checked={useUsername}
-                onChange={() => setUseUsername(!useUsername)}
-                disabled={Boolean(presetRecipientUsername)}
-              />
+            <div className="relative mb-4 flex justify-between">
+              <div className="flex space-x-1 rounded-full bg-color4 p-1">
+                {[true, false].map((type) => (
+                  <button
+                    key={String(type)}
+                    className={`rounded-full px-4 py-1 text-sm ${
+                      useUsername === type
+                        ? "bg-primary text-black"
+                        : "text-white"
+                    }`}
+                    onClick={() => setUseUsername(type)}
+                  >
+                    {type ? "Username" : "Address"}
+                  </button>
+                ))}
+              </div>
+              <button onClick={() => setShowSlippagePanel((prev) => !prev)}>
+                <svg
+                  className="h-6 w-6 text-mutedText hover:text-primary"
+                  aria-hidden="true"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeWidth="2"
+                    d="M20 6H10m0 0a2 2 0 1 0-4 0m4 0a2 2 0 1 1-4 0m0 0H4m16 6h-2m0 0a2 2 0 1 0-4 0m4 0a2 2 0 1 1-4 0m0 0H4m16 6H10m0 0a2 2 0 1 0-4 0m4 0a2 2 0 1 1-4 0m0 0H4"
+                  />
+                </svg>
+              </button>
+              {showSlippagePanel && (
+                <SlippagePanel
+                  slippage={slippage}
+                  setSlippage={setSlippage}
+                  onClose={() => setShowSlippagePanel(false)}
+                />
+              )}
             </div>
 
             {useUsername ? (

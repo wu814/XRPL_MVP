@@ -4,6 +4,7 @@ import CurrencyIcon from "../CurrencyIcon";
 import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
+import SlippagePanel from "../SlippagePanel";
 import { parse } from "path";
 
 export default function AddLiquidity({ ammInfo, wallets, onAdded }) {
@@ -17,6 +18,10 @@ export default function AddLiquidity({ ammInfo, wallets, onAdded }) {
   const [lpAmount, setLpAmount] = useState(""); // Desired LP tokens
   const [payWith, setPayWith] = useState("both"); // Which asset(s) to pay with
 
+  // Slippage tolerance state
+  const [showSlippagePanel, setShowSlippagePanel] = useState(false);
+  const [slippage, setSlippage] = useState(""); // Default slippage tolerance
+
   // Feedback/UI flags
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
@@ -26,7 +31,7 @@ export default function AddLiquidity({ ammInfo, wallets, onAdded }) {
    * Calculates estimated required token amounts (for both-asset or one-asset LP deposit)
    * Includes slippage-aware logic for one-asset deposits
    */
-    const estimatedAmounts = useMemo(() => {
+  const estimatedAmounts = useMemo(() => {
     const totalLP = new BigNumber(ammInfo?.lp_token?.value);
     const poolA = new BigNumber(token1?.value);
     const poolB = new BigNumber(token2?.value);
@@ -140,20 +145,20 @@ export default function AddLiquidity({ ammInfo, wallets, onAdded }) {
     const basePayload = { walletSeed, ammInfo };
 
     if (mode === "quantity") {
-    const val1 = parseFloat(amount1 || "0");
-    const val2 = parseFloat(amount2 || "0");
+      const val1 = parseFloat(amount1 || "0");
+      const val2 = parseFloat(amount2 || "0");
 
-    if (val1 > 0 && val2 > 0) {
-      return { ...basePayload, depositType: "twoAsset", assetA, assetB };
+      if (val1 > 0 && val2 > 0) {
+        return { ...basePayload, depositType: "twoAsset", assetA, assetB };
+      }
+      if (val1 > 0) {
+        return { ...basePayload, depositType: "oneAsset", assetA };
+      }
+      if (val2 > 0) {
+        return { ...basePayload, depositType: "oneAsset", assetA: assetB };
+      }
+      throw new Error("Enter at least one amount greater than 0.");
     }
-    if (val1 > 0) {
-      return { ...basePayload, depositType: "oneAsset", assetA };
-    }
-    if (val2 > 0) {
-      return { ...basePayload, depositType: "oneAsset", assetA: assetB };
-    }
-    throw new Error("Enter at least one amount greater than 0.");
-  }
 
     if (!lpAmount) throw new Error("Enter LP token amount.");
 
@@ -193,7 +198,6 @@ export default function AddLiquidity({ ammInfo, wallets, onAdded }) {
     setErrorMessage(null);
 
     try {
-
       // Validate inputs
       if (mode === "quantity") {
         if (!amount1 && !amount2) {
@@ -231,7 +235,7 @@ export default function AddLiquidity({ ammInfo, wallets, onAdded }) {
       ].map(({ value, setValue, token }, idx) => (
         <div
           key={idx}
-          className="bg-color3 flex items-center justify-between rounded-lg p-4"
+          className="flex items-center justify-between rounded-lg bg-color3 p-4"
         >
           <div className="flex items-center gap-2">
             <CurrencyIcon symbol={token?.currency} />
@@ -252,20 +256,20 @@ export default function AddLiquidity({ ammInfo, wallets, onAdded }) {
   const renderLPInputs = () => (
     <>
       {/* LP Token amount input */}
-      <div className="bg-color3 text-mutedText rounded-lg p-4">
+      <div className="rounded-lg bg-color3 p-4 text-mutedText">
         <label className="mb-2 block text-sm">Desired LP Token Amount</label>
         <input
           type="number"
           placeholder="0"
           value={lpAmount}
           onChange={(e) => setLpAmount(e.target.value)}
-          className="bg-color2 w-full rounded p-2 text-right focus:outline-none"
+          className="w-full rounded bg-color2 p-2 text-right focus:outline-none"
         />
       </div>
 
       {/* Estimated deposit value(s) display */}
       {lpAmount && (
-        <div className="bg-color3 text-mutedText space-y-1 rounded-lg p-4 text-sm">
+        <div className="space-y-1 rounded-lg bg-color3 p-4 text-sm text-mutedText">
           {payWith === "both" ? (
             <>
               <p>
@@ -287,7 +291,7 @@ export default function AddLiquidity({ ammInfo, wallets, onAdded }) {
       )}
 
       {/* Asset selection for one-asset LP mode */}
-      <div className="bg-color3 text-mutedText space-y-2 rounded-lg p-4">
+      <div className="space-y-2 rounded-lg bg-color3 p-4 text-mutedText">
         <label className="mb-2 block text-sm">Pay with</label>
         <div className="space-x-4">
           {["both", token1?.currency, token2?.currency].map((option) => (
@@ -310,8 +314,8 @@ export default function AddLiquidity({ ammInfo, wallets, onAdded }) {
   return (
     <div className="space-y-4">
       {/* Toggle between Quantity and LP Token modes */}
-      <div className="flex justify-end">
-        <div className="bg-color3 flex space-x-2 rounded-full p-1">
+      <div className="relative flex justify-between">
+        <div className="flex space-x-1 rounded-full bg-color3 p-1">
           {["quantity", "lp"].map((type) => (
             <button
               key={type}
@@ -324,6 +328,31 @@ export default function AddLiquidity({ ammInfo, wallets, onAdded }) {
             </button>
           ))}
         </div>
+        <button onClick={() => setShowSlippagePanel((prev) => !prev)}>
+          <svg
+            className="h-6 w-6 text-mutedText hover:text-primary"
+            aria-hidden="true"
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeWidth="2"
+              d="M20 6H10m0 0a2 2 0 1 0-4 0m4 0a2 2 0 1 1-4 0m0 0H4m16 6h-2m0 0a2 2 0 1 0-4 0m4 0a2 2 0 1 1-4 0m0 0H4m16 6H10m0 0a2 2 0 1 0-4 0m4 0a2 2 0 1 1-4 0m0 0H4"
+            />
+          </svg>
+        </button>
+        {showSlippagePanel && (
+          <SlippagePanel
+            slippage={slippage}
+            setSlippage={setSlippage}
+            onClose={() => setShowSlippagePanel(false)}
+          />
+        )}
       </div>
 
       {/* Render relevant input section based on selected mode */}

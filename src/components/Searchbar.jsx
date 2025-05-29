@@ -47,12 +47,12 @@ const Searchbar = () => {
         className="w-full rounded border border-border bg-color1 p-2 focus:border-primary focus:outline-none"
       />
       {filteredUsers.length > 0 && (
-        <ul className="absolute z-50 mt-1 w-full rounded bg-color3 shadow-2xl">
+        <ul className="absolute z-50 mt-1 w-full rounded bg-color4 shadow-2xl">
           {filteredUsers.map((user) => (
             <li key={user.username}>
               <Link
                 href={`/user/${user.username}`}
-                className="block px-4 py-2 text-lg hover:bg-color4"
+                className="block px-4 py-2 text-lg hover:bg-modal"
               >
                 {user.username}
               </Link>

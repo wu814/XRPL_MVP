@@ -169,7 +169,7 @@ export default function DisplayAmmDetails({ ammAddress }) {
             widthClass="w-8"
           />
         </div>
-        <div className="grid grid-cols-6 gap-4 py-6">
+        <div className="grid grid-cols-6 gap-4 py-4">
           <div className="bg-color2 col-span-2 rounded-xl p-4">
             <h3 className="text-mutedText">Pool Composition</h3>
             <AmmCompositionBar
