@@ -26,7 +26,7 @@ export default function TransferBtn({
   const [successMessage, setSuccessMessage] = useState(null);
 
   // Slippage state
-  const [slippage, setSlippage] = useState("");
+  const [slippage, setSlippage] = useState("1.01"); // Default 1% slippage
   const [showSlippagePanel, setShowSlippagePanel] = useState(false);
 
   const handleSubmit = async () => {
@@ -69,10 +69,6 @@ export default function TransferBtn({
       setDestinationTag("");
     }
   };
-
-  useEffect(() => {
-    console.log(slippage);
-  }, [slippage]);
 
   return (
     <>

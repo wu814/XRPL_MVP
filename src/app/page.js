@@ -24,7 +24,7 @@ export default function Login() {
       }}
     >
       <div></div>
-      <div className="mr-16 mt-24 flex flex-col content-end items-center">
+      <div className="mr-20 mt-20 flex flex-col content-end items-center">
         <h1 className="mb-14 text-4xl font-bold text-primary">XRPL MVP</h1>
         <h3 className="mb-7 text-6xl font-semibold">Control the Ledger</h3>
         <h3 className="mb-7 text-6xl font-semibold">Shape the Future.</h3>

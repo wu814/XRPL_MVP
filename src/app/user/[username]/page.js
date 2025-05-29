@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { use } from "react";
+import Navbar from "@/components/Navbar";
 import TransferBtn from "@/components/Wallet/TransferBtn";
 import ErrorMdl from "@/components/ErrorMdl";
 
@@ -20,7 +21,6 @@ export default function UserPage() {
   const [issuerWallets, setIssuerWallets] = useState([]);
   const [wallets, setWallets] = useState([]);
   const [errorMessage, setErrorMessage] = useState("");
-
 
   const fetchIssuerWallets = async () => {
     try {
@@ -60,23 +60,30 @@ export default function UserPage() {
   }, [username]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4">
-      <h1 className="text-2xl font-bold">User Profile: {username}</h1>
+    <div>
+      <Navbar />
+      <div className="flex flex-col items-center">
+        <h1 className="text-2xl font-bold">User Profile: {username}</h1>
 
-      {/* Show transfer button if user wallet address is available 
+        {/* Show transfer button if user wallet address is available 
         assume that it is user's wallet so there is only one wallet wallets[0]
       */}
-      {username &&
-        <TransferBtn senderWallet={wallets[0]} issuerWallets={issuerWallets} presetRecipientUsername={username} />
-      }
-      {/* You can add more user-specific content here */}
+        {username && (
+          <TransferBtn
+            senderWallet={wallets[0]}
+            issuerWallets={issuerWallets}
+            presetRecipientUsername={username}
+          />
+        )}
+        {/* You can add more user-specific content here */}
 
-      {errorMessage && (
-        <ErrorMdl
-          errorMessage={errorMessage}
-          onClose={() => setErrorMessage(null)}
-        />
-      )}
+        {errorMessage && (
+          <ErrorMdl
+            errorMessage={errorMessage}
+            onClose={() => setErrorMessage(null)}
+          />
+        )}
+      </div>
     </div>
   );
 }

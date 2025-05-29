@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import BigNumber from "bignumber.js";
 import CurrencyIcon from "../CurrencyIcon";
 import Button from "../Button";
@@ -20,7 +20,7 @@ export default function AddLiquidity({ ammInfo, wallets, onAdded }) {
 
   // Slippage tolerance state
   const [showSlippagePanel, setShowSlippagePanel] = useState(false);
-  const [slippage, setSlippage] = useState(""); // Default slippage tolerance
+  const [slippage, setSlippage] = useState("1.01"); // Default slippage tolerance 1%
 
   // Feedback/UI flags
   const [loading, setLoading] = useState(false);
@@ -98,7 +98,7 @@ export default function AddLiquidity({ ammInfo, wallets, onAdded }) {
       };
       maxSingleAsset = {
         ...singleAsset,
-        value: value.times(1.3).toFixed(6),
+        value: value.times(slippage).toFixed(6),
       };
     } else if (payWith === token2.currency) {
       const value = solveDepositAmount(poolB, totalLP, fee, weight, desiredLP);
@@ -109,12 +109,12 @@ export default function AddLiquidity({ ammInfo, wallets, onAdded }) {
       };
       maxSingleAsset = {
         ...singleAsset,
-        value: value.times(1.3).toFixed(6),
+        value: value.times(slippage).toFixed(6),
       };
     }
 
     return { assetA, assetB, singleAsset, maxSingleAsset };
-  }, [lpAmount, token1, token2, payWith, ammInfo]);
+  }, [lpAmount, token1, token2, payWith, ammInfo, slippage]);
 
   /**
    * Builds the appropriate payload for the deposit API based on:
@@ -310,6 +310,7 @@ export default function AddLiquidity({ ammInfo, wallets, onAdded }) {
       </div>
     </>
   );
+
 
   return (
     <div className="space-y-4">

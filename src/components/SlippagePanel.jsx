@@ -6,7 +6,7 @@ export default function SlippagePanel({ slippage, setSlippage, onClose }) {
   // Show percent value in input, even though slippage is stored as multiplier
 
   const [tempSlippage, setTempSlippage] = useState(
-    ((parseFloat(slippage) - 1) * 100).toFixed(1), // convert back to % for display
+    ((parseFloat(slippage) - 1) * 100).toFixed(1) // convert back to % for display
   );
 
   const handleSave = () => {
