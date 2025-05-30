@@ -78,7 +78,7 @@ export default function UserPage() {
             />
           )}
 
-          <AddFriendBtn receiverId={username} />
+          <AddFriendBtn receiver={username} />
         </div>
 
         {errorMessage && (

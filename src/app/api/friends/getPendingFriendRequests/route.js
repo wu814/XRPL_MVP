@@ -10,20 +10,14 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const userId = session.user.user_id;
-    console.log("🔍 Fetching pending friend requests for user:", userId);
+    const receiverName = session.user.username;
     const supabase = await createSupabaseAnonClient();
 
     const { data, error } = await supabase
       .from("friend_requests")
       // 
-      .select(`
-        id,
-        sender_id,
-        sent_at,
-        users:sender_id ( username ) 
-      `)
-      .eq("receiver_id", userId)
+      .select("id, sender, sent_at")
+      .eq("receiver", receiverName)
       .eq("status", "pending")
       .order("sent_at", { ascending: false });
 

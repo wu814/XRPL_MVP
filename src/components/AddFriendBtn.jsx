@@ -2,20 +2,23 @@
 
 import { useState } from "react";
 import Button from "@/components/Button"; // Adjust the path as needed
+import SuccessMdl from "./SuccessMdl";
+import ErrorMdl from "./ErrorMdl";
 
-export default function AddFriendBtn({ receiverId }) {
-  const [status, setStatus] = useState("idle"); // 'idle' | 'sending' | 'sent' | 'error'
-  const [error, setError] = useState("");
+export default function AddFriendBtn({ receiver }) {
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   const sendRequest = async () => {
-    setStatus("sending");
-    setError("");
+    setLoading(true);
+    setErrorMessage("");
 
     try {
       const res = await fetch("/api/friends/sendRequest", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ receiver_id: receiverId }),
+        body: JSON.stringify({ receiver }),
       });
 
       const result = await res.json();
@@ -23,30 +26,32 @@ export default function AddFriendBtn({ receiverId }) {
       if (!res.ok) {
         throw new Error(result.error || "Failed to send request");
       }
-
-      setStatus("sent");
+      setSuccessMessage(result.message);
     } catch (err) {
-      setStatus("error");
-      setError(err.message);
+      setErrorMessage(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div>
-      <Button
-        onClick={sendRequest}
-        disabled={status === "sending" || status === "sent"}
-        variant={status === "sent" ? "cancel" : "primary"}
-      >
-        {status === "sending"
-          ? "Sending..."
-          : status === "sent"
-          ? "Request Sent"
-          : "Send Friend Request"}
+      <Button onClick={sendRequest} disabled={loading}>
+        {loading ? "Sending Request..." : "Add Friend"}
       </Button>
 
-      {status === "error" && (
-        <p className="mt-2 text-sm text-red-500">{error}</p>
+      {errorMessage && (
+        <ErrorMdl
+          errorMessage={errorMessage}
+          onClose={() => setErrorMessage(null)}
+        />
+      )}
+
+      {successMessage && (
+        <SuccessMdl
+          successMessage={successMessage}
+          onClose={() => setSuccessMessage(null)}
+        />
       )}
     </div>
   );

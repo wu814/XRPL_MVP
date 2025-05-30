@@ -11,7 +11,7 @@ export async function POST(req) {
   }
 
   const { request_id, action } = await req.json(); // action = 'accept' or 'reject'
-  const user_id = session.user.user_id;
+  const receiver = session.user.username;
 
   if (!request_id || !["accept", "reject"].includes(action)) {
     return NextResponse.json({ error: "Invalid input" }, { status: 400 });
@@ -26,7 +26,7 @@ export async function POST(req) {
     .eq("id", request_id)
     .single();
 
-  if (fetchError || !request || request.receiver_id !== user_id) {
+  if (fetchError || !request || request.receiver !== receiver) {
     return NextResponse.json({ error: "Request not found or unauthorized" }, { status: 403 });
   }
 

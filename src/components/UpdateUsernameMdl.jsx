@@ -10,6 +10,7 @@ export default function UpdateUsernameMdl({ onClose, onUpdated }) {
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
 
+
   const handleSave = async () => {
     setError(null);
     if (!username.trim() || /\s/.test(username)) {
@@ -40,10 +41,13 @@ export default function UpdateUsernameMdl({ onClose, onUpdated }) {
 
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/50">
-      <div className="w-80 rounded-lg bg-modal p-6 shadow-lg">
+      <div className="w-auto rounded-lg bg-modal p-6 shadow-lg">
         <h2 className="mb-4 text-center text-xl font-bold">
-          Choose a Username
+          Choose a Username (re-login after saving)
         </h2>
+        <h3 className="mb-2 text-mutedText">
+          Your current username is your email address
+        </h3>
 
         <input
           type="text"

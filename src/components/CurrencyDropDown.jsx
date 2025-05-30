@@ -39,11 +39,11 @@ export default function CurrencyDropDown({
                 <span>{selectedCurrency.name}</span>
               </>
             ) : (
-              <span className="text-gray-400">Select currency…</span>
+              <span className="text-mutedText">Select currency…</span>
             )}
           </div>
           <svg
-            className="h-5 w-5 text-gray-400"
+            className="h-5 w-5 text-mutedText"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"

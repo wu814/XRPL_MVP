@@ -37,7 +37,7 @@ export default function ManageAmmBalance({ ammInfo, wallets, onChange }) {
       )}
       {activeTab === "withdraw" && <WithdrawLiquidity ammInfo={ammInfo} />}
       {activeTab === "swap" && (
-        <div className="text-gray-400">Swap feature coming soon...</div>
+        <div className="text-mutedText">Swap feature coming soon...</div>
       )}
     </div>
   );

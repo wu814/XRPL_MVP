@@ -11,7 +11,7 @@ export default function WithdrawLiquidity({ ammInfo }) {
       <div className="flex items-center justify-between rounded-lg bg-color3 p-4">
         <div className="text-md font-medium text-white">Withdraw LP Tokens</div>
         <div className="text-right">
-          <p className="text-sm text-gray-400">Balance 0</p>
+          <p className="text-sm text-mutedText">Balance 0</p>
           <input
             type="number"
             placeholder="0"

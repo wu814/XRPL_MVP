@@ -13,12 +13,16 @@ export default function WalletPage() {
 
   const fetchUsername = async () => {
     if (status !== "authenticated") return;
+
+    const fallbackUsername = session?.user?.email;
+
     try {
       const res = await fetch("/api/users/getUsernameByUserID");
       if (!res.ok) throw new Error("Couldn’t load username");
+
       const { username: fetched } = await res.json();
       setUsername(fetched);
-      setShowUsernameMdl(fetched === session.user.email);
+      setShowUsernameMdl(fetched === fallbackUsername); // prompt if default or missing
     } catch {
       setUsername("");
       setShowUsernameMdl(true);
@@ -29,7 +33,8 @@ export default function WalletPage() {
     if (status === "authenticated") {
       fetchUsername();
     }
-  }, [status]);
+    console.log(session);
+  }, [status, session]);
 
   const isAdmin = session?.user?.is_admin;
 

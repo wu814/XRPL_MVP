@@ -10,36 +10,50 @@ export async function POST(req) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { receiver_id } = await req.json();
-  const sender_id = session.user.user_id;
+  const { receiver } = await req.json();
+  const sender = session.user.username;
 
-  if (!receiver_id || receiver_id === sender_id) {
-    return NextResponse.json({ error: "Invalid receiver ID" }, { status: 400 });
+  if (!receiver || receiver === sender) {
+    return NextResponse.json({ error: "Invalid receiver" }, { status: 400 });
   }
 
   const supabase = await createSupabaseAnonClient();
 
-  // Prevent duplicate
-  const { data: existing } = await supabase
+  // Check for existing friend requests in either direction
+  const { data: existing, error: queryError } = await supabase
     .from("friend_requests")
     .select("*")
-    .or(`sender_id.eq.${sender_id},receiver_id.eq.${receiver_id}`)
+    .or(
+      `and(sender.eq.${sender},receiver.eq.${receiver}),and(sender.eq.${receiver},receiver.eq.${sender})`
+    )
+    .order("sent_at", { ascending: false })
     .limit(1)
     .maybeSingle();
 
-  if (existing) {
-    return NextResponse.json({ error: "Friend request already exists" }, { status: 409 });
+  if (queryError) {
+    return NextResponse.json({ error: queryError.message }, { status: 500 });
   }
 
-  const { error } = await supabase.from("friend_requests").insert({
-    sender_id,
-    receiver_id,
+  if (existing) {
+    if (existing.status === "accepted") {
+      return NextResponse.json({ error: "You are already friends." }, { status: 409 });
+    }
+    return NextResponse.json(
+      { error: `Friend request already exists (${existing.status})` },
+      { status: 409 }
+    );
+  }
+
+  // Create the friend request
+  const { error: insertError } = await supabase.from("friend_requests").insert({
+    sender,
+    receiver,
     status: "pending",
     sent_at: new Date().toISOString(),
   });
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  if (insertError) {
+    return NextResponse.json({ error: insertError.message }, { status: 500 });
   }
 
   return NextResponse.json({ message: "Friend request sent!" }, { status: 200 });

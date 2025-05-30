@@ -30,7 +30,7 @@ export default function ViewIssuerDetailsMdl({
         </h2>
 
         {/* Loading */}
-        {loading && <p className="text-center text-gray-300">Loading...</p>}
+        {loading && <p className="text-center text-mutedText">Loading...</p>}
 
         {/* Account Info */}
         {!loading && infoData && (
@@ -61,7 +61,7 @@ export default function ViewIssuerDetailsMdl({
           <div>
             <h3 className="mb-2 text-lg font-semibold">Trustlines</h3>
             {linesData.length === 0 ? (
-              <p className="text-sm text-gray-300">
+              <p className="text-sm text-mutedText">
                 No trustline data available.
               </p>
             ) : (
