@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { use } from "react";
 import Navbar from "@/components/Navbar";
 import TransferBtn from "@/components/Wallet/TransferBtn";
+import AddFriendBtn from "@/components/AddFriendBtn";
 import ErrorMdl from "@/components/ErrorMdl";
 
 class Wallet {
@@ -63,19 +64,22 @@ export default function UserPage() {
     <div>
       <Navbar username={username}/>
       <div className="flex flex-col items-center">
-        <h1 className="text-2xl font-bold">User Profile: {username}</h1>
+        <h1 className="text-2xl font-bold mb-5">User Profile: {username}</h1>
 
         {/* Show transfer button if user wallet address is available 
         assume that it is user's wallet so there is only one wallet wallets[0]
-      */}
-        {username && (
-          <TransferBtn
-            senderWallet={wallets[0]}
-            issuerWallets={issuerWallets}
-            presetRecipientUsername={username}
-          />
-        )}
-        {/* You can add more user-specific content here */}
+        */}
+        <div className="flex flex-row space-x-4">
+          {username && (
+            <TransferBtn
+              senderWallet={wallets[0]}
+              issuerWallets={issuerWallets}
+              presetRecipientUsername={username}
+            />
+          )}
+
+          <AddFriendBtn receiverId={username} />
+        </div>
 
         {errorMessage && (
           <ErrorMdl
