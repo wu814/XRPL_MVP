@@ -5,7 +5,7 @@ import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
 import SlippagePanel from "../SlippagePanel";
-import { parse } from "path";
+import estimateDepositAmounts from "@/utils/xrpl/amm/estimateDepositAmount";
 
 export default function AddLiquidity({ ammInfo, wallets, onAdded }) {
   const token1 = ammInfo?.amount;
@@ -32,89 +32,15 @@ export default function AddLiquidity({ ammInfo, wallets, onAdded }) {
    * Includes slippage-aware logic for one-asset deposits
    */
   const estimatedAmounts = useMemo(() => {
-    const totalLP = new BigNumber(ammInfo?.lp_token?.value);
-    const poolA = new BigNumber(token1?.value);
-    const poolB = new BigNumber(token2?.value);
-    const desiredLP = new BigNumber(lpAmount);
-    const fee = new BigNumber(ammInfo?.trading_fee).div(1000000);
-    const weight = new BigNumber(0.5);
-
-    if (
-      desiredLP.isNaN() ||
-      totalLP.isNaN() ||
-      poolA.isNaN() ||
-      poolB.isNaN()
-    ) {
-      return { assetA: null, assetB: null, singleAsset: null };
-    }
-
-    const ratio = desiredLP.div(totalLP);
-
-    const assetA = {
-      currency: token1.currency,
-      issuer: token1.issuer,
-      value: ratio.times(poolA).toFixed(6),
-    };
-    const assetB = {
-      currency: token2.currency,
-      issuer: token2.issuer,
-      value: ratio.times(poolB).toFixed(6),
-    };
-
-    // xrpl doc on single asset deposit fee
-    const computeLPFromSingleAsset = (B, P, T, F, W) => {
-      const adjustedB = B.minus(F.times(new BigNumber(1).minus(W)).times(B));
-      const base = new BigNumber(1).plus(adjustedB.div(P));
-      const power = new BigNumber(Math.pow(base.toNumber(), 0.5));
-
-      return T.times(power.minus(1));
-    };
-
-    const solveDepositAmount = (P, T, F, W, desiredL) => {
-      let low = new BigNumber(0);
-      let high = P.times(2);
-      let mid;
-      const epsilon = new BigNumber(1e-8);
-
-      for (let i = 0; i < 100; i++) {
-        mid = low.plus(high).div(2);
-        const result = computeLPFromSingleAsset(mid, P, T, F, W);
-        if (result.minus(desiredL).abs().lt(epsilon)) break;
-        if (result.lt(desiredL)) low = mid;
-        else high = mid;
-      }
-      return mid;
-    };
-
-    let singleAsset = null;
-    let maxSingleAsset = null;
-
-    if (payWith === token1.currency) {
-      const value = solveDepositAmount(poolA, totalLP, fee, weight, desiredLP);
-      singleAsset = {
-        currency: token1.currency,
-        issuer: token1.issuer,
-        value: value.toFixed(6),
-      };
-      maxSingleAsset = {
-        ...singleAsset,
-        value: value.times(slippage).toFixed(6),
-      };
-    } else if (payWith === token2.currency) {
-      const value = solveDepositAmount(poolB, totalLP, fee, weight, desiredLP);
-      singleAsset = {
-        currency: token2.currency,
-        issuer: token2.issuer,
-        value: value.toFixed(6),
-      };
-      maxSingleAsset = {
-        ...singleAsset,
-        value: value.times(slippage).toFixed(6),
-      };
-    }
-
-    return { assetA, assetB, singleAsset, maxSingleAsset };
-  }, [lpAmount, token1, token2, payWith, ammInfo, slippage]);
+    return estimateDepositAmounts({
+      token1,
+      token2,
+      ammInfo,
+      lpAmount,
+      payWith,
+      slippage,
+    });
+  }, [token1, token2, ammInfo, lpAmount, payWith, slippage]);
 
   /**
    * Builds the appropriate payload for the deposit API based on:
@@ -172,13 +98,13 @@ export default function AddLiquidity({ ammInfo, wallets, onAdded }) {
       return {
         ...basePayload,
         depositType: "twoAssetLPToken",
-        assetA,
-        assetB,
+        assetA: estimatedAmounts.assetA,
+        assetB: estimatedAmounts.assetB,
         lpTokenOut,
       };
     }
 
-    // We are sending estimate * 1.3 for the maximum amount user is willing to send
+    // We are sending estimate * slippage for the maximum amount user is willing to send
     const oneAsset = estimatedAmounts.maxSingleAsset;
     if (!oneAsset) throw new Error("Unable to estimate one-asset deposit.");
 
@@ -216,7 +142,9 @@ export default function AddLiquidity({ ammInfo, wallets, onAdded }) {
       });
 
       const result = await res.json();
-      if (!res.ok) throw new Error(res.error || "Transaction failed.");
+      if (!res.ok) {
+        throw new Error(result.error || "Transaction failed.");
+      }
       setSuccessMessage(result.message || "Liquidity added successfully!");
       onAdded();
     } catch (err) {
@@ -273,17 +201,17 @@ export default function AddLiquidity({ ammInfo, wallets, onAdded }) {
           {payWith === "both" ? (
             <>
               <p>
-                Estimated: {estimatedAmounts.assetA.value} {token1.currency} +{" "}
+                Estimated cost: {estimatedAmounts.assetA.value} {token1.currency} +{" "}
                 {estimatedAmounts.assetB.value} {token2.currency}
               </p>
             </>
           ) : (
             <>
               <p>
-                Estimated: {estimatedAmounts.singleAsset?.value} {payWith}
+                Estimated cost: {estimatedAmounts.singleAsset?.value} {payWith}
               </p>
               <p>
-                Max to send: {estimatedAmounts.maxSingleAsset?.value} {payWith}
+                Max to send (slippage): {estimatedAmounts.maxSingleAsset?.value} {payWith}
               </p>
             </>
           )}
@@ -310,7 +238,6 @@ export default function AddLiquidity({ ammInfo, wallets, onAdded }) {
       </div>
     </>
   );
-
 
   return (
     <div className="space-y-4">

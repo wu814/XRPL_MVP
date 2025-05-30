@@ -32,7 +32,7 @@ export default function CreateAmmMdl({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="mb-1 block">Asset A</label>
-            <CurrencyDropDown value={assetA} onChange={setAssetA} />
+            <CurrencyDropDown value={assetA} onChange={setAssetA} disabledOptions={assetB}/>
           </div>
 
           <div>
@@ -48,7 +48,7 @@ export default function CreateAmmMdl({
 
           <div>
             <label className="mb-1 block">Asset B</label>
-            <CurrencyDropDown value={assetB} onChange={setAssetB} />
+            <CurrencyDropDown value={assetB} onChange={setAssetB} disabledOptions={assetA} />
           </div>
 
           <div>
