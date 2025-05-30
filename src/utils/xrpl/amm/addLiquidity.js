@@ -329,7 +329,7 @@ function displayTransactionDetails(
   output += `🔑 Transaction Hash: ${result.result.hash}\n`;
 
   if (lpTokensReceived) {
-    output += `\n📥 LP Tokens Received: ${lpTokensReceived.value}\n   • Code: ${lpTokensReceived.currency}\n`;
+    output += `\n📥 LP Tokens Received: ${lpTokensReceived.value}\n   • Token Code: ${lpTokensReceived.currency}\n`;
   }
 
   if (assetsDeposited && assetsDeposited.length > 0) {

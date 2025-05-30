@@ -4,10 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Button from "@/components/Button";
 import Searchbar from "@/components/Searchbar";
-import { useSession, signOut } from "next-auth/react";
+import { signOut } from "next-auth/react";
 
-const Navbar = () => {
-  const { data: session } = useSession();
+const Navbar = ({ username }) => {
   const pathname = usePathname();
 
   const linkClass = (paths) =>
@@ -16,16 +15,20 @@ const Navbar = () => {
     }`;
 
   return (
-    <nav className="text-lg mb-4 flex w-full items-center justify-between space-x-8 bg-color1 p-8 px-10">
+    <nav className="mb-4 flex w-full items-center justify-between space-x-8 bg-color1 p-8 px-10 text-lg">
       <Link href={"/wallet"} className={linkClass(["/wallet"])}>
         Wallet
       </Link>
       <Link href="/trade" className={linkClass(["/trade"])}>
         Trade
       </Link>
-      <Link href="/profile" className={linkClass(["/profile"])}>
+      <Link
+        href={username ? `/profile/${username}` : "#"}
+        className={`${linkClass(["/profile"])} ${!username ? "pointer-events-none" : ""}`}
+      >
         Profile
       </Link>
+
       <Link href="/settings" className={linkClass(["/settings"])}>
         Settings
       </Link>

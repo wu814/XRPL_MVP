@@ -61,7 +61,7 @@ export default function UserPage() {
 
   return (
     <div>
-      <Navbar />
+      <Navbar username={username}/>
       <div className="flex flex-col items-center">
         <h1 className="text-2xl font-bold">User Profile: {username}</h1>
 

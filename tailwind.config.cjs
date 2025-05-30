@@ -19,7 +19,7 @@ module.exports = {
         border: "#D1E8E2", // Border color
         mutedText: "#A3A4A7",
         primary: "#A4F2F5", // Primary button
-        cancel: "#FAFAB2", // Cancel
+        cancel: "#E1A5FA", // Cancel
       },
     },
   },

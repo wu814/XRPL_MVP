@@ -5,32 +5,35 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 export async function GET() {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.email) {
+  console.log("Session:", JSON.stringify(session, null, 2));
+  if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-
+  const userID = session.user.user_id;
   try {
+
     const supabase = await createSupabaseAnonClient();
+
     const { data, error } = await supabase
       .from("users")
-      .select("username")
-      .eq("email_address", session.user.email)
+      .select("*")
+      .eq("user_id", userID)
       .single();
 
-    if (error) {
+    if (error) throw error;
+
+    if (!data) {
       return NextResponse.json(
-        { error: "Failed to fetch username." },
-        { status: 500 },
+        { error: "User not found" },
+        { status: 404 }
       );
     }
 
-    return NextResponse.json({ username: data.username }, { status: 200 });
+    return NextResponse.json({ data }, { status: 200 });
   } catch (error) {
     return NextResponse.json(
-      {
-        error: `Error fetching username: ${error.message} [getUsernameByEmail/route.js]`,
-      },
-      { status: 500 },
+      { error: `Error fetching user: ${error.message}` },
+      { status: 500 }
     );
   }
 }

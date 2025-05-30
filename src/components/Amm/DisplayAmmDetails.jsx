@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import Navbar from "../Navbar";
 import ErrorMdl from "../ErrorMdl";
 import CurrencyIcon from "../CurrencyIcon";
@@ -52,7 +53,6 @@ class AmmInfo {
   }
 }
 
-
 export default function DisplayAmmDetails({ ammAddress }) {
   const [ammInfo, setAmmInfo] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -60,6 +60,29 @@ export default function DisplayAmmDetails({ ammAddress }) {
   const [currency1, setCurrency1] = useState("");
   const [currency2, setCurrency2] = useState("");
   const [wallets, setWallets] = useState([]);
+
+  // Pass username to the Navbar
+  const [username, setUsername] = useState(null);
+  const { data: session, status } = useSession();
+  const fetchUsername = async () => {
+    if (status !== "authenticated") return;
+    try {
+      const res = await fetch("/api/users/getUsernameByUserID");
+      if (!res.ok) throw new Error("Couldn’t load username");
+      const { username: fetched } = await res.json();
+      setUsername(fetched);
+    } catch (error) {
+      console.error("Error fetching username:", error);
+      setUsername("");
+    }
+  };
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      fetchUsername();
+    }
+  }, [status]);
+
 
   // Get wallet seed so we can add liquidity
   const fetchWallets = async () => {
@@ -144,13 +167,12 @@ export default function DisplayAmmDetails({ ammAddress }) {
 
   const renderTradingFee = () => (
     <div>
-      <h3 className="text-mutedText mb-2">Trading Fee</h3>
+      <h3 className="mb-2 text-mutedText">Trading Fee</h3>
       <p className="text-lg font-semibold">
         {`${(ammInfo?.trading_fee / 1000).toFixed(2)}%`}
       </p>
     </div>
   );
-
 
   return (
     <div>
@@ -158,19 +180,11 @@ export default function DisplayAmmDetails({ ammAddress }) {
       <div className="container mx-auto">
         <Breadcrumbs customLabel={`${currency1}/${currency2}`} />
         <div className="flex flex-row gap-2 py-6">
-          <CurrencyIcon
-            symbol={currency1}
-            heightClass="h-8"
-            widthClass="w-8"
-          />
-          <CurrencyIcon
-            symbol={currency2}
-            heightClass="h-8"
-            widthClass="w-8"
-          />
+          <CurrencyIcon symbol={currency1} heightClass="h-8" widthClass="w-8" />
+          <CurrencyIcon symbol={currency2} heightClass="h-8" widthClass="w-8" />
         </div>
         <div className="grid grid-cols-6 gap-4 py-4">
-          <div className="bg-color2 col-span-2 rounded-xl p-4">
+          <div className="col-span-2 rounded-xl bg-color2 p-4">
             <h3 className="text-mutedText">Pool Composition</h3>
             <AmmCompositionBar
               amount1={ammInfo?.amount}
@@ -178,30 +192,34 @@ export default function DisplayAmmDetails({ ammAddress }) {
             />
             {renderPriceInfo()}
           </div>
-          <div className="bg-color2 col-span-1 rounded-xl p-4">
-            <h3 className="text-mutedText mb-2">Pool Value</h3>
+          <div className="col-span-1 rounded-xl bg-color2 p-4">
+            <h3 className="mb-2 text-mutedText">Pool Value</h3>
             <p className="text-lg font-semibold">$99999.99</p>
           </div>
-          <div className="bg-color2 col-span-1 rounded-xl p-4">
-            <h3 className="text-mutedText mb-2">Volume (24h)</h3>
+          <div className="col-span-1 rounded-xl bg-color2 p-4">
+            <h3 className="mb-2 text-mutedText">Volume (24h)</h3>
             <p className="text-lg font-semibold">$99999.99</p>
           </div>
-          <div className="bg-color2 col-span-1 rounded-xl p-4">
-            <h3 className="text-mutedText mb-2">APR</h3>
+          <div className="col-span-1 rounded-xl bg-color2 p-4">
+            <h3 className="mb-2 text-mutedText">APR</h3>
             <p className="text-lg font-semibold">$99999.99</p>
           </div>
-          <div className="bg-color2 col-span-1 rounded-xl p-4">
+          <div className="col-span-1 rounded-xl bg-color2 p-4">
             {renderTradingFee()}
           </div>
         </div>
 
         <div className="grid grid-cols-3 gap-4">
           {/* Swap/Add/Withdraw Panel */}
-          <div className="bg-color2 col-span-1 rounded-xl p-4">
-            <ManageAmmBalance ammInfo={ammInfo} wallets={wallets} onChange={fetchAmmInfo} />
+          <div className="col-span-1 rounded-xl bg-color2 p-4">
+            <ManageAmmBalance
+              ammInfo={ammInfo}
+              wallets={wallets}
+              onChange={fetchAmmInfo}
+            />
           </div>
           {/* Volume/TVL/Fees Graph */}
-          <div className="bg-color2 text-mutedText col-span-2 rounded-xl p-4">
+          <div className="col-span-2 rounded-xl bg-color2 p-4 text-mutedText">
             Volume/TVL/Fees Chart
           </div>
         </div>

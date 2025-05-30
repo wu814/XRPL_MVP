@@ -14,7 +14,7 @@ export default function WalletPage() {
   const fetchUsername = async () => {
     if (status !== "authenticated") return;
     try {
-      const res = await fetch("/api/users/getUsernameByEmail");
+      const res = await fetch("/api/users/getUsernameByUserID");
       if (!res.ok) throw new Error("Couldn’t load username");
       const { username: fetched } = await res.json();
       setUsername(fetched);
@@ -26,14 +26,16 @@ export default function WalletPage() {
   };
 
   useEffect(() => {
-    fetchUsername();
-  }, [status, session?.user?.email]);
+    if (status === "authenticated") {
+      fetchUsername();
+    }
+  }, [status]);
 
   const isAdmin = session?.user?.is_admin;
 
   return (
     <div>
-      <Navbar />
+      <Navbar username={username} />
 
       {/* Main Content */}
       <main className="container mx-auto flex">
