@@ -56,7 +56,7 @@ export default function DisplayPendingFriendRequests() {
                 <p className="font-medium">
                   From: {req.sender || "Unknown"}
                 </p>
-                <p>Sent at: {new Date(req.sent_at).toLocaleString()}</p>
+                <p>Sent on: {new Date(req.sent_at).toLocaleDateString()}</p>
               </div>
               <div className="space-x-2">
                 <Button variant="primary" onClick={() => handleResponse(req.id, "accept")}>Accept</Button>

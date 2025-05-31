@@ -50,7 +50,7 @@ export async function POST(req) {
         .single();
   
       if (walletError || walletData.length === 0) {
-        throw new Error("Wallet not found");
+        throw new Error("Receiver wallet not found");
       }
   
       recipientAddress = walletData.classic_address;
