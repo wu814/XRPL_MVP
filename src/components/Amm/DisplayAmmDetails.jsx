@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import Navbar from "../Navigation/Navbar";
@@ -6,14 +8,7 @@ import CurrencyIcon from "../Currency/CurrencyIcon";
 import AmmCompositionBar from "./AmmCompositionBar";
 import ManageAmmBalance from "./ManageAmmBalance";
 import Breadcrumbs from "../Navigation/Breadcrumbs";
-
-class Wallet {
-  constructor(classicAddress, walletType, seed) {
-    this.classicAddress = classicAddress;
-    this.walletType = walletType;
-    this.seed = seed;
-  }
-}
+import { useWallet } from "../WalletContext";
 
 // This class is used to parse the AMM data returned from the API
 class AmmInfo {
@@ -59,38 +54,18 @@ export default function DisplayAmmDetails({ ammAddress }) {
   const [errorMessage, setErrorMessage] = useState(null);
   const [currency1, setCurrency1] = useState("");
   const [currency2, setCurrency2] = useState("");
-  const [wallets, setWallets] = useState([]);
 
   // Pass username to the Navbar
   const [username, setUsername] = useState(null);
   const { data: session, status } = useSession();
+
+  const { currentUserWallets } = useWallet();
 
   useEffect(() => {
     if (status === "authenticated") {
       setUsername(session.user.username);
     }
   }, [session, status]);
-
-
-  // Get wallet seed so we can add liquidity
-  const fetchWallets = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/wallets/getWalletsByUserID");
-      const result = await res.json();
-      if (Array.isArray(result.data) && result.data.length > 0) {
-        const walletsData = result.data.map(
-          (wallet) =>
-            new Wallet(wallet.classic_address, wallet.wallet_type, wallet.seed),
-        );
-        setWallets(walletsData);
-      }
-    } catch (error) {
-      console.error("Error fetching wallets:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const fetchAmmInfo = async () => {
     try {
@@ -125,7 +100,6 @@ export default function DisplayAmmDetails({ ammAddress }) {
       }
     }
     fetchAmmInfo();
-    fetchWallets();
   }, [ammAddress]);
 
   // Delete later
@@ -164,7 +138,7 @@ export default function DisplayAmmDetails({ ammAddress }) {
 
   return (
     <div>
-      <Navbar username={username}/>
+      <Navbar username={username} />
       <div className="container mx-auto">
         <Breadcrumbs customLabel={`${currency1}/${currency2}`} />
         <div className="flex flex-row gap-2 py-6">
@@ -202,7 +176,7 @@ export default function DisplayAmmDetails({ ammAddress }) {
           <div className="col-span-1 rounded-xl bg-color2 p-4">
             <ManageAmmBalance
               ammInfo={ammInfo}
-              wallets={wallets}
+              wallets={currentUserWallets}
               onChange={fetchAmmInfo}
             />
           </div>
@@ -211,6 +185,13 @@ export default function DisplayAmmDetails({ ammAddress }) {
             Volume/TVL/Fees Chart
           </div>
         </div>
+
+        {errorMessage && (
+          <ErrorMdl
+            errorMessage={errorMessage}
+            onClose={() => setErrorMessage(null)}
+          />
+        )}
       </div>
     </div>
   );

@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
+import { on } from "events";
 
 export default function CreateAdminWalletBtn({ onWalletCreated }) {
   const [showMdl, setShowMdl] = useState(false);
@@ -25,8 +26,6 @@ export default function CreateAdminWalletBtn({ onWalletCreated }) {
       const result = await res.json();
       if (!res.ok) throw new Error(result.error || "Failed to add wallet");
 
-      // Notify frontend
-      if (onWalletCreated) onWalletCreated(result.data);
       setSuccessMessage(result.message);
 
       // Background call to set wallet flags
@@ -117,7 +116,8 @@ export default function CreateAdminWalletBtn({ onWalletCreated }) {
           successMessage={successMessage}
           onClose={() => {
             setSuccessMessage(null);
-            setShowMdl(false);
+            onWalletCreated(); // Notify parent component
+            setShowMdl(false); // Close modal after success
           }}
         />
       )}

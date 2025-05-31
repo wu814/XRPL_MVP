@@ -9,6 +9,7 @@ import ViewDetailsBtn from "./ViewDetailsBtn";
 import TransferBtn from "./TransferBtn";
 import ErrorMdl from "../ErrorMdl";
 import { useWallet } from "@/components/WalletContext";
+import { useEffect } from "react";
 
 const typeOrder = {
   ISSUER: 0,
@@ -23,21 +24,25 @@ const DisplayAdminWallets = () => {
     loading,
     errorMessage,
     fetchWallets,
+    fetchIssuerWallets
   } = useWallet();
 
   // Handle wallet creation (append and sort)
   const handleWalletCreated = (newWalletData) => {
     fetchWallets(); // Refresh all wallets from server for consistency
+    fetchIssuerWallets(); // Refresh issuer wallets as well
   };
 
   const handleDeleteWallet = () => {
     fetchWallets(); // Re-fetch after deletion
+    fetchIssuerWallets(); // Re-fetch issuer wallets to ensure consistency
   };
 
   const sortedWallets = [...currentUserWallets].sort(
     (a, b) => typeOrder[a.walletType] - typeOrder[b.walletType],
   );
 
+  
   return (
     <div className="container mx-auto mr-4">
       {loading ? (

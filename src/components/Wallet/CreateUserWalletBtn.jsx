@@ -27,12 +27,6 @@ export default function CreateUserWalletBtn({ onWalletCreated }) {
       if (!res.ok) throw new Error(result.error || "Failed to add wallet");
 
       setSuccessMessage(result.message);
-      setTimeout(() => {
-        if (onWalletCreated) onWalletCreated(result.data);
-        setShowMdl(false);
-        setSuccessMessage(null);
-      }, 2000); // show for 2 seconds
-
       
     } catch (err) {
       setErrorMessage(err.message);
@@ -109,6 +103,7 @@ export default function CreateUserWalletBtn({ onWalletCreated }) {
           successMessage={successMessage}
           onClose={() => {
             setSuccessMessage(null);
+            onWalletCreated(); // Notify parent component
             setShowMdl(false);
           }}
         />

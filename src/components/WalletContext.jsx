@@ -29,7 +29,7 @@ export const WalletProvider = ({ children }) => {
         .sort((a, b) => typeOrder[a.walletType] - typeOrder[b.walletType]);
 
       setCurrentUserWallets(normalizedWallets);
-      setCurrentUserWallets(normalizedWallets);
+
     } catch (err) {
       setErrorMessage(err.message || "Failed to fetch user wallets");
     } finally {

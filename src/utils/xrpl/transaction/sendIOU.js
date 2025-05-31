@@ -85,7 +85,6 @@ const checkDestinationTrustline = async (
     account: destination,
     peer: issuerAddress,
   });
-
   const hasTrustline = lines.some(
     (line) => line.currency === currency && line.account === issuerAddress,
   );
