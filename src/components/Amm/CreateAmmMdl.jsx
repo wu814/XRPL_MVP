@@ -2,7 +2,7 @@
 
 import React from "react";
 import Button from "../Button";
-import CurrencyDropDown from "../CurrencyDropDown";
+import CurrencyDropDown from "../Currency/CurrencyDropDown";
 
 export default function CreateAmmMdl({
   onClose,

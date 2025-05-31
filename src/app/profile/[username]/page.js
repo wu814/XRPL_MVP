@@ -1,12 +1,14 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import Navbar from "@/components/Navbar";
-import DisplayPendingFriendRequests from "@/components/Profile/DisplayPendingFriendRequests";
-import DisplayFriends from "@/components/Profile/DisplayFriends";
+import Navbar from "@/components/Navigation/Navbar";
+import DisplayPendingFriendRequests from "@/components/Friend/DisplayPendingFriendRequests";
+import DisplayFriends from "@/components/Friend/DisplayFriends";
 import ErrorMdl from "@/components/ErrorMdl";
 
 export default function ProfilePage() {
+  const [username, setUsername] = useState("");
+  
   const params = useParams();
   const userID = params.userID; // Get the userID from the URL
 

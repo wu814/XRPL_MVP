@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Button from "@/components/Button"; // Adjust the path as needed
-import SuccessMdl from "./SuccessMdl";
-import ErrorMdl from "./ErrorMdl";
+import Button from "@/components/Button";
+import SuccessMdl from "../SuccessMdl";
+import ErrorMdl from "../ErrorMdl";
 
 export default function AddFriendBtn({ receiver }) {
   const [loading, setLoading] = useState(false);

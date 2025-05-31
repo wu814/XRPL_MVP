@@ -2,6 +2,7 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
 import SessionWrapper from "@/components/SessionWrapper";
+import { WalletProvider } from "@/components/WalletContext";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -23,7 +24,9 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className={`${inter.variable} antialiased`}>
         <SessionWrapper>
-          <div className="min-h-screen bg-color1 text-white">{children}</div>
+          <WalletProvider>
+            <div className="min-h-screen bg-color1 text-white">{children}</div>
+          </WalletProvider>
         </SessionWrapper>
       </body>
     </html>

@@ -1,5 +1,5 @@
 // components/WithdrawLiquidity.jsx
-import CurrencyIcon from "../CurrencyIcon";
+import CurrencyIcon from "../Currency/CurrencyIcon";
 
 export default function WithdrawLiquidity({ ammInfo }) {
   const token1 = ammInfo?.amount;

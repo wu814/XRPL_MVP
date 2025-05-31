@@ -1,40 +1,28 @@
 "use client";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
-import Navbar from "@/components/Navbar";
+import Navbar from "@/components/Navigation/Navbar";
 import DisplayAdminWallets from "@/components/Wallet/DisplayAdminWallets";
 import DisplayUserWallets from "@/components/Wallet/DisplayUserWallets";
 import UpdateUsernameMdl from "@/components/UpdateUsernameMdl";
 
 export default function WalletPage() {
   const { data: session, status } = useSession();
-  const [showUsernameMdl, setShowUsernameMdl] = useState(false);
   const [username, setUsername] = useState(null);
+  const [showUsernameMdl, setShowUsernameMdl] = useState(false);
 
-  const fetchUsername = async () => {
-    if (status !== "authenticated") return;
-
-    const fallbackUsername = session?.user?.email;
-
-    try {
-      const res = await fetch("/api/users/getUsernameByUserID");
-      if (!res.ok) throw new Error("Couldn’t load username");
-
-      const { username: fetched } = await res.json();
-      setUsername(fetched);
-      setShowUsernameMdl(fetched === fallbackUsername); // prompt if default or missing
-    } catch {
-      setUsername("");
-      setShowUsernameMdl(true);
-    }
-  };
-
+  // Update username when session is ready
   useEffect(() => {
     if (status === "authenticated") {
-      fetchUsername();
+      const sessionUsername = session?.user?.username || "";
+      setUsername(sessionUsername);
+
+      const fallbackUsername = session?.user?.email;
+      if (!sessionUsername || sessionUsername === fallbackUsername) {
+        setShowUsernameMdl(true);
+      }
     }
-    console.log(session);
-  }, [status, session]);
+  }, [session, status]);
 
   const isAdmin = session?.user?.is_admin;
 
@@ -71,10 +59,11 @@ export default function WalletPage() {
         </section>
       </main>
 
+      {/* Show modal if needed */}
       {showUsernameMdl && (
         <UpdateUsernameMdl
           onClose={() => setShowUsernameMdl(false)}
-          onUpdated={fetchUsername}
+          onUpdated={(newName) => setUsername(newName)}
         />
       )}
     </div>

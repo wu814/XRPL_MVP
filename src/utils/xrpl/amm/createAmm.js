@@ -77,9 +77,7 @@ export default async function createAmm(
   if (resultCode !== "tesSUCCESS") {
     throw new Error(`AMM creation failed with code: ${resultCode}`);
   }
-
-  // Allow ledger to update
-  await new Promise((r) => setTimeout(r, 3800));
+  console.log("✅ AMM created successfully!");
 
   const formatForAmmInfo = (type, obj) =>
     type === "XRP"

@@ -1,35 +1,23 @@
 "use client";
 
-import Navbar from "@/components/Navbar";
+import Navbar from "@/components/Navigation/Navbar";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 
 export default function Trade() {
-  const { status } = useSession();
+  const { data: session, status } = useSession();
   const [username, setUsername] = useState("");
 
   const linkClass = (path) =>
     `text-3xl font-semibold transition duration-200 ease-in-out hover:scale-105 hover:text-primary pb-6 block`;
 
-  const fetchUsername = async () => {
-    if (status !== "authenticated") return;
-    try {
-      const res = await fetch("/api/users/getUsernameByUserID");
-      if (!res.ok) throw new Error("Couldn’t load username");
-      const { username: fetched } = await res.json();
-      setUsername(fetched);
-    } catch (error) {
-      console.error("Error fetching username:", error);
-      setUsername("");
-    }
-  };
-
+  
   useEffect(() => {
     if (status === "authenticated") {
-      fetchUsername();
+      setUsername(session.user.username || "");
     }
-  }, [status]);
+  }, [session, status]);
 
   return (
     <div>

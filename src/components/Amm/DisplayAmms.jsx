@@ -5,7 +5,7 @@ import React, { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import ErrorMdl from "../ErrorMdl";
-import CurrencyIcon from "../CurrencyIcon";
+import CurrencyIcon from "../Currency/CurrencyIcon";
 import CreateAmmBtn from "./CreateAmmBtn";
 
 class Amm {

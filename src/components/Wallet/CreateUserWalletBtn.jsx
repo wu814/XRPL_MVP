@@ -26,8 +26,14 @@ export default function CreateUserWalletBtn({ onWalletCreated }) {
       const result = await res.json();
       if (!res.ok) throw new Error(result.error || "Failed to add wallet");
 
-      if (onWalletCreated) onWalletCreated(result.data);
       setSuccessMessage(result.message);
+      setTimeout(() => {
+        if (onWalletCreated) onWalletCreated(result.data);
+        setShowMdl(false);
+        setSuccessMessage(null);
+      }, 2000); // show for 2 seconds
+
+      
     } catch (err) {
       setErrorMessage(err.message);
     } finally {

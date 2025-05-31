@@ -6,7 +6,7 @@ import React, { useState } from "react";
 import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
-import CurrencyDropDown from "../CurrencyDropDown";
+import CurrencyDropDown from "../Currency/CurrencyDropDown";
 
 export default function SetTrustlineBtn({ setterWallet, issuerWallets }) {
   const [loading, setLoading] = useState(false);

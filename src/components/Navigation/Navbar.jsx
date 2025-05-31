@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Button from "@/components/Button";
-import Searchbar from "@/components/Searchbar";
+import Searchbar from "@/components/Navigation/Searchbar";
 import { signOut } from "next-auth/react";
 
 const Navbar = ({ username }) => {

@@ -4,7 +4,7 @@ import { use, useEffect, useState } from "react";
 import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
-import CurrencyDropDown from "../CurrencyDropDown";
+import CurrencyDropDown from "../Currency/CurrencyDropDown";
 import SlippagePanel from "../SlippagePanel";
 import { send } from "process";
 

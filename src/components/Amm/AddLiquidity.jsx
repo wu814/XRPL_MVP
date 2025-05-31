@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import BigNumber from "bignumber.js";
-import CurrencyIcon from "../CurrencyIcon";
+import CurrencyIcon from "../Currency/CurrencyIcon";
 import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";

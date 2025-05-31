@@ -16,7 +16,7 @@ module.exports = {
         modal: "#403A58", // 5th darkest (modal)
         color5: "#4B4762", // 6th darkest (panel)
         pulse: "#514E78", // Animate pulse
-        border: "#D1E8E2", // Border color
+        border: "#BDB9C9", // Border color
         mutedText: "#A3A4A7",
         primary: "#A4F2F5", // Primary button
         cancel: "#E1A5FA", // Cancel

@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import Navbar from "../Navbar";
+import Navbar from "../Navigation/Navbar";
 import ErrorMdl from "../ErrorMdl";
-import CurrencyIcon from "../CurrencyIcon";
+import CurrencyIcon from "../Currency/CurrencyIcon";
 import AmmCompositionBar from "./AmmCompositionBar";
 import ManageAmmBalance from "./ManageAmmBalance";
-import Breadcrumbs from "../Breadcrumbs";
+import Breadcrumbs from "../Navigation/Breadcrumbs";
 
 class Wallet {
   constructor(classicAddress, walletType, seed) {
@@ -64,24 +64,12 @@ export default function DisplayAmmDetails({ ammAddress }) {
   // Pass username to the Navbar
   const [username, setUsername] = useState(null);
   const { data: session, status } = useSession();
-  const fetchUsername = async () => {
-    if (status !== "authenticated") return;
-    try {
-      const res = await fetch("/api/users/getUsernameByUserID");
-      if (!res.ok) throw new Error("Couldn’t load username");
-      const { username: fetched } = await res.json();
-      setUsername(fetched);
-    } catch (error) {
-      console.error("Error fetching username:", error);
-      setUsername("");
-    }
-  };
 
   useEffect(() => {
     if (status === "authenticated") {
-      fetchUsername();
+      setUsername(session.user.username);
     }
-  }, [status]);
+  }, [session, status]);
 
 
   // Get wallet seed so we can add liquidity
@@ -176,7 +164,7 @@ export default function DisplayAmmDetails({ ammAddress }) {
 
   return (
     <div>
-      <Navbar />
+      <Navbar username={username}/>
       <div className="container mx-auto">
         <Breadcrumbs customLabel={`${currency1}/${currency2}`} />
         <div className="flex flex-row gap-2 py-6">
