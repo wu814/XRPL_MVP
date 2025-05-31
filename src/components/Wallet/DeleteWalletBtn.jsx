@@ -87,6 +87,7 @@ export default function DeleteWalletBtn({ classicAddress, onWalletDeleted }) {
           onClose={() => {
             setSuccessMessage(null);
             onWalletDeleted(classicAddress);
+            setShowConfirm(false);
           }}
         />
       )}

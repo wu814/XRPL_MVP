@@ -17,14 +17,17 @@ const DisplayUserWallets = () => {
     loading,
     errorMessage,
     fetchWallets,
+    fetchIssuerWallets
   } = useWallet();
 
   const handleWalletCreated = () => {
     fetchWallets(); // re-fetch from server
+    fetchIssuerWallets(); // re-fetch issuer wallets to ensure consistency
   };
 
   const handleDeleteWallet = () => {
     fetchWallets(); // re-fetch after deletion
+    fetchIssuerWallets(); // re-fetch issuer wallets to ensure consistency
   };
 
   return (

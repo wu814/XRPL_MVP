@@ -7,6 +7,7 @@ const WalletContext = createContext();
 export const WalletProvider = ({ children }) => {
   const [currentUserWallets, setCurrentUserWallets] = useState([]);
   const [issuerWallets, setIssuerWallets] = useState([]);
+  const [treasuryWallet, setTreasuryWallet] = useState(null);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState(null);
 
@@ -29,7 +30,6 @@ export const WalletProvider = ({ children }) => {
         .sort((a, b) => typeOrder[a.walletType] - typeOrder[b.walletType]);
 
       setCurrentUserWallets(normalizedWallets);
-
     } catch (err) {
       setErrorMessage(err.message || "Failed to fetch user wallets");
     } finally {
@@ -54,9 +54,27 @@ export const WalletProvider = ({ children }) => {
     }
   };
 
+  const fetchTreasuryWallet = async () => {
+    try {
+      const res = await fetch("/api/wallets/getTreasuryWallet");
+      const result = await res.json();
+      if (Array.isArray(result.data) && result.data.length > 0) {
+        const wallet = result.data[0];
+        setTreasuryWallet({
+          classicAddress: wallet.classic_address,
+          walletType: wallet.wallet_type,
+          seed: wallet.seed,
+        });
+      }
+    } catch (error) {
+      setErrorMessage(error.message || "Failed to fetch treasury wallet");
+    }
+  };
+
   useEffect(() => {
     fetchWallets();
     fetchIssuerWallets();
+    fetchTreasuryWallet();
   }, []);
 
   return (
@@ -64,10 +82,12 @@ export const WalletProvider = ({ children }) => {
       value={{
         currentUserWallets,
         issuerWallets,
+        treasuryWallet,
         loading,
         errorMessage,
         fetchWallets,
         fetchIssuerWallets,
+        fetchTreasuryWallet,
       }}
     >
       {children}
