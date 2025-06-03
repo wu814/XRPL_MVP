@@ -7,13 +7,16 @@ import {
   withdrawAllSingleAsset,
   withdrawSingleAssetWithLPToken,
 } from "@/utils/xrpl/amm/withdrawLiquidity";
+import getAmmInfo from "@/utils/xrpl/amm/getAmmInfo";
 import * as xrpl from "xrpl";
+import { createSupabaseAnonClient } from "@/utils/supabase/server";
+import { get } from "http";
 
 export async function POST(req) {
   try {
     const {
       mode,
-      standbyWalletSeed,
+      currentWalletSeed,
       ammInfo,
       minA,
       minB,
@@ -22,7 +25,7 @@ export async function POST(req) {
       lpTokenAmount,
     } = await req.json();
 
-    if (!mode || !standbyWalletSeed || !ammInfo) {
+    if (!mode || !currentWalletSeed || !ammInfo) {
       return NextResponse.json(
         {
           error:
@@ -33,7 +36,7 @@ export async function POST(req) {
     }
     // Initialize data
     const ammAccount = ammInfo.account;
-    const standbyWallet = xrpl.Wallet.fromSeed(standbyWalletSeed);
+    const standbyWallet = xrpl.Wallet.fromSeed(currentWalletSeed);
     let result;
 
     switch (mode) {
@@ -59,6 +62,21 @@ export async function POST(req) {
           standbyWallet,
           ammAccount,
         );
+
+         // 🧹 Delete AMM from Supabase if full withdrawal was successful
+        if (result?.success) {
+          const supabase = await createSupabaseAnonClient();
+          const { error: deleteError } = await supabase
+            .from("amms")
+            .delete()
+            .eq("amm_address", ammAccount);
+
+          if (deleteError) {
+            console.error("❌ Failed to delete AMM record:", deleteError.message);
+          } else {
+            console.log(`🧹 Successfully deleted AMM ${ammAccount} from database`);
+          }
+        }
         break;
 
       case "singleAsset":
@@ -94,8 +112,31 @@ export async function POST(req) {
           { status: 400 },
         );
     }
+    if (result?.success) {
+    // ✅ Check if the AMM still exists on ledger
+    const ammStillExists = await getAmmInfo(ammAccount);
 
-    return NextResponse.json({ result }, { status: 200 });
+    if (!ammStillExists) {
+      // 🧹 Delete from Supabase if AMM no longer exists
+      const supabase = await createSupabaseAnonClient();
+      const { error: deleteError } = await supabase
+        .from("amms")
+        .delete()
+        .eq("amm_address", ammAccount);
+
+      if (deleteError) {
+        console.error("❌ Failed to delete AMM record:", deleteError.message);
+      } else {
+        console.log(`🧹 AMM ${ammAccount} was removed from ledger and deleted from DB`);
+        result.poolDeleted = true;
+      }
+    } else {
+      console.log("✅ AMM still exists on ledger; not deleted from DB");
+      result.poolDeleted = false;
+    }
+  }
+
+    return NextResponse.json( result , { status: 200 });
   } catch (error) {
     return NextResponse.json(
       { error: `Withdrawal failed: ${error.message}` },

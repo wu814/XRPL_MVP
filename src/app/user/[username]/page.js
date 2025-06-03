@@ -18,8 +18,6 @@ export default function UserPage() {
     errorMessage,
   } = useWallet();
 
-  console.log(currentUserWallets, issuerWallets);
-
   return (
     <div>
       <Navbar username={username} />

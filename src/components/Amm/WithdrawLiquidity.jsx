@@ -3,14 +3,15 @@ import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
 import { useWallet } from "../WalletContext";
+import { useRouter } from "next/navigation";
 
 export default function WithdrawLiquidity({ ammInfo, wallets, onWithdrawn }) {
-  const { treasuryWallet } = useWallet();
+  const { currentUserWallets } = useWallet();
   const [mode, setMode] = useState("twoAsset");
   const [amountA, setAmountA] = useState("");
   const [amountB, setAmountB] = useState("");
   const [lpTokenAmount, setLpTokenAmount] = useState("");
-  const [assetType, setAssetType] = useState("");
+  const [assetType, setAssetType] = useState(ammInfo?.amount?.currency);
   const [withdrawAmount, setWithdrawAmount] = useState("");
 
   const [loading, setLoading] = useState(false);
@@ -20,10 +21,20 @@ export default function WithdrawLiquidity({ ammInfo, wallets, onWithdrawn }) {
   const token1 = ammInfo?.amount;
   const token2 = ammInfo?.amount2;
 
+  const router = useRouter();
+
   const buildPayload = () => {
+    const currentWalletSeed = currentUserWallets.find(
+      (wallet) =>
+        wallet.walletType === "USER" ||
+        wallet.walletType === "STANDBY TREASURY",
+    )?.seed;
+    if (!currentWalletSeed) {
+      throw new Error("No valid wallet found for the current user");
+    }
     const payload = {
       mode,
-      standbyWalletSeed: treasuryWallet.seed,
+      currentWalletSeed,
       ammInfo,
     };
 
@@ -58,7 +69,7 @@ export default function WithdrawLiquidity({ ammInfo, wallets, onWithdrawn }) {
       const res = await fetch("/api/amms/withdrawLiquidity", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
 
       const result = await res.json();
@@ -67,13 +78,26 @@ export default function WithdrawLiquidity({ ammInfo, wallets, onWithdrawn }) {
       }
 
       setSuccessMessage("Liquidity withdrawn successfully!");
-      onWithdrawn();
+
+      if (result.poolDeleted) {
+        // ⏳ Wait 2.5 seconds before redirecting
+        setSuccessMessage("Liquidity withdrawn successfully! Pool is now empty! Redirecting to Liquidity Pool page...");
+        setTimeout(() => {
+          router.push("/trade/amm");
+        }, 3000);
+      }
+      else {
+        onWithdrawn();
+      }
     } catch (err) {
       setErrorMessage(err.message);
     } finally {
       setLoading(false);
     }
   };
+  useEffect(() => {
+    console.log(currentUserWallets);
+  }, [currentUserWallets]);
 
   return (
     <div className="space-y-4">
@@ -92,8 +116,20 @@ export default function WithdrawLiquidity({ ammInfo, wallets, onWithdrawn }) {
 
       {mode === "twoAsset" && (
         <>
-          <input value={amountA} onChange={(e) => setAmountA(e.target.value)} placeholder="Min A" className="w-full rounded p-2 bg-color3" />
-          <input value={amountB} onChange={(e) => setAmountB(e.target.value)} placeholder="Min B" className="w-full rounded p-2 bg-color3" />
+          <input
+            type="number"
+            value={amountA}
+            onChange={(e) => setAmountA(e.target.value)}
+            placeholder={`Desire ${token1?.currency || "Token A"} amount`}
+            className="w-full rounded bg-color3 p-2"
+          />
+          <input
+            type="number"
+            value={amountB}
+            onChange={(e) => setAmountB(e.target.value)}
+            placeholder={`Desire ${token2.currency || "Token B"} amount`}
+            className="w-full rounded bg-color3 p-2"
+          />
         </>
       )}
 
@@ -102,23 +138,29 @@ export default function WithdrawLiquidity({ ammInfo, wallets, onWithdrawn }) {
           <select
             value={assetType}
             onChange={(e) => setAssetType(e.target.value)}
-            className="w-full rounded p-2 bg-color3"
+            className="w-full rounded bg-color3 p-2"
           >
             <option value={token1?.currency}>{token1?.currency}</option>
             <option value={token2?.currency}>{token2?.currency}</option>
           </select>
-          {mode !== "singleAssetAll" && (
-            <input value={withdrawAmount} onChange={(e) => setWithdrawAmount(e.target.value)} placeholder="Withdraw Amount" className="w-full rounded p-2 bg-color3" />
+          {mode !== "singleAssetAll" && mode != "singleAssetLp" && (
+            <input
+              value={withdrawAmount}
+              onChange={(e) => setWithdrawAmount(e.target.value)}
+              placeholder="Withdraw Amount"
+              className="w-full rounded bg-color3 p-2"
+            />
           )}
         </>
       )}
 
       {(mode === "lpToken" || mode === "singleAssetLp") && (
         <input
+          type="number"
           value={lpTokenAmount}
           onChange={(e) => setLpTokenAmount(e.target.value)}
           placeholder="LP Token Amount"
-          className="w-full rounded p-2 bg-color3"
+          className="w-full rounded bg-color3 p-2"
         />
       )}
 
@@ -128,8 +170,18 @@ export default function WithdrawLiquidity({ ammInfo, wallets, onWithdrawn }) {
         </Button>
       </div>
 
-      {errorMessage && <ErrorMdl errorMessage={errorMessage} onClose={() => setErrorMessage(null)} />}
-      {successMessage && <SuccessMdl successMessage={successMessage} onClose={() => setSuccessMessage(null)} />}
+      {errorMessage && (
+        <ErrorMdl
+          errorMessage={errorMessage}
+          onClose={() => setErrorMessage(null)}
+        />
+      )}
+      {successMessage && (
+        <SuccessMdl
+          successMessage={successMessage}
+          onClose={() => setSuccessMessage(null)}
+        />
+      )}
     </div>
   );
 }

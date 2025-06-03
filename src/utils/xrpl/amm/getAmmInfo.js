@@ -8,7 +8,7 @@ import * as xrpl from "xrpl";
  * @param {string|null} asset2 - Second asset code (optional).
  * @param {string|null} asset1Issuer - Issuer address for asset1 (if not XRP).
  * @param {string|null} asset2Issuer - Issuer address for asset2 (if not XRP).
- * @returns {Promise<object>} AMM info object from XRPL.
+ * @returns {Promise<object|null>} AMM info object from XRPL, or null if not found (e.g., deleted).
  */
 export default async function getAmmInfo(
   asset1,
@@ -67,8 +67,19 @@ export default async function getAmmInfo(
     }
 
     throw new Error("Invalid parameters for getAmmInfo");
-  } catch (error) {
+    } catch (error) {
+    // Handle deleted AMM case gracefully
+    if (
+      error?.data?.error === "entryNotFound" ||
+      error?.message?.includes("AMM not found") ||
+      error?.message?.includes("Account malformed") // 👈 add this
+    ) {
+      console.warn("ℹ️ AMM no longer exists on the ledger (likely deleted)");
+      return null;
+    }
+
     // Add context to make debugging easier
     throw new Error(`getAmmInfo error: ${error.message}`);
   }
+
 }

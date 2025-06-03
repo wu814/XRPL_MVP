@@ -146,6 +146,7 @@ export default function AddLiquidity({ ammInfo, wallets, onAdded }) {
         throw new Error(result.error || "Transaction failed.");
       }
       setSuccessMessage(result.message || "Liquidity added successfully!");
+      
       onAdded();
     } catch (err) {
       setErrorMessage(err.message);

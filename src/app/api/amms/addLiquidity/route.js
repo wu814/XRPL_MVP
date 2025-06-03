@@ -98,7 +98,6 @@ export async function POST(req) {
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error adding liquidity", error.message);
     return NextResponse.json(
       { error: error.message || "Unexpected error occurred." },
       { status: 500 }
