@@ -12,7 +12,7 @@ export const WalletProvider = ({ children }) => {
   const [errorMessage, setErrorMessage] = useState(null);
 
   const typeOrder = {
-    "ISSUER": 0,
+    ISSUER: 0,
     "STANDBY TREASURY": 1,
     "STANDBY PATHFIND": 2,
   };
@@ -41,14 +41,15 @@ export const WalletProvider = ({ children }) => {
     try {
       const res = await fetch("/api/wallets/getIssuerWallets");
       const result = await res.json();
-      if (Array.isArray(result.data) && result.data.length > 0) {
-        const issuerWalletsData = result.data.map((wallet) => ({
-          classicAddress: wallet.classic_address,
-          walletType: wallet.wallet_type,
-          seed: wallet.seed,
-        }));
-        setIssuerWallets(issuerWalletsData);
-      }
+
+      // Always set the result, even if it's an empty array
+      const issuerWalletsData = (result.data || []).map((wallet) => ({
+        classicAddress: wallet.classic_address,
+        walletType: wallet.wallet_type,
+        seed: wallet.seed,
+      }));
+
+      setIssuerWallets(issuerWalletsData);
     } catch (error) {
       setErrorMessage(error.message || "Failed to fetch issuer wallets");
     }
@@ -58,13 +59,17 @@ export const WalletProvider = ({ children }) => {
     try {
       const res = await fetch("/api/wallets/getTreasuryWallet");
       const result = await res.json();
-      if (Array.isArray(result.data) && result.data.length > 0) {
-        const wallet = result.data[0];
+      const wallet = result.data?.[0]; // Get the first (and only) treasury wallet
+
+      if (wallet) {
         setTreasuryWallet({
           classicAddress: wallet.classic_address,
           walletType: wallet.wallet_type,
           seed: wallet.seed,
         });
+      }
+      else {
+        setTreasuryWallet(null); // No treasury wallet found
       }
     } catch (error) {
       setErrorMessage(error.message || "Failed to fetch treasury wallet");
@@ -78,8 +83,16 @@ export const WalletProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    console.log(currentUserWallets);
+    console.log("current user wallets", currentUserWallets);
   }, [currentUserWallets]);
+
+  useEffect(() => {
+    console.log("issuer wallets", issuerWallets);
+  }, [issuerWallets]);
+
+  useEffect(() => {
+    console.log("treasury wallet", treasuryWallet);
+  }, [treasuryWallet]);
 
   return (
     <WalletContext.Provider

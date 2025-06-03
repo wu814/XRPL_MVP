@@ -24,18 +24,18 @@ const DisplayAdminWallets = () => {
     loading,
     errorMessage,
     fetchWallets,
-    fetchIssuerWallets
+    fetchIssuerWallets,
   } = useWallet();
 
   // Handle wallet creation (append and sort)
-  const handleWalletCreated = (newWalletData) => {
-    fetchWallets(); // Refresh all wallets from server for consistency
-    fetchIssuerWallets(); // Refresh issuer wallets as well
+  const handleWalletCreated = async (walletType) => {
+    await fetchWallets(); // Refresh all wallets from server for consistency
+    await fetchIssuerWallets(); // Refresh issuer wallets as well
   };
 
-  const handleDeleteWallet = () => {
-    fetchWallets(); // Re-fetch after deletion
-    fetchIssuerWallets(); // Re-fetch issuer wallets to ensure consistency
+  const handleDeleteWallet = async (walletType) => {
+    await fetchWallets(); // Re-fetch after deletion
+    await fetchIssuerWallets(); // Re-fetch issuer wallets to ensure consistency
   };
 
   const sortedWallets = [...currentUserWallets].sort(

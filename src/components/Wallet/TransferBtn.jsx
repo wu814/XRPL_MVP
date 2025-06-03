@@ -14,9 +14,7 @@ export default function TransferBtn({
   presetRecipientUsername,
 }) {
   const [showMdl, setShowMdl] = useState(false);
-  const [recipientUsername, setRecipientUsername] = useState(
-    presetRecipientUsername || "",
-  );
+  const [recipientUsername, setRecipientUsername] = useState("");
   const [recipientAddress, setRecipientAddress] = useState("");
   const [useUsername, setUseUsername] = useState(true);
   const [amount, setAmount] = useState("");
@@ -29,6 +27,12 @@ export default function TransferBtn({
   // Slippage state
   const [slippage, setSlippage] = useState("1.01"); // Default 1% slippage
   const [showSlippagePanel, setShowSlippagePanel] = useState(false);
+
+  useEffect(() => {
+    if (presetRecipientUsername) {
+      setRecipientUsername(presetRecipientUsername);
+    }
+  }, [presetRecipientUsername]);
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -63,7 +67,9 @@ export default function TransferBtn({
     } finally {
       setLoading(false);
       setShowMdl(false);
-      setRecipientUsername("");
+      if (!presetRecipientUsername) {
+        setRecipientUsername("");
+      }
       setRecipientAddress("");
       setAmount("");
       setCurrency("");

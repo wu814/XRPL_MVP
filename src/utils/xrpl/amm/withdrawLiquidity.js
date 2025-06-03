@@ -3,7 +3,7 @@ import BigNumber from "bignumber.js";
 
 import getAmmInfo from "./getAmmInfo";
 import { client, connectXrplClient } from "../testnet"; // or adjust to "../../client" if needed
-import { checkTrustline } from "@/utils/xrpl/wallet/setTrustline";
+import { checkTrustline } from "@/utils/xrpl/trustline/setTrustline";
 import { type } from "os";
 
 // Two-asset withdraw - withdraw both assets specifying minimum amounts

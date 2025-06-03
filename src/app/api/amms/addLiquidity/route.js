@@ -7,10 +7,7 @@ import {
   addLiquiditySingleAsset,
   addLiquidityOneAssetLPToken,
 } from "@/utils/xrpl/amm/addLiquidity";
-import {
-  setLPTrustlineFromAMMData,
-  checkTrustline,
-} from "@/utils/xrpl/wallet/setTrustline";
+
 
 export async function POST(req) {
   try {
@@ -34,18 +31,6 @@ export async function POST(req) {
     const ammAccount = ammInfo.account;
     const providerWallet = xrpl.Wallet.fromSeed(walletSeed);
     let result;
-
-    const hasLPTrustline = await checkTrustline(providerWallet, ammAccount, ammInfo.lp_token.currency);
-    if (!hasLPTrustline) {
-      const setTrustlineResult = await setLPTrustlineFromAMMData(providerWallet, ammInfo);
-      if (!setTrustlineResult.success) {
-        return NextResponse.json(
-          { error: "Failed to set LP token trustline." },
-          { status: 500 }
-        );
-      }
-      console.log(setTrustlineResult.message);
-    }
 
     switch (depositType) {
       case "twoAsset":

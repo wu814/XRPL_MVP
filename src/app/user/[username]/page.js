@@ -8,15 +8,10 @@ import ErrorMdl from "@/components/ErrorMdl";
 import { useWallet } from "@/components/WalletContext";
 
 export default function UserPage() {
-  const params = useParams();
-  const username = params.username;
+  const { username } = useParams(); // this will always reflect the URL param
 
-  const {
-    currentUserWallets,
-    issuerWallets,
-    loading,
-    errorMessage,
-  } = useWallet();
+  const { currentUserWallets, issuerWallets, loading, errorMessage } =
+    useWallet();
 
   return (
     <div>
@@ -39,7 +34,9 @@ export default function UserPage() {
         {errorMessage && (
           <ErrorMdl
             errorMessage={errorMessage}
-            onClose={() => {/* optional: implement dismissible context error */}}
+            onClose={() => {
+              /* optional: implement dismissible context error */
+            }}
           />
         )}
       </div>

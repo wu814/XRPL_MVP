@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { setTrustline } from "@/utils/xrpl/wallet/setTrustline";
+import { setTrustline } from "@/utils/xrpl/trustline/setTrustline";
 
 export async function POST(req) {
   const session = await getServerSession(authOptions);

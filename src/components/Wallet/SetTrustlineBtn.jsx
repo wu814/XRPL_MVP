@@ -22,7 +22,7 @@ export default function SetTrustlineBtn({ setterWallet, issuerWallets }) {
     setLoading(true);
     setErrorMessage(null);
     try {
-      const res = await fetch("/api/wallets/setTrustline", {
+      const res = await fetch("/api/trustlines/setWalletTrustline", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

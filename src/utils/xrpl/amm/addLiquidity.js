@@ -1,6 +1,6 @@
 import { client, connectXrplClient } from "../testnet";
 import * as xrpl from "xrpl";
-import { checkTrustline } from "@/utils/xrpl/wallet/setTrustline";
+import { checkTrustline } from "@/utils/xrpl/trustline/setTrustline";
 import BigNumber from "bignumber.js";
 
 // Extract and display LP tokens received from transaction metadata

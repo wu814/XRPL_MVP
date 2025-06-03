@@ -26,6 +26,7 @@ export default function AddLiquidity({ ammInfo, wallets, onAdded }) {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
+  const [loadingMessage, setLoadingMessage] = useState(null);
 
   /**
    * Calculates estimated required token amounts (for both-asset or one-asset LP deposit)
@@ -122,19 +123,48 @@ export default function AddLiquidity({ ammInfo, wallets, onAdded }) {
   const handleSubmit = async () => {
     setLoading(true);
     setErrorMessage(null);
+    setSuccessMessage(null);
+    setLoadingMessage(null);
 
     try {
-      // Validate inputs
-      if (mode === "quantity") {
-        if (!amount1 && !amount2) {
-          throw new Error("Enter at least one amount greater than 0.");
-        }
-        if (parseFloat(amount1) < 0 || parseFloat(amount2) < 0) {
-          throw new Error("Amounts must be greater than 0.");
-        }
-      }
       const payload = buildPayload();
 
+      // Step 1: Check if trustline exists
+      const checkRes = await fetch("/api/trustlines/checkTrustline", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          walletSeed: payload.walletSeed,
+          destination: ammInfo.account,
+          currency: ammInfo.lp_token.currency,
+        }),
+      });
+
+      const { hasTrustline } = await checkRes.json();
+
+      if (!hasTrustline) {
+        setLoadingMessage("🔄 Setting up LP trustline...");
+
+        const res = await fetch("/api/trustlines/setLPTrustline", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            walletSeed: payload.walletSeed,
+            ammInfo: payload.ammInfo,
+          }),
+        });
+
+        const trustlineResult = await res.json();
+        if (!res.ok)
+          throw new Error(
+            trustlineResult.error || "Failed to set LP trustline.",
+          );
+
+        setLoadingMessage("✅ LP trustline set successfully.");
+      }
+
+      setLoadingMessage("🔄 Adding liquidity...");
+      // Step 2: Add liquidity
       const res = await fetch("/api/amms/addLiquidity", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -142,16 +172,15 @@ export default function AddLiquidity({ ammInfo, wallets, onAdded }) {
       });
 
       const result = await res.json();
-      if (!res.ok) {
-        throw new Error(result.error || "Transaction failed.");
-      }
+      if (!res.ok) throw new Error(result.error || "Liquidity deposit failed.");
       setSuccessMessage(result.message || "Liquidity added successfully!");
-      
+
       onAdded();
     } catch (err) {
       setErrorMessage(err.message);
     } finally {
       setLoading(false);
+      setLoadingMessage(null);
     }
   };
 
@@ -202,8 +231,9 @@ export default function AddLiquidity({ ammInfo, wallets, onAdded }) {
           {payWith === "both" ? (
             <>
               <p>
-                Estimated cost: {estimatedAmounts.assetA.value} {token1.currency} +{" "}
-                {estimatedAmounts.assetB.value} {token2.currency}
+                Estimated cost: {estimatedAmounts.assetA.value}{" "}
+                {token1.currency} + {estimatedAmounts.assetB.value}{" "}
+                {token2.currency}
               </p>
             </>
           ) : (
@@ -212,7 +242,8 @@ export default function AddLiquidity({ ammInfo, wallets, onAdded }) {
                 Estimated cost: {estimatedAmounts.singleAsset?.value} {payWith}
               </p>
               <p>
-                Max to send (slippage): {estimatedAmounts.maxSingleAsset?.value} {payWith}
+                Max to send (slippage): {estimatedAmounts.maxSingleAsset?.value}{" "}
+                {payWith}
               </p>
             </>
           )}
@@ -286,6 +317,11 @@ export default function AddLiquidity({ ammInfo, wallets, onAdded }) {
 
       {/* Render relevant input section based on selected mode */}
       {mode === "quantity" ? renderQuantityInputs() : renderLPInputs()}
+
+      {/* Display trustline message if applicable */}
+      {loadingMessage && (
+        <div className="text-sm text-cancel">{loadingMessage}</div>
+      )}
 
       {/* Submit button */}
       <div className="flex justify-end">

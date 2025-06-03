@@ -20,14 +20,14 @@ const DisplayUserWallets = () => {
     fetchIssuerWallets
   } = useWallet();
 
-  const handleWalletCreated = () => {
-    fetchWallets(); // re-fetch from server
-    fetchIssuerWallets(); // re-fetch issuer wallets to ensure consistency
+  const handleWalletCreated = async () => {
+    await fetchIssuerWallets(); // re-fetch issuer wallets to ensure consistency
+    await fetchWallets(); // re-fetch from server
   };
 
-  const handleDeleteWallet = () => {
-    fetchWallets(); // re-fetch after deletion
-    fetchIssuerWallets(); // re-fetch issuer wallets to ensure consistency
+  const handleDeleteWallet = async () => {
+    await fetchIssuerWallets(); // re-fetch issuer wallets to ensure consistency
+    await fetchWallets(); // re-fetch after deletion
   };
 
   return (
