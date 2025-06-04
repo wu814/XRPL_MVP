@@ -6,6 +6,7 @@ import DeleteWalletBtn from "./DeleteWalletBtn";
 import SetTrustlineBtn from "./SetTrustlineBtn";
 import AuthorizeDepositBtn from "./AuthorizeDepositBtn";
 import ViewDetailsBtn from "./ViewDetailsBtn";
+import ClawbackTokenBtn from "./ClawbackTokenBtn";
 import TransferBtn from "./TransferBtn";
 import ErrorMdl from "../ErrorMdl";
 import { useWallet } from "@/components/WalletContext";
@@ -42,7 +43,6 @@ const DisplayAdminWallets = () => {
     (a, b) => typeOrder[a.walletType] - typeOrder[b.walletType],
   );
 
-  
   return (
     <div className="container mx-auto mr-4">
       {loading ? (
@@ -78,6 +78,10 @@ const DisplayAdminWallets = () => {
                 )}
                 {wallet.walletType === "STANDBY TREASURY" && (
                   <AuthorizeDepositBtn treasuryWallet={wallet} />
+                )}
+
+                {wallet.walletType === "ISSUER" && (
+                  <ClawbackTokenBtn issuerWallet={wallet} />
                 )}
                 <ViewDetailsBtn wallet={wallet} />
               </div>
