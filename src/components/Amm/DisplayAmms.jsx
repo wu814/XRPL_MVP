@@ -138,7 +138,7 @@ export default function DisplayAmms() {
                 <CurrencyIcon symbol={amm.pair[1]} />
               </div>
               <p className="text-center">{amm.ammAddress}</p>
-              <p className="text-center">$99999.99</p>
+              <p className="text-center">Not Available</p>
               <p className="text-center">0.1%</p>
             </div>
           ))}

@@ -6,6 +6,8 @@ import { useWallet } from "../WalletContext";
 import { useRouter } from "next/navigation";
 
 export default function WithdrawLiquidity({ ammInfo, wallets, onWithdrawn }) {
+  const router = useRouter();
+
   const { currentUserWallets } = useWallet();
   const [mode, setMode] = useState("twoAsset");
   const [amountA, setAmountA] = useState("");
@@ -20,8 +22,6 @@ export default function WithdrawLiquidity({ ammInfo, wallets, onWithdrawn }) {
 
   const token1 = ammInfo?.amount;
   const token2 = ammInfo?.amount2;
-
-  const router = useRouter();
 
   const buildPayload = () => {
     const currentWalletSeed = currentUserWallets.find(
@@ -76,17 +76,22 @@ export default function WithdrawLiquidity({ ammInfo, wallets, onWithdrawn }) {
       if (!res.ok) {
         throw new Error(result.error || "Transaction failed");
       }
-
-      setSuccessMessage("Liquidity withdrawn successfully!");
+      setSuccessMessage(result.output);
 
       if (result.poolDeleted) {
-        // ⏳ Wait 2.5 seconds before redirecting
-        setSuccessMessage("Liquidity withdrawn successfully! Pool is now empty! Redirecting to Liquidity Pool page...");
+        // ⏳ Show initial message for 5 seconds
         setTimeout(() => {
-          router.push("/trade/amm");
-        }, 3000);
-      }
-      else {
+          // 📝 Then update message
+          setSuccessMessage(
+            "Liquidity withdrawn successfully! Pool is now empty! Redirecting to Liquidity Pool page...",
+          );
+
+          // ⏳ Wait another 5 seconds before redirecting
+          setTimeout(() => {
+            router.push("/trade/amm");
+          }, 5000);
+        }, 5000);
+      } else {
         onWithdrawn();
       }
     } catch (err) {

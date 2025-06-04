@@ -5,9 +5,28 @@ import getAmmInfo from "./getAmmInfo";
 import { client, connectXrplClient } from "../testnet"; // or adjust to "../../client" if needed
 import { checkTrustline } from "@/utils/xrpl/trustline/setTrustline";
 import { type } from "os";
+import { stringify } from "querystring";
+
+function normalizeAsset(asset, defaultIssuer = null) {
+  if (typeof asset === "string") {
+    // XRP in drops
+    return {
+      isXRP: true,
+      currency: "XRP",
+      value: xrpl.dropsToXrp(asset), // convert to XRP value for math
+      issuer: null,
+    };
+  } else {
+    return {
+      isXRP: asset.currency === "XRP",
+      currency: asset.currency,
+      value: asset.value,
+      issuer: asset.issuer || defaultIssuer,
+    };
+  }
+}
 
 // Two-asset withdraw - withdraw both assets specifying minimum amounts
-// The standby wallet performs the withdrawal on behalf of an operational wallet
 export async function withdrawLiquidityTwoAsset(
   standbyWallet,
   ammAccount,
@@ -36,42 +55,23 @@ export async function withdrawLiquidityTwoAsset(
       return false;
     }
 
-    const assetA = ammData.amount;
-    const assetB = ammData.amount2;
+    const assetA = normalizeAsset(ammData.amount);
+    const assetB = normalizeAsset(ammData.amount2);
 
     // Add better validation and logging for asset objects
     console.log(`Asset A details:`, JSON.stringify(assetA, null, 2));
     console.log(`Asset B details:`, JSON.stringify(assetB, null, 2));
 
-    // Double-check that we have currency information for both assets
-    if (typeof assetA !== "string" && !assetA.currency) {
-      console.error(`❌ Error: Missing currency information for Asset A`);
-      console.log("Asset A received:", JSON.stringify(assetA, null, 2));
-      return false;
-    }
-
-    if (typeof assetB !== "string" && !assetB.currency) {
-      console.error(`❌ Error: Missing currency information for Asset B`);
-      console.log("Asset B received:", JSON.stringify(assetB, null, 2));
+    if (!assetA.currency || !assetB.currency) {
+      console.error(
+        `❌ Error: Missing currency information for one or both assets`,
+      );
       return false;
     }
 
     // Log detection of asset types to help debug
-    let assetAType =
-      typeof assetA === "string"
-        ? "XRP (string)"
-        : assetA.currency === "XRP"
-          ? "XRP (object)"
-          : `Token (${assetA.currency})`;
-    let assetBType =
-      typeof assetB === "string"
-        ? "XRP (string)"
-        : assetB.currency === "XRP"
-          ? "XRP (object)"
-          : `Token (${assetB.currency})`;
-
     console.log(
-      `🔍 Detected asset types: Asset A = ${assetAType}, Asset B = ${assetBType}`,
+      `🔍 Detected asset types: Asset A = ${assetA.isXRP ? "XRP" : assetA.currency}, Asset B = ${assetB.isXRP ? "XRP" : assetB.currency}`,
     );
 
     // Verify that we have valid LP token data
@@ -84,16 +84,9 @@ export async function withdrawLiquidityTwoAsset(
 
     const lpToken = ammData.lp_token;
 
-    // Log action differently depending on whether this is for an operational wallet or not
-    if (operationalWalletInfo) {
-      console.log(
-        `✅ Withdrawing liquidity from AMM at ${ammAccount} with minimum amounts: ${assetA.currency}=${minWithdrawalA}, ${assetB.currency}=${minWithdrawalB} on behalf of operational wallet ${operationalWalletInfo.classicAddress}`,
-      );
-    } else {
-      console.log(
-        `✅ Withdrawing liquidity from AMM at ${ammAccount} with minimum amounts: ${assetA.currency}=${minWithdrawalA}, ${assetB.currency}=${minWithdrawalB}`,
-      );
-    }
+    console.log(
+      `✅ Withdrawing liquidity from AMM at ${ammAccount} with minimum amounts: ${assetA.currency}=${minWithdrawalA}, ${assetB.currency}=${minWithdrawalB}`,
+    );
 
     // Convert pool and desired amounts to BigNumber with 6 decimals (round down).
     const totalPoolA = new BigNumber(assetA.value || 0);
@@ -142,10 +135,10 @@ export async function withdrawLiquidityTwoAsset(
       // For transparency, display exactly what's happening
       console.log(`🧮 Withdrawal calculation:`);
       console.log(
-        `   • You are withdrawing ${desiredA.toFixed(6)} XRP of ${totalPoolA.toFixed(6)} total (${poolARatio.multipliedBy(100).toFixed(4)}%)`,
+        `   • You are withdrawing ${desiredA.toFixed(6)} ${assetA.currency} of ${totalPoolA.toFixed(6)} total (${poolARatio.multipliedBy(100).toFixed(4)}%)`,
       );
       console.log(
-        `   • You are withdrawing ${desiredB.toFixed(6)} USD of ${totalPoolB.toFixed(6)} total (${poolBRatio.multipliedBy(100).toFixed(4)}%)`,
+        `   • You are withdrawing ${desiredB.toFixed(6)} ${assetB.currency} of ${totalPoolB.toFixed(6)} total (${poolBRatio.multipliedBy(100).toFixed(4)}%)`,
       );
       console.log(
         `   • Using the larger percentage: ${withdrawalRatio.multipliedBy(100).toFixed(4)}%`,
@@ -268,17 +261,12 @@ export async function withdrawLiquidityTwoAsset(
     // Create assets with special handling for XRP
     let assetObjA, assetObjB, amountObjA, amountObjB;
 
-    // Handle Asset A - improved error handling
-    if (typeof assetA === "string") {
-      // If assetA is a string, it's XRP in drops
-      console.log(`Asset A is a string (${assetA}), treating as XRP`);
+    // Handle Asset A
+    if (assetA.isXRP) {
+      console.log(`Asset A is XRP`);
       assetObjA = "XRP";
       amountObjA = xrpl.xrpToDrops(desiredA.toFixed(6));
-    } else if (assetA.currency === "XRP") {
-      console.log(`Asset A has currency "XRP", treating as XRP`);
-      assetObjA = "XRP";
-      amountObjA = xrpl.xrpToDrops(desiredA.toFixed(6));
-    } else if (assetA.currency) {
+    } else {
       console.log(`Asset A is token ${assetA.currency}`);
       assetObjA = {
         currency: assetA.currency,
@@ -289,25 +277,14 @@ export async function withdrawLiquidityTwoAsset(
         issuer: assetA.issuer,
         value: desiredA.toFixed(6),
       };
-    } else {
-      console.error(
-        `❌ Cannot determine type of Asset A:`,
-        JSON.stringify(assetA, null, 2),
-      );
-      throw new Error(`Invalid Asset A format: ${JSON.stringify(assetA)}`);
     }
 
-    // Handle Asset B - improved error handling
-    if (typeof assetB === "string") {
-      // If assetB is a string, it's XRP in drops
-      console.log(`Asset B is a string (${assetB}), treating as XRP`);
+    // Handle Asset B
+    if (assetB.isXRP) {
+      console.log(`Asset B is XRP`);
       assetObjB = "XRP";
       amountObjB = xrpl.xrpToDrops(desiredB.toFixed(6));
-    } else if (assetB.currency === "XRP") {
-      console.log(`Asset B has currency "XRP", treating as XRP`);
-      assetObjB = "XRP";
-      amountObjB = xrpl.xrpToDrops(desiredB.toFixed(6));
-    } else if (assetB.currency) {
+    } else {
       console.log(`Asset B is token ${assetB.currency}`);
       assetObjB = {
         currency: assetB.currency,
@@ -318,12 +295,6 @@ export async function withdrawLiquidityTwoAsset(
         issuer: assetB.issuer,
         value: desiredB.toFixed(6),
       };
-    } else {
-      console.error(
-        `❌ Cannot determine type of Asset B:`,
-        JSON.stringify(assetB, null, 2),
-      );
-      throw new Error(`Invalid Asset B format: ${JSON.stringify(assetB)}`);
     }
 
     // Additional validation before constructing transaction
@@ -361,11 +332,6 @@ export async function withdrawLiquidityTwoAsset(
       AMMAccount: ammAccount,
     };
 
-    // If this is for an operational wallet, add destination tag
-    if (operationalWalletInfo && operationalWalletInfo.destTag) {
-      ammWithdrawTx.DestinationTag = operationalWalletInfo.destTag;
-    }
-
     console.log("📜 Preparing AMMWithdraw transaction...");
     console.log(
       "📜 Transaction details:",
@@ -388,6 +354,8 @@ export async function withdrawLiquidityTwoAsset(
     console.log("🚀 Submitting liquidity withdrawal...");
 
     const response = await client.submitAndWait(signedTx.tx_blob);
+
+    const fee = new BigNumber(response.result.tx_json?.Fee || 0);
 
     if (response.result.meta.TransactionResult === "tesSUCCESS") {
       // Format LP token amount with proper precision
@@ -481,26 +449,16 @@ export async function withdrawLiquidityTwoAsset(
 
               // If the balance increased, that's XRP being withdrawn from AMM
               if (finalBalance.isGreaterThan(prevBalance)) {
-                const xrpDiff = finalBalance.minus(prevBalance);
+                const xrpDiff = finalBalance.minus(prevBalance).minus(fee);
                 const xrpAmount = xrpDiff.dividedBy(1000000).toFixed(6); // Convert drops to XRP
 
                 // Check if this is Asset A or Asset B
-                if (
-                  (typeof assetA === "string" ||
-                    (typeof assetA === "object" &&
-                      assetA.currency === "XRP")) &&
-                  !actualWithdrawnA
-                ) {
+                if (assetA.isXRP && !actualWithdrawnA) {
                   actualWithdrawnA = {
                     currency: "XRP",
                     value: xrpAmount,
                   };
-                } else if (
-                  (typeof assetB === "string" ||
-                    (typeof assetB === "object" &&
-                      assetB.currency === "XRP")) &&
-                  !actualWithdrawnB
-                ) {
+                } else if (assetB.isXRP && !actualWithdrawnB) {
                   actualWithdrawnB = {
                     currency: "XRP",
                     value: xrpAmount,
@@ -512,52 +470,60 @@ export async function withdrawLiquidityTwoAsset(
         }
       }
 
-      console.log("\n===== Transaction Summary =====");
-      console.log(`🔹 Transaction Hash: ${response.result.hash}`);
+      let output = "\n===== Transaction Summary =====\n";
+      output += `🔹 Transaction Hash: ${response.result.hash}\n\n`;
 
-      console.log(`\n📤 Withdrawn Amounts:`);
+      output += `📤 Withdrawn Amounts:\n`;
+
       if (actualWithdrawnA) {
-        console.log(
-          `   ${actualWithdrawnA.value} ${actualWithdrawnA.currency}`,
-        );
-        console.log(
-          `   (Minimum requested: ${originalMinA.toString()} ${assetA.currency})`,
-        );
+        output += `   ${actualWithdrawnA.value} ${actualWithdrawnA.currency}\n`;
+        output += `   (Minimum requested: ${originalMinA.toString()} ${assetA.currency})\n`;
       } else {
-        console.log(
-          `   At least ${originalMinA.toString()} ${assetA.currency}`,
-        );
+        output += `   At least ${originalMinA.toString()} ${assetA.currency}\n`;
       }
 
       if (actualWithdrawnB) {
-        console.log(
-          `   ${actualWithdrawnB.value} ${actualWithdrawnB.currency}`,
-        );
-        console.log(
-          `   (Minimum requested: ${originalMinB.toString()} ${assetB.currency})`,
-        );
+        output += `   ${actualWithdrawnB.value} ${actualWithdrawnB.currency}\n`;
+        output += `   (Minimum requested: ${originalMinB.toString()} ${assetB.currency})\n`;
       } else {
-        console.log(
-          `   At least ${originalMinB.toString()} ${assetB.currency}`,
-        );
+        output += `   At least ${originalMinB.toString()} ${assetB.currency}\n`;
       }
 
-      console.log(`\n🔄 LP Tokens Redeemed: ${formattedLP}`);
-      console.log("\n===============================");
+      if (response.result.tx_json?.Fee) {
+        output += `\n💸 Transaction Cost: ${xrpl.dropsToXrp(response.result.tx_json?.Fee)} XRP\n`;
+      }
+      output += `\n🔄 LP Tokens Redeemed: ${formattedLP}\n`;
 
+      // Refresh the AMM data after the operation completes
+      console.log("🔄 Updating AMM data from ledger...");
+      try {
+        // Get the updated AMM data
+        const updatedAmmData = await getAmmInfo(ammAccount);
 
-      // If this was done for an operational wallet, return info about the operational wallet
-      const operationalInfo = operationalWalletInfo
-        ? {
-            operationalWallet: operationalWalletInfo.classicAddress,
-            destTag: operationalWalletInfo.destTag,
+        if (updatedAmmData) {
+          // Log updated pool balances
+          output += "\n===== Updated AMM Pool State =====\n";
+          output += `LP tokens balance: ${Number(updatedAmmData.lp_token.value).toFixed(2)}\n`;
+          if (assetA.isXRP) {
+            output += `Token balance: ${xrpl.dropsToXrp(Number(updatedAmmData.amount)).toFixed(8)} ${assetA.currency}\n`;
+            output += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${assetB.currency}\n`;
+          } else if (assetB.isXRP) {
+            output += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${assetA.currency}\n`;
+            output += `Token balance: ${xrpl.dropsToXrp(Number(updatedAmmData.amount2)).toFixed(8)} ${assetB.currency}\n`;
+          } else {
+            output += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${assetA.currency}\n`;
+            output += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${assetB.currency}\n`;
           }
-        : null;
+        } else {
+          output += "⚠️ Could not retrieve updated AMM data\n";
+        }
+      } catch (updateError) {
+        output += `⚠️ Error refreshing AMM data: ${updateError.message}\n`;
+      }
 
-      // Return the detailed withdrawal information including currency and issuer
-      // Always return the original input values for consistency
       return {
         success: true,
+        output,
         receivedAmountA: actualWithdrawnA
           ? actualWithdrawnA.value
           : originalMinA.toString(),
@@ -566,12 +532,11 @@ export async function withdrawLiquidityTwoAsset(
           : originalMinB.toString(),
         currencyA: assetA.currency,
         currencyB: assetB.currency,
-        issuerA: assetA.issuer || null, // null for XRP
-        issuerB: assetB.issuer || null, // null for XRP
+        issuerA: assetA.issuer,
+        issuerB: assetB.issuer,
         lpTokensRedeemed: requiredLP,
         tx_hash: response.result.hash,
         tx_result: response.result.meta.TransactionResult,
-        operationalInfo,
       };
     } else {
       throw new Error(
@@ -584,8 +549,7 @@ export async function withdrawLiquidityTwoAsset(
   }
 }
 
-// Withdraw by specifying LP token amount to burn
-// The standby wallet performs the withdrawal on behalf of an operational wallet
+// Two-asset withdraw with LP token - withdraw both assets using LP tokens
 export async function withdrawLiquidityWithLPToken(
   standbyWallet,
   ammAccount,
@@ -594,93 +558,16 @@ export async function withdrawLiquidityWithLPToken(
 ) {
   try {
     await connectXrplClient();
-    // Fix: Pass ammAccount as the first parameter to query by AMM account directly
+
     const ammData = await getAmmInfo(ammAccount);
-    if (!ammData) {
-      console.error(`❌ Error: AMM data not found for account ${ammAccount}`);
-      return false;
+    if (!ammData || !ammData.amount || !ammData.amount2 || !ammData.lp_token) {
+      throw new Error(`❌ Invalid AMM data structure.`);
     }
 
-    // Verify that amount and amount2 exist in the AMM data
-    if (!ammData.amount || !ammData.amount2) {
-      console.error(
-        `❌ Error: Invalid AMM data structure - missing asset information`,
-      );
-      console.log("AMM Data received:", JSON.stringify(ammData, null, 2));
-      return false;
-    }
-
-    // Use the passed ammAccount instead of relying on ammData.amm_account
-    const assetA = ammData.amount;
-    const assetB = ammData.amount2;
+    const assetA = normalizeAsset(ammData.amount);
+    const assetB = normalizeAsset(ammData.amount2);
     const lpToken = ammData.lp_token;
 
-    // Log action differently depending on whether this is for an operational wallet or not
-    if (operationalWalletInfo) {
-      const formattedLP = new BigNumber(lpTokenAmount).toFixed(6);
-      const lpUnit = formattedLP === "1.000000" ? "LP token" : "LP tokens";
-      console.log(
-        `✅ Withdrawing with ${formattedLP} ${lpUnit} from AMM at ${ammAccount} on behalf of operational wallet ${operationalWalletInfo.classicAddress}`,
-      );
-    } else {
-      const formattedLP = new BigNumber(lpTokenAmount).toFixed(6);
-      const lpUnit = formattedLP === "1.000000" ? "LP token" : "LP tokens";
-      console.log(
-        `✅ Withdrawing with ${formattedLP} ${lpUnit} from AMM at ${ammAccount}`,
-      );
-    }
-
-    // Get LP token balance for the wallet - standby wallet holds the LP tokens
-    const accountLinesResponse = await client.request({
-      command: "account_lines",
-      account: standbyWallet.classicAddress,
-      peer: lpToken.issuer,
-    });
-
-    const trustlines = accountLinesResponse.result.lines;
-    const lpTrustline = trustlines.find(
-      (line) => line.currency === lpToken.currency,
-    );
-
-    if (!lpTrustline || new BigNumber(lpTrustline.balance).isZero()) {
-      console.log(
-        "❌ No LP tokens found in standby wallet. Nothing to withdraw.",
-      );
-      return false;
-    }
-
-    const lpBalance = new BigNumber(lpTrustline.balance).decimalPlaces(
-      6,
-      BigNumber.ROUND_DOWN,
-    );
-    console.log(`✅ wallet LP token balance: ${lpBalance.toFixed(6)}`);
-
-    // Show current AMM pool state
-    console.log(`\n📊 Current AMM Pool State:`);
-
-    // Get currency names properly - handle both XRP (string) and tokens (objects)
-    let selectedAssetCurrency, otherAssetCurrency;
-    if (typeof assetA === "string") {
-      selectedAssetCurrency = "XRP";
-    } else {
-      selectedAssetCurrency = assetA.currency;
-    }
-
-    if (typeof assetB === "string") {
-      otherAssetCurrency = "XRP";
-    } else {
-      otherAssetCurrency = assetB.currency;
-    }
-
-    console.log(
-      `   ${selectedAssetCurrency}: ${typeof assetA === "string" ? xrpl.dropsToXrp(assetA) : assetA.value}`,
-    );
-    console.log(
-      `   ${otherAssetCurrency}: ${typeof assetB === "string" ? xrpl.dropsToXrp(assetB) : assetB.value}`,
-    );
-    console.log(`   LP Tokens: ${ammData.lp_token.value}`);
-
-    // Convert to BigNumber with 6 decimals precision
     const totalPoolA = new BigNumber(assetA.value);
     const totalPoolB = new BigNumber(assetB.value);
     const totalLP = new BigNumber(lpToken.value);
@@ -689,7 +576,13 @@ export async function withdrawLiquidityWithLPToken(
       BigNumber.ROUND_DOWN,
     );
 
-    // Calculate expected withdrawal amounts
+    console.log(
+      `✅ Withdrawing ${lpAmount.toFixed(6)} LP tokens from AMM at ${ammAccount}`,
+    );
+    console.log(
+      `📊 Current Pool: ${assetA.currency} = ${totalPoolA.toFixed(6)}, ${assetB.currency} = ${totalPoolB.toFixed(6)}, LP = ${totalLP.toFixed(6)}`,
+    );
+
     const expectedA = lpAmount
       .multipliedBy(totalPoolA)
       .dividedBy(totalLP)
@@ -700,320 +593,158 @@ export async function withdrawLiquidityWithLPToken(
       .decimalPlaces(6, BigNumber.ROUND_DOWN);
 
     console.log(
-      `🔹 Expected withdrawal: ${expectedA.toFixed(6)} ${assetA.currency} and ${expectedB.toFixed(6)} ${assetB.currency}`,
+      `🔹 Expected Withdrawals: ${expectedA.toFixed(6)} ${assetA.currency}, ${expectedB.toFixed(6)} ${assetB.currency}`,
     );
 
-    // Create assets with special handling for XRP
-    let assetObjA, assetObjB;
+    const assetObjA = assetA.isXRP
+      ? "XRP"
+      : { currency: assetA.currency, issuer: assetA.issuer };
+    const assetObjB = assetB.isXRP
+      ? "XRP"
+      : { currency: assetB.currency, issuer: assetB.issuer };
 
-    // Handle Asset A
-    if (typeof assetA === "string") {
-      assetObjA = "XRP";
-    } else {
-      assetObjA = {
-        currency: assetA.currency,
-        issuer: assetA.issuer,
-      };
-    }
-
-    // Handle Asset B
-    if (typeof assetB === "string") {
-      assetObjB = "XRP";
-    } else {
-      assetObjB = {
-        currency: assetB.currency,
-        issuer: assetB.issuer,
-      };
-    }
-
-    // Update transaction to include standby wallet as Account
     const ammWithdrawTx = {
       TransactionType: "AMMWithdraw",
       Account: standbyWallet.classicAddress,
-      Asset:
-        assetObjA === "XRP"
-          ? { currency: "XRP" }
-          : assetObjA,
-      Asset2:
-        assetObjB === "XRP"
-          ? { currency: "XRP" }
-          : assetObjB,
+      Asset: assetObjA === "XRP" ? { currency: "XRP" } : assetObjA,
+      Asset2: assetObjB === "XRP" ? { currency: "XRP" } : assetObjB,
       LPTokenIn: {
         currency: lpToken.currency,
         issuer: lpToken.issuer,
         value: lpAmount.toFixed(6),
       },
-      // Use only tfLPToken flag (0x00010000 = 65536)
       Flags: 65536,
+      AMMAccount: ammAccount,
+      ...(operationalWalletInfo?.destTag && {
+        DestinationTag: operationalWalletInfo.destTag,
+      }),
     };
 
-    // Add AMMAccount if available
-    if (ammAccount) {
-      ammWithdrawTx.AMMAccount = ammAccount;
-    }
-
-    // If this is for an operational wallet, add destination tag
-    if (operationalWalletInfo && operationalWalletInfo.destTag) {
-      ammWithdrawTx.DestinationTag = operationalWalletInfo.destTag;
-    }
-
-    console.log("📜 Preparing LP Token AMMWithdraw transaction...");
-    console.log("Transaction:", JSON.stringify(ammWithdrawTx, null, 4));
-
     const preparedTx = await client.autofill(ammWithdrawTx);
-
-    // Set LastLedgerSequence
-    const ledgerResponse = await client.request({ command: "ledger_current" });
-    const currentLedger = ledgerResponse.result.ledger_current_index;
+    const currentLedger = (await client.request({ command: "ledger_current" }))
+      .result.ledger_current_index;
     preparedTx.LastLedgerSequence = currentLedger + 50;
 
     const signedTx = standbyWallet.sign(preparedTx);
-    console.log("🚀 Submitting LP token withdrawal...");
     const response = await client.submitAndWait(signedTx.tx_blob);
 
-    if (response.result.meta.TransactionResult === "tesSUCCESS") {
-      console.log(`✅ LP token withdrawal successful!`);
+    const fee = new BigNumber(response.result.tx_json?.Fee);
 
-      // Extract the actual amounts withdrawn from the transaction metadata
-      const nodes = response.result.meta.AffectedNodes;
-      let actualWithdrawnA = null;
-      let actualWithdrawnB = null;
-
-      // Find the RippleState nodes that reflect the change in balances for tokens
-      // and AccountRoot changes for XRP
-      for (const node of nodes) {
-        // Check for token changes (RippleState)
-        if (
-          node.ModifiedNode &&
-          node.ModifiedNode.LedgerEntryType === "RippleState"
-        ) {
-          const state = node.ModifiedNode;
-          if (
-            state.FinalFields &&
-            state.PreviousFields &&
-            state.FinalFields.Balance &&
-            state.PreviousFields.Balance
-          ) {
-            // Check for Asset A (if it's a token)
-            if (
-              !actualWithdrawnA &&
-              typeof assetA === "object" &&
-              state.FinalFields.Balance.currency === assetA.currency
-            ) {
-              // Calculate the change in balance
-              const prevBalance = parseFloat(
-                state.PreviousFields.Balance.value,
-              );
-              const finalBalance = parseFloat(state.FinalFields.Balance.value);
-
-              // If the balance decreased (became more negative), that's what was withdrawn
-              const diff = Math.abs(finalBalance - prevBalance);
-              if (diff > 0) {
-                actualWithdrawnA = {
-                  currency: state.FinalFields.Balance.currency,
-                  value: diff.toFixed(6),
-                };
-              }
-            }
-
-            // Check for Asset B (if it's a token)
-            if (
-              !actualWithdrawnB &&
-              state.FinalFields.Balance.currency ===
-                (typeof assetB === "object" ? assetB.currency : null)
-            ) {
-              // Calculate the change in balance
-              const prevBalance = parseFloat(
-                state.PreviousFields.Balance.value,
-              );
-              const finalBalance = parseFloat(state.FinalFields.Balance.value);
-
-              // If the balance decreased (became more negative), that's what was withdrawn
-              const diff = Math.abs(finalBalance - prevBalance);
-              if (diff > 0) {
-                actualWithdrawnB = {
-                  currency: state.FinalFields.Balance.currency,
-                  value: diff.toFixed(6),
-                };
-              }
-            }
-          }
-        }
-
-        // Check for XRP changes (AccountRoot)
-        else if (
-          node.ModifiedNode &&
-          node.ModifiedNode.LedgerEntryType === "AccountRoot"
-        ) {
-          const state = node.ModifiedNode;
-          if (
-            state.FinalFields &&
-            state.PreviousFields &&
-            state.FinalFields.Account === standbyWallet.classicAddress
-          ) {
-            // Check if this is the wallet's XRP balance change
-            if (state.FinalFields.Balance && state.PreviousFields.Balance) {
-              const prevBalance = new BigNumber(state.PreviousFields.Balance);
-              const finalBalance = new BigNumber(state.FinalFields.Balance);
-
-              // If the balance increased, that's XRP being withdrawn from AMM
-              if (finalBalance.isGreaterThan(prevBalance)) {
-                const xrpDiff = finalBalance.minus(prevBalance);
-                const xrpAmount = xrpDiff.dividedBy(1000000).toFixed(6); // Convert drops to XRP
-
-                // Check if this is Asset A or Asset B
-                if (
-                  (typeof assetA === "string" ||
-                    (typeof assetA === "object" &&
-                      assetA.currency === "XRP")) &&
-                  !actualWithdrawnA
-                ) {
-                  actualWithdrawnA = {
-                    currency: "XRP",
-                    value: xrpAmount,
-                  };
-                } else if (
-                  (typeof assetB === "string" ||
-                    (typeof assetB === "object" &&
-                      assetB.currency === "XRP")) &&
-                  !actualWithdrawnB
-                ) {
-                  actualWithdrawnB = {
-                    currency: "XRP",
-                    value: xrpAmount,
-                  };
-                }
-              }
-            }
-          }
-        }
-      }
-
-      console.log("\n===== Transaction Summary =====");
-      console.log(`🔹 Transaction Hash: ${response.result.hash}`);
-
-      console.log(`\n📤 Withdrawn Amounts:`);
-      if (actualWithdrawnA) {
-        console.log(
-          `   ${actualWithdrawnA.value} ${actualWithdrawnA.currency}`,
-        );
-      } else {
-        console.log(
-          `   ~${expectedA.toFixed(6)} ${assetA.currency} (estimated)`,
-        );
-      }
-
-      if (actualWithdrawnB) {
-        console.log(
-          `   ${actualWithdrawnB.value} ${actualWithdrawnB.currency}`,
-        );
-      } else {
-        console.log(
-          `   ~${expectedB.toFixed(6)} ${assetB.currency} (estimated)`,
-        );
-      }
-
-      console.log(`\n🔄 LP Tokens Redeemed: ${lpAmount.toFixed(6)}`);
-      console.log("\n===============================");
-
-      // Refresh the AMM data after the operation completes
-      console.log("🔄 Updating AMM data from ledger...");
-      try {
-        // Get the updated AMM data
-        const updatedAmmData = await getAmmInfo(ammAccount);
-
-        if (updatedAmmData) {
-          // Log updated pool balances
-          console.log("\n=== Updated AMM Pool State ===");
-          console.log(
-            `Asset A (${updatedAmmData.amount.currency}): ${updatedAmmData.amount.value}`,
-          );
-          console.log(
-            `Asset B (${updatedAmmData.amount2.currency}): ${updatedAmmData.amount2.value}`,
-          );
-          console.log(`LP tokens: ${updatedAmmData.lp_token.value}`);
-          console.log("===========================\n");
-        } else {
-          console.log("⚠️ Could not retrieve updated AMM data");
-        }
-      } catch (updateError) {
-        console.warn("⚠️ Error refreshing AMM data:", updateError.message);
-      }
-
-      // If this was done for an operational wallet, return info about the operational wallet
-      const operationalInfo = operationalWalletInfo
-        ? {
-            operationalWallet: operationalWalletInfo.classicAddress,
-            destTag: operationalWalletInfo.destTag,
-          }
-        : null;
-
-      // Return success information
-      return {
-        success: true,
-        withdrawnAmount: {
-          [assetA.currency]: actualWithdrawnA
-            ? actualWithdrawnA.value
-            : expectedA.toFixed(6),
-          [assetB.currency]: actualWithdrawnB
-            ? actualWithdrawnB.value
-            : expectedB.toFixed(6),
-        },
-        lpTokensRedeemed: lpAmount.toFixed(6),
-        tx_hash: response.result.hash,
-        tx_result: response.result.meta.TransactionResult,
-        operationalInfo,
-      };
-    } else {
+    if (response.result.meta.TransactionResult !== "tesSUCCESS") {
       throw new Error(
-        `❌ LP token withdrawal failed: ${response.result.meta.TransactionResult}`,
+        `❌ Withdrawal failed: ${response.result.meta.TransactionResult}`,
       );
     }
+
+    const nodes = response.result.meta.AffectedNodes;
+    let actualWithdrawnA = null;
+    let actualWithdrawnB = null;
+
+    for (const node of nodes) {
+      if (node.ModifiedNode?.LedgerEntryType === "RippleState") {
+        const { Balance, currency } =
+          node.ModifiedNode.FinalFields?.Balance || {};
+        const prevValue = node.ModifiedNode.PreviousFields?.Balance?.value;
+        const finalValue = node.ModifiedNode.FinalFields?.Balance?.value;
+
+        if (prevValue && finalValue) {
+          const diff = Math.abs(
+            parseFloat(finalValue) - parseFloat(prevValue),
+          ).toFixed(6);
+          if (!actualWithdrawnA && currency === assetA.currency) {
+            actualWithdrawnA = { currency, value: diff };
+          } else if (!actualWithdrawnB && currency === assetB.currency) {
+            actualWithdrawnB = { currency, value: diff };
+          }
+        }
+        // Check if XRP was withdrawn
+      } else if (node.ModifiedNode?.LedgerEntryType === "AccountRoot") {
+        const state = node.ModifiedNode;
+        const prevBal = new BigNumber(state.PreviousFields?.Balance || 0);
+        const finalBal = new BigNumber(state.FinalFields?.Balance || 0);
+        if (finalBal.isGreaterThan(prevBal)) {
+          const diffXRP = finalBal
+            .minus(prevBal)
+            .minus(fee)
+            .dividedBy(1_000_000)
+            .toFixed(6);
+          if (assetA.isXRP && !actualWithdrawnA)
+            actualWithdrawnA = { currency: "XRP", value: diffXRP };
+          else if (assetB.isXRP && !actualWithdrawnB)
+            actualWithdrawnB = { currency: "XRP", value: diffXRP };
+        }
+      }
+    }
+
+    let output = `\n===== Transaction Summary =====\n`;
+    output += `🔹 Transaction Hash: ${response.result.hash}\n`;
+    output += `\n📤 Withdrawn Amounts:\n`;
+    output += `   ${actualWithdrawnA?.value ?? `~${expectedA.toFixed(6)}`} ${assetA.currency}\n`;
+    output += `   ${actualWithdrawnB?.value ?? `~${expectedB.toFixed(6)}`} ${assetB.currency}\n`;
+    output += `\n🔄 LP Tokens Redeemed: ${lpAmount.toFixed(6)}\n`;
+    output += `💸 Transaction Cost: ${xrpl.dropsToXrp(response.result.tx_json?.Fee)} XRP\n`;
+
+    try {
+      // Get the updated AMM data
+      const updatedAmmData = await getAmmInfo(ammAccount);
+
+      if (updatedAmmData) {
+        // Log updated pool balances
+        output += "\n===== Updated AMM Pool State =====\n";
+        output += `LP tokens balance: ${Number(updatedAmmData.lp_token.value).toFixed(2)}\n`;
+        if (assetA.isXRP) {
+          output += `Token balance: ${xrpl.dropsToXrp(Number(updatedAmmData.amount)).toFixed(8)} ${assetA.currency}\n`;
+          output += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${assetB.currency}\n`;
+        } else if (assetB.isXRP) {
+          output += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${assetA.currency}\n`;
+          output += `Token balance: ${xrpl.dropsToXrp(Number(updatedAmmData.amount2)).toFixed(8)} ${assetB.currency}\n`;
+        } else {
+          output += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${assetA.currency}\n`;
+          output += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${assetB.currency}\n`;
+        }
+      } else {
+        output += "⚠️ Could not retrieve updated AMM data\n";
+      }
+    } catch (updateError) {
+      output += `⚠️ Error refreshing AMM data: ${updateError.message}\n`;
+    }
+
+    return {
+      success: true,
+      output,
+      withdrawnAmount: {
+        [assetA.currency]: actualWithdrawnA?.value ?? expectedA.toFixed(6),
+        [assetB.currency]: actualWithdrawnB?.value ?? expectedB.toFixed(6),
+      },
+      lpTokensRedeemed: lpAmount.toFixed(6),
+      tx_hash: response.result.hash,
+      tx_result: response.result.meta.TransactionResult,
+    };
   } catch (error) {
     console.error("❌ Error withdrawing with LP token:", error.message);
     throw error;
   }
 }
 
-// Withdraw all LP tokens at once
-// The standby wallet performs the withdrawal on behalf of an operational wallet
-export async function withdrawAllLiquidity(
-  standbyWallet,
-  ammAccount,
-  operationalWalletInfo = null,
-) {
+// Withdraw all liquidity from the AMM
+export async function withdrawAllLiquidity(standbyWallet, ammAccount) {
   try {
     await connectXrplClient();
-    // Fix: Pass ammAccount as the first parameter to query by AMM account directly
+    // Fetch current AMM state
     const ammData = await getAmmInfo(ammAccount);
-    if (!ammData) {
-      console.error(`❌ Error: AMM data not found for account ${ammAccount}`);
-      return false;
+
+    if (!ammData || !ammData.amount || !ammData.amount2 || !ammData.lp_token) {
+      throw new Error(`❌ Invalid AMM data structure.`);
     }
 
-    // Verify that amount and amount2 exist in the AMM data
-    if (!ammData.amount || !ammData.amount2) {
-      console.error(
-        `❌ Error: Invalid AMM data structure - missing asset information`,
-      );
-      console.log("AMM Data received:", JSON.stringify(ammData, null, 2));
-      return false;
-    }
-
-    const assetA = ammData.amount;
-    const assetB = ammData.amount2;
+    // Normalize assets for consistent handling
+    const assetA = normalizeAsset(ammData.amount);
+    const assetB = normalizeAsset(ammData.amount2);
     const lpToken = ammData.lp_token;
 
-    // Log action differently depending on whether this is for an operational wallet or not
-    if (operationalWalletInfo) {
-      console.log(
-        `✅ Withdrawing ALL liquidity from AMM at ${ammAccount} on behalf of operational wallet ${operationalWalletInfo.classicAddress}`,
-      );
-    } else {
-      console.log(`✅ Withdrawing ALL liquidity from AMM at ${ammAccount}`);
-    }
+    console.log(`✅ Withdrawing ALL liquidity from AMM at ${ammAccount}`);
 
-    // Get LP token balance for the standby wallet
+    // Fetch LP token balance for standby wallet
     const accountLinesResponse = await client.request({
       command: "account_lines",
       account: standbyWallet.classicAddress,
@@ -1026,10 +757,9 @@ export async function withdrawAllLiquidity(
     );
 
     if (!lpTrustline || new BigNumber(lpTrustline.balance).isZero()) {
-      console.log(
+      throw new Error(
         "❌ No LP tokens found in standby wallet. Nothing to withdraw.",
       );
-      return false;
     }
 
     const lpBalance = new BigNumber(lpTrustline.balance).decimalPlaces(
@@ -1038,279 +768,129 @@ export async function withdrawAllLiquidity(
     );
     console.log(`🔹 Found ${lpBalance.toFixed(6)} LP tokens to withdraw`);
 
-    // Add debugging
-    console.log("📊 AMM Data:", JSON.stringify(ammData, null, 2));
-    console.log("🔍 Asset A:", JSON.stringify(assetA, null, 2));
-    console.log("🔍 Asset B:", JSON.stringify(assetB, null, 2));
+    // Construct asset objects for the transaction
+    const assetObjA = assetA.isXRP
+      ? { currency: "XRP" }
+      : { currency: assetA.currency, issuer: assetA.issuer };
+    const assetObjB = assetB.isXRP
+      ? { currency: "XRP" }
+      : { currency: assetB.currency, issuer: assetB.issuer };
 
-    // Create assets with special handling for XRP
-    let assetObjA, assetObjB;
-
-    // Handle Asset A
-    if (assetA.currency === "XRP") {
-      assetObjA = "XRP";
-    } else {
-      assetObjA = {
-        currency: assetA.currency,
-        issuer: assetA.issuer,
-      };
-    }
-
-    // Handle Asset B
-    if (assetB.currency === "XRP") {
-      assetObjB = "XRP";
-    } else {
-      assetObjB = {
-        currency: assetB.currency,
-        issuer: assetB.issuer,
-      };
-    }
-
-    // Add debugging
-    console.log("🔍 Asset Object A:", JSON.stringify(assetObjA, null, 2));
-    console.log("🔍 Asset Object B:", JSON.stringify(assetObjB, null, 2));
-
+    // Create AMMWithdraw transaction with tfWithdrawAll flag
     const ammWithdrawTx = {
       TransactionType: "AMMWithdraw",
       Account: standbyWallet.classicAddress,
-      Asset:
-        typeof assetA === "string"
-          ? { currency: "XRP" }
-          : assetA.currency === "XRP"
-            ? { currency: "XRP" }
-            : { currency: assetA.currency, issuer: assetA.issuer },
-      Asset2:
-        typeof assetB === "string"
-          ? { currency: "XRP" }
-          : assetB.currency === "XRP"
-            ? { currency: "XRP" }
-            : { currency: assetB.currency, issuer: assetB.issuer },
-      // Use the tfWithdrawAll flag (0x00020000 = 131072)
+      Asset: assetObjA,
+      Asset2: assetObjB,
       Flags: 131072,
       AMMAccount: ammAccount,
     };
 
-    // Add debugging for final transaction
-    console.log(
-      "🔍 Final Asset:",
-      JSON.stringify(ammWithdrawTx.Asset, null, 2),
-    );
-    console.log(
-      "🔍 Final Asset2:",
-      JSON.stringify(ammWithdrawTx.Asset2, null, 2),
-    );
-
-    // If this is for an operational wallet, add destination tag
-    if (operationalWalletInfo && operationalWalletInfo.destTag) {
-      ammWithdrawTx.DestinationTag = operationalWalletInfo.destTag;
-    }
-
-    console.log("📜 Preparing Withdraw All AMMWithdraw transaction...");
-    console.log("Transaction:", JSON.stringify(ammWithdrawTx, null, 4));
-
+    // Autofill and set ledger expiration
     const preparedTx = await client.autofill(ammWithdrawTx);
-
-    // Set LastLedgerSequence
-    const ledgerResponse = await client.request({ command: "ledger_current" });
-    const currentLedger = ledgerResponse.result.ledger_current_index;
+    const currentLedger = (await client.request({ command: "ledger_current" }))
+      .result.ledger_current_index;
     preparedTx.LastLedgerSequence = currentLedger + 50;
 
+    // Sign and submit the transaction
     const signedTx = standbyWallet.sign(preparedTx);
-    console.log("🚀 Submitting withdraw all transaction...");
     const response = await client.submitAndWait(signedTx.tx_blob);
 
-    if (response.result.meta.TransactionResult === "tesSUCCESS") {
-      console.log(`✅ Withdraw all successful!`);
+    const fee = new BigNumber(response.result.tx_json?.Fee);
 
-      // Store initial pool values for logging
-      const initialPoolA = new BigNumber(assetA.value);
-      const initialPoolB = new BigNumber(assetB.value);
-
-      // Extract the actual amounts withdrawn from the transaction metadata
-      const nodes = response.result.meta.AffectedNodes;
-      let actualWithdrawnA = null;
-      let actualWithdrawnB = null;
-
-      // Find the RippleState nodes that reflect the change in balances for tokens
-      // and AccountRoot changes for XRP
-      for (const node of nodes) {
-        // Check for token changes (RippleState)
-        if (
-          node.ModifiedNode &&
-          node.ModifiedNode.LedgerEntryType === "RippleState"
-        ) {
-          const state = node.ModifiedNode;
-          if (
-            state.FinalFields &&
-            state.PreviousFields &&
-            state.FinalFields.Balance &&
-            state.PreviousFields.Balance
-          ) {
-            // Check for Asset A (if it's a token)
-            if (
-              !actualWithdrawnA &&
-              state.FinalFields.Balance.currency ===
-                (typeof assetA === "object" ? assetA.currency : null)
-            ) {
-              // Calculate the change in balance
-              const prevBalance = parseFloat(
-                state.PreviousFields.Balance.value,
-              );
-              const finalBalance = parseFloat(state.FinalFields.Balance.value);
-
-              // If the balance decreased (became more negative), that's what was withdrawn
-              const diff = Math.abs(finalBalance - prevBalance);
-              if (diff > 0) {
-                actualWithdrawnA = {
-                  currency: state.FinalFields.Balance.currency,
-                  value: diff.toFixed(6),
-                };
-              }
-            }
-
-            // Check for Asset B (if it's a token)
-            if (
-              !actualWithdrawnB &&
-              state.FinalFields.Balance.currency ===
-                (typeof assetB === "object" ? assetB.currency : null)
-            ) {
-              // Calculate the change in balance
-              const prevBalance = parseFloat(
-                state.PreviousFields.Balance.value,
-              );
-              const finalBalance = parseFloat(state.FinalFields.Balance.value);
-
-              // If the balance decreased (became more negative), that's what was withdrawn
-              const diff = Math.abs(finalBalance - prevBalance);
-              if (diff > 0) {
-                actualWithdrawnB = {
-                  currency: state.FinalFields.Balance.currency,
-                  value: diff.toFixed(6),
-                };
-              }
-            }
-          }
-        }
-
-        // Check for XRP changes (AccountRoot)
-        else if (
-          node.ModifiedNode &&
-          node.ModifiedNode.LedgerEntryType === "AccountRoot"
-        ) {
-          const state = node.ModifiedNode;
-          if (
-            state.FinalFields &&
-            state.PreviousFields &&
-            state.FinalFields.Account === standbyWallet.classicAddress
-          ) {
-            // Check if this is the wallet's XRP balance change
-            if (state.FinalFields.Balance && state.PreviousFields.Balance) {
-              const prevBalance = new BigNumber(state.PreviousFields.Balance);
-              const finalBalance = new BigNumber(state.FinalFields.Balance);
-
-              // If the balance increased, that's XRP being withdrawn from AMM
-              if (finalBalance.isGreaterThan(prevBalance)) {
-                const xrpDiff = finalBalance.minus(prevBalance);
-                const xrpAmount = xrpDiff.dividedBy(1000000).toFixed(6); // Convert drops to XRP
-
-                // Check if this is Asset A or Asset B
-                if (
-                  (typeof assetA === "string" ||
-                    (typeof assetA === "object" &&
-                      assetA.currency === "XRP")) &&
-                  !actualWithdrawnA
-                ) {
-                  actualWithdrawnA = {
-                    currency: "XRP",
-                    value: xrpAmount,
-                  };
-                } else if (
-                  (typeof assetB === "string" ||
-                    (typeof assetB === "object" &&
-                      assetB.currency === "XRP")) &&
-                  !actualWithdrawnB
-                ) {
-                  actualWithdrawnB = {
-                    currency: "XRP",
-                    value: xrpAmount,
-                  };
-                }
-              }
-            }
-          }
-        }
-      }
-
-      console.log("\n===== Transaction Summary =====");
-      console.log(`🔹 Transaction Hash: ${response.result.hash}`);
-
-      console.log(`\n📤 Withdrawn Amounts:`);
-      if (actualWithdrawnA) {
-        console.log(
-          `   ${actualWithdrawnA.value} ${actualWithdrawnA.currency}`,
-        );
-      } else {
-        // For XRP, convert drops to XRP by dividing by 1000000
-        if (typeof assetA === "string" || assetA.currency === "XRP") {
-          const xrpAmount = new BigNumber(
-            typeof assetA === "string" ? assetA : assetA.value,
-          )
-            .dividedBy(1000000)
-            .toFixed(6);
-          console.log(`   ~${xrpAmount} XRP (estimated)`);
-        } else {
-          console.log(
-            `   ~${initialPoolA.toFixed(6)} ${assetA.currency} (estimated)`,
-          );
-        }
-      }
-
-      if (actualWithdrawnB) {
-        console.log(
-          `   ${actualWithdrawnB.value} ${actualWithdrawnB.currency}`,
-        );
-      } else {
-        // For XRP, convert drops to XRP by dividing by 1000000
-        if (typeof assetB === "string" || assetB.currency === "XRP") {
-          const xrpAmount = new BigNumber(
-            typeof assetB === "string" ? assetB : assetB.value,
-          )
-            .dividedBy(1000000)
-            .toFixed(6);
-          console.log(`   ~${xrpAmount} XRP (estimated)`);
-        } else {
-          console.log(
-            `   ~${initialPoolB.toFixed(6)} ${assetB.currency} (estimated)`,
-          );
-        }
-      }
-
-      console.log(`\n🔄 All LP tokens redeemed`);
-      console.log("\n===============================");
-
-
-      // Determine proper currency strings for return values
-      const currencyA = typeof assetA === "string" ? "XRP" : assetA.currency;
-      const currencyB = typeof assetB === "string" ? "XRP" : assetB.currency;
-
-      return {
-        success: true,
-        withdrawnAmountA: actualWithdrawnA
-          ? actualWithdrawnA.value
-          : initialPoolA.toFixed(6),
-        withdrawnAmountB: actualWithdrawnB
-          ? actualWithdrawnB.value
-          : initialPoolB.toFixed(6),
-        currencyA: currencyA,
-        currencyB: currencyB,
-        tx_hash: response.result.hash,
-        tx_result: response.result.meta.TransactionResult,
-      };
-    } else {
+    if (response.result.meta.TransactionResult !== "tesSUCCESS") {
       throw new Error(
-        `AMM withdrawal failed: ${response.result.meta.TransactionResult}`,
+        `❌ AMM withdrawal failed: ${response.result.meta.TransactionResult}`,
       );
     }
+
+    // Parse the transaction metadata to extract actual withdrawn amounts
+    const nodes = response.result.meta.AffectedNodes;
+    let actualWithdrawnA = null;
+    let actualWithdrawnB = null;
+
+    for (const node of nodes) {
+      if (node.ModifiedNode?.LedgerEntryType === "RippleState") {
+        const { Balance } = node.ModifiedNode.FinalFields || {};
+        const prev = node.ModifiedNode.PreviousFields?.Balance?.value;
+        const final = node.ModifiedNode.FinalFields?.Balance?.value;
+
+        if (prev && final) {
+          const diff = Math.abs(parseFloat(final) - parseFloat(prev)).toFixed(
+            6,
+          );
+          if (!actualWithdrawnA && Balance.currency === assetA.currency) {
+            actualWithdrawnA = { currency: Balance.currency, value: diff };
+          } else if (
+            !actualWithdrawnB &&
+            Balance.currency === assetB.currency
+          ) {
+            actualWithdrawnB = { currency: Balance.currency, value: diff };
+          }
+        }
+      } else if (node.ModifiedNode?.LedgerEntryType === "AccountRoot") {
+        const state = node.ModifiedNode;
+        const prevBal = new BigNumber(state.PreviousFields?.Balance || 0);
+        const finalBal = new BigNumber(state.FinalFields?.Balance || 0);
+        if (finalBal.isGreaterThan(prevBal)) {
+          const diffXRP = finalBal
+            .minus(prevBal)
+            .minus(fee)
+            .dividedBy(1_000_000)
+            .toFixed(6);
+          if (assetA.isXRP && !actualWithdrawnA)
+            actualWithdrawnA = { currency: "XRP", value: diffXRP };
+          else if (assetB.isXRP && !actualWithdrawnB)
+            actualWithdrawnB = { currency: "XRP", value: diffXRP };
+        }
+      }
+    }
+
+    // Format output for the transaction summary
+    let output = `\n===== Transaction Summary =====\n`;
+    output += `🔹 Transaction Hash: ${response.result.hash}\n`;
+    output += `\n📤 Withdrawn Amounts:\n`;
+    output += `   ${actualWithdrawnA?.value ?? `~${new BigNumber(assetA.value).toFixed(6)}`} ${assetA.currency}\n`;
+    output += `   ${actualWithdrawnB?.value ?? `~${new BigNumber(assetB.value).toFixed(6)}`} ${assetB.currency}\n`;
+    output += `\n🔄 All LP tokens redeemed (${lpBalance} LP tokens)\n`;
+    output += `💸 Transaction Cost: ${xrpl.dropsToXrp(response.result.tx_json?.Fee)} XRP\n`;
+
+    // Refresh and log updated AMM pool state
+    try {
+      const updatedAmmData = await getAmmInfo(ammAccount);
+      if (updatedAmmData) {
+        output += "\n===== Updated AMM Pool State =====\n";
+        output += `LP tokens balance: ${Number(updatedAmmData.lp_token.value).toFixed(2)}\n`;
+        if (assetA.isXRP) {
+          output += `Token balance: ${xrpl.dropsToXrp(Number(updatedAmmData.amount)).toFixed(8)} ${assetA.currency}\n`;
+          output += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${assetB.currency}\n`;
+        } else if (assetB.isXRP) {
+          output += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${assetA.currency}\n`;
+          output += `Token balance: ${xrpl.dropsToXrp(Number(updatedAmmData.amount2)).toFixed(8)} ${assetB.currency}\n`;
+        } else {
+          output += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${assetA.currency}\n`;
+          output += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${assetB.currency}\n`;
+        }
+      } else {
+        output += "⚠️ Could not retrieve updated AMM data\n";
+      }
+    } catch (updateError) {
+      output += `⚠️ Error refreshing AMM data: ${updateError.message}\n`;
+    }
+
+    return {
+      success: true,
+      output,
+      withdrawnAmount: {
+        [assetA.currency]:
+          actualWithdrawnA?.value ?? new BigNumber(assetA.value).toFixed(6),
+        [assetB.currency]:
+          actualWithdrawnB?.value ?? new BigNumber(assetB.value).toFixed(6),
+      },
+      lpTokensRedeemed: lpBalance.toFixed(6),
+      tx_hash: response.result.hash,
+      tx_result: response.result.meta.TransactionResult,
+    };
   } catch (error) {
     console.error("❌ Error withdrawing all liquidity:", error.message);
     throw error;
@@ -1318,7 +898,6 @@ export async function withdrawAllLiquidity(
 }
 
 // Single asset withdrawal - withdraw just one asset
-// The standby wallet performs the withdrawal on behalf of an operational wallet
 export async function withdrawSingleAsset(
   standbyWallet,
   ammAccount,
@@ -1328,59 +907,47 @@ export async function withdrawSingleAsset(
 ) {
   try {
     await connectXrplClient();
-    // Fix: Pass ammAccount as the first parameter to query by AMM account directly
+
+    // Fetch AMM data
     const ammData = await getAmmInfo(ammAccount);
-    if (!ammData) {
-      console.error(`❌ Error: AMM data not found for account ${ammAccount}`);
-      return false;
+    if (!ammData || !ammData.amount || !ammData.amount2 || !ammData.lp_token) {
+      throw new Error(`❌ Invalid AMM data structure.`);
     }
 
-    // Verify that amount and amount2 exist in the AMM data
-    if (!ammData.amount || !ammData.amount2) {
-      console.error(
-        `❌ Error: Invalid AMM data structure - missing asset information`,
-      );
-      console.log("AMM Data received:", JSON.stringify(ammData, null, 2));
-      return false;
-    }
-    let asset;
-    let otherAsset;
-    if (assetType === "XRP"){
-      asset = typeof ammData.amount === "string" ? ammData.amount : ammData.amount2;
-      otherAsset = typeof ammData.amount === "string" ? ammData.amount2 : ammData.amount;
-    }
-    else{
-      asset = assetType === ammData.amount.currency ? ammData.amount : ammData.amount2;
-      otherAsset = assetType === ammData.amount.currency ? ammData.amount2 : ammData.amount;
-    }
+    const assetA = normalizeAsset(ammData.amount);
+    const assetB = normalizeAsset(ammData.amount2);
+    const asset =
+      assetType === "XRP" || assetType === assetA.currency ? assetA : assetB;
+    const otherAsset = asset.currency === assetA.currency ? assetB : assetA;
     const lpToken = ammData.lp_token;
 
-;
-    // Store original input amount for return values
-    const originalAmount = withdrawAmount;
+    const withdrawAmountBN = new BigNumber(withdrawAmount).decimalPlaces(
+      6,
+      BigNumber.ROUND_DOWN,
+    );
+    const totalAsset = new BigNumber(asset.value);
+    const totalLP = new BigNumber(lpToken.value);
 
+    console.log(
+      `✅ Withdrawing ${withdrawAmount} ${asset.currency} from AMM at ${ammAccount}`,
+    );
 
-      console.log(
-        `✅ Withdrawing ${withdrawAmount} ${assetType} from AMM at ${ammAccount}`,
-      );
-
-    // Get LP token balance for the standby wallet
-    const accountLinesResponse = await client.request({
+    // Fetch standby wallet LP token balance
+    const {
+      result: { lines: trustlines },
+    } = await client.request({
       command: "account_lines",
       account: standbyWallet.classicAddress,
       peer: lpToken.issuer,
     });
 
-    const trustlines = accountLinesResponse.result.lines;
     const lpTrustline = trustlines.find(
       (line) => line.currency === lpToken.currency,
     );
-
     if (!lpTrustline || new BigNumber(lpTrustline.balance).isZero()) {
-      console.log(
+      throw new Error(
         "❌ No LP tokens found in standby wallet. Nothing to withdraw.",
       );
-      return false;
     }
 
     const lpBalance = new BigNumber(lpTrustline.balance).decimalPlaces(
@@ -1389,186 +956,211 @@ export async function withdrawSingleAsset(
     );
     console.log(`✅ wallet LP token balance: ${lpBalance.toFixed(6)}`);
 
-    // Show current AMM pool state
+    // Current pool state
     console.log(`\n📊 Current AMM Pool State:`);
+    console.log(`   ${asset.currency}: ${asset.value}`);
+    console.log(`   ${otherAsset.currency}: ${otherAsset.value}`);
+    console.log(`   LP Tokens: ${lpToken.value}`);
 
-    // Get currency names properly - handle both XRP (string) and tokens (objects)
-    let selectedAssetCurrency, otherAssetCurrency;
-    if (typeof asset === "string") {
-      selectedAssetCurrency = "XRP";
-    } else {
-      selectedAssetCurrency = asset.currency;
-    }
-
-    if (typeof otherAsset === "string") {
-      otherAssetCurrency = "XRP";
-    } else {
-      otherAssetCurrency = otherAsset.currency;
-    }
-
-    console.log(
-      `   ${selectedAssetCurrency}: ${typeof asset === "string" ? xrpl.dropsToXrp(asset) : asset.value}`,
-    );
-    console.log(
-      `   ${otherAssetCurrency}: ${typeof otherAsset === "string" ? xrpl.dropsToXrp(otherAsset) : otherAsset.value}`,
-    );
-    console.log(`   LP Tokens: ${ammData.lp_token.value}`);
-
-    // Convert to BigNumber with 6 decimals precision
-    const totalPool = new BigNumber(
-      assetType === "A" ? ammData.amount.value : ammData.amount2.value,
-    );
-    
-    const totalLP = new BigNumber(lpToken.value);
-    const withdrawAmount_BN = new BigNumber(withdrawAmount).decimalPlaces(
-      6,
-      BigNumber.ROUND_DOWN,
-    );
-
-    // Calculate required LP tokens (estimation)
-    const requiredLP = withdrawAmount_BN
+    // Estimate LP tokens needed
+    const requiredLP = withdrawAmountBN
       .multipliedBy(totalLP)
-      .dividedBy(totalPool)
-      .multipliedBy(1.02) // Add 2% to account for price limit constraints
+      .dividedBy(totalAsset)
+      .multipliedBy(1.02) // 2% buffer
       .decimalPlaces(6, BigNumber.ROUND_DOWN);
 
     console.log(`🔹 Estimated LP tokens required: ${requiredLP.toFixed(6)}`);
 
-    // Create assets with special handling for XRP
-    let assetObj, otherAssetObj, amountObj;
+    // Prepare transaction Asset & Amount
+    const assetObj = asset.isXRP
+      ? { currency: "XRP" }
+      : { currency: asset.currency, issuer: asset.issuer };
 
-    // Handle primary asset (the one being withdrawn)
-    if (typeof asset === "string" || asset.currency === "XRP") {
-      assetObj = { currency: "XRP" };
-      // Convert XRP to drops for the blockchain transaction
-      amountObj = xrpl.xrpToDrops(withdrawAmount_BN.toFixed(6));
-      console.log(
-        `🔹 Converting ${withdrawAmount_BN.toFixed(6)} XRP to ${amountObj} drops for blockchain transaction`,
-      );
-    } else {
-      assetObj = {
-        currency: asset.currency,
-        issuer: asset.issuer,
-      };
-      amountObj = {
-        currency: asset.currency,
-        issuer: asset.issuer,
-        value: withdrawAmount_BN.toFixed(6),
-      };
-    }
+    const amountObj = asset.isXRP
+      ? xrpl.xrpToDrops(withdrawAmountBN.toFixed(6))
+      : {
+          currency: asset.currency,
+          issuer: asset.issuer,
+          value: withdrawAmountBN.toFixed(6),
+        };
 
-    // Handle other asset
-    if (typeof otherAsset === "string" || otherAsset.currency === "XRP") {
-      otherAssetObj = { currency: "XRP" };
-    } else {
-      otherAssetObj = {
-        currency: otherAsset.currency,
-        issuer: otherAsset.issuer,
-      };
-    }
+    const otherAssetObj = otherAsset.isXRP
+      ? { currency: "XRP" }
+      : { currency: otherAsset.currency, issuer: otherAsset.issuer };
 
+    // Build and submit transaction
     const ammWithdrawTx = {
       TransactionType: "AMMWithdraw",
       Account: standbyWallet.classicAddress,
       Asset: assetObj,
       Asset2: otherAssetObj,
       Amount: amountObj,
-      // Use tfSingleAsset (0x00080000)
-      Flags: 0x00080000,
+      Flags: 0x00080000, // tfSingleAsset
+      AMMAccount: ammAccount,
     };
-
-    // Add AMMAccount if available
-    if (ammAccount) {
-      ammWithdrawTx.AMMAccount = ammAccount;
-    }
-
-    // If this is for an operational wallet, add destination tag
-    if (operationalWalletInfo && operationalWalletInfo.destTag) {
-      ammWithdrawTx.DestinationTag = operationalWalletInfo.destTag;
-    }
 
     console.log("📜 Preparing Single Asset AMMWithdraw transaction...");
     console.log("Transaction:", JSON.stringify(ammWithdrawTx, null, 4));
 
     const preparedTx = await client.autofill(ammWithdrawTx);
-
-    // Set LastLedgerSequence to ensure transaction doesn't hang
-    const ledgerResponse = await client.request({ command: "ledger_current" });
-    const currentLedger = ledgerResponse.result.ledger_current_index;
+    const currentLedger = (await client.request({ command: "ledger_current" }))
+      .result.ledger_current_index;
     preparedTx.LastLedgerSequence = currentLedger + 50;
 
     const signedTx = standbyWallet.sign(preparedTx);
     console.log("🚀 Submitting single asset withdrawal...");
     const response = await client.submitAndWait(signedTx.tx_blob);
 
-    if (response.result.meta.TransactionResult === "tesSUCCESS") {
-      console.log("✅ Single asset withdrawal successful!");
-
-      // Extract the actual amount withdrawn from the transaction metadata
-      const nodes = response.result.meta.AffectedNodes;
-      let actualWithdrawn = null;
-
-      // Find the RippleState node that reflects the change in the withdrawn currency balance
-      for (const node of nodes) {
-        if (
-          node.ModifiedNode &&
-          node.ModifiedNode.LedgerEntryType === "RippleState"
-        ) {
-          const state = node.ModifiedNode;
-          if (
-            state.FinalFields &&
-            state.PreviousFields &&
-            state.FinalFields.Balance &&
-            state.PreviousFields.Balance &&
-            state.FinalFields.Balance.currency === assetObj.currency
-          ) {
-            // Calculate the change in balance
-            const prevBalance = parseFloat(state.PreviousFields.Balance.value);
-            const finalBalance = parseFloat(state.FinalFields.Balance.value);
-
-            // If the balance decreased (became more negative), that's what was withdrawn
-            const diff = Math.abs(finalBalance - prevBalance);
-            if (diff > 0) {
-              actualWithdrawn = {
-                currency: state.FinalFields.Balance.currency,
-                value: diff.toFixed(6),
-              };
-              break;
-            }
-          }
-        }
-      }
-
-      console.log("\n===== Transaction Summary =====");
-      console.log(`🔹 Transaction Hash: ${response.result.hash}`);
-
-      if (actualWithdrawn) {
-        console.log(`\n📤 Actual amount withdrawn:`);
-        console.log(`   ${actualWithdrawn.value} ${actualWithdrawn.currency}`);
-        console.log(`   (You requested: ${withdrawAmount} ${asset.currency})`);
-      } else {
-        console.log(
-          `\n⚠️ Could not determine exact amount withdrawn from transaction metadata`,
-        );
-        console.log(`   Requested: ${withdrawAmount} ${asset.currency}`);
-      }
-      console.log("\n===============================");
-
-      return {
-        success: true,
-        receivedAmount: actualWithdrawn
-          ? actualWithdrawn.value
-          : withdrawAmount,
-        currency: asset.currency,
-        issuer: asset.issuer || null, // null for XRP
-        tx_hash: response.result.hash,
-        tx_result: response.result.meta.TransactionResult,
-      };
-    } else {
+    if (response.result.meta.TransactionResult !== "tesSUCCESS") {
       throw new Error(
         `AMM withdrawal failed: ${response.result.meta.TransactionResult}`,
       );
     }
+
+    const fee = new BigNumber(response.result.tx_json?.Fee);
+    const nodes = response.result.meta.AffectedNodes;
+    console.log(
+      "🔍 Transaction metadata nodes:",
+      JSON.stringify(nodes, null, 2),
+    );
+
+    // Parse metadata
+    let actualWithdrawn = null;
+    let lpTokensUsed = "0.00";
+
+    for (const node of nodes) {
+      console.log("🔍 Processing node:", JSON.stringify(node, null, 2));
+      const entry = node.ModifiedNode || node.DeletedNode || node.CreatedNode;
+      if (!entry) continue;
+
+      // 1️⃣ Actual asset withdrawn (RippleState or AccountRoot)
+      if (entry.LedgerEntryType === "RippleState") {
+        const prev = entry.PreviousFields?.Balance?.value;
+        const final = entry.FinalFields?.Balance?.value;
+        if (
+          prev &&
+          final &&
+          entry.FinalFields.Balance.currency === asset.currency
+        ) {
+          const diff = Math.abs(parseFloat(final) - parseFloat(prev));
+          if (diff > 0) {
+            actualWithdrawn = {
+              currency: asset.currency,
+              value: diff.toFixed(6),
+            };
+            continue;
+          }
+        }
+      } else if (entry.LedgerEntryType === "AccountRoot") {
+        const prevBal = new BigNumber(entry.PreviousFields?.Balance || 0);
+        const finalBal = new BigNumber(entry.FinalFields?.Balance || 0);
+        if (finalBal.isGreaterThan(prevBal)) {
+          const diffXRP = finalBal
+            .minus(prevBal)
+            .minus(fee)
+            .dividedBy(1_000_000)
+            .toFixed(6);
+          if (asset.isXRP) {
+            actualWithdrawn = { currency: "XRP", value: diffXRP };
+          }
+        }
+      }
+
+      // 2️⃣ LP token delta from AMM node
+      if (entry.LedgerEntryType === "AMM") {
+        const prev = entry.PreviousFields?.LPTokenBalance?.value;
+        const final = entry.FinalFields?.LPTokenBalance?.value;
+
+        if (prev && final) {
+          const delta = new BigNumber(prev).minus(final);
+          if (delta.isGreaterThan(0)) {
+            lpTokensUsed = delta.toFixed(2);
+            console.log(`✅ LP tokens used (from AMM node): ${lpTokensUsed}`);
+          }
+        }
+      }
+
+      // 3️⃣ LP token delta from user trustline (RippleState)
+      if (
+        entry.LedgerEntryType === "RippleState" &&
+        entry.FinalFields?.Balance?.currency === ammData.lp_token.currency &&
+        entry.FinalFields?.Balance?.issuer === ammData.lp_token.issuer
+      ) {
+        const prev = entry.PreviousFields?.Balance?.value;
+        const final = entry.FinalFields?.Balance?.value;
+
+        if (prev && final) {
+          const delta = new BigNumber(prev).minus(final);
+          if (delta.isGreaterThan(0)) {
+            const trustlineLPUsed = delta.toFixed(2);
+
+            // Prefer AMM node result if not already set
+            if (lpTokensUsed === "0.00" || lpTokensUsed === "0") {
+              lpTokensUsed = trustlineLPUsed;
+              console.log(
+                `✅ LP tokens used (from trustline): ${lpTokensUsed}`,
+              );
+            } else if (!new BigNumber(lpTokensUsed).eq(trustlineLPUsed)) {
+              console.warn(
+                `⚠️ Mismatch between AMM node and trustline LP token usage: AMM = ${lpTokensUsed}, Trustline = ${trustlineLPUsed}`,
+              );
+            }
+          }
+        }
+      }
+    }
+
+    // Transaction summary
+    let output = "\n===== Transaction Summary =====\n";
+    output += `🔹 Transaction Hash: ${response.result.hash}\n`;
+
+    if (actualWithdrawn) {
+      output += `\n📤 Actual amount withdrawn:\n   ${actualWithdrawn.value} ${actualWithdrawn.currency}\n   (You requested: ${withdrawAmount} ${asset.currency})\n`;
+    } else {
+      output += `\n⚠️ Could not determine exact amount withdrawn from transaction metadata\n   Requested: ${withdrawAmount} ${asset.currency}\n`;
+    }
+    output += `\n🔄 LP Tokens Redeemed: ${lpTokensUsed}\n`;
+
+    if (response.result.tx_json?.Fee) {
+      output += `\n💸 Transaction Cost: ${xrpl.dropsToXrp(response.result.tx_json?.Fee)} XRP\n`;
+    }
+
+    // Update AMM state
+    console.log("🔄 Updating AMM data from ledger...");
+    try {
+      // Get the updated AMM data
+      const updatedAmmData = await getAmmInfo(ammAccount);
+
+      if (updatedAmmData) {
+        // Log updated pool balances
+        output += "\n===== Updated AMM Pool State =====\n";
+        output += `LP tokens balance: ${Number(updatedAmmData.lp_token.value).toFixed(2)}\n`;
+        if (assetA.isXRP) {
+          output += `Token balance: ${xrpl.dropsToXrp(Number(updatedAmmData.amount)).toFixed(8)} ${assetA.currency}\n`;
+          output += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${assetB.currency}\n`;
+        } else if (assetB.isXRP) {
+          output += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${assetA.currency}\n`;
+          output += `Token balance: ${xrpl.dropsToXrp(Number(updatedAmmData.amount2)).toFixed(8)} ${assetB.currency}\n`;
+        } else {
+          output += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${assetA.currency}\n`;
+          output += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${assetB.currency}\n`;
+        }
+      } else {
+        output += "⚠️ Could not retrieve updated AMM data\n";
+      }
+    } catch (updateError) {
+      output += `⚠️ Error refreshing AMM data: ${updateError.message}\n`;
+    }
+
+    return {
+      success: true,
+      output,
+      receivedAmount: actualWithdrawn ? actualWithdrawn.value : withdrawAmount,
+      currency: asset.currency,
+      issuer: asset.issuer,
+      tx_hash: response.result.hash,
+      tx_result: response.result.meta.TransactionResult,
+    };
   } catch (error) {
     console.error("❌ Error withdrawing single asset:", error.message);
     throw error;
@@ -1576,7 +1168,6 @@ export async function withdrawSingleAsset(
 }
 
 // Single asset withdraw all - withdraw one asset by redeeming all LP tokens
-// The standby wallet performs the withdrawal on behalf of an operational wallet
 export async function withdrawAllSingleAsset(
   standbyWallet,
   ammAccount,
@@ -1602,20 +1193,28 @@ export async function withdrawAllSingleAsset(
       return false;
     }
 
-    const asset = assetType === "A" ? ammData.amount : ammData.amount2;
-    const otherAsset = assetType === "A" ? ammData.amount2 : ammData.amount;
+    let asset;
+    let otherAsset;
+    if (assetType === "XRP") {
+      asset =
+        typeof ammData.amount === "string" ? ammData.amount : ammData.amount2;
+      otherAsset =
+        typeof ammData.amount === "string" ? ammData.amount2 : ammData.amount;
+    } else {
+      asset =
+        assetType === ammData.amount.currency
+          ? ammData.amount
+          : ammData.amount2;
+      otherAsset =
+        assetType === ammData.amount.currency
+          ? ammData.amount2
+          : ammData.amount;
+    }
     const lpToken = ammData.lp_token;
 
-    // Log action differently depending on whether this is for an operational wallet or not
-    if (operationalWalletInfo) {
-      console.log(
-        `✅ Withdrawing all of ${asset.currency} from AMM at ${ammAccount} on behalf of operational wallet ${operationalWalletInfo.classicAddress}`,
-      );
-    } else {
-      console.log(
-        `✅ Withdrawing all of ${asset.currency} from AMM at ${ammAccount}`,
-      );
-    }
+    console.log(
+      `✅ Withdrawing all of ${asset.currency} from AMM at ${ammAccount}`,
+    );
 
     // Convert desired amount to BigNumber with 6 decimals precision
     // If desiredAmount is null, this is a true withdraw-all operation
@@ -1728,11 +1327,6 @@ export async function withdrawAllSingleAsset(
       AMMAccount: ammAccount,
     };
 
-    // If this is for an operational wallet, add destination tag
-    if (operationalWalletInfo && operationalWalletInfo.destTag) {
-      ammWithdrawTx.DestinationTag = operationalWalletInfo.destTag;
-    }
-
     console.log("📜 Preparing Single Asset Withdraw All transaction...");
     console.log(
       "Transaction BEFORE autofill:",
@@ -1755,7 +1349,6 @@ export async function withdrawAllSingleAsset(
     const signedTx = standbyWallet.sign(preparedTx);
     console.log("🚀 Submitting single asset withdraw all transaction...");
     const response = await client.submitAndWait(signedTx.tx_blob);
-    console.log("Response:", JSON.stringify(response, null, 2));
 
     if (response.result.meta.TransactionResult === "tesSUCCESS") {
       console.log("✅ Single asset withdraw all successful!");
@@ -1795,51 +1388,62 @@ export async function withdrawAllSingleAsset(
         }
       }
 
-      console.log("\n===== Transaction Summary =====");
-      console.log(`🔹 Transaction Hash: ${response.result.hash}`);
+      let output = "";
+
+      output += "\n===== Transaction Summary =====\n";
+      output += `🔹 Transaction Hash: ${response.result.hash}\n`;
 
       if (actualWithdrawn) {
-        console.log(`\n📤 Actual amount withdrawn:`);
-        console.log(`   ${actualWithdrawn.value} ${actualWithdrawn.currency}`);
+        output += `\n📤 Actual amount withdrawn:\n`;
+        output += `   ${actualWithdrawn.value} ${actualWithdrawn.currency}\n`;
+
         if (desiredAmount) {
-          console.log(`   (You requested: ${desiredAmount} ${asset.currency})`);
+          output += `   (You requested: ${desiredAmount} ${asset.currency})\n`;
 
           if (parseFloat(actualWithdrawn.value) > parseFloat(desiredAmount)) {
-            console.log(
-              `\nℹ️ Note: You received more than requested because this was a withdraw-all operation`,
-            );
-            console.log(
-              `   which redeems all your LP tokens for the selected asset.`,
-            );
+            output += `\nℹ️ Note: You received more than requested because this was a withdraw-all operation\n`;
+            output += `   which redeems all your LP tokens for the selected asset.\n`;
           }
         } else {
-          console.log(
-            `   (True withdraw-all operation - no minimum specified)`,
-          );
+          output += `   (True withdraw-all operation - no minimum specified)\n`;
         }
       } else {
-        console.log(
-          `\n⚠️ Could not determine exact amount withdrawn from transaction metadata`,
-        );
+        output += `\n⚠️ Could not determine exact amount withdrawn from transaction metadata\n`;
+
         if (desiredAmount) {
-          console.log(`   Requested: ${desiredAmount} ${asset.currency}`);
+          output += `   Requested: ${desiredAmount} ${asset.currency}\n`;
         } else {
-          console.log(`   True withdraw-all operation completed`);
+          output += `   True withdraw-all operation completed\n`;
+        }
+
+        if (response.result.tx_json?.Fee) {
+          output += `\n💸 Transaction Cost: ${xrpl.dropsToXrp(response.result.tx_json?.Fee)} XRP\n`;
         }
       }
-      console.log("\n===============================");
 
-      // If this was done for an operational wallet, return info about the operational wallet
-      const operationalInfo = operationalWalletInfo
-        ? {
-            operationalWallet: operationalWalletInfo.classicAddress,
-            destTag: operationalWalletInfo.destTag,
-          }
-        : null;
+      // Refresh the AMM data after the operation completes
+      console.log("🔄 Updating AMM data from ledger...");
+      try {
+        // Get the updated AMM data
+        const updatedAmmData = await getAmmInfo(ammAccount);
+
+        if (updatedAmmData) {
+          // Log updated pool balances
+          output += "\n===== Updated AMM Pool State =====\n";
+          output += `LP tokens balance: ${Number(updatedAmmData.lp_token.value).toFixed(2)}\n`;
+          output += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} (${updatedAmmData.amount.currency})\n`;
+          output += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} (${updatedAmmData.amount2.currency})\n`;
+        } else {
+          output += "⚠️ Could not retrieve updated AMM data\n";
+        }
+      } catch (updateError) {
+        output += `⚠️ Error refreshing AMM data: ${updateError.message}\n`;
+      }
 
       // Return more detailed information for operational wallet handling
       return {
         success: true,
+        output,
         receivedAmount: actualWithdrawn
           ? actualWithdrawn.value
           : desiredAmount
@@ -1850,7 +1454,6 @@ export async function withdrawAllSingleAsset(
         minimumAmount: desiredAmount ? amount_BN.toFixed(6) : "0",
         tx_hash: response.result.hash,
         tx_result: response.result.meta.TransactionResult,
-        operationalInfo,
       };
     } else {
       throw new Error(
@@ -1864,7 +1467,6 @@ export async function withdrawAllSingleAsset(
 }
 
 // Single asset withdraw with LP token amount
-// The standby wallet performs the withdrawal on behalf of an operational wallet
 export async function withdrawSingleAssetWithLPToken(
   standbyWallet,
   ammAccount,
@@ -1892,21 +1494,26 @@ export async function withdrawSingleAssetWithLPToken(
 
     let asset;
     let otherAsset;
-    if (assetType === "XRP"){
-      asset = typeof ammData.amount === "string" ? ammData.amount : ammData.amount2;
-      otherAsset = typeof ammData.amount === "string" ? ammData.amount2 : ammData.amount;
-    }
-    else{
-      asset = assetType === ammData.amount.currency ? ammData.amount : ammData.amount2;
-      otherAsset = assetType === ammData.amount.currency ? ammData.amount2 : ammData.amount;
+    if (assetType === "XRP") {
+      asset =
+        typeof ammData.amount === "string" ? ammData.amount : ammData.amount2;
+      otherAsset =
+        typeof ammData.amount === "string" ? ammData.amount2 : ammData.amount;
+    } else {
+      asset =
+        assetType === ammData.amount.currency
+          ? ammData.amount
+          : ammData.amount2;
+      otherAsset =
+        assetType === ammData.amount.currency
+          ? ammData.amount2
+          : ammData.amount;
     }
     const lpToken = ammData.lp_token;
 
-    
-      console.log(
-        `✅ Withdrawing specific LP amount as single asset (${asset.currency})`,
-      );
-    
+    console.log(
+      `✅ Withdrawing specific LP amount as single asset (${asset.currency})`,
+    );
 
     // Convert to BigNumber with 6 decimals precision
     const lpAmount = new BigNumber(lpTokenAmount).decimalPlaces(
@@ -1919,6 +1526,7 @@ export async function withdrawSingleAssetWithLPToken(
       assetType === "A" ? ammData.amount.value : ammData.amount2.value,
     );
     const totalLP = new BigNumber(lpToken.value);
+
     const expectedAmount = lpAmount
       .multipliedBy(totalPoolAsset)
       .dividedBy(totalLP)
@@ -1927,13 +1535,13 @@ export async function withdrawSingleAssetWithLPToken(
     // Create assets with special handling for XRP
     let assetObj, otherAssetObj, amountObj;
 
-   // Handle primary asset (the one being withdrawn)
+    // Handle primary asset (the one being withdrawn)
     if (typeof asset === "string" || asset.currency === "XRP") {
       assetObj = { currency: "XRP" };
       // Convert XRP to drops for the blockchain transaction
-      amountObj = xrpl.xrpToDrops(withdrawAmount_BN.toFixed(6));
+      amountObj = xrpl.xrpToDrops(expectedAmount.toFixed(6));
       console.log(
-        `🔹 Converting ${withdrawAmount_BN.toFixed(6)} XRP to ${amountObj} drops for blockchain transaction`,
+        `🔹 Converting ${expectedAmount.toFixed(6)} XRP to ${amountObj} drops for blockchain transaction`,
       );
     } else {
       assetObj = {
@@ -1943,7 +1551,7 @@ export async function withdrawSingleAssetWithLPToken(
       amountObj = {
         currency: asset.currency,
         issuer: asset.issuer,
-        value: withdrawAmount_BN.toFixed(6),
+        value: expectedAmount.toFixed(6),
       };
     }
 
@@ -1974,11 +1582,6 @@ export async function withdrawSingleAssetWithLPToken(
       Flags: 2097152,
       AMMAccount: ammAccount,
     };
-
-    // If this is for an operational wallet, add destination tag
-    if (operationalWalletInfo && operationalWalletInfo.destTag) {
-      ammWithdrawTx.DestinationTag = operationalWalletInfo.destTag;
-    }
 
     console.log("📜 Preparing Single Asset LP Token withdrawal transaction...");
     console.log("Transaction:", JSON.stringify(ammWithdrawTx, null, 4));
@@ -2050,46 +1653,56 @@ export async function withdrawSingleAssetWithLPToken(
         }
       }
 
-      console.log("\n===== Transaction Summary =====");
-      console.log(`🔹 Transaction Hash: ${response.result.hash}`);
+      let output = "";
+
+      output += "\n===== Transaction Summary =====\n";
+      output += `🔹 Transaction Hash: ${response.result.hash}\n`;
 
       if (actualWithdrawn) {
-        console.log(`\n📤 Actual amount withdrawn:`);
-        console.log(`   ${actualWithdrawn.value} ${actualWithdrawn.currency}`);
-        console.log(`\n🔄 LP Tokens Used: ${lpTokenAmount}`);
-        console.log(
-          `\n📊 Expected amount: ${expectedAmount.toFixed(6)} ${asset.currency}`,
-        );
+        output += `\n📤 Actual amount withdrawn:\n`;
+        output += `   ${actualWithdrawn.value} ${actualWithdrawn.currency}\n`;
+        output += `\n🔄 LP Tokens Used: ${lpTokenAmount}\n`;
+        output += `\n📊 Expected amount: ${expectedAmount.toFixed(6)} ${asset.currency}\n`;
+
         const difference = Math.abs(
           parseFloat(actualWithdrawn.value) -
             parseFloat(expectedAmount.toFixed(6)),
         );
-        console.log(
-          `📊 Difference from estimate: ${difference.toFixed(6)} ${asset.currency}`,
-        );
+
+        output += `📊 Difference from estimate: ${difference.toFixed(6)} ${asset.currency}\n`;
       } else {
-        console.log(
-          `\n⚠️ Could not determine exact amount withdrawn from transaction metadata`,
-        );
-        console.log(`\n🔄 LP Tokens Used: ${lpTokenAmount}`);
-        console.log(
-          `\n📊 Expected amount: ${expectedAmount.toFixed(6)} ${asset.currency}`,
-        );
+        output += `\n⚠️ Could not determine exact amount withdrawn from transaction metadata\n`;
+        output += `\n🔄 LP Tokens Used: ${lpTokenAmount}\n`;
+        output += `\n📊 Expected amount: ${expectedAmount.toFixed(6)} ${asset.currency}\n`;
       }
-      console.log("\n===============================");
 
+      if (response.result.tx_json?.Fee) {
+        output += `\n💸 Transaction Cost: ${xrpl.dropsToXrp(response.result.tx_json?.Fee)} XRP\n`;
+      }
 
-      // If this was done for an operational wallet, return info about the operational wallet
-      const operationalInfo = operationalWalletInfo
-        ? {
-            operationalWallet: operationalWalletInfo.classicAddress,
-            destTag: operationalWalletInfo.destTag,
-          }
-        : null;
+      // Refresh the AMM data after the operation completes
+      console.log("🔄 Updating AMM data from ledger...");
+      try {
+        // Get the updated AMM data
+        const updatedAmmData = await getAmmInfo(ammAccount);
+
+        if (updatedAmmData) {
+          // Log updated pool balances
+          output += "\n===== Updated AMM Pool State =====\n";
+          output += `LP tokens balance: ${Number(updatedAmmData.lp_token.value).toFixed(2)}\n`;
+          output += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} (${updatedAmmData.amount.currency})\n`;
+          output += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} (${updatedAmmData.amount2.currency})\n`;
+        } else {
+          output += "⚠️ Could not retrieve updated AMM data\n";
+        }
+      } catch (updateError) {
+        output += `⚠️ Error refreshing AMM data: ${updateError.message}\n`;
+      }
 
       // Return more detailed information for operational wallet handling
       return {
         success: true,
+        output,
         receivedAmount: actualWithdrawn
           ? actualWithdrawn.value
           : expectedAmount.toFixed(6),

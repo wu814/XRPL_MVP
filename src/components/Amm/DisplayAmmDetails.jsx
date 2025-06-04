@@ -9,6 +9,7 @@ import AmmCompositionBar from "./AmmCompositionBar";
 import ManageAmmBalance from "./ManageAmmBalance";
 import Breadcrumbs from "../Navigation/Breadcrumbs";
 import { useWallet } from "../WalletContext";
+import { useRouter } from "next/navigation";
 
 // This class is used to parse the AMM data returned from the API
 class AmmInfo {
@@ -49,6 +50,8 @@ class AmmInfo {
 }
 
 export default function DisplayAmmDetails({ ammAddress }) {
+  const router = useRouter();
+
   const [ammInfo, setAmmInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState(null);
@@ -79,7 +82,16 @@ export default function DisplayAmmDetails({ ammAddress }) {
       if (!res.ok) throw new Error(result.error || "Failed to fetch AMM info");
       setAmmInfo(new AmmInfo(result.data));
     } catch (error) {
-      setErrorMessage(error.message);
+      if (error.message === "Cannot read properties of null (reading 'account')") {
+        setErrorMessage(
+          "No Liquidity Pool found for the provided address, redirecting to Liquidity Pools page.",
+        );
+        setTimeout(() => {
+          router.push("/trade/amm");
+        }, 3500);
+      } else{
+        setErrorMessage(error.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -119,7 +131,7 @@ export default function DisplayAmmDetails({ ammAddress }) {
 
     return (
       <div className="mb-4">
-        <h3 className="mb-1 text-lg text-white">Price Information</h3>
+        <h3 className="mb-1 text-mutedText">Price Information</h3>
         <p className="text-sm">
           1 {s1} = {price1} {s2} / 1 {s2} = {price2} {s1}
         </p>
@@ -156,15 +168,15 @@ export default function DisplayAmmDetails({ ammAddress }) {
           </div>
           <div className="col-span-1 rounded-xl bg-color2 p-4">
             <h3 className="mb-2 text-mutedText">Pool Value</h3>
-            <p className="text-lg font-semibold">$99999.99</p>
+            <p className="text-lg font-semibold">Not Available</p>
           </div>
           <div className="col-span-1 rounded-xl bg-color2 p-4">
             <h3 className="mb-2 text-mutedText">Volume (24h)</h3>
-            <p className="text-lg font-semibold">$99999.99</p>
+            <p className="text-lg font-semibold">Not Available</p>
           </div>
           <div className="col-span-1 rounded-xl bg-color2 p-4">
             <h3 className="mb-2 text-mutedText">APR</h3>
-            <p className="text-lg font-semibold">$99999.99</p>
+            <p className="text-lg font-semibold">Not Available</p>
           </div>
           <div className="col-span-1 rounded-xl bg-color2 p-4">
             {renderTradingFee()}

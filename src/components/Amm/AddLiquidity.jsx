@@ -173,7 +173,7 @@ export default function AddLiquidity({ ammInfo, wallets, onAdded }) {
 
       const result = await res.json();
       if (!res.ok) throw new Error(result.error || "Liquidity deposit failed.");
-      setSuccessMessage(result.message || "Liquidity added successfully!");
+      setSuccessMessage(result.output || "Liquidity added successfully!");
 
       onAdded();
     } catch (err) {

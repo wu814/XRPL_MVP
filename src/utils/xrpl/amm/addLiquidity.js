@@ -367,7 +367,10 @@ function displayTransactionDetails(
   }
 
   output += "==============================\n";
-  return output;
+  return {
+    output,
+    success: true,
+  };
 };
 
 
