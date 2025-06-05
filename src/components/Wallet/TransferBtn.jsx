@@ -85,7 +85,7 @@ export default function TransferBtn({
 
       {showMdl && (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/10">
-          <div className="w-96 space-y-4 rounded-lg bg-modal p-6">
+          <div className="w-96 space-y-4 rounded-lg bg-color5 p-6">
             <h2 className="text-center text-xl font-semibold">Transfer</h2>
             <div className="relative mb-4 flex justify-between">
               <div className="flex space-x-1 rounded-full bg-color4 p-1">
@@ -139,7 +139,7 @@ export default function TransferBtn({
                   type="text"
                   value={recipientUsername}
                   onChange={(e) => setRecipientUsername(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-border bg-modal p-2 focus:border-primary focus:outline-none"
+                  className="bg-color6 mt-1 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
                   placeholder="Enter recipient username..."
                   readOnly={Boolean(presetRecipientUsername)}
                 />
@@ -153,7 +153,7 @@ export default function TransferBtn({
                   type="text"
                   value={recipientAddress}
                   onChange={(e) => setRecipientAddress(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-border bg-modal p-2 focus:border-primary focus:outline-none"
+                  className="bg-color6 mt-1 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
                   placeholder="Enter recipient address..."
                 />
               </div>
@@ -167,7 +167,7 @@ export default function TransferBtn({
                 value={currency}
                 onChange={setCurrency}
                 disabledOptions={[]}
-                dropdownBg="bg-modal"
+                dropdownBg="bg-color6"
               />
             </div>
 
@@ -180,7 +180,7 @@ export default function TransferBtn({
                 min="0"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-border bg-modal p-2 focus:border-primary focus:outline-none"
+                className="bg-color6 mt-1 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
                 placeholder="Enter amount..."
               />
             </div>
@@ -193,7 +193,7 @@ export default function TransferBtn({
                 type="text"
                 value={destinationTag}
                 onChange={(e) => setDestinationTag(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-border bg-modal p-2 focus:border-primary focus:outline-none"
+                className="bg-color6 mt-1 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
                 placeholder="Enter destination tag..."
               />
             </div>

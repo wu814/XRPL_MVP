@@ -56,7 +56,7 @@ export default function ClawbackTokenBtn({ issuerWallet }) {
 
       {showModal && (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/10">
-          <div className="w-96 space-y-4 rounded-lg bg-modal p-6">
+          <div className="w-96 space-y-4 rounded-lg bg-color5 p-6">
             <h2 className="text-center text-xl font-semibold">
               Clawback Token
             </h2>
@@ -69,7 +69,7 @@ export default function ClawbackTokenBtn({ issuerWallet }) {
                 type="text"
                 value={targetAccountAddress}
                 onChange={(e) => setTargetAccountAddress(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-border bg-modal p-2 focus:border-primary focus:outline-none"
+                className="bg-color6 mt-1 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
                 placeholder="Enter target wallet address..."
               />
             </div>
@@ -82,7 +82,7 @@ export default function ClawbackTokenBtn({ issuerWallet }) {
                 value={selectedCurrency}
                 onChange={setSelectedCurrency}
                 disabledOptions={[]}
-                dropdownBg="bg-modal"
+                dropdownBg="bg-color6"
               />
             </div>
 
@@ -95,7 +95,7 @@ export default function ClawbackTokenBtn({ issuerWallet }) {
                 min="0"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-border bg-modal p-2 focus:border-primary focus:outline-none"
+                className="bg-color6 mt-1 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
                 placeholder="Enter amount to claw back..."
               />
             </div>

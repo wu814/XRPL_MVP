@@ -193,7 +193,7 @@ export default function AddLiquidity({ ammInfo, wallets, onAdded }) {
       ].map(({ value, setValue, token }, idx) => (
         <div
           key={idx}
-          className="flex items-center justify-between rounded-lg bg-color3 p-4"
+          className="flex items-center justify-between rounded-lg bg-color3 p-4 border border-transparent hover:border-primary focus-within:border-primary"
         >
           <div className="flex items-center gap-2">
             <CurrencyIcon symbol={token?.currency} iconBg="bg-color4" />
@@ -203,7 +203,7 @@ export default function AddLiquidity({ ammInfo, wallets, onAdded }) {
             placeholder="0"
             value={value}
             onChange={(e) => setValue(e.target.value)}
-            className="w-20 bg-transparent text-right text-white focus:outline-none"
+            className="bg-transparent text-right focus:outline-none text-xl"
           />
         </div>
       ))}
@@ -214,14 +214,14 @@ export default function AddLiquidity({ ammInfo, wallets, onAdded }) {
   const renderLPInputs = () => (
     <>
       {/* LP Token amount input */}
-      <div className="rounded-lg bg-color3 p-4 text-mutedText">
-        <label className="mb-2 block text-sm">Desired LP Token Amount</label>
+      <div className="rounded-lg bg-color3 p-4 border border-transparent hover:border-primary focus-within:border-primary">
+        <label className="mb-2 block text-sm text-mutedText">Desired LP Token Amount</label>
         <input
           type="number"
           placeholder="0"
           value={lpAmount}
           onChange={(e) => setLpAmount(e.target.value)}
-          className="w-full rounded-lg bg-color4 p-2 text-right focus:outline-none"
+          className="w-full bg-transparent focus:outline-none text-xl"
         />
       </div>
 
@@ -251,8 +251,8 @@ export default function AddLiquidity({ ammInfo, wallets, onAdded }) {
       )}
 
       {/* Asset selection for one-asset LP mode */}
-      <div className="space-y-2 rounded-lg bg-color3 p-4 text-mutedText">
-        <label className="mb-2 block text-sm">Pay with</label>
+      <div className="space-y-2 rounded-lg bg-color3 p-4 border border-transparent hover:border-primary focus-within:border-primary">
+        <label className="mb-2 block text-sm text-mutedText ">Pay with</label>
         <div className="space-x-4">
           {["both", token1?.currency, token2?.currency].map((option) => (
             <label key={option}>

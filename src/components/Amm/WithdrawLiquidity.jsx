@@ -126,14 +126,14 @@ export default function WithdrawLiquidity({ ammInfo, wallets, onWithdrawn }) {
             value={amountA}
             onChange={(e) => setAmountA(e.target.value)}
             placeholder={`Desire ${token1?.currency || "Token A"} amount`}
-            className="w-full rounded-lg bg-color3 p-2"
+            className="bg-color3 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
           />
           <input
             type="number"
             value={amountB}
             onChange={(e) => setAmountB(e.target.value)}
             placeholder={`Desire ${token2.currency || "Token B"} amount`}
-            className="w-full rounded-lg bg-color3 p-2"
+            className="bg-color3 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
           />
         </>
       )}
@@ -153,7 +153,7 @@ export default function WithdrawLiquidity({ ammInfo, wallets, onWithdrawn }) {
               value={withdrawAmount}
               onChange={(e) => setWithdrawAmount(e.target.value)}
               placeholder="Withdraw Amount"
-              className="w-full rounded-lg bg-color3 p-2"
+              className="bg-color3 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
             />
           )}
         </>
@@ -165,7 +165,7 @@ export default function WithdrawLiquidity({ ammInfo, wallets, onWithdrawn }) {
           value={lpTokenAmount}
           onChange={(e) => setLpTokenAmount(e.target.value)}
           placeholder="LP Token Amount"
-          className="w-full rounded-lg bg-color3 p-2"
+          className="bg-color3 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
         />
       )}
 

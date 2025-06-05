@@ -12,7 +12,7 @@ export default function PasswordConfirmMdl({
 }) {
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/10">
-      <div className="w-96 rounded-lg bg-modal p-6">
+      <div className="w-96 rounded-lg bg-color5 p-6">
         <h2 className="mb-4 text-center text-xl font-bold">Confirm Deletion</h2>
         <p className="mb-4 text-center">
           Please enter your password to confirm deletion.
@@ -21,7 +21,7 @@ export default function PasswordConfirmMdl({
           type="password"
           value={passwordValue}
           onChange={(e) => setPasswordValue(e.target.value)}
-          className="mb-4 w-full rounded-lg border border-border bg-modal p-2 focus:border-primary focus:outline-none"
+          className="bg-color6 mb-4 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
           placeholder="Enter Password"
         />
         <div className="flex justify-end space-x-2">

@@ -26,7 +26,7 @@ export default function CreateAmmMdl({
 
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/10">
-      <div className="w-96 rounded-lg bg-modal p-6">
+      <div className="w-96 rounded-lg bg-color5 p-6">
         <h2 className="mb-4 text-xl font-bold">Create AMM</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -36,7 +36,7 @@ export default function CreateAmmMdl({
               value={assetA}
               onChange={setAssetA}
               disabledOptions={[assetB]}
-              dropdownBg="bg-modal"
+              dropdownBg="bg-color6"
             />
           </div>
 
@@ -44,7 +44,7 @@ export default function CreateAmmMdl({
             <label className="mb-1 block">Amount A</label>
             <input
               type="number"
-              className="w-full rounded-lg border border-border bg-modal p-2 focus:border-primary focus:outline-none"
+              className="bg-color6 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
               value={amountA}
               placeholder="Enter amount..."
               onChange={(e) => setAmountA(e.target.value)}
@@ -57,7 +57,7 @@ export default function CreateAmmMdl({
               value={assetB}
               onChange={setAssetB}
               disabledOptions={[assetA]}
-              dropdownBg="bg-modal"
+              dropdownBg="bg-color6"
             />
           </div>
 
@@ -65,7 +65,7 @@ export default function CreateAmmMdl({
             <label className="mb-1 block">Amount B</label>
             <input
               type="number"
-              className="w-full rounded-lg border border-border bg-modal p-2 focus:border-primary focus:outline-none"
+              className="bg-color6 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
               value={amountB}
               placeholder="Enter amount..."
               onChange={(e) => setAmountB(e.target.value)}
@@ -76,7 +76,7 @@ export default function CreateAmmMdl({
             <label className="mb-1 block">Fee (0-1000)</label>
             <input
               type="number"
-              className="w-full rounded-lg border border-border bg-modal p-2 focus:border-primary focus:outline-none"
+              className="bg-color6 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
               value={fee}
               placeholder="1000 = 1%"
               onChange={(e) => setFee(e.target.value)}
