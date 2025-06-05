@@ -26,7 +26,7 @@ export default function CreateAmmMdl({
 
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/10">
-      <div className="w-96 rounded-lg bg-color5 p-6">
+      <div className="w-96 rounded-lg bg-color4 p-6">
         <h2 className="mb-4 text-xl font-bold">Create AMM</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -36,7 +36,7 @@ export default function CreateAmmMdl({
               value={assetA}
               onChange={setAssetA}
               disabledOptions={[assetB]}
-              dropdownBg="bg-color6"
+              dropdownBg="bg-color5"
             />
           </div>
 

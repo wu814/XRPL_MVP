@@ -109,7 +109,7 @@ export default function WithdrawLiquidity({ ammInfo, wallets, onWithdrawn }) {
       <select
         value={mode}
         onChange={(e) => setMode(e.target.value)}
-        className="rounded-lg bg-color3 p-2"
+        className="mt-1 rounded-lg border border-transparent bg-color3 p-2 focus:border-primary focus:outline-none hover:border-primary"
       >
         <option value="twoAsset">Two Asset Withdraw</option>
         <option value="lpToken">LP Token Withdraw</option>
@@ -132,7 +132,7 @@ export default function WithdrawLiquidity({ ammInfo, wallets, onWithdrawn }) {
             type="number"
             value={amountB}
             onChange={(e) => setAmountB(e.target.value)}
-            placeholder={`Desire ${token2.currency || "Token B"} amount`}
+            placeholder={`Desire ${token2?.currency || "Token B"} amount`}
             className="bg-color3 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
           />
         </>
@@ -143,7 +143,7 @@ export default function WithdrawLiquidity({ ammInfo, wallets, onWithdrawn }) {
           <select
             value={assetType}
             onChange={(e) => setAssetType(e.target.value)}
-            className="w-full rounded-lg bg-color3 p-2"
+            className="mt-1 w-full rounded-lg border border-transparent bg-color3 p-2 focus:border-primary focus:outline-none hover:border-primary"
           >
             <option value={token1?.currency}>{token1?.currency}</option>
             <option value={token2?.currency}>{token2?.currency}</option>

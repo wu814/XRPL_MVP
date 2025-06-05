@@ -52,7 +52,7 @@ const Searchbar = () => {
             <li key={user.username}>
               <Link
                 href={`/user/${user.username}`}
-                className="block px-4 py-2 text-lg hover:bg-color5"
+                className="block px-4 py-2 text-lg hover:bg-color4"
               >
                 {user.username}
               </Link>

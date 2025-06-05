@@ -2,7 +2,7 @@ export default function CurrencyIcon({
   symbol,
   heightClass = "h-6",
   widthClass = "w-6",
-  iconBg = "bg-color5",
+  iconBg = "bg-color4",
 }) {
   if (!symbol) {
     return (

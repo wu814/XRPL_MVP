@@ -13,8 +13,8 @@ module.exports = {
         color2: "#241F34", // 2nd darkest (div components)
         color3: "#2F2A45", // 3rd darkest
         color4: "#3B3456", // 4th darkest (currency icons bg)
-        color5: "#443E5D", // 5th darkest (modal)
-        color6: "#4B4762", // 6th darkest (panel)
+        color5: "#4C4665", // 5th darkest (modal)
+        color6: "#5D587A", // 6th darkest (panel)
         pulse: "#514E78", // Animate pulse
         border: "#BDB9C9", // Border color
         mutedText: "#A3A4A7",

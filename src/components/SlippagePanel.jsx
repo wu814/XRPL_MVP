@@ -20,7 +20,7 @@ export default function SlippagePanel({ slippage, setSlippage, onClose }) {
 
   return (
     <div
-      className={`absolute right-2 top-10 z-10 w-3/5 rounded-lg bg-color6 p-4`}
+      className={`absolute right-2 top-10 z-10 w-3/5 rounded-lg bg-color6 p-4 border border-border`}
     >
       <label className="mb-1 block text-sm font-medium text-mutedText">
         Slippage Tolerance
@@ -32,7 +32,7 @@ export default function SlippagePanel({ slippage, setSlippage, onClose }) {
           max="100"
           value={tempSlippage}
           onChange={(e) => setTempSlippage(e.target.value)}
-          className="relative w-full rounded-lg border border-border bg-color6 p-2 focus:border-primary focus:outline-none"
+          className="relative w-full rounded-lg border border-border bg-color6 p-2 focus:border-primary focus:outline-none hover:border-primary"
         />
         <p className="absolute right-2 top-2">%</p>
       </div>

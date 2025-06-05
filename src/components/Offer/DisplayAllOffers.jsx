@@ -57,7 +57,7 @@ export default function DisplayAllOffers() {
           <CurrencyDropDown
             value={baseCurrency}
             onChange={setBaseCurrency}
-            dropdownBg={"bg-color2"}
+            dropdownBg={"bg-color3"}
           />
         </div>
 
@@ -66,7 +66,7 @@ export default function DisplayAllOffers() {
           <CurrencyDropDown
             value={counterCurrency}
             onChange={setCounterCurrency}
-            dropdownBg={"bg-color2"}
+            dropdownBg={"bg-color3"}
           />
         </div>
       </div>

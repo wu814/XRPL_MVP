@@ -40,7 +40,7 @@ export default function UpdateUsernameMdl({ onClose, onUpdated }) {
 
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/50">
-      <div className="w-auto rounded-lg bg-color5 p-6">
+      <div className="w-auto rounded-lg bg-color4 p-6">
         <h2 className="mb-4 text-center text-xl font-bold">
           Choose a Username (re-login after saving)
         </h2>

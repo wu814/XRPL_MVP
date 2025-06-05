@@ -78,7 +78,7 @@ export default function CreateOffer({ issuerWallets, offerCreatorWallet }) {
       <div className="rounded-lg bg-color3 p-4">
         <label className="mb-2 block text-sm text-mutedText">Offer Type</label>
         <select
-          className="w-full rounded-lg bg-color4 p-2 text-white"
+          className="mt-1 w-full rounded-lg border border-transparent bg-color4 p-2 focus:border-primary focus:outline-none hover:border-primary"
           value={offerType}
           onChange={(e) => setOfferType(e.target.value)}
         >
@@ -105,7 +105,7 @@ export default function CreateOffer({ issuerWallets, offerCreatorWallet }) {
             placeholder="Amount"
             value={payAmount}
             onChange={(e) => setPayAmount(e.target.value)}
-            className="mt-1 text-right w-full rounded-lg border border-transparent bg-color4 p-2 focus:border-primary focus:outline-none"
+            className="mt-1 text-right w-full rounded-lg border border-transparent bg-color4 p-2 focus:border-primary focus:outline-none hover:border-primary"
           />
         </div>
       </div>
@@ -125,7 +125,7 @@ export default function CreateOffer({ issuerWallets, offerCreatorWallet }) {
             placeholder="Amount"
             value={getAmount}
             onChange={(e) => setGetAmount(e.target.value)}
-            className="mt-1 text-right w-full rounded-lg border border-transparent bg-color4 p-2 focus:border-primary focus:outline-none"
+            className="mt-1 text-right w-full rounded-lg border border-transparent bg-color4 p-2 focus:border-primary focus:outline-none hover:border-primary"
           />
         </div>
       </div>

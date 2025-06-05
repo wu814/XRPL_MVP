@@ -21,7 +21,7 @@ export default function CurrencyDropDown({
   value,
   onChange,
   disabledOptions = [],
-  dropdownBg = "bg-color5",
+  dropdownBg = "bg-color4",
 }) {
   const selectedCurrency = currencies.find((c) => c.id === value);
 

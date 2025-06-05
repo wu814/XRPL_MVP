@@ -57,7 +57,7 @@ export default function SetTrustlineBtn({ setterWallet, issuerWallets }) {
 
       {showCurrencyMdl && (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/10">
-          <div className="w-96 space-y-4 rounded-lg bg-color5 p-6">
+          <div className="w-96 space-y-4 rounded-lg bg-color4 p-6">
             <h2 className="text-center text-lg font-semibold">
               Select Currency
             </h2>
