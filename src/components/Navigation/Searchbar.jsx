@@ -31,7 +31,7 @@ const Searchbar = () => {
       return;
     }
     const filtered = allUsers.filter((user) =>
-      user.username.toLowerCase().includes(searchText.toLowerCase())
+      user.username.toLowerCase().includes(searchText.toLowerCase()),
     );
     setFilteredUsers(filtered);
   }, [searchText, allUsers]);
@@ -44,10 +44,10 @@ const Searchbar = () => {
         onFocus={handleFocus}
         value={searchText}
         onChange={(e) => setSearchText(e.target.value)}
-        className="w-full rounded border border-border bg-color1 p-2 focus:border-primary focus:outline-none"
+        className="w-full rounded-lg border border-border bg-color1 p-2 focus:border-primary focus:outline-none"
       />
       {filteredUsers.length > 0 && (
-        <ul className="absolute z-50 mt-1 w-full rounded bg-color4 shadow-2xl">
+        <ul className="absolute z-50 mt-1 w-full rounded-lg bg-color4">
           {filteredUsers.map((user) => (
             <li key={user.username}>
               <Link

@@ -41,7 +41,6 @@ for ${currency}.`;
   };
 }
 
-
 export async function checkTrustline(wallet, destination, currency) {
   await connectXrplClient();
 
@@ -72,7 +71,6 @@ export async function checkTrustline(wallet, destination, currency) {
   }
 }
 
-
 export async function setLPTrustlineFromAMMData(providerWallet, ammData) {
   await connectXrplClient();
 
@@ -86,7 +84,11 @@ export async function setLPTrustlineFromAMMData(providerWallet, ammData) {
     throw new Error(`❌ No AMM data found for account ${ammAccount}`);
   }
 
-  if (!ammData.lp_token || !ammData.lp_token.currency || !ammData.lp_token.issuer) {
+  if (
+    !ammData.lp_token ||
+    !ammData.lp_token.currency ||
+    !ammData.lp_token.issuer
+  ) {
     throw new Error("❌ Invalid LP token data in AMM data file.");
   }
 
@@ -99,7 +101,11 @@ export async function setLPTrustlineFromAMMData(providerWallet, ammData) {
     `🔹 LP Token details: Currency: ${lpToken.currency}, Issuer: ${lpToken.issuer}`,
   );
 
-  const result = await setTrustline(providerWallet, lpToken.issuer, lpToken.currency);
+  const result = await setTrustline(
+    providerWallet,
+    lpToken.issuer,
+    lpToken.currency,
+  );
 
   if (result) {
     console.log("✅ LP Trustline successfully established.");

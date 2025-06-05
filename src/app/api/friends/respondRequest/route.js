@@ -27,7 +27,10 @@ export async function POST(req) {
     .single();
 
   if (fetchError || !request || request.receiver !== receiver) {
-    return NextResponse.json({ error: "Request not found or unauthorized" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Request not found or unauthorized" },
+      { status: 403 },
+    );
   }
 
   const { error } = await supabase
@@ -42,5 +45,8 @@ export async function POST(req) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ message: `Friend request ${action}ed` }, { status: 200 });
+  return NextResponse.json(
+    { message: `Friend request ${action}ed` },
+    { status: 200 },
+  );
 }

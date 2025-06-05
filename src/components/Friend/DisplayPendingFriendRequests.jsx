@@ -26,11 +26,12 @@ export default function DisplayPendingFriendRequests() {
       const res = await fetch("/api/friends/respondRequest", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ request_id, action })
+        body: JSON.stringify({ request_id, action }),
       });
 
       const result = await res.json();
-      if (!res.ok) throw new Error(result.error || "Failed to respond to request");
+      if (!res.ok)
+        throw new Error(result.error || "Failed to respond to request");
 
       setPendingRequests((prev) => prev.filter((req) => req.id !== request_id));
     } catch (err) {
@@ -44,30 +45,46 @@ export default function DisplayPendingFriendRequests() {
   }, []);
 
   return (
-    <div className="container mx-auto p-4 rounded-xl bg-color2">
-      <h2 className="mb-4 text-xl text-center font-semibold">Pending Friend Requests</h2>
+    <div className="container mx-auto rounded-lg bg-color2 p-4">
+      <h2 className="mb-4 text-center text-xl font-semibold">
+        Pending Friend Requests
+      </h2>
       {pendingRequests.length === 0 ? (
-        <p className="text-mutedText text-center">No pending requests.</p>
+        <p className="text-center text-mutedText">No pending requests.</p>
       ) : (
         <ul className="space-y-4 px-2">
           {pendingRequests.map((req) => (
-            <li key={req.id} className="rounded-md bg-color3 p-4 shadow flex justify-between items-center">
+            <li
+              key={req.id}
+              className="flex items-center justify-between rounded-lg bg-color3 p-4"
+            >
               <div>
-                <p className="font-medium">
-                  From: {req.sender || "Unknown"}
-                </p>
+                <p className="font-medium">From: {req.sender || "Unknown"}</p>
                 <p>Sent on: {new Date(req.sent_at).toLocaleDateString()}</p>
               </div>
               <div className="space-x-2">
-                <Button variant="primary" onClick={() => handleResponse(req.id, "accept")}>Accept</Button>
-                <Button variant="cancel" onClick={() => handleResponse(req.id, "reject")}>Reject</Button>
+                <Button
+                  variant="primary"
+                  onClick={() => handleResponse(req.id, "accept")}
+                >
+                  Accept
+                </Button>
+                <Button
+                  variant="cancel"
+                  onClick={() => handleResponse(req.id, "reject")}
+                >
+                  Reject
+                </Button>
               </div>
             </li>
           ))}
         </ul>
       )}
       {showErrorMdl && (
-        <ErrorMdl errorMessage={errorMessage} onClose={() => setShowErrorMdl(false)} />
+        <ErrorMdl
+          errorMessage={errorMessage}
+          onClose={() => setShowErrorMdl(false)}
+        />
       )}
     </div>
   );

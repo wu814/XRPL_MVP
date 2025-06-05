@@ -37,7 +37,8 @@ const sendXRP = async (wallet, destination, amount, destinationTag = null) => {
     Account: senderWallet.classicAddress,
     Destination: destination,
     Amount: xrpl.xrpToDrops(amountInXRP.toString()),
-    ...(destinationTag !== null && destinationTag !== "" && { DestinationTag: destinationTag }),
+    ...(destinationTag !== null &&
+      destinationTag !== "" && { DestinationTag: destinationTag }),
   };
 
   const preparedTx = await client.autofill(paymentTx);
@@ -50,7 +51,7 @@ const sendXRP = async (wallet, destination, amount, destinationTag = null) => {
 Recipient: ${destination}
 Amount: ${amountInXRP} XRP
 Transaction Hash: ${response.result.hash}
-Destination Tag: ${(destinationTag !== null && destinationTag !== "") ? destinationTag : "N/A"}`;
+Destination Tag: ${destinationTag !== null && destinationTag !== "" ? destinationTag : "N/A"}`;
 
     return {
       message: msg,

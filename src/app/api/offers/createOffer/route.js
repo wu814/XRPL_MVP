@@ -22,7 +22,10 @@ export async function POST(req) {
     } = await req.json();
 
     if (!payCurrency || !getCurrency || !payAmount || !getAmount) {
-      return NextResponse.json({ error: "Missing required input." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing required input." },
+        { status: 400 },
+      );
     }
 
     const takerPays =
@@ -49,19 +52,44 @@ export async function POST(req) {
     let response;
     switch (offerType) {
       case "FillOrKill":
-        response = await createFillOrKillOffer(wallet, takerPays, takerGets, destinationTag);
+        response = await createFillOrKillOffer(
+          wallet,
+          takerPays,
+          takerGets,
+          destinationTag,
+        );
         break;
       case "ImmediateOrCancel":
-        response = await createImmediateOrCancelOffer(wallet, takerPays, takerGets, destinationTag);
+        response = await createImmediateOrCancelOffer(
+          wallet,
+          takerPays,
+          takerGets,
+          destinationTag,
+        );
         break;
       case "Passive":
-        response = await createPassiveOffer(wallet, takerPays, takerGets, destinationTag);
+        response = await createPassiveOffer(
+          wallet,
+          takerPays,
+          takerGets,
+          destinationTag,
+        );
         break;
       case "Sell":
-        response = await createSellOffer(wallet, takerPays, takerGets, destinationTag);
+        response = await createSellOffer(
+          wallet,
+          takerPays,
+          takerGets,
+          destinationTag,
+        );
         break;
       default:
-        response = await createOffer(wallet, takerPays, takerGets, destinationTag);
+        response = await createOffer(
+          wallet,
+          takerPays,
+          takerGets,
+          destinationTag,
+        );
         break;
     }
 

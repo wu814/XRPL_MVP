@@ -31,12 +31,12 @@ export default function DisplayAllOffers() {
           }),
         });
 
-        const data = await res.json();
+        const result = await res.json();
         if (res.ok) {
-          setOffers(data.offers);
+          setOffers(result.offers);
           setSearched(true);
         } else {
-          console.error("API error:", data.error);
+          console.error("API error:", result.error);
         }
       } catch (err) {
         console.error("Fetch error:", err);
@@ -50,10 +50,8 @@ export default function DisplayAllOffers() {
   }, [baseCurrency, counterCurrency]);
 
   return (
-    <div className="space-y-6 rounded bg-color2 p-4 text-white">
-      <h2 className="text-xl font-bold">Select a Trading Pair</h2>
-
-      <div className="grid grid-cols-2 gap-4">
+    <div className="rounded-lg bg-color2 p-4 text-white">
+      <div className="grid grid-cols-2 gap-4 mb-6">
         <div>
           <label className="mb-1 block text-sm">Base Currency</label>
           <CurrencyDropDown
@@ -110,7 +108,7 @@ export default function DisplayAllOffers() {
               return (
                 <div
                   key={i}
-                  className="flex justify-between rounded bg-color3 p-4 px-6 text-sm"
+                  className="flex justify-between rounded-lg bg-color3 p-4 px-6 text-sm"
                 >
                   <div>
                     {price} {pays.currency} per {gets.currency}

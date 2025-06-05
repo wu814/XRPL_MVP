@@ -196,7 +196,7 @@ export default function AddLiquidity({ ammInfo, wallets, onAdded }) {
           className="flex items-center justify-between rounded-lg bg-color3 p-4"
         >
           <div className="flex items-center gap-2">
-            <CurrencyIcon symbol={token?.currency} />
+            <CurrencyIcon symbol={token?.currency} iconBg="bg-color4" />
           </div>
           <input
             type="number"
@@ -221,7 +221,7 @@ export default function AddLiquidity({ ammInfo, wallets, onAdded }) {
           placeholder="0"
           value={lpAmount}
           onChange={(e) => setLpAmount(e.target.value)}
-          className="w-full rounded bg-color2 p-2 text-right focus:outline-none"
+          className="w-full rounded-lg bg-color4 p-2 text-right focus:outline-none"
         />
       </div>
 

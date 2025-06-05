@@ -10,7 +10,7 @@ export async function POST(req) {
     if (!walletSeed || !destination || !currency) {
       return NextResponse.json(
         { error: "Missing walletSeed, destination, or currency." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -21,7 +21,7 @@ export async function POST(req) {
   } catch (err) {
     return NextResponse.json(
       { error: err.message || "Failed to check trustline." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

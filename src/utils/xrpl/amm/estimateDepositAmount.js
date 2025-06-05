@@ -58,7 +58,12 @@ export default function estimateDepositAmounts({
     poolB.isNaN() ||
     slip.isNaN()
   ) {
-    return { assetA: null, assetB: null, singleAsset: null, maxSingleAsset: null };
+    return {
+      assetA: null,
+      assetB: null,
+      singleAsset: null,
+      maxSingleAsset: null,
+    };
   }
 
   const ratio = desiredLP.div(totalLP);

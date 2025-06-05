@@ -10,7 +10,7 @@ export async function POST(req) {
     if (!walletSeed || !ammInfo) {
       return NextResponse.json(
         { error: "Missing walletSeed or ammInfo." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -20,18 +20,18 @@ export async function POST(req) {
     if (!result || !result.success) {
       return NextResponse.json(
         { error: "Failed to set LP token trustline." },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
     return NextResponse.json(
       { message: "Trustline set successfully." },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (err) {
     return NextResponse.json(
       { error: err.message || "Unexpected error while setting trustline." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -8,7 +8,7 @@ import ErrorMdl from "@/components/ErrorMdl";
 
 export default function ProfilePage() {
   const [username, setUsername] = useState("");
-  
+
   const params = useParams();
   const userID = params.userID; // Get the userID from the URL
 

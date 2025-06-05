@@ -35,7 +35,7 @@ export default function DisplayFriends() {
   }, []);
 
   return (
-    <div className="container mx-auto rounded-xl bg-color2 p-4">
+    <div className="container mx-auto rounded-lg bg-color2 p-4">
       <h2 className="mb-4 text-center text-xl font-semibold">Your Friends</h2>
 
       {errorMessage && (
@@ -52,7 +52,7 @@ export default function DisplayFriends() {
           {friends.map((friend) => (
             <li
               key={friend.id}
-              className="flex items-center justify-between rounded-md bg-color3 p-4 shadow"
+              className="flex items-center justify-between rounded-lg bg-color3 p-4"
             >
               <div>
                 <p>Username: {friend.username}</p>

@@ -15,7 +15,7 @@ export async function GET() {
 
     const { data, error } = await supabase
       .from("friend_requests")
-      // 
+      //
       .select("id, sender, sent_at")
       .eq("receiver", receiverName)
       .eq("status", "pending")
@@ -27,7 +27,7 @@ export async function GET() {
   } catch (err) {
     return NextResponse.json(
       { error: `Internal Server Error: ${err.message}` },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

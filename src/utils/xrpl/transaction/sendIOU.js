@@ -125,7 +125,9 @@ const findBestPath = async (
     return currentValue.isLessThan(bestValue) ? current : best;
   });
 
-  const sendMaxValue = new BigNumber(bestAlternative.source_amount.value).toFixed(6);
+  const sendMaxValue = new BigNumber(
+    bestAlternative.source_amount.value,
+  ).toFixed(6);
 
   const paths =
     bestAlternative.paths_computed ||
@@ -147,14 +149,13 @@ const findBestPath = async (
   };
 };
 
-
 const sendIOU = async (
   wallet,
   destination,
   amount,
   currency,
   issuerWallets,
-  destinationTag = null
+  destinationTag = null,
 ) => {
   await connectXrplClient();
   const senderWallet = xrpl.Wallet.fromSeed(wallet.seed);
@@ -176,23 +177,7 @@ const sendIOU = async (
   let payment;
 
   if (senderIsIssuer) {
-  // Case 1: Issuer sending IOU
-  await checkDestinationTrustline(destination, issuerAddress, currency); // ✅ moved here
-  payment = {
-    TransactionType: "Payment",
-    Account: senderAddress,
-    Destination: destination,
-    Amount: {
-      currency,
-      issuer: issuerAddress,
-      value: amountString,
-    },
-    ...(destinationTag != null && { DestinationTag: destinationTag }),
-  };
-} else {
-  try {
-    // Case 2: Sender has IOU and enough balance
-    await checkSenderBalance(senderWallet, issuerAddress, currency, amountString);
+    // Case 1: Issuer sending IOU
     await checkDestinationTrustline(destination, issuerAddress, currency); // ✅ moved here
     payment = {
       TransactionType: "Payment",
@@ -205,37 +190,58 @@ const sendIOU = async (
       },
       ...(destinationTag != null && { DestinationTag: destinationTag }),
     };
-  } catch {
-    // Case 3: Fallback to path finding
-    const pathData = await findBestPath(
-      senderAddress,
-      destination,
-      amountString,
-      currency,
-      issuerAddress
-    );
-
-    if (!pathData) {
-      throw new Error(
-        "No valid payment path found. Either the sender lacks sufficient IOUs or no viable conversion path exists."
-      );
-    }
-
-    payment = {
-      TransactionType: "Payment",
-      Account: senderAddress,
-      Destination: destination,
-      Amount: {
+  } else {
+    try {
+      // Case 2: Sender has IOU and enough balance
+      await checkSenderBalance(
+        senderWallet,
+        issuerAddress,
         currency,
-        issuer: issuerAddress,
-        value: amountString,
-      },
-      ...pathData,
-      ...(destinationTag !== null && destinationTag !== "" && { DestinationTag: destinationTag }),
-    };
-  }
-}
+        amountString,
+      );
+      await checkDestinationTrustline(destination, issuerAddress, currency); // ✅ moved here
+      payment = {
+        TransactionType: "Payment",
+        Account: senderAddress,
+        Destination: destination,
+        Amount: {
+          currency,
+          issuer: issuerAddress,
+          value: amountString,
+        },
+        ...(destinationTag != null && { DestinationTag: destinationTag }),
+      };
+    } catch {
+      // Case 3: Fallback to path finding
+      const pathData = await findBestPath(
+        senderAddress,
+        destination,
+        amountString,
+        currency,
+        issuerAddress,
+      );
 
+      if (!pathData) {
+        throw new Error(
+          "No valid payment path found. Either the sender lacks sufficient IOUs or no viable conversion path exists.",
+        );
+      }
+
+      payment = {
+        TransactionType: "Payment",
+        Account: senderAddress,
+        Destination: destination,
+        Amount: {
+          currency,
+          issuer: issuerAddress,
+          value: amountString,
+        },
+        ...pathData,
+        ...(destinationTag !== null &&
+          destinationTag !== "" && { DestinationTag: destinationTag }),
+      };
+    }
+  }
 
   const prepared = await client.autofill(payment);
   const signed = senderWallet.sign(prepared);
@@ -247,13 +253,12 @@ const sendIOU = async (
 Recipient: ${destination}
 Amount: ${amountString} ${currency}
 Transaction Hash: ${response.result.hash}
-Destination Tag: ${(destinationTag !== null && destinationTag !== "") ? destinationTag : "N/A"}`;
+Destination Tag: ${destinationTag !== null && destinationTag !== "" ? destinationTag : "N/A"}`;
 
     return { message: msg };
   }
 
   handlePaymentError(resultCode, "Transaction failed");
 };
-
 
 export default sendIOU;

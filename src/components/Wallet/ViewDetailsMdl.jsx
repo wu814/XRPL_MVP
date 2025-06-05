@@ -11,7 +11,7 @@ export default function ViewDetailsMdl({
 }) {
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/10">
-      <div className="relative h-5/6 w-11/12 max-w-3xl rounded-lg bg-modal p-6 shadow-lg">
+      <div className="relative h-5/6 w-11/12 max-w-3xl rounded-lg bg-modal p-6">
         <h2 className="mb-4 text-center text-xl font-bold">Wallet Details</h2>
 
         {/* Loading */}

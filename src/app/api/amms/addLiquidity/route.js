@@ -8,22 +8,18 @@ import {
   addLiquidityOneAssetLPToken,
 } from "@/utils/xrpl/amm/addLiquidity";
 
-
 export async function POST(req) {
   try {
-    const {
-      depositType,
-      walletSeed,
-      ammInfo,
-      assetA,
-      assetB,
-      lpTokenOut,
-    } = await req.json();
+    const { depositType, walletSeed, ammInfo, assetA, assetB, lpTokenOut } =
+      await req.json();
 
     if (!depositType || !walletSeed || !ammInfo) {
       return NextResponse.json(
-        { error: "Missing required parameters: depositType, walletSeed, or ammAccount" },
-        { status: 400 }
+        {
+          error:
+            "Missing required parameters: depositType, walletSeed, or ammAccount",
+        },
+        { status: 400 },
       );
     }
 
@@ -35,7 +31,12 @@ export async function POST(req) {
     switch (depositType) {
       case "twoAsset":
         if (!assetA || !assetB) throw new Error("Missing assetA or assetB");
-        result = await addLiquidityTwoAsset(providerWallet, ammAccount, assetA, assetB);
+        result = await addLiquidityTwoAsset(
+          providerWallet,
+          ammAccount,
+          assetA,
+          assetB,
+        );
         break;
 
       case "twoAssetLPToken":
@@ -46,18 +47,27 @@ export async function POST(req) {
           ammAccount,
           assetA,
           assetB,
-          lpTokenOut
+          lpTokenOut,
         );
         break;
 
       case "ifEmpty":
         if (!assetA || !assetB) throw new Error("Missing assetA or assetB");
-        result = await addLiquidityIfEmpty(providerWallet, ammAccount, assetA, assetB);
+        result = await addLiquidityIfEmpty(
+          providerWallet,
+          ammAccount,
+          assetA,
+          assetB,
+        );
         break;
 
       case "oneAsset":
         if (!assetA) throw new Error("Missing asset");
-        result = await addLiquiditySingleAsset(providerWallet, ammAccount, assetA);
+        result = await addLiquiditySingleAsset(
+          providerWallet,
+          ammAccount,
+          assetA,
+        );
         break;
 
       case "oneAssetLPToken":
@@ -67,25 +77,22 @@ export async function POST(req) {
           providerWallet,
           ammAccount,
           assetA,
-          lpTokenOut
+          lpTokenOut,
         );
         break;
 
       default:
         return NextResponse.json(
           { error: "Invalid depositType specified." },
-          { status: 400 }
+          { status: 400 },
         );
     }
 
-    return NextResponse.json(
-      result,
-      { status: 200 }
-    );
+    return NextResponse.json(result, { status: 200 });
   } catch (error) {
     return NextResponse.json(
       { error: error.message || "Unexpected error occurred." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

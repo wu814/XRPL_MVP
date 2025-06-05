@@ -10,7 +10,6 @@ export async function GET() {
   }
   const userID = session.user.user_id;
   try {
-
     const supabase = await createSupabaseAnonClient();
 
     const { data, error } = await supabase
@@ -22,17 +21,14 @@ export async function GET() {
     if (error) throw error;
 
     if (!data) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     return NextResponse.json({ data }, { status: 200 });
   } catch (error) {
     return NextResponse.json(
       { error: `Error fetching user: ${error.message}` },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

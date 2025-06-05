@@ -24,7 +24,7 @@ export async function POST(req) {
     .from("friend_requests")
     .select("*")
     .or(
-      `and(sender.eq.${sender},receiver.eq.${receiver}),and(sender.eq.${receiver},receiver.eq.${sender})`
+      `and(sender.eq.${sender},receiver.eq.${receiver}),and(sender.eq.${receiver},receiver.eq.${sender})`,
     )
     .order("sent_at", { ascending: false })
     .limit(1)
@@ -36,11 +36,14 @@ export async function POST(req) {
 
   if (existing) {
     if (existing.status === "accepted") {
-      return NextResponse.json({ error: "You are already friends." }, { status: 409 });
+      return NextResponse.json(
+        { error: "You are already friends." },
+        { status: 409 },
+      );
     }
     return NextResponse.json(
       { error: `Friend request already exists (${existing.status})` },
-      { status: 409 }
+      { status: 409 },
     );
   }
 
@@ -56,5 +59,8 @@ export async function POST(req) {
     return NextResponse.json({ error: insertError.message }, { status: 500 });
   }
 
-  return NextResponse.json({ message: "Friend request sent!" }, { status: 200 });
+  return NextResponse.json(
+    { message: "Friend request sent!" },
+    { status: 200 },
+  );
 }

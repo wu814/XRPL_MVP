@@ -12,7 +12,6 @@ export default function Trade() {
   const linkClass = (path) =>
     `text-3xl font-semibold transition duration-200 ease-in-out hover:scale-105 hover:text-primary pb-6 block`;
 
-  
   useEffect(() => {
     if (status === "authenticated") {
       setUsername(session.user.username || "");
@@ -24,7 +23,7 @@ export default function Trade() {
       <Navbar username={username} />
       <div className="container mx-auto">
         <div className="grid grid-cols-3 gap-10 pt-10 text-center">
-          <div className="rounded-xl bg-color2 p-8">
+          <div className="rounded-lg bg-color2 p-8">
             <Link href="/trade/amm" className={linkClass("/trade/amm")}>
               Liquidity Pool
             </Link>
@@ -38,7 +37,7 @@ export default function Trade() {
               adjust automatically based on supply and demand in the pool.
             </p>
           </div>
-          <div className="rounded-xl bg-color2 p-8">
+          <div className="rounded-lg bg-color2 p-8">
             <Link href="/trade/dex" className={linkClass("/trade/dex")}>
               Order Book
             </Link>
@@ -51,7 +50,7 @@ export default function Trade() {
               high-liquidity assets and precise trading strategies.
             </p>
           </div>
-          <div className="rounded-xl bg-color2 p-8">
+          <div className="rounded-lg bg-color2 p-8">
             <Link href="/trade/amm" className={linkClass("/trade/hybrid")}>
               Smart Trade
             </Link>

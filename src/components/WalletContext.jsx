@@ -67,8 +67,7 @@ export const WalletProvider = ({ children }) => {
           walletType: wallet.wallet_type,
           seed: wallet.seed,
         });
-      }
-      else {
+      } else {
         setTreasuryWallet(null); // No treasury wallet found
       }
     } catch (error) {

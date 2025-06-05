@@ -15,13 +15,12 @@ export default function AMM() {
     }
   }, [session, status]);
 
-
   return (
     <div>
-      <Navbar username={username}/>
+      <Navbar username={username} />
       {/* Main Content */}
       <main className="container mx-auto flex flex-col">
-        <Breadcrumbs/>
+        <Breadcrumbs />
         <DisplayAmms />
       </main>
     </div>

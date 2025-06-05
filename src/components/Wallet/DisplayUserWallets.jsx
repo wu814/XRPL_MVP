@@ -17,7 +17,7 @@ const DisplayUserWallets = () => {
     loading,
     errorMessage,
     fetchWallets,
-    fetchIssuerWallets
+    fetchIssuerWallets,
   } = useWallet();
 
   const handleWalletCreated = async () => {
@@ -41,7 +41,7 @@ const DisplayUserWallets = () => {
           {currentUserWallets.map((wallet) => (
             <div
               key={wallet.classicAddress}
-              className="relative rounded-lg bg-color2 p-4 shadow-lg"
+              className="relative rounded-lg bg-color2 p-4"
             >
               <h3 className="mb-6 text-xl font-bold">
                 {wallet.classicAddress}

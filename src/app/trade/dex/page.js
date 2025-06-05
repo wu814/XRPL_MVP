@@ -28,16 +28,16 @@ export default function DEX() {
       <Navbar username={username} />
       <div className="container mx-auto">
         <div className="grid grid-cols-5 gap-4 p-4">
-          <div className="col-span-2 space-y-6 rounded-xl bg-color2 p-4">
-            <h1 className="text-2xl font-bold text-white">Create an Offer</h1>
+          <div className="col-span-2 space-y-6 rounded-lg bg-color2 p-4">
+            <h1 className="text-center text-2xl font-bold">Create an Offer</h1>
             <CreateOffer
               issuerWallets={issuerWallets}
               offerCreatorWallet={offerCreatorWallet}
             />
           </div>
-          <div className="col-span-3 rounded-xl bg-color2 p-4">
-            <h1>Offer List</h1>
-            <DisplayAllOffers/>
+          <div className="col-span-3 rounded-lg bg-color2 p-4">
+            <h1 className="text-center text-2xl font-bold">Offer List</h1>
+            <DisplayAllOffers />
           </div>
         </div>
       </div>

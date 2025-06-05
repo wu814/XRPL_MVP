@@ -109,7 +109,7 @@ export default function WithdrawLiquidity({ ammInfo, wallets, onWithdrawn }) {
       <select
         value={mode}
         onChange={(e) => setMode(e.target.value)}
-        className="rounded bg-color3 p-2"
+        className="rounded-lg bg-color3 p-2"
       >
         <option value="twoAsset">Two Asset Withdraw</option>
         <option value="lpToken">LP Token Withdraw</option>
@@ -126,14 +126,14 @@ export default function WithdrawLiquidity({ ammInfo, wallets, onWithdrawn }) {
             value={amountA}
             onChange={(e) => setAmountA(e.target.value)}
             placeholder={`Desire ${token1?.currency || "Token A"} amount`}
-            className="w-full rounded bg-color3 p-2"
+            className="w-full rounded-lg bg-color3 p-2"
           />
           <input
             type="number"
             value={amountB}
             onChange={(e) => setAmountB(e.target.value)}
             placeholder={`Desire ${token2.currency || "Token B"} amount`}
-            className="w-full rounded bg-color3 p-2"
+            className="w-full rounded-lg bg-color3 p-2"
           />
         </>
       )}
@@ -143,7 +143,7 @@ export default function WithdrawLiquidity({ ammInfo, wallets, onWithdrawn }) {
           <select
             value={assetType}
             onChange={(e) => setAssetType(e.target.value)}
-            className="w-full rounded bg-color3 p-2"
+            className="w-full rounded-lg bg-color3 p-2"
           >
             <option value={token1?.currency}>{token1?.currency}</option>
             <option value={token2?.currency}>{token2?.currency}</option>
@@ -153,7 +153,7 @@ export default function WithdrawLiquidity({ ammInfo, wallets, onWithdrawn }) {
               value={withdrawAmount}
               onChange={(e) => setWithdrawAmount(e.target.value)}
               placeholder="Withdraw Amount"
-              className="w-full rounded bg-color3 p-2"
+              className="w-full rounded-lg bg-color3 p-2"
             />
           )}
         </>
@@ -165,7 +165,7 @@ export default function WithdrawLiquidity({ ammInfo, wallets, onWithdrawn }) {
           value={lpTokenAmount}
           onChange={(e) => setLpTokenAmount(e.target.value)}
           placeholder="LP Token Amount"
-          className="w-full rounded bg-color3 p-2"
+          className="w-full rounded-lg bg-color3 p-2"
         />
       )}
 

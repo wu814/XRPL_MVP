@@ -34,7 +34,9 @@ export default function ClawbackTokenBtn({ issuerWallet }) {
       const result = await res.json();
       if (!res.ok) throw new Error(result.error || "Unknown error");
 
-      setSuccessMessage(`Successfully clawed back ${amount} ${selectedCurrency}`);
+      setSuccessMessage(
+        `Successfully clawed back ${amount} ${selectedCurrency}`,
+      );
       setShowModal(false);
       setTargetAccountAddress("");
       setSelectedCurrency(null);
@@ -54,8 +56,10 @@ export default function ClawbackTokenBtn({ issuerWallet }) {
 
       {showModal && (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/10">
-          <div className="w-96 space-y-4 rounded-lg bg-modal p-6 shadow-lg">
-            <h2 className="text-center text-xl font-semibold">Clawback Token</h2>
+          <div className="w-96 space-y-4 rounded-lg bg-modal p-6">
+            <h2 className="text-center text-xl font-semibold">
+              Clawback Token
+            </h2>
 
             <div>
               <label className="block text-sm font-medium text-mutedText">
@@ -65,7 +69,7 @@ export default function ClawbackTokenBtn({ issuerWallet }) {
                 type="text"
                 value={targetAccountAddress}
                 onChange={(e) => setTargetAccountAddress(e.target.value)}
-                className="mt-1 w-full rounded border border-border bg-modal p-2 focus:border-primary focus:outline-none"
+                className="mt-1 w-full rounded-lg border border-border bg-modal p-2 focus:border-primary focus:outline-none"
                 placeholder="Enter target wallet address..."
               />
             </div>
@@ -78,6 +82,7 @@ export default function ClawbackTokenBtn({ issuerWallet }) {
                 value={selectedCurrency}
                 onChange={setSelectedCurrency}
                 disabledOptions={[]}
+                dropdownBg="bg-modal"
               />
             </div>
 
@@ -90,7 +95,7 @@ export default function ClawbackTokenBtn({ issuerWallet }) {
                 min="0"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="mt-1 w-full rounded border border-border bg-modal p-2 focus:border-primary focus:outline-none"
+                className="mt-1 w-full rounded-lg border border-border bg-modal p-2 focus:border-primary focus:outline-none"
                 placeholder="Enter amount to claw back..."
               />
             </div>
@@ -106,7 +111,12 @@ export default function ClawbackTokenBtn({ issuerWallet }) {
               <Button
                 variant="primary"
                 onClick={handleClawback}
-                disabled={!targetAccountAddress || !selectedCurrency || !amount || loading}
+                disabled={
+                  !targetAccountAddress ||
+                  !selectedCurrency ||
+                  !amount ||
+                  loading
+                }
               >
                 {loading ? "Processing..." : "Clawback"}
               </Button>
@@ -116,10 +126,16 @@ export default function ClawbackTokenBtn({ issuerWallet }) {
       )}
 
       {errorMessage && (
-        <ErrorMdl errorMessage={errorMessage} onClose={() => setErrorMessage("")} />
+        <ErrorMdl
+          errorMessage={errorMessage}
+          onClose={() => setErrorMessage("")}
+        />
       )}
       {successMessage && (
-        <SuccessMdl successMessage={successMessage} onClose={() => setSuccessMessage("")} />
+        <SuccessMdl
+          successMessage={successMessage}
+          onClose={() => setSuccessMessage("")}
+        />
       )}
     </>
   );

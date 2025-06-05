@@ -26,7 +26,6 @@ export default function CreateOffer({ issuerWallets, offerCreatorWallet }) {
   const [errorMessage, setErrorMessage] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
 
-
   const handleSubmit = async () => {
     setLoading(true);
     setErrorMessage(null);
@@ -41,7 +40,7 @@ export default function CreateOffer({ issuerWallets, offerCreatorWallet }) {
         getAmount,
         destinationTag,
         issuerWallets,
-        offerCreatorWallet
+        offerCreatorWallet,
       );
       const payload = {
         offerType,
@@ -51,7 +50,7 @@ export default function CreateOffer({ issuerWallets, offerCreatorWallet }) {
         getAmount,
         destinationTag,
         issuerAddress: issuerWallets[0].classicAddress,
-        offerCreatorWallet, 
+        offerCreatorWallet,
       };
 
       const res = await fetch("/api/offers/createOffer", {
@@ -75,10 +74,10 @@ export default function CreateOffer({ issuerWallets, offerCreatorWallet }) {
   return (
     <div className="space-y-4 p-6">
       {/* Offer type dropdown */}
-      <div className="bg-color3 p-4">
-        <label className="block text-sm mb-2">Offer Type</label>
+      <div className="rounded-lg bg-color3 p-4">
+        <label className="mb-2 block text-sm">Offer Type</label>
         <select
-          className="w-full rounded bg-color4 p-2 text-white"
+          className="w-full rounded-lg bg-color4 p-2 text-white"
           value={offerType}
           onChange={(e) => setOfferType(e.target.value)}
         >
@@ -91,40 +90,50 @@ export default function CreateOffer({ issuerWallets, offerCreatorWallet }) {
       </div>
 
       {/* Taker Pays Section */}
-      <div className="bg-color3 p-4 space-y-2">
+      <div className="space-y-2 rounded-lg bg-color3 p-4">
         <label className="block text-sm">Currency You Pay</label>
-        <CurrencyDropDown value={payCurrency} onChange={setPayCurrency} disabledOptions={[getCurrency]} dropdownBg={"bg-color3"}/>
+        <CurrencyDropDown
+          value={payCurrency}
+          onChange={setPayCurrency}
+          disabledOptions={[getCurrency]}
+          dropdownBg={"bg-color3"}
+        />
         <input
           type="number"
           placeholder="Amount"
           value={payAmount}
           onChange={(e) => setPayAmount(e.target.value)}
-          className="mt-1 w-full rounded border border-border bg-color3 p-2 focus:border-primary focus:outline-none"
+          className="mt-1 w-full rounded-lg border border-border bg-color3 p-2 focus:border-primary focus:outline-none"
         />
       </div>
 
       {/* Taker Gets Section */}
-      <div className="rounded bg-color3 p-4 space-y-2">
+      <div className="space-y-2 rounded-lg bg-color3 p-4">
         <label className="block text-sm">Currency You Want</label>
-        <CurrencyDropDown value={getCurrency} onChange={setGetCurrency} disabledOptions={[payCurrency]} dropdownBg={"bg-color3"} />
+        <CurrencyDropDown
+          value={getCurrency}
+          onChange={setGetCurrency}
+          disabledOptions={[payCurrency]}
+          dropdownBg={"bg-color3"}
+        />
         <input
           type="number"
           placeholder="Amount"
           value={getAmount}
           onChange={(e) => setGetAmount(e.target.value)}
-          className="mt-1 w-full rounded border border-border bg-color3 p-2 focus:border-primary focus:outline-none"
+          className="mt-1 w-full rounded-lg border border-border bg-color3 p-2 focus:border-primary focus:outline-none"
         />
       </div>
 
       {/* Optional Destination Tag */}
-      <div className="rounded bg-color3 p-4">
-        <label className="block text-sm mb-2">Destination Tag (Optional)</label>
+      <div className="rounded-lg bg-color3 p-4">
+        <label className="mb-2 block text-sm">Destination Tag (Optional)</label>
         <input
           type="number"
           placeholder="Destination Tag"
           value={destinationTag}
           onChange={(e) => setDestinationTag(e.target.value)}
-          className="mt-1 w-full rounded border border-border bg-color3 p-2 focus:border-primary focus:outline-none"
+          className="mt-1 w-full rounded-lg border border-border bg-color3 p-2 focus:border-primary focus:outline-none"
         />
       </div>
 

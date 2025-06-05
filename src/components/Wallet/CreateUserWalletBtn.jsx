@@ -27,7 +27,6 @@ export default function CreateUserWalletBtn({ onWalletCreated }) {
       if (!res.ok) throw new Error(result.error || "Failed to add wallet");
 
       setSuccessMessage(result.message);
-      
     } catch (err) {
       setErrorMessage(err.message);
     } finally {
@@ -54,7 +53,7 @@ export default function CreateUserWalletBtn({ onWalletCreated }) {
 
       {showMdl && (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/10">
-          <div className="w-96 rounded-lg bg-modal p-6 shadow-lg">
+          <div className="w-96 rounded-lg bg-modal p-6">
             <h2 className="mb-4 text-xl font-bold">Create / Import Wallet</h2>
 
             <form onSubmit={handleSubmit}>
@@ -63,7 +62,7 @@ export default function CreateUserWalletBtn({ onWalletCreated }) {
                 <select
                   value={method}
                   onChange={(e) => setMethod(e.target.value)}
-                  className="mt-1 w-full rounded border border-border bg-modal p-2 focus:border-primary focus:outline-none"
+                  className="mt-1 w-full rounded-lg border border-border bg-modal p-2 focus:border-primary focus:outline-none"
                 >
                   <option value="custodial">Custodial Wallet</option>
                   <option value="import">Import Non-Custodial Wallet</option>

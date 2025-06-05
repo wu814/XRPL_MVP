@@ -66,7 +66,9 @@ export default function DisplayAmms() {
   return (
     <div className="container mx-auto">
       <div className="mb-5 flex items-center justify-between">
-        <h1 className="text-primary text-3xl font-bold py-6">Liquidity Pools</h1>
+        <h1 className="py-6 text-3xl font-bold text-primary">
+          Liquidity Pools
+        </h1>
         {/* Only show the button if the user is an admin and there are issuer wallet and treasury wallet */}
         {session?.user?.is_admin && (
           <CreateAmmBtn onAmmCreated={handleAmmCreated} />
@@ -74,9 +76,9 @@ export default function DisplayAmms() {
       </div>
 
       {loading ? (
-        <div className="bg-color2 flex flex-col rounded-xl">
+        <div className="flex flex-col rounded-lg bg-color2">
           {/* Table Header */}
-          <div className="border-border grid grid-cols-[2fr_1fr_1fr_1fr] border-b px-4 py-4 text-lg font-semibold text-white">
+          <div className="grid grid-cols-[2fr_1fr_1fr_1fr] border-b border-border px-4 py-4 text-lg font-semibold text-white">
             <h3 className="pl-7 text-left">Pair</h3>
             <h3 className="text-center">Address</h3>
             <h3 className="text-center">Volume (24hr)</h3>
@@ -92,21 +94,21 @@ export default function DisplayAmms() {
               >
                 {/* Pair */}
                 <div className="flex gap-2 pl-2">
-                  <div className="bg-color4 flex items-center gap-2 rounded-lg px-3 py-2">
-                    <div className="bg-pulse h-6 w-6 rounded-full" />
-                    <div className="bg-pulse h-4 w-8 rounded" />
+                  <div className="flex items-center gap-2 rounded-lg bg-color4 px-3 py-2">
+                    <div className="h-6 w-6 rounded-full bg-pulse" />
+                    <div className="h-4 w-8 rounded-lg bg-pulse" />
                   </div>
-                  <div className="bg-color4 flex items-center gap-2 rounded-lg px-3 py-2">
-                    <div className="bg-pulse h-6 w-6 rounded-full" />
-                    <div className="bg-pulse h-4 w-8 rounded" />
+                  <div className="flex items-center gap-2 rounded-lg bg-color4 px-3 py-2">
+                    <div className="h-6 w-6 rounded-full bg-pulse" />
+                    <div className="h-4 w-8 rounded-lg bg-pulse" />
                   </div>
                 </div>
                 {/* Address */}
-                <div className="bg-pulse mx-auto h-4 w-48 rounded" />
+                <div className="mx-auto h-4 w-48 rounded-lg bg-pulse" />
                 {/* Volume */}
-                <div className="bg-pulse mx-auto h-4 w-24 rounded" />
+                <div className="mx-auto h-4 w-24 rounded-lg bg-pulse" />
                 {/* Fee */}
-                <div className="bg-pulse mx-auto h-4 w-12 rounded" />
+                <div className="mx-auto h-4 w-12 rounded-lg bg-pulse" />
               </div>
             ))}
           </div>
@@ -114,9 +116,9 @@ export default function DisplayAmms() {
       ) : amms.length === 0 ? (
         <p className="text-center">No AMMs found.</p>
       ) : (
-        <div className="bg-color2 flex flex-col rounded-xl">
+        <div className="flex flex-col rounded-lg bg-color2">
           {/* Header row */}
-          <div className="border-border grid grid-cols-[2fr_1fr_1fr_1fr] border-b px-4 py-4 text-lg font-semibold">
+          <div className="grid grid-cols-[2fr_1fr_1fr_1fr] border-b border-border px-4 py-4 text-lg font-semibold">
             <h3 className="pl-7 text-left">Pair</h3>
             <h3 className="text-center">Address</h3>
             <h3 className="text-center">Volume (24hr)</h3>
@@ -127,15 +129,15 @@ export default function DisplayAmms() {
           {amms.map((amm, index) => (
             <div
               key={index}
-              className="hover:bg-color3 grid cursor-pointer grid-cols-[2fr_1fr_1fr_1fr] items-center px-4 py-6"
+              className="grid cursor-pointer grid-cols-[2fr_1fr_1fr_1fr] items-center px-4 py-6 hover:bg-color3"
               onClick={() => {
                 localStorage.setItem("selectedAMM", JSON.stringify(amm));
                 router.push(`/trade/amm/${amm.ammAddress}`);
               }}
             >
               <div className="flex gap-1 pl-2">
-                <CurrencyIcon symbol={amm.pair[0]} />
-                <CurrencyIcon symbol={amm.pair[1]} />
+                <CurrencyIcon symbol={amm.pair[0]} iconBg="bg-color4" />
+                <CurrencyIcon symbol={amm.pair[1]} iconBg="bg-color4" />
               </div>
               <p className="text-center">{amm.ammAddress}</p>
               <p className="text-center">Not Available</p>

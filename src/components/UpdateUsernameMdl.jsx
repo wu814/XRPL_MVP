@@ -10,7 +10,6 @@ export default function UpdateUsernameMdl({ onClose, onUpdated }) {
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
 
-
   const handleSave = async () => {
     setError(null);
     if (!username.trim() || /\s/.test(username)) {
@@ -41,7 +40,7 @@ export default function UpdateUsernameMdl({ onClose, onUpdated }) {
 
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/50">
-      <div className="w-auto rounded-lg bg-modal p-6 shadow-lg">
+      <div className="w-auto rounded-lg bg-modal p-6">
         <h2 className="mb-4 text-center text-xl font-bold">
           Choose a Username (re-login after saving)
         </h2>
@@ -54,7 +53,7 @@ export default function UpdateUsernameMdl({ onClose, onUpdated }) {
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           placeholder="no spaces allowed"
-          className="mb-2 w-full rounded border border-border bg-modal p-2 focus:border-primary focus:outline-none"
+          className="mb-2 w-full rounded-lg border border-border bg-modal p-2 focus:border-primary focus:outline-none"
         />
 
         {error && <p className="mb-2 text-sm text-red-500">{error}</p>}

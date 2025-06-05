@@ -37,7 +37,7 @@ export async function GET() {
   } catch (err) {
     return NextResponse.json(
       { error: `Failed to fetch friends: ${err.message}` },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

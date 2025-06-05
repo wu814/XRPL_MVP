@@ -23,7 +23,11 @@ export async function POST(req) {
       );
     }
 
-    const result = await setTrustline(setterWallet, issuerWallets[0].classicAddress, currency);
+    const result = await setTrustline(
+      setterWallet,
+      issuerWallets[0].classicAddress,
+      currency,
+    );
 
     return NextResponse.json({ message: result.message }, { status: 200 });
   } catch (err) {

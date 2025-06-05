@@ -14,7 +14,10 @@ export async function DELETE(req) {
   const currentUsername = session.user.username;
 
   if (!id) {
-    return NextResponse.json({ error: "Missing friend request ID" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Missing friend request ID" },
+      { status: 400 },
+    );
   }
 
   const supabase = await createSupabaseAnonClient();
@@ -27,10 +30,16 @@ export async function DELETE(req) {
     .single();
 
   if (fetchError || !request) {
-    return NextResponse.json({ error: "Friendship not found" }, { status: 404 });
+    return NextResponse.json(
+      { error: "Friendship not found" },
+      { status: 404 },
+    );
   }
 
-  if (request.sender !== currentUsername && request.receiver !== currentUsername) {
+  if (
+    request.sender !== currentUsername &&
+    request.receiver !== currentUsername
+  ) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

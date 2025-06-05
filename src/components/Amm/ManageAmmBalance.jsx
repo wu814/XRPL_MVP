@@ -35,7 +35,13 @@ export default function ManageAmmBalance({ ammInfo, wallets, onChange }) {
       {activeTab === "add" && (
         <AddLiquidity ammInfo={ammInfo} wallets={wallets} onAdded={onChange} />
       )}
-      {activeTab === "withdraw" && <WithdrawLiquidity ammInfo={ammInfo} wallets={wallets} onWithdrawn={onChange} />}
+      {activeTab === "withdraw" && (
+        <WithdrawLiquidity
+          ammInfo={ammInfo}
+          wallets={wallets}
+          onWithdrawn={onChange}
+        />
+      )}
       {activeTab === "swap" && (
         <div className="text-mutedText">Swap feature coming soon...</div>
       )}

@@ -67,7 +67,7 @@ export default async function getAmmInfo(
     }
 
     throw new Error("Invalid parameters for getAmmInfo");
-    } catch (error) {
+  } catch (error) {
     // Handle deleted AMM case gracefully
     if (
       error?.data?.error === "entryNotFound" ||
@@ -81,5 +81,4 @@ export default async function getAmmInfo(
     // Add context to make debugging easier
     throw new Error(`getAmmInfo error: ${error.message}`);
   }
-
 }

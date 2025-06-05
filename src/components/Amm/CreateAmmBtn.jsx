@@ -135,7 +135,7 @@ export default function CreateAmmBtn({ onAmmCreated }) {
         <SuccessMdl
           successMessage={successMessage}
           onClose={() => {
-            setSuccessMessage(null)
+            setSuccessMessage(null);
             setShowMdl(false);
           }}
         />

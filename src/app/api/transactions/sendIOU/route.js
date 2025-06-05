@@ -16,13 +16,7 @@ export async function POST(req) {
 
     let recipientAddress;
 
-    if (
-      !senderWallet ||
-      !recipient ||
-      !amount ||
-      !currency ||
-      !issuerWallets
-    ) {
+    if (!senderWallet || !recipient || !amount || !currency || !issuerWallets) {
       return NextResponse.json(
         { error: "Missing required parameters" },
         { status: 400 },
@@ -38,26 +32,26 @@ export async function POST(req) {
         .select("user_id")
         .eq("username", recipient)
         .single();
-  
+
       if (userError || !userData) {
         throw new Error("User not found");
       }
-  
+
       const { data: walletData, error: walletError } = await supabase
         .from("wallets")
         .select("classic_address")
         .eq("user_id", userData.user_id)
         .single();
-  
+
       if (walletError || walletData.length === 0) {
         throw new Error("Receiver wallet not found");
       }
-  
+
       recipientAddress = walletData.classic_address;
-    } 
+    }
     // if an address is provided instead of a username
-    else { 
-      recipientAddress = recipient; 
+    else {
+      recipientAddress = recipient;
     }
 
     const result = await sendIOU(

@@ -12,16 +12,16 @@ export default function AddFundsBtn({ onFundsAdded }) {
   return (
     <div>
       <Button
-          variant="primary"
-          onClick={() => setShowMdl(true)}
-          className="hover:scale-none mt-4 w-full"
-        >
-          + Add Funds
+        variant="primary"
+        onClick={() => setShowMdl(true)}
+        className="hover:scale-none mt-4 w-full"
+      >
+        + Add Funds
       </Button>
 
       {showMdl && (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/10">
-          <div className="w-96 rounded-lg bg-modal p-6 shadow-lg">
+          <div className="w-96 rounded-lg bg-modal p-6">
             <h2 className="mb-4 text-xl font-bold">Add Funds</h2>
             <p className="mb-4 text-sm text-mutedText">
               This feature is not yet implemented.
@@ -53,5 +53,5 @@ export default function AddFundsBtn({ onFundsAdded }) {
         />
       )}
     </div>
-  )
+  );
 }

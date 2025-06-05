@@ -70,7 +70,7 @@ export default function CreateAdminWalletBtn({ onWalletCreated }) {
 
       {showMdl && (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/10">
-          <div className="w-96 rounded-lg bg-modal p-6 shadow-xl">
+          <div className="w-96 rounded-lg bg-modal p-6">
             <h2 className="mb-4 text-xl font-bold">Create Wallet</h2>
 
             <form onSubmit={handleSubmit}>
@@ -79,7 +79,7 @@ export default function CreateAdminWalletBtn({ onWalletCreated }) {
                 <select
                   value={walletType}
                   onChange={(e) => setWalletType(e.target.value)}
-                  className="mt-1 w-full rounded border border-border bg-modal p-2 focus:border-primary focus:outline-none"
+                  className="mt-1 w-full rounded-lg border border-border bg-modal p-2 focus:border-primary focus:outline-none"
                 >
                   <option value="ISSUER">Issuer</option>
                   <option value="STANDBY TREASURY">Standby Treasury</option>

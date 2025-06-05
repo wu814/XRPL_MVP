@@ -33,16 +33,15 @@ export default function RemoveFriendBtn({ friendId, onRemoved }) {
 
   return (
     <>
-      <Button
-        variant="cancel"
-        onClick={handleRemove}
-        disabled={loading}
-      >
+      <Button variant="cancel" onClick={handleRemove} disabled={loading}>
         {loading ? "Removing..." : "Remove Friend"}
       </Button>
 
       {errorMessage && (
-        <ErrorMdl errorMessage={errorMessage} onClose={() => setErrorMessage(null)} />
+        <ErrorMdl
+          errorMessage={errorMessage}
+          onClose={() => setErrorMessage(null)}
+        />
       )}
     </>
   );

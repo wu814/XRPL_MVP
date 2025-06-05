@@ -4,10 +4,18 @@ import getAllOffers from "@/utils/xrpl/offer/getAllOffers";
 
 export async function POST(req) {
   try {
-    const { baseCurrency, baseIssuerAddress, counterCurrency, counterIssuerAddress } = await req.json();
+    const {
+      baseCurrency,
+      baseIssuerAddress,
+      counterCurrency,
+      counterIssuerAddress,
+    } = await req.json();
 
     if (!baseCurrency || !counterCurrency) {
-      return NextResponse.json({ error: "Missing required currencies." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing required currencies." },
+        { status: 400 },
+      );
     }
 
     const formatAsset = (currency, issuer) =>

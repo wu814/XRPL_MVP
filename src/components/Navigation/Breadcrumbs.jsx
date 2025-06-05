@@ -21,14 +21,19 @@ export default function Breadcrumbs({ customLabel }) {
   const crumbs = segments.map((segment, index) => {
     const href = "/" + segments.slice(0, index + 1).join("/");
     const isLast = index === segments.length - 1;
-    const label = isLast && customLabel
-      ? customLabel
-      : labelMap[segment] || segment.charAt(0).toUpperCase() + segment.slice(1);
+    const label =
+      isLast && customLabel
+        ? customLabel
+        : labelMap[segment] ||
+          segment.charAt(0).toUpperCase() + segment.slice(1);
 
     return (
       <span key={href} className="flex items-center">
         {index > 0 && <span className="mx-2 text-border">{">"}</span>}
-        <Link href={href} className={`hover:underline ${isLast ? "text-primary" : "text-mutedText"}`}>
+        <Link
+          href={href}
+          className={`hover:underline ${isLast ? "text-primary" : "text-mutedText"}`}
+        >
           {label}
         </Link>
       </span>
