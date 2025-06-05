@@ -231,7 +231,7 @@ const sendIOU = async (
         value: amountString,
       },
       ...pathData,
-      ...(destinationTag != null && { DestinationTag: destinationTag }),
+      ...(destinationTag !== null && destinationTag !== "" && { DestinationTag: destinationTag }),
     };
   }
 }
@@ -247,7 +247,7 @@ const sendIOU = async (
 Recipient: ${destination}
 Amount: ${amountString} ${currency}
 Transaction Hash: ${response.result.hash}
-Destination Tag: ${destinationTag !== null ? destinationTag : "N/A"}`;
+Destination Tag: ${(destinationTag !== null && destinationTag !== "") ? destinationTag : "N/A"}`;
 
     return { message: msg };
   }
