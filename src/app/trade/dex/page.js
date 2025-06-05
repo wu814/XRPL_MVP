@@ -2,6 +2,7 @@
 
 import Navbar from "@/components/Navigation/Navbar";
 import CreateOffer from "@/components/Offer/CreateOffer";
+import DisplayAllOffers from "@/components/Offer/DisplayAllOffers";
 import { useWallet } from "@/components/WalletContext";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
@@ -36,6 +37,7 @@ export default function DEX() {
           </div>
           <div className="col-span-3 rounded-xl bg-color2 p-4">
             <h1>Offer List</h1>
+            <DisplayAllOffers/>
           </div>
         </div>
       </div>

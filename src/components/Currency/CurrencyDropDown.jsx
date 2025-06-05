@@ -21,13 +21,16 @@ export default function CurrencyDropDown({
   value,
   onChange,
   disabledOptions = [],
+  dropdownBg = "bg-modal",
 }) {
   const selectedCurrency = currencies.find((c) => c.id === value);
 
   return (
     <Listbox value={value} onChange={onChange}>
       <div className="relative w-full">
-        <ListboxButton className="mt-1 flex w-full items-center justify-between rounded border border-border bg-modal px-3 py-2 focus:border-primary">
+        <ListboxButton
+          className={`mt-1 flex w-full items-center justify-between rounded border border-border px-3 py-2 focus:border-primary ${dropdownBg}`}
+        >
           <div className="flex items-center space-x-2">
             {selectedCurrency ? (
               <>

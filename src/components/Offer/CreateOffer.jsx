@@ -93,7 +93,7 @@ export default function CreateOffer({ issuerWallets, offerCreatorWallet }) {
       {/* Taker Pays Section */}
       <div className="bg-color3 p-4 space-y-2">
         <label className="block text-sm">Currency You Pay</label>
-        <CurrencyDropDown value={payCurrency} onChange={setPayCurrency} disabledOptions={[getCurrency]} />
+        <CurrencyDropDown value={payCurrency} onChange={setPayCurrency} disabledOptions={[getCurrency]} dropdownBg={"bg-color3"}/>
         <input
           type="number"
           placeholder="Amount"
@@ -106,7 +106,7 @@ export default function CreateOffer({ issuerWallets, offerCreatorWallet }) {
       {/* Taker Gets Section */}
       <div className="rounded bg-color3 p-4 space-y-2">
         <label className="block text-sm">Currency You Want</label>
-        <CurrencyDropDown value={getCurrency} onChange={setGetCurrency} disabledOptions={[payCurrency]} />
+        <CurrencyDropDown value={getCurrency} onChange={setGetCurrency} disabledOptions={[payCurrency]} dropdownBg={"bg-color3"} />
         <input
           type="number"
           placeholder="Amount"

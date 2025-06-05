@@ -115,9 +115,6 @@ export default async function createSellOffer(wallet, takerPays, takerGets, dest
     }
   } catch (error) {
     console.error("❌ Error creating Sell offer:", error.message);
-    return {
-      success: false,
-      error: error.message
-    };
+    throw new Error(`Failed to create Sell offer: ${error.message}`); 
   }
 };

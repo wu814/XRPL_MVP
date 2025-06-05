@@ -199,9 +199,6 @@ export default async function createImmediateOrCancelOffer(wallet, takerPays, ta
     }
   } catch (error) {
     console.error("❌ Error creating ImmediateOrCancel offer:", error.message);
-    return {
-      success: false,
-      error: error.message
-    };
+    throw new Error(`Failed to create ImmediateOrCancel offer: ${error.message}`);
   }
 };

@@ -115,9 +115,6 @@ export default async function createPassiveOffer(wallet, takerPays, takerGets, d
     }
   } catch (error) {
     console.error("❌ Error creating passive offer:", error.message);
-    return {
-      success: false,
-      error: error.message
-    };
+    throw new Error(`Passive offer creation failed: ${error.message}`);
   }
 };

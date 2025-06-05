@@ -166,9 +166,6 @@ export default async function createFillOrKillOffer(wallet, takerPays, takerGets
     }
   } catch (error) {
     console.error("❌ Error creating FillOrKill offer:", error.message);
-    return {
-      success: false,
-      error: error.message
-    };
+    throw new Error(`FillOrKill OfferCreate failed: ${error.message}`);
   }
 };
