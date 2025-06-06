@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import CreateAdminWalletBtn from "./CreateAdminWalletBtn";
 import DeleteWalletBtn from "./DeleteWalletBtn";
 import SetTrustlineBtn from "./SetTrustlineBtn";
@@ -9,49 +8,58 @@ import ViewDetailsBtn from "./ViewDetailsBtn";
 import ClawbackTokenBtn from "./ClawbackTokenBtn";
 import TransferBtn from "./TransferBtn";
 import ErrorMdl from "../ErrorMdl";
-import { useWallet } from "@/components/WalletContext";
-import { useEffect } from "react";
-
-const typeOrder = {
-  ISSUER: 0,
-  "STANDBY TREASURY": 1,
-  "STANDBY PATHFIND": 2,
-};
+import { useEffect, useState } from "react";
+import { useCurrentUserWallet } from "./CurrentUserWalletProvider";
+import { useIssuerWallet } from "./IssuerWalletProvider";
 
 const DisplayAdminWallets = () => {
   const {
     currentUserWallets,
+    fetchCurrentUserWallets,
+    loading: userWalletsLoading,
+    errorMessage: userWalletsErrorMessage,
+  } = useCurrentUserWallet();
+  const {
     issuerWallets,
-    loading,
-    errorMessage,
-    fetchWallets,
     fetchIssuerWallets,
-  } = useWallet();
+    loading: issuerWalletsLoading,
+    errorMessage: issuerWalletsErrorMessage,
+  } = useIssuerWallet();
+
+  const loading = userWalletsLoading || issuerWalletsLoading;
+  const loadWalletErrorMessage =
+    userWalletsErrorMessage || issuerWalletsErrorMessage;
+
+  const [errorMessage, setErrorMessage] = useState(loadWalletErrorMessage);
+  useEffect(() => {
+    if (loadWalletErrorMessage) {
+      setErrorMessage(loadWalletErrorMessage);
+    }
+  }, [loadWalletErrorMessage]);
+
+
 
   // Handle wallet creation (append and sort)
   const handleWalletCreated = async (walletType) => {
-    await fetchWallets(); // Refresh all wallets from server for consistency
+    await fetchCurrentUserWallets(); // Refresh all wallets from server for consistency
     await fetchIssuerWallets(); // Refresh issuer wallets as well
   };
 
   const handleDeleteWallet = async (walletType) => {
-    await fetchWallets(); // Re-fetch after deletion
+    await fetcCurrentUserhWallets(); // Re-fetch after deletion
     await fetchIssuerWallets(); // Re-fetch issuer wallets to ensure consistency
   };
 
-  const sortedWallets = [...currentUserWallets].sort(
-    (a, b) => typeOrder[a.walletType] - typeOrder[b.walletType],
-  );
 
   return (
     <div className="container mx-auto mr-4">
       {loading ? (
         <p className="text-center">Loading Wallets...</p>
-      ) : sortedWallets.length === 0 ? (
+      ) : currentUserWallets.length === 0 ? (
         <p className="text-center">No wallets found.</p>
       ) : (
         <div className="flex flex-col space-y-4">
-          {sortedWallets.map((wallet) => (
+          {currentUserWallets.map((wallet) => (
             <div
               key={wallet.classicAddress}
               className="relative rounded-lg bg-color2 p-4"

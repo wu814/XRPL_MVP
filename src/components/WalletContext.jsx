@@ -12,7 +12,7 @@ export const WalletProvider = ({ children }) => {
   const [errorMessage, setErrorMessage] = useState(null);
 
   const typeOrder = {
-    ISSUER: 0,
+    "ISSUER": 0,
     "STANDBY TREASURY": 1,
     "STANDBY PATHFIND": 2,
   };

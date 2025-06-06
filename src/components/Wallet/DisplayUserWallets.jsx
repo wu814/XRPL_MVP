@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import CreateUserWalletBtn from "./CreateUserWalletBtn";
 import AddFundsBtn from "./AddFunds";
 import DeleteWalletBtn from "./DeleteWalletBtn";
@@ -8,26 +7,41 @@ import SetTrustlineBtn from "./SetTrustlineBtn";
 import ViewDetailsBtn from "./ViewDetailsBtn";
 import TransferBtn from "./TransferBtn";
 import ErrorMdl from "../ErrorMdl";
-import { useWallet } from "@/components/WalletContext";
+import { useEffect, useState } from "react";
+import { useCurrentUserWallet } from "./CurrentUserWalletProvider";
+import { useIssuerWallet } from "./IssuerWalletProvider";
 
 const DisplayUserWallets = () => {
   const {
     currentUserWallets,
+    fetchCurrentUserWallets,
+    loading: userWalletsLoading,
+    errorMessage: userWalletsErrorMessage,
+  } = useCurrentUserWallet();
+  const {
     issuerWallets,
-    loading,
-    errorMessage,
-    fetchWallets,
     fetchIssuerWallets,
-  } = useWallet();
+    loading: issuerWalletsLoading,
+    errorMessage: issuerWalletsErrorMessage,
+  } = useIssuerWallet();
+  const loading = userWalletsLoading || issuerWalletsLoading;
+  const loadWalletErrorMessage =
+    userWalletsErrorMessage || issuerWalletsErrorMessage;
+  const [errorMessage, setErrorMessage] = useState(loadWalletErrorMessage);
+  useEffect(() => {
+    if (loadWalletErrorMessage) {
+      setErrorMessage(loadWalletErrorMessage);
+    }
+  }, [loadWalletErrorMessage]);
 
   const handleWalletCreated = async () => {
     await fetchIssuerWallets(); // re-fetch issuer wallets to ensure consistency
-    await fetchWallets(); // re-fetch from server
+    await fetchCurrentUserWallets(); // re-fetch from server
   };
 
   const handleDeleteWallet = async () => {
     await fetchIssuerWallets(); // re-fetch issuer wallets to ensure consistency
-    await fetchWallets(); // re-fetch after deletion
+    await fetchCurrentUserWallets(); // re-fetch after deletion
   };
 
   return (
