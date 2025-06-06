@@ -142,7 +142,6 @@ export async function withdrawLiquidityTwoAsset(
         if (finalBal.isGreaterThan(prevBal)) {
           const xrpDiff = finalBal
             .minus(prevBal)
-            .minus(fee)
             .dividedBy(1_000_000)
             .toFixed(6);
           if (assetA.isXRP && !actualWithdrawnA) {
@@ -358,7 +357,6 @@ export async function withdrawLiquidityWithLPToken(
         if (finalBal.isGreaterThan(prevBal)) {
           const diffXRP = finalBal
             .minus(prevBal)
-            .minus(fee)
             .dividedBy(1_000_000)
             .toFixed(6);
           if (assetA.isXRP && !actualWithdrawnA)
@@ -528,7 +526,6 @@ export async function withdrawAllLiquidity(standbyWallet, ammAccount) {
         if (finalBal.isGreaterThan(prevBal)) {
           const diffXRP = finalBal
             .minus(prevBal)
-            .minus(fee)
             .dividedBy(1_000_000)
             .toFixed(6);
           if (assetA.isXRP && !actualWithdrawnA)
@@ -750,7 +747,6 @@ export async function withdrawSingleAsset(
         if (finalBal.isGreaterThan(prevBal)) {
           const diffXRP = finalBal
             .minus(prevBal)
-            .minus(fee)
             .dividedBy(1_000_000)
             .toFixed(6);
           if (asset.isXRP) {
@@ -967,7 +963,6 @@ export async function withdrawAllSingleAsset(
         if (finalBal.isGreaterThan(prevBal) && asset.isXRP) {
           const diffXRP = finalBal
             .minus(prevBal)
-            .minus(fee)
             .dividedBy(1_000_000)
             .toFixed(6);
           actualWithdrawn = { currency: "XRP", value: diffXRP };
@@ -1183,7 +1178,6 @@ export async function withdrawSingleAssetWithLPToken(
         if (finalBal.isGreaterThan(prevBal) && asset.isXRP) {
           const diffXRP = finalBal
             .minus(prevBal)
-            .minus(fee)
             .dividedBy(1_000_000)
             .toFixed(6);
           actualWithdrawn = { currency: "XRP", value: diffXRP };
