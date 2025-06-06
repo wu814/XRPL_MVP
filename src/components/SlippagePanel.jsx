@@ -22,7 +22,7 @@ export default function SlippagePanel({ slippage, setSlippage, onClose }) {
     <div
       className={`absolute right-2 top-10 z-10 w-3/5 rounded-lg bg-color6 p-4 border border-border`}
     >
-      <label className="mb-1 block text-sm font-medium text-mutedText">
+      <label className="mb-1 block text-sm font-medium">
         Slippage Tolerance
       </label>
       <div className="relative flex flex-row">

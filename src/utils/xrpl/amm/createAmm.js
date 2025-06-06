@@ -56,6 +56,7 @@ export default async function createAmm(
   const assetA = formatAsset(A, parsedAmountA);
   const assetB = formatAsset(B, parsedAmountB);
 
+  // change the fee (in drops) to create AMM
   const tx = {
     TransactionType: "AMMCreate",
     Account: standbyWallet.classicAddress,

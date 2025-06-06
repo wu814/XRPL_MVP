@@ -4,19 +4,17 @@ import { useEffect, useState } from "react";
 import ErrorMdl from "../ErrorMdl";
 import RemoveFriendBtn from "./RemoveFriendBtn";
 import TransferBtn from "@/components/Wallet/TransferBtn";
-import { useWallet } from "@/components/WalletContext"; // ✅ use wallet context
+import { useCurrentUserWallet } from "../Wallet/CurrentUserWalletProvider";
+import { useIssuerWallet } from "../Wallet/IssuerWalletProvider";
 
 export default function DisplayFriends() {
   const [friends, setFriends] = useState([]);
   const [errorMessage, setErrorMessage] = useState(null);
 
   // ✅ Pull from WalletContext instead of fetching manually
-  const {
-    currentUserWallets,
-    issuerWallets,
-    fetchWallets,
-    fetchIssuerWallets,
-  } = useWallet();
+  const { currentUserWallets } = useCurrentUserWallet();
+  const { issuerWallets } = useIssuerWallet();
+  
 
   // Fetch all accepted friends
   const fetchFriends = async () => {

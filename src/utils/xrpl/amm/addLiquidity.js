@@ -3,6 +3,9 @@ import * as xrpl from "xrpl";
 import { checkTrustline } from "@/utils/xrpl/trustline/setTrustline";
 import BigNumber from "bignumber.js";
 
+const BASE_RESERVE_XRP = 1; // Base reserve for an account in XRP
+const OWNER_RESERVE_XRP = 0.2; // Owner reserve for each object in XRP
+
 // Extract and display LP tokens received from transaction metadata
 export async function extractLPTokensReceived(
   result,
@@ -421,9 +424,12 @@ export async function addLiquidityTwoAsset(
     const xrpBalance = xrpl.dropsToXrp(
       accountInfoResponseA.result.account_data.Balance,
     );
+    const ownerCount = accountInfoResponseA.result.account_data.OwnerCount || 0;
+    const reserveXRP = new BigNumber(
+      BASE_RESERVE_XRP + OWNER_RESERVE_XRP * ownerCount,
+    );
     const balance = new BigNumber(xrpBalance);
     const depositAmount = new BigNumber(assetAObj.value);
-    const reserveXRP = new BigNumber(10);
 
     if (balance.minus(reserveXRP).lt(depositAmount)) {
       throw new Error(
@@ -462,7 +468,7 @@ export async function addLiquidityTwoAsset(
         `No trustline found for ${assetBObj.currency} from ${assetBObj.issuer}`,
       );
     }
-  } else if (assetAObj.currency !== "XRP") {
+  } else {
     const accountInfoResponseB = await client.request({
       command: "account_info",
       account: providerWallet.classicAddress,
@@ -472,9 +478,12 @@ export async function addLiquidityTwoAsset(
     const xrpBalance = xrpl.dropsToXrp(
       accountInfoResponseB.result.account_data.Balance,
     );
+    const ownerCount = accountInfoResponseB.result.account_data.OwnerCount || 0;
+    const reserveXRP = new BigNumber(
+      BASE_RESERVE_XRP + OWNER_RESERVE_XRP * ownerCount,
+    );
     const balance = new BigNumber(xrpBalance);
     const depositAmount = new BigNumber(assetBObj.value);
-    const reserveXRP = new BigNumber(10);
 
     if (balance.minus(reserveXRP).lt(depositAmount)) {
       throw new Error(
@@ -617,9 +626,12 @@ export async function addLiquidityLPToken(
     const xrpBalance = xrpl.dropsToXrp(
       accountInfoResponseA.result.account_data.Balance,
     );
+    const ownerCount = accountInfoResponseA.result.account_data.OwnerCount || 0;
+    const reserveXRP = new BigNumber(
+      BASE_RESERVE_XRP + OWNER_RESERVE_XRP * ownerCount,
+    );
     const balance = new BigNumber(xrpBalance);
     const depositBN = new BigNumber(assetAObj.value);
-    const reserveXRP = new BigNumber(10);
     if (balance.minus(reserveXRP).lt(depositBN)) {
       throw new Error(
         `Insufficient balance of XRP. Have: ${balance.toFixed(6)}, Need: ${depositBN.toFixed(6)} + reserve`,
@@ -664,9 +676,12 @@ export async function addLiquidityLPToken(
     const xrpBalance = xrpl.dropsToXrp(
       accountInfoResponse.result.account_data.Balance,
     );
+    const ownerCount = accountInfoResponse.result.account_data.OwnerCount || 0;
+    const reserveXRP = new BigNumber(
+      BASE_RESERVE_XRP + OWNER_RESERVE_XRP * ownerCount,
+    );
     const balance = new BigNumber(xrpBalance);
     const depositBN = new BigNumber(assetBObj.value);
-    const reserveXRP = new BigNumber(10);
     if (balance.minus(reserveXRP).lt(depositBN)) {
       throw new Error(
         `Insufficient balance of XRP. Have: ${balance.toFixed(6)}, Need: ${depositBN.toFixed(6)} + reserve`,
@@ -893,12 +908,15 @@ export async function addLiquidityIfEmpty(
     const xrpBalance = xrpl.dropsToXrp(
       accountInfoResponseA.result.account_data.Balance,
     );
+    const ownerCount = accountInfoResponseA.result.account_data.OwnerCount || 0;
+    const reserveXRP = new BigNumber(
+      BASE_RESERVE_XRP + OWNER_RESERVE_XRP * ownerCount,
+    );
     const balance = parseFloat(xrpBalance);
     const deposit = parseFloat(assetAObj.value);
-    const reserveXRP = 10;
-    if (balance - reserveXRP < deposit) {
+    if (balance.minus(reserveXRP).lt(deposit)) {
       throw new Error(
-        `Insufficient XRP balance. Have: ${balance.toFixed(6)}, Need: ${deposit.toFixed(6)} + reserve`,
+        `Insufficient balance of XRP. Have: ${balance.toFixed(6)}, Need: ${deposit.toFixed(6)} + reserve`,
       );
     }
   }
@@ -923,7 +941,7 @@ export async function addLiquidityIfEmpty(
         `Insufficient balance of ${assetBObj.currency}. Have: ${balance.toFixed(6)}, Need: ${deposit.toFixed(6)}`,
       );
     }
-  } else if (assetAObj.currency !== "XRP") {
+  } else {
     const accountInfoResponseB = await client.request({
       command: "account_info",
       account: providerWallet.classicAddress,
@@ -932,12 +950,15 @@ export async function addLiquidityIfEmpty(
     const xrpBalance = xrpl.dropsToXrp(
       accountInfoResponseB.result.account_data.Balance,
     );
+    const ownerCount = accountInfoResponseB.result.account_data.OwnerCount || 0;
+    const reserveXRP = new BigNumber(
+      BASE_RESERVE_XRP + OWNER_RESERVE_XRP * ownerCount,
+    );
     const balance = parseFloat(xrpBalance);
     const deposit = parseFloat(assetBObj.value);
-    const reserveXRP = 10;
-    if (balance - reserveXRP < deposit) {
+    if (balance.minus(reserveXRP).lt(deposit)) {
       throw new Error(
-        `Insufficient XRP balance. Have: ${balance.toFixed(6)}, Need: ${deposit.toFixed(6)} + reserve`,
+        `Insufficient balance of XRP. Have: ${balance.toFixed(6)}, Need: ${deposit.toFixed(6)} + reserve`,
       );
     }
   }
@@ -1054,9 +1075,13 @@ export async function addLiquiditySingleAsset(
       const xrpBalance = xrpl.dropsToXrp(
         accountInfoResponse.result.account_data.Balance,
       );
+      const ownerCount =
+        accountInfoResponse.result.account_data.OwnerCount || 0;
+      const reserveXRP = new BigNumber(
+        BASE_RESERVE_XRP + OWNER_RESERVE_XRP * ownerCount,
+      );
       const balance = new BigNumber(xrpBalance);
       const depositBN = new BigNumber(assetObj.value);
-      const reserveXRP = new BigNumber(10);
       console.log(`💰 Current XRP balance: ${balance.toFixed(6)}`);
       console.log(
         `📊 Required XRP amount: ${depositBN.toFixed(6)} + ${reserveXRP.toFixed()} reserve`,
@@ -1244,10 +1269,16 @@ export async function addLiquidityOneAssetLPToken(
     const xrpBalance = xrpl.dropsToXrp(
       accountInfoResponse.result.account_data.Balance,
     );
+    const ownerCount = accountInfoResponse.result.account_data.OwnerCount || 0;
+    const reserveXRP = new BigNumber(
+      BASE_RESERVE_XRP + OWNER_RESERVE_XRP * ownerCount,
+    );
+    const balance = new BigNumber(xrpBalance);
+    const depositAmount = new BigNumber(assetObj.value);
 
-    if (parseFloat(xrpBalance) - 10 < parseFloat(assetObj.value)) {
+    if (balance.minus(reserveXRP).lt(depositAmount)) {
       throw new Error(
-        `Insufficient XRP balance. Need: ${assetObj.value}, Have: ${xrpBalance} (minus 10 XRP reserve)`,
+        `Insufficient XRP balance. Need ${depositAmount.plus(reserveXRP)}, have ${balance}`,
       );
     }
   }
@@ -1471,9 +1502,12 @@ export async function addLiquidityLimitLPToken(
     const xrpBalance = xrpl.dropsToXrp(
       accountInfoResponse.result.account_data.Balance,
     );
+    const ownerCount = accountInfoResponse.result.account_data.OwnerCount || 0;
+    const reserveXRP = new BigNumber(
+      BASE_RESERVE_XRP + OWNER_RESERVE_XRP * ownerCount,
+    );
     const balance = new BigNumber(xrpBalance);
     const depositBN = new BigNumber(assetObj.value);
-    const reserveXRP = new BigNumber(10);
 
     if (balance.minus(reserveXRP).lt(depositBN)) {
       throw new Error(

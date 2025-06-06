@@ -2,13 +2,15 @@ import { use, useState, useEffect } from "react";
 import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
-import { useWallet } from "../WalletContext";
 import { useRouter } from "next/navigation";
+import { useCurrentUserWallet } from "../Wallet/CurrentUserWalletProvider";
 
-export default function WithdrawLiquidity({ ammInfo, wallets, onWithdrawn }) {
+export default function WithdrawLiquidity({ ammInfo, onWithdrawn }) {
+  // Fetch current user wallets from wallet context
+  const { currentUserWallets } = useCurrentUserWallet();
+
   const router = useRouter();
 
-  const { currentUserWallets } = useWallet();
   const [mode, setMode] = useState("twoAsset");
   const [amountA, setAmountA] = useState("");
   const [amountB, setAmountB] = useState("");

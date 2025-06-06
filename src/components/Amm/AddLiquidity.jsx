@@ -6,8 +6,12 @@ import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
 import SlippagePanel from "../SlippagePanel";
 import estimateDepositAmounts from "@/utils/xrpl/amm/estimateDepositAmount";
+import { useCurrentUserWallet } from "../Wallet/CurrentUserWalletProvider";
 
-export default function AddLiquidity({ ammInfo, wallets, onAdded }) {
+export default function AddLiquidity({ ammInfo, onAdded }) {
+  // Fetch current user wallets from wallet context
+  const { currentUserWallets } = useCurrentUserWallet();
+
   const token1 = ammInfo?.amount;
   const token2 = ammInfo?.amount2;
 
@@ -50,7 +54,7 @@ export default function AddLiquidity({ ammInfo, wallets, onAdded }) {
    */
   const buildPayload = () => {
     // Assume only User and Standby Treasury are going to deposit into AMM
-    const wallet = wallets.find(
+    const wallet = currentUserWallets.find(
       (wallet) =>
         wallet.walletType === "USER" ||
         wallet.walletType === "STANDBY TREASURY",

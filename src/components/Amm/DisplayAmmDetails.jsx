@@ -8,8 +8,8 @@ import CurrencyIcon from "../Currency/CurrencyIcon";
 import AmmCompositionBar from "./AmmCompositionBar";
 import ManageAmmBalance from "./ManageAmmBalance";
 import Breadcrumbs from "../Navigation/Breadcrumbs";
-import { useWallet } from "../WalletContext";
 import { useRouter } from "next/navigation";
+import { CurrentUserWalletProvider } from "../Wallet/CurrentUserWalletProvider";
 
 // This class is used to parse the AMM data returned from the API
 class AmmInfo {
@@ -61,8 +61,6 @@ export default function DisplayAmmDetails({ ammAddress }) {
   // Pass username to the Navbar
   const [username, setUsername] = useState(null);
   const { data: session, status } = useSession();
-
-  const { currentUserWallets } = useWallet();
 
   useEffect(() => {
     if (status === "authenticated") {
@@ -132,9 +130,9 @@ export default function DisplayAmmDetails({ ammAddress }) {
     const price2 = (a1 / a2).toFixed(6);
 
     return (
-      <div className="mb-4">
-        <h3 className="mb-1 text-mutedText">Price Information</h3>
-        <p className="text-sm">
+      <div>
+        <h3 className="text-mutedText">Price Information</h3>
+        <p className="text-md px-4">
           1 {s1} = {price1} {s2} / 1 {s2} = {price2} {s1}
         </p>
       </div>
@@ -188,11 +186,12 @@ export default function DisplayAmmDetails({ ammAddress }) {
         <div className="grid grid-cols-3 gap-4">
           {/* Swap/Add/Withdraw Panel */}
           <div className="col-span-1 rounded-lg bg-color2 p-4">
-            <ManageAmmBalance
-              ammInfo={ammInfo}
-              wallets={currentUserWallets}
-              onChange={fetchAmmInfo}
-            />
+            <CurrentUserWalletProvider>
+              <ManageAmmBalance
+                ammInfo={ammInfo}
+                onChange={fetchAmmInfo}
+              />
+            </CurrentUserWalletProvider>
           </div>
           {/* Volume/TVL/Fees Graph */}
           <div className="col-span-2 rounded-lg bg-color2 p-4 text-mutedText">

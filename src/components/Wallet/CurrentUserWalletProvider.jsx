@@ -11,8 +11,8 @@ export const CurrentUserWalletProvider = ({ children }) => {
 
   const typeOrder = {
     "ISSUER": 0,
-    "STANDBY TREASURY": 1,
-    "STANDBY PATHFIND": 2,
+    "STANDBY PATHFIND": 1,
+    "STANDBY TREASURY": 2,
   };
 
   const fetchCurrentUserWallets = async () => {

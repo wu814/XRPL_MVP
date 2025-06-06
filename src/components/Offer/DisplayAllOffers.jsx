@@ -2,17 +2,18 @@
 
 import { useEffect, useState } from "react";
 import CurrencyDropDown from "../Currency/CurrencyDropDown";
-import { useWallet } from "../WalletContext";
+import { useIssuerWallet } from "../Wallet/IssuerWalletProvider";
 
 export default function DisplayAllOffers() {
+  // Fetch issuer wallets from issuer wallet context
+  const { issuerWallets } = useIssuerWallet();
+  
   const [baseCurrency, setBaseCurrency] = useState(null);
   const [counterCurrency, setCounterCurrency] = useState(null);
   const [offers, setOffers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false); // Track if a search has completed
-
-  const { issuerWallets } = useWallet();
-
+  
   useEffect(() => {
     const fetchOffers = async () => {
       if (!baseCurrency || !counterCurrency || baseCurrency === counterCurrency)

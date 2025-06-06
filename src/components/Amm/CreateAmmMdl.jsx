@@ -44,7 +44,7 @@ export default function CreateAmmMdl({
             <label className="mb-1 block">Amount A</label>
             <input
               type="number"
-              className="bg-color6 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
+              className="bg-color5 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
               value={amountA}
               placeholder="Enter amount..."
               onChange={(e) => setAmountA(e.target.value)}
@@ -57,7 +57,7 @@ export default function CreateAmmMdl({
               value={assetB}
               onChange={setAssetB}
               disabledOptions={[assetA]}
-              dropdownBg="bg-color6"
+              dropdownBg="bg-color5"
             />
           </div>
 
@@ -65,7 +65,7 @@ export default function CreateAmmMdl({
             <label className="mb-1 block">Amount B</label>
             <input
               type="number"
-              className="bg-color6 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
+              className="bg-color5 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
               value={amountB}
               placeholder="Enter amount..."
               onChange={(e) => setAmountB(e.target.value)}
@@ -76,7 +76,7 @@ export default function CreateAmmMdl({
             <label className="mb-1 block">Fee (0-1000)</label>
             <input
               type="number"
-              className="bg-color6 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
+              className="bg-color5 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
               value={fee}
               placeholder="1000 = 1%"
               onChange={(e) => setFee(e.target.value)}

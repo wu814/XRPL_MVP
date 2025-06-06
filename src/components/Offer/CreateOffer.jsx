@@ -5,7 +5,9 @@ import CurrencyDropDown from "../Currency/CurrencyDropDown";
 import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
-import { get } from "http";
+import { useCurrentUserWallet } from "../Wallet/CurrentUserWalletProvider";
+import { useIssuerWallet } from "../Wallet/IssuerWalletProvider";
+
 
 const OFFER_TYPES = [
   "Regular",
@@ -15,7 +17,16 @@ const OFFER_TYPES = [
   "Sell",
 ];
 
-export default function CreateOffer({ issuerWallets, offerCreatorWallet }) {
+export default function CreateOffer() {
+  // Fetch current user wallets from wallet context
+  const { currentUserWallets } = useCurrentUserWallet();
+  const { issuerWallets } = useIssuerWallet();
+
+  const offerCreatorWallet = currentUserWallets?.find(
+    (wallet) =>
+      wallet.walletType === "USER" || wallet.walletType === "STANDBY PATHFIND",
+  );
+
   const [offerType, setOfferType] = useState("Regular");
   const [payCurrency, setPayCurrency] = useState(null);
   const [getCurrency, setGetCurrency] = useState(null);
@@ -27,22 +38,14 @@ export default function CreateOffer({ issuerWallets, offerCreatorWallet }) {
   const [errorMessage, setErrorMessage] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
 
+  
+
   const handleSubmit = async () => {
     setLoading(true);
     setErrorMessage(null);
     setSuccessMessage(null);
 
     try {
-      console.log(
-        offerType,
-        payCurrency,
-        getCurrency,
-        payAmount,
-        getAmount,
-        destinationTag,
-        issuerWallets,
-        offerCreatorWallet,
-      );
       const payload = {
         offerType,
         payCurrency,

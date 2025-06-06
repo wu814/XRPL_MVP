@@ -46,7 +46,7 @@ const DisplayAdminWallets = () => {
   };
 
   const handleDeleteWallet = async (walletType) => {
-    await fetcCurrentUserhWallets(); // Re-fetch after deletion
+    await fetchCurrentUserWallets(); // Re-fetch after deletion
     await fetchIssuerWallets(); // Re-fetch issuer wallets to ensure consistency
   };
 
@@ -73,10 +73,9 @@ const DisplayAdminWallets = () => {
                 onWalletDeleted={handleDeleteWallet}
               />
               <div className="absolute bottom-3 right-3 flex flex-row space-x-2">
-                <TransferBtn
-                  senderWallet={wallet}
-                  issuerWallets={issuerWallets}
-                />
+                {wallet.walletType === "STANDBY TREASURY" && (
+                  <AuthorizeDepositBtn treasuryWallet={wallet} />
+                )}
                 {(wallet.walletType === "STANDBY TREASURY" ||
                   wallet.walletType === "STANDBY PATHFIND") && (
                   <SetTrustlineBtn
@@ -84,13 +83,14 @@ const DisplayAdminWallets = () => {
                     issuerWallets={issuerWallets}
                   />
                 )}
-                {wallet.walletType === "STANDBY TREASURY" && (
-                  <AuthorizeDepositBtn treasuryWallet={wallet} />
-                )}
 
                 {wallet.walletType === "ISSUER" && (
                   <ClawbackTokenBtn issuerWallet={wallet} />
                 )}
+                <TransferBtn
+                  senderWallet={wallet}
+                  issuerWallets={issuerWallets}
+                />
                 <ViewDetailsBtn wallet={wallet} />
               </div>
             </div>

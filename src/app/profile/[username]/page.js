@@ -5,6 +5,8 @@ import Navbar from "@/components/Navigation/Navbar";
 import DisplayPendingFriendRequests from "@/components/Friend/DisplayPendingFriendRequests";
 import DisplayFriends from "@/components/Friend/DisplayFriends";
 import ErrorMdl from "@/components/ErrorMdl";
+import { CurrentUserWalletProvider } from "@/components/Wallet/CurrentUserWalletProvider";
+import { IssuerWalletProvider } from "@/components/Wallet/IssuerWalletProvider";
 
 export default function ProfilePage() {
   const [username, setUsername] = useState("");
@@ -45,8 +47,12 @@ export default function ProfilePage() {
         )}
       </div>
       <div className="grid grid-cols-2 gap-8 px-6">
-        <DisplayFriends />
-        <DisplayPendingFriendRequests />
+        <CurrentUserWalletProvider>
+          <IssuerWalletProvider>
+            <DisplayFriends />
+            <DisplayPendingFriendRequests />
+          </IssuerWalletProvider>
+        </CurrentUserWalletProvider>
       </div>
 
       {errorMessage && (

@@ -51,7 +51,7 @@ export default function ClawbackTokenBtn({ issuerWallet }) {
   return (
     <>
       <Button variant="primary" onClick={() => setShowModal(true)}>
-        Clawback Token
+        Clawback
       </Button>
 
       {showModal && (

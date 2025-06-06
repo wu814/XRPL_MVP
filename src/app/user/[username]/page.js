@@ -5,13 +5,25 @@ import Navbar from "@/components/Navigation/Navbar";
 import TransferBtn from "@/components/Wallet/TransferBtn";
 import AddFriendBtn from "@/components/Friend/AddFriendBtn";
 import ErrorMdl from "@/components/ErrorMdl";
-import { useWallet } from "@/components/WalletContext";
+import { useCurrentUserWallet } from "@/components/Wallet/CurrentUserWalletProvider";
+import { useIssuerWallet } from "@/components/Wallet/IssuerWalletProvider";
+import { useState , useEffect } from "react";
 
 export default function UserPage() {
   const { username } = useParams(); // this will always reflect the URL param
 
-  const { currentUserWallets, issuerWallets, loading, errorMessage } =
-    useWallet();
+  const { currentUserWallets, errorMessage: userWalletsErrorMessage } = useCurrentUserWallet();
+  const { issuerWallets, errorMessage: issuerWalletsErrorMessage } = useIssuerWallet();
+
+  const loadWalletErrorMessage =
+    userWalletsErrorMessage || issuerWalletsErrorMessage;
+
+  const [errorMessage, setErrorMessage] = useState(loadWalletErrorMessage);
+  useEffect(() => {
+    if (loadWalletErrorMessage) {
+      setErrorMessage(loadWalletErrorMessage);
+    }
+  }, [loadWalletErrorMessage]);
 
   return (
     <div>
