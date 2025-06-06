@@ -3,6 +3,7 @@
 import Navbar from "@/components/Navigation/Navbar";
 import CreateOffer from "@/components/Offer/CreateOffer";
 import DisplayAllOffers from "@/components/Offer/DisplayAllOffers";
+import DisplayUserOffers from "@/components/Offer/DisplayUserOffers";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { CurrentUserWalletProvider } from "@/components/Wallet/CurrentUserWalletProvider";
@@ -32,8 +33,7 @@ export default function DEX() {
                 <DisplayAllOffers />
               </div>
               <div className="col-span-1 rounded-lg bg-color2 p-4">
-                <h2 className="text-lg font-bold mb-4">Trade History</h2>
-                <p className="text-mutedText">Trade history will be displayed here.</p>   
+                <DisplayUserOffers />
               </div>
             </div>
           </div>

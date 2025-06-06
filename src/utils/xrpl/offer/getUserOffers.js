@@ -1,4 +1,4 @@
-import { connectXrplClient } from "../testnet";
+import { connectXrplClient, client } from "../testnet";
 
 /**
  * List all direct offers for a specific wallet (OfferCreate transactions)
