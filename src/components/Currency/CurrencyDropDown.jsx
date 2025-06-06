@@ -22,14 +22,15 @@ export default function CurrencyDropDown({
   onChange,
   disabledOptions = [],
   dropdownBg = "bg-color4",
+  className = "",
 }) {
   const selectedCurrency = currencies.find((c) => c.id === value);
 
   return (
     <Listbox value={value} onChange={onChange}>
-      <div className="relative w-full">
+      <div className={`relative ${className || "w-full"}`}>
         <ListboxButton
-          className={`mt-1 flex w-full items-center justify-between rounded-lg border border-transparent px-3 py-2 focus:border-primary hover:border-primary ${dropdownBg}`}
+          className={`mt-1 flex w-full gap-7 items-center justify-between rounded-lg border border-transparent px-2 py-2 focus:border-primary hover:border-primary ${dropdownBg}`}
         >
           <div className="flex items-center space-x-2">
             {selectedCurrency ? (
@@ -42,11 +43,11 @@ export default function CurrencyDropDown({
                 <span>{selectedCurrency.name}</span>
               </>
             ) : (
-              <span className="text-mutedText">Select currency…</span>
+              <span className="text-mutedText">Select</span>
             )}
           </div>
           <svg
-            className="h-5 w-5 text-mutedText"
+            className="h-4 w-4 text-mutedText"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"

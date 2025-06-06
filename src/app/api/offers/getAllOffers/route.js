@@ -21,6 +21,7 @@ export async function POST(req) {
     const formatAsset = (currency, issuer) =>
       currency === "XRP" ? { currency: "XRP" } : { currency, issuer };
 
+
     const takerGets = formatAsset(baseCurrency, baseIssuerAddress);
     const takerPays = formatAsset(counterCurrency, counterIssuerAddress);
 

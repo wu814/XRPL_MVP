@@ -103,8 +103,8 @@ export default function CreateOffer() {
             <CurrencyDropDown
               value={payCurrency}
               onChange={setPayCurrency}
-              disabledOptions={[getCurrency]}
               dropdownBg={"bg-color4"}
+              className="w-min"
             />
             <input
               type="number"
@@ -125,8 +125,8 @@ export default function CreateOffer() {
             <CurrencyDropDown
               value={getCurrency}
               onChange={setGetCurrency}
-              disabledOptions={[payCurrency]}
               dropdownBg={"bg-color4"}
+              className="w-min"
             />
             <input
               type="number"
