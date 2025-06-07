@@ -16,7 +16,6 @@ export async function POST(req) {
       getCurrency,
       payAmount,
       getAmount,
-      destinationTag,
       issuerAddress,
       offerCreatorWallet,
     } = await req.json();
@@ -56,7 +55,6 @@ export async function POST(req) {
           wallet,
           takerPays,
           takerGets,
-          destinationTag,
         );
         break;
       case "ImmediateOrCancel":
@@ -64,7 +62,6 @@ export async function POST(req) {
           wallet,
           takerPays,
           takerGets,
-          destinationTag,
         );
         break;
       case "Passive":
@@ -72,7 +69,6 @@ export async function POST(req) {
           wallet,
           takerPays,
           takerGets,
-          destinationTag,
         );
         break;
       case "Sell":
@@ -80,7 +76,6 @@ export async function POST(req) {
           wallet,
           takerPays,
           takerGets,
-          destinationTag,
         );
         break;
       default:
@@ -88,7 +83,6 @@ export async function POST(req) {
           wallet,
           takerPays,
           takerGets,
-          destinationTag,
         );
         break;
     }

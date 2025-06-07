@@ -31,7 +31,6 @@ export default function CreateOffer() {
   const [getCurrency, setGetCurrency] = useState(null);
   const [payAmount, setPayAmount] = useState("");
   const [getAmount, setGetAmount] = useState("");
-  const [destinationTag, setDestinationTag] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
@@ -50,7 +49,6 @@ export default function CreateOffer() {
         getCurrency,
         payAmount,
         getAmount,
-        destinationTag,
         issuerAddress: issuerWallets[0].classicAddress,
         offerCreatorWallet,
       };
@@ -104,7 +102,7 @@ export default function CreateOffer() {
         {/* Taker Pays Section */}
         <div className="flex flex-col rounded-lg bg-color3 p-4">
           <label className="mb-2 block text-sm text-mutedText">
-            Currency You Pay
+            Taker Pays
           </label>
           <div className="flex flex-row justify-between space-x-2">
             <CurrencyDropDown
@@ -126,7 +124,7 @@ export default function CreateOffer() {
         {/* Taker Gets Section */}
         <div className="flex flex-col rounded-lg bg-color3 p-4">
           <label className="mb-2 block text-sm text-mutedText">
-            Currency You Want
+            Taker Gets
           </label>
           <div className="flex flex-row justify-between space-x-2">
             <CurrencyDropDown
@@ -143,20 +141,6 @@ export default function CreateOffer() {
               className="mt-1 w-full rounded-lg border border-transparent bg-color4 p-2 text-right hover:border-primary focus:border-primary focus:outline-none"
             />
           </div>
-        </div>
-
-        {/* Optional Destination Tag */}
-        <div className="rounded-lg bg-color3 p-4">
-          <label className="mb-2 block text-sm text-mutedText">
-            Destination Tag (Optional)
-          </label>
-          <input
-            type="number"
-            placeholder="Destination Tag"
-            value={destinationTag}
-            onChange={(e) => setDestinationTag(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-transparent bg-color4 p-2 hover:border-primary focus:border-primary focus:outline-none"
-          />
         </div>
 
         {/* Submit */}

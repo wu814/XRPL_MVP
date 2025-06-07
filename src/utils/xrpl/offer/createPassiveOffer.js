@@ -7,14 +7,12 @@ import * as xrpl from "xrpl";
  * @param {Wallet} wallet - The wallet creating the offer.
  * @param {object} takerPays - The amount the taker pays (what the offerer receives).
  * @param {object} takerGets - The amount the taker gets (what the offerer pays).
- * @param {number} destinationTag - Optional destination tag for operational wallets.
  * @returns {object} The transaction response.
  */
 export default async function createPassiveOffer(
   wallet,
   takerPays,
   takerGets,
-  destinationTag = null,
 ) {
   try {
     await connectXrplClient();
@@ -26,11 +24,6 @@ export default async function createPassiveOffer(
       TakerGets: takerGets,
       Flags: xrpl.OfferCreateFlags.tfPassive,
     };
-
-    // Add destination tag if provided
-    if (destinationTag !== null && destinationTag !== "") {
-      offerCreateTx.DestinationTag = destinationTag;
-    }
 
     console.log(
       "📜 Prepared Passive OfferCreate TX:",
@@ -86,11 +79,7 @@ export default async function createPassiveOffer(
 
       let message = "\n📊 Passive Offer Details:\n";
       message += `👛 Wallet Address: ${wallet.classicAddress}\n`;
-
-      if (destinationTag !== null && destinationTag !== "") {
-        message += `🏷️ Destination Tag: ${destinationTag}\n`;
-      }
-
+      
       // From creator's perspective
       message += `💱 Paying: ${
         typeof takerGets === "object"

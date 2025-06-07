@@ -7,14 +7,12 @@ import * as xrpl from "xrpl";
  * @param {Wallet} wallet - The wallet creating the offer.
  * @param {object} takerPays - The amount the taker pays (what the offerer receives).
  * @param {object} takerGets - The amount the taker gets (what the offerer pays).
- * @param {number} destinationTag - Optional destination tag for operational wallets.
  * @returns {object} The transaction response.
  */
 export default async function createFillOrKillOffer(
   wallet,
   takerPays,
   takerGets,
-  destinationTag = null,
 ) {
   try {
     await connectXrplClient();
@@ -26,11 +24,6 @@ export default async function createFillOrKillOffer(
       TakerGets: takerGets,
       Flags: xrpl.OfferCreateFlags.tfFillOrKill,
     };
-
-    // Add destination tag if provided
-    if (destinationTag !== null && destinationTag !== "") {
-      offerCreateTx.DestinationTag = destinationTag;
-    }
 
     console.log(
       "📜 Prepared FillOrKill OfferCreate TX:",
@@ -88,9 +81,6 @@ export default async function createFillOrKillOffer(
       message += `👛 Wallet Address: ${wallet.classicAddress}\n`;
       message += `💰 Wallet Type: ${wallet.classicAddress.startsWith("r") ? "Standard" : "Unknown"}\n`;
 
-      if (destinationTag !== null && destinationTag !== "") {
-        message += `🏷️ Destination Tag: ${destinationTag}\n`;
-      }
 
       // Log offer details from creator's perspective
       message += `💱 Paying: ${
@@ -187,10 +177,6 @@ export default async function createFillOrKillOffer(
       message += `📋 Ledger Index: ${response.result.ledger_index}\n`;
       message += `📋 Transaction Result: ${response.result.meta.TransactionResult}\n`;
       message += `ℹ️ Reason: Fill-or-Kill offers must be completely filled or they get cancelled\n`;
-
-      if (destinationTag !== null && destinationTag !== "") {
-        message += `🏷️ Destination Tag: ${destinationTag}\n`;
-      }
 
       return {
         success: false,

@@ -9,14 +9,12 @@ import * as xrpl from "xrpl";
  *    { currency: "USD", issuer: "rEXAMPLE...", value: "100" }.
  * @param {string|object} takerGets - The amount the offer creator expects to receive.
  *    Same format as takerPays.
- * @param {number} destinationTag - Optional destination tag for operational wallets.
  * @returns {object} The transaction response.
  */
 export default async function createOffer(
   wallet,
   takerPays,
   takerGets,
-  destinationTag = null,
 ) {
   try {
     await connectXrplClient();
@@ -26,11 +24,6 @@ export default async function createOffer(
       TakerPays: takerPays,
       TakerGets: takerGets,
     };
-
-    // Add destination tag if provided
-    if (destinationTag !== null && destinationTag !== "") {
-      offerCreateTx.DestinationTag = destinationTag;
-    }
 
     console.log(
       "📜 Prepared OfferCreate TX:",
@@ -93,10 +86,6 @@ export default async function createOffer(
 
       let message = "\n📊 Offer Details:\n";
       message += `👛 Wallet Address: ${wallet.classicAddress}\n`;
-
-      if (destinationTag !== null && destinationTag !== "") {
-        message += `🏷️ Destination Tag: ${destinationTag}\n`;
-      }
 
       message += `💱 Paying: ${
         typeof takerGets === "object"

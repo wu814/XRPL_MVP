@@ -24,17 +24,23 @@ export default function DEX() {
       <Navbar username={username} />
       <CurrentUserWalletProvider>
         <IssuerWalletProvider>
-          <div className="px-4">
-            <div className="grid grid-cols-3 gap-4 p-4">
+          <div className="container mx-auto flex flex-col">
+            <div className="grid grid-cols-2 gap-4 px-4">
               <div className="col-span-1 space-y-6 rounded-lg bg-color2 p-4">
                 <CreateOffer />
               </div>
               <div className="col-span-1 rounded-lg bg-color2 p-4">
                 <DisplayAllOffers />
               </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4 p-4">
+              <div className="bg-color2 p-4 rounded-lg">
+                <h1 className="p-4 text-2xl text-center font-semibold"> History</h1>
+              </div>
               <div className="col-span-1 rounded-lg bg-color2 p-4">
                 <DisplayUserOffers />
               </div>
+
             </div>
           </div>
         </IssuerWalletProvider>

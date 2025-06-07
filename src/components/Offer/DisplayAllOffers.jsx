@@ -20,7 +20,7 @@ const OfferRow = ({ offer }) => {
   const quantity = gets.value.toFixed(6);
 
   return (
-    <div className="flex justify-between rounded-lg bg-color3 p-2 px-6 text-sm">
+    <div className="flex justify-between rounded-lg mx-4 px-2 text-sm hover:bg-color4 transition duration-100 ease-in-out">
       <div>
         {price} {pays.currency} per {gets.currency}
       </div>
@@ -103,7 +103,7 @@ export default function DisplayAllOffers() {
       {/* Currency Selectors */}
       <div className="mb-6 grid grid-cols-2 gap-4">
         <div>
-          <label className="mb-1 block text-sm">Currency You Pay</label>
+          <label className="mb-1 block text-sm text-mutedText">Currency You Pay</label>
           <CurrencyDropDown
             value={baseCurrency}
             onChange={setBaseCurrency}
@@ -111,7 +111,7 @@ export default function DisplayAllOffers() {
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm">Currency You Want</label>
+          <label className="mb-1 block text-sm text-mutedText">Currency You Want</label>
           <CurrencyDropDown
             value={counterCurrency}
             onChange={setCounterCurrency}
@@ -127,11 +127,12 @@ export default function DisplayAllOffers() {
           <p className="text-mutedText">No offers found for this pair.</p>
         )}
         {!loading && offers.length > 0 && (
-          <div className="space-y-2">
-            <div className="flex justify-between px-6 font-semibold">
+          <div className="space-y-1">
+            <div className="flex justify-between px-6 font-semibold text-mutedText">
               <span>Price</span>
               <span>Quantity</span>
             </div>
+            <div className="border-b border-border my-2"></div>
             {offers.map((offer, i) => (
               <OfferRow key={i} offer={offer} />
             ))}

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useCurrentUserWallet } from "../Wallet/CurrentUserWalletProvider";
+import CancelOfferBtn from "./CancelOfferBtn";
 
 // Helper: Convert XRP drops or IOU object to unified format
 const parseAsset = (asset) => {
@@ -9,21 +10,6 @@ const parseAsset = (asset) => {
     return { currency: "XRP", value: Number(asset) / 1_000_000 };
   }
   return { currency: asset.currency, value: Number(asset.value) };
-};
-
-// Styled row for each user offer
-const UserOfferRow = ({ offer }) => {
-  const gets = parseAsset(offer.taker_gets);
-  const pays = parseAsset(offer.taker_pays);
-  const price = (pays.value / gets.value).toFixed(6);
-  const quantity = gets.value.toFixed(6);
-
-  return (
-    <div className="flex justify-between rounded-lg bg-color3 p-2 px-6 text-sm">
-      <div>{price} {pays.currency} per {gets.currency}</div>
-      <div>{quantity} {gets.currency}</div>
-    </div>
-  );
 };
 
 export default function DisplayUserOffers() {
@@ -93,19 +79,43 @@ export default function DisplayUserOffers() {
 
       {loading && <p className="text-mutedText">Loading offers...</p>}
       {!loading && error && <p className="text-red-500">Error: {error}</p>}
-      {!loading && !error && sourceWallet?.classicAddress && offers.length === 0 && (
-        <p className="text-mutedText">You have no active offers.</p>
-      )}
+      {!loading &&
+        !error &&
+        sourceWallet?.classicAddress &&
+        offers.length === 0 && (
+          <p className="text-mutedText">You have no active offers.</p>
+        )}
 
       {!loading && offers.length > 0 && (
-        <div className="space-y-2">
-          <div className="flex justify-between px-6 font-semibold">
-            <span>Price</span>
-            <span>Quantity</span>
+        <div className="space-y-1">
+          <div className="mx-4 flex justify-between px-2 font-semibold text-mutedText">
+            <span>You Want</span>
+            <span>You Pay</span>
           </div>
-          {offers.map((offer, i) => (
-            <UserOfferRow key={i} offer={offer} />
-          ))}
+          <div className="my-2 border-b border-border"></div>
+          {offers.map((offer, i) => {
+            const gets = parseAsset(offer.taker_gets);
+            const pays = parseAsset(offer.taker_pays);
+
+            return (
+              <div
+                key={i}
+                className="mx-4 flex justify-between rounded-lg px-2 text-sm transition duration-100 ease-in-out hover:bg-color4"
+              >
+                <div>
+                  {pays.value} {pays.currency}
+                </div>
+                <div className="flex items-center gap-2">
+                  {gets.value} {gets.currency}
+                  <CancelOfferBtn
+                    wallet={sourceWallet}
+                    offerSequence={offer.seq}
+                    onOfferCanceled={fetchUserOffers}
+                  />
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

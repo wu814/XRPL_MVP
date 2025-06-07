@@ -8,14 +8,12 @@ import * as xrpl from "xrpl";
  * @param {Wallet} wallet - The wallet creating the offer.
  * @param {object} takerPays - The amount the taker pays (what the offerer receives).
  * @param {object} takerGets - The amount the taker gets (what the offerer pays).
- * @param {number} destinationTag - Optional destination tag for operational wallets.
  * @returns {object} The transaction response.
  */
 export default async function createImmediateOrCancelOffer(
   wallet,
   takerPays,
   takerGets,
-  destinationTag = null,
 ) {
   try {
     await connectXrplClient();
@@ -27,11 +25,6 @@ export default async function createImmediateOrCancelOffer(
       TakerGets: takerGets,
       Flags: xrpl.OfferCreateFlags.tfImmediateOrCancel,
     };
-
-    // Add destination tag if provided
-    if (destinationTag !== null && destinationTag !== "") {
-      offerCreateTx.DestinationTag = destinationTag;
-    }
 
     console.log(
       "📜 Prepared ImmediateOrCancel OfferCreate TX:",
@@ -129,10 +122,6 @@ export default async function createImmediateOrCancelOffer(
       message += `👛 Wallet Address: ${wallet.classicAddress}\n`;
       message += `💰 Wallet Type: ${wallet.classicAddress.startsWith("r") ? "Standard" : "Unknown"}\n`;
 
-      if (destinationTag !== null && destinationTag !== "") {
-        message += `🏷️ Destination Tag: ${destinationTag}\n`;
-      }
-
       // From creator's perspective
       message += `💱 Paying: ${
         typeof takerGets === "object"
@@ -224,10 +213,6 @@ export default async function createImmediateOrCancelOffer(
       message += `📋 Ledger Index: ${response.result.ledger_index}\n`;
       message += `📋 Transaction Result: ${response.result.meta.TransactionResult}\n`;
       message += `ℹ️ Reason: IOC offers are killed if they cannot fill immediately (likely due to authorization issues)\n`;
-
-      if (destinationTag !== null && destinationTag !== "") {
-        message += `🏷️ Destination Tag: ${destinationTag}\n`;
-      }
 
       return {
         success: false,
