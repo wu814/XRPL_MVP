@@ -78,7 +78,7 @@ export default function WithdrawLiquidity({ ammInfo, onWithdrawn }) {
       if (!res.ok) {
         throw new Error(result.error || "Transaction failed");
       }
-      setSuccessMessage(result.output);
+      setSuccessMessage(result.message);
 
       if (result.poolDeleted) {
         // ⏳ Show initial message for 5 seconds

@@ -84,31 +84,33 @@ export default async function createFillOrKillOffer(
         console.log("🕒 Transaction Time: Error retrieving timestamp");
       }
 
-      console.log("\n📊 FillOrKill Offer Details: ");
-      console.log(`👛 Wallet Address: ${wallet.classicAddress}`);
-      console.log(
-        `💰 Wallet Type: ${wallet.classicAddress.startsWith("r") ? "Standard" : "Unknown"}`,
-      );
+      let message = "\n📊 FillOrKill Offer Details:\n";
+      message += `👛 Wallet Address: ${wallet.classicAddress}\n`;
+      message += `💰 Wallet Type: ${wallet.classicAddress.startsWith("r") ? "Standard" : "Unknown"}\n`;
 
       if (destinationTag !== null && destinationTag !== "") {
-        console.log(`🏷️ Destination Tag: ${destinationTag}`);
+        message += `🏷️ Destination Tag: ${destinationTag}\n`;
       }
 
-      // Log offer details - FIXED to show from creator's perspective
-      // TakerPays = what creator receives, TakerGets = what creator pays
-      console.log(
-        `💱 Paying: ${typeof takerGets === "object" ? `${takerGets.value} ${takerGets.currency}` : `${xrpl.dropsToXrp(takerGets)} XRP`}`,
-      );
-      console.log(
-        `💱 Getting: ${typeof takerPays === "object" ? `${takerPays.value} ${takerPays.currency}` : `${xrpl.dropsToXrp(takerPays)} XRP`}`,
-      );
-      console.log(`📋 Transaction Hash: ${response.result.hash}`);
-      console.log(`📋 Ledger Index: ${response.result.ledger_index}`);
+      // Log offer details from creator's perspective
+      message += `💱 Paying: ${
+        typeof takerGets === "object"
+          ? `${takerGets.value} ${takerGets.currency}`
+          : `${xrpl.dropsToXrp(takerGets)} XRP`
+      }\n`;
+
+      message += `💱 Getting: ${
+        typeof takerPays === "object"
+          ? `${takerPays.value} ${takerPays.currency}`
+          : `${xrpl.dropsToXrp(takerPays)} XRP`
+      }\n`;
+
+      message += `📋 Transaction Hash: ${response.result.hash}\n`;
+      message += `📋 Ledger Index: ${response.result.ledger_index}\n`;
 
       // Try to extract offer sequence number
       let offerSequence;
       try {
-        // Look through affected nodes to find the created offer
         const createdNode = response.result.meta.AffectedNodes.find(
           (node) =>
             node.CreatedNode && node.CreatedNode.LedgerEntryType === "Offer",
@@ -116,17 +118,17 @@ export default async function createFillOrKillOffer(
 
         if (createdNode && createdNode.CreatedNode.NewFields) {
           offerSequence = createdNode.CreatedNode.NewFields.Sequence;
-          console.log(`📋 Offer Sequence: ${offerSequence}`);
+          message += `📋 Offer Sequence: ${offerSequence}\n`;
         }
       } catch (error) {
-        console.log(`❓ Could not determine offer sequence`);
+        message += `❓ Could not determine offer sequence\n`;
       }
 
-      // Let createOffer handle the detailed logging
       return {
         success: true,
         sequence: offerSequence,
         response: response,
+        message,
       };
     } else if (response.result.meta.TransactionResult === "tecKILLED") {
       console.log(
@@ -166,33 +168,37 @@ export default async function createFillOrKillOffer(
         console.log("🕒 Transaction Time: Error retrieving timestamp");
       }
 
-      console.log("\n📊 Killed Offer Details: ");
-      console.log(`👛 Wallet Address: ${wallet.classicAddress}`);
-      console.log(
-        `💱 Attempted to pay: ${typeof takerGets === "object" ? `${takerGets.value} ${takerGets.currency}` : `${xrpl.dropsToXrp(takerGets)} XRP`}`,
-      );
-      console.log(
-        `💱 Attempted to get: ${typeof takerPays === "object" ? `${takerPays.value} ${takerPays.currency}` : `${xrpl.dropsToXrp(takerPays)} XRP`}`,
-      );
-      console.log(`📋 Transaction Hash: ${response.result.hash}`);
-      console.log(`📋 Ledger Index: ${response.result.ledger_index}`);
-      console.log(
-        `📋 Transaction Result: ${response.result.meta.TransactionResult}`,
-      );
-      console.log(
-        `ℹ️ Reason: Fill-or-Kill offers must be completely filled or they get cancelled`,
-      );
+      let message = "\n📊 Killed Offer Details:\n";
+      message += `👛 Wallet Address: ${wallet.classicAddress}\n`;
+
+      message += `💱 Attempted to pay: ${
+        typeof takerGets === "object"
+          ? `${takerGets.value} ${takerGets.currency}`
+          : `${xrpl.dropsToXrp(takerGets)} XRP`
+      }\n`;
+
+      message += `💱 Attempted to get: ${
+        typeof takerPays === "object"
+          ? `${takerPays.value} ${takerPays.currency}`
+          : `${xrpl.dropsToXrp(takerPays)} XRP`
+      }\n`;
+
+      message += `📋 Transaction Hash: ${response.result.hash}\n`;
+      message += `📋 Ledger Index: ${response.result.ledger_index}\n`;
+      message += `📋 Transaction Result: ${response.result.meta.TransactionResult}\n`;
+      message += `ℹ️ Reason: Fill-or-Kill offers must be completely filled or they get cancelled\n`;
 
       if (destinationTag !== null && destinationTag !== "") {
-        console.log(`🏷️ Destination Tag: ${destinationTag}`);
+        message += `🏷️ Destination Tag: ${destinationTag}\n`;
       }
 
       return {
-        success: true,
+        success: false,
         response: response,
         killed: true,
         hash: response.result.hash,
         ledger_index: response.result.ledger_index,
+        message,
       };
     } else {
       throw new Error(

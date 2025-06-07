@@ -85,31 +85,31 @@ export default async function createSellOffer(
         console.log("🕒 Transaction Time: Error retrieving timestamp");
       }
 
-      console.log("\n📊 Sell Offer Details: ");
-      console.log(`👛 Wallet Address: ${wallet.classicAddress}`);
-      console.log(
-        `💰 Wallet Type: ${wallet.classicAddress.startsWith("r") ? "Standard" : "Unknown"}`,
-      );
+      let message = "\n📊 Sell Offer Details:\n";
+      message += `👛 Wallet Address: ${wallet.classicAddress}\n`;
 
       if (destinationTag !== null && destinationTag !== "") {
-        console.log(`🏷️ Destination Tag: ${destinationTag}`);
+        message += `🏷️ Destination Tag: ${destinationTag}\n`;
       }
 
-      // Log offer details - FIXED to show from creator's perspective
-      // TakerPays = what creator receives, TakerGets = what creator sells
-      console.log(
-        `💱 Selling: ${typeof takerGets === "object" ? `${takerGets.value} ${takerGets.currency}` : `${xrpl.dropsToXrp(takerGets)} XRP`}`,
-      );
-      console.log(
-        `💱 Getting: ${typeof takerPays === "object" ? `${takerPays.value} ${takerPays.currency}` : `${xrpl.dropsToXrp(takerPays)} XRP`}`,
-      );
-      console.log(`📋 Transaction Hash: ${response.result.hash}`);
-      console.log(`📋 Ledger Index: ${response.result.ledger_index}`);
+      // From creator's perspective
+      message += `💱 Selling: ${
+        typeof takerGets === "object"
+          ? `${takerGets.value} ${takerGets.currency}`
+          : `${xrpl.dropsToXrp(takerGets)} XRP`
+      }\n`;
 
-      // Try to extract offer sequence number
+      message += `💱 Getting: ${
+        typeof takerPays === "object"
+          ? `${takerPays.value} ${takerPays.currency}`
+          : `${xrpl.dropsToXrp(takerPays)} XRP`
+      }\n`;
+
+      message += `📋 Transaction Hash: ${response.result.hash}\n`;
+      message += `📋 Ledger Index: ${response.result.ledger_index}\n`;
+
       let offerSequence;
       try {
-        // Look through affected nodes to find the created offer
         const createdNode = response.result.meta.AffectedNodes.find(
           (node) =>
             node.CreatedNode && node.CreatedNode.LedgerEntryType === "Offer",
@@ -117,17 +117,17 @@ export default async function createSellOffer(
 
         if (createdNode && createdNode.CreatedNode.NewFields) {
           offerSequence = createdNode.CreatedNode.NewFields.Sequence;
-          console.log(`📋 Offer Sequence: ${offerSequence}`);
+          message += `📋 Offer Sequence: ${offerSequence}\n`;
         }
       } catch (error) {
-        console.log(`❓ Could not determine offer sequence`);
+        message += `❓ Could not determine offer sequence\n`;
       }
 
-      // Let createOffer handle the detailed logging
       return {
         success: true,
         sequence: offerSequence,
         response: response,
+        message,
       };
     } else {
       throw new Error(

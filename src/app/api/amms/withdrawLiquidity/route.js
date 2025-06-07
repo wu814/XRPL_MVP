@@ -120,7 +120,11 @@ export async function POST(req) {
       }
     }
 
-    return NextResponse.json(result, { status: 200 });
+    return NextResponse.json({
+      success: result.success,
+      message: result.message,
+      poolDeleted: result.poolDeleted || false,
+    }, { status: 200 });
   } catch (error) {
     return NextResponse.json(
       { error: `Withdrawal failed: ${error.message}` },

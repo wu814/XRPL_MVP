@@ -186,15 +186,15 @@ export async function withdrawLiquidityTwoAsset(
       }
     }
 
-    let output = `\n===== Transaction Summary =====\n`;
-    output += `🔹 Transaction Hash: ${response.result.hash}\n`;
+    let message = `\n===== Transaction Summary =====\n`;
+    message += `🔹 Transaction Hash: ${response.result.hash}\n`;
     if (actualWithdrawnA)
-      output += `\n📤 Withdrawn A: ${actualWithdrawnA.value} ${actualWithdrawnA.currency}\n`;
+      message += `\n📤 Withdrawn A: ${actualWithdrawnA.value} ${actualWithdrawnA.currency}\n`;
     if (actualWithdrawnB)
-      output += `📤 Withdrawn B: ${actualWithdrawnB.value} ${actualWithdrawnB.currency}\n`;
-    output += `\n🔄 LP Tokens Used: ${lpTokensUsed}\n`;
+      message += `📤 Withdrawn B: ${actualWithdrawnB.value} ${actualWithdrawnB.currency}\n`;
+    message += `\n🔄 LP Tokens Used: ${lpTokensUsed}\n`;
     if (response.result.tx_json?.Fee)
-      output += `\n💸 Fee: ${xrpl.dropsToXrp(response.result.tx_json?.Fee)} XRP\n`;
+      message += `\n💸 Fee: ${xrpl.dropsToXrp(response.result.tx_json?.Fee)} XRP\n`;
 
     // Update AMM state
     console.log("🔄 Updating AMM data from ledger...");
@@ -204,27 +204,27 @@ export async function withdrawLiquidityTwoAsset(
 
       if (updatedAmmData) {
         // Log updated pool balances
-        output += "\n===== Updated AMM Pool State =====\n";
-        output += `LP tokens balance: ${Number(updatedAmmData.lp_token.value).toFixed(2)}\n`;
+        message += "\n===== Updated AMM Pool State =====\n";
+        message += `LP tokens balance: ${Number(updatedAmmData.lp_token.value).toFixed(2)}\n`;
         if (assetA.isXRP) {
-          output += `Token balance: ${xrpl.dropsToXrp(Number(updatedAmmData.amount)).toFixed(8)} ${assetA.currency}\n`;
-          output += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${assetB.currency}\n`;
+          message += `Token balance: ${xrpl.dropsToXrp(Number(updatedAmmData.amount)).toFixed(8)} ${assetA.currency}\n`;
+          message += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${assetB.currency}\n`;
         } else if (assetB.isXRP) {
-          output += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${assetA.currency}\n`;
-          output += `Token balance: ${xrpl.dropsToXrp(Number(updatedAmmData.amount2)).toFixed(8)} ${assetB.currency}\n`;
+          message += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${assetA.currency}\n`;
+          message += `Token balance: ${xrpl.dropsToXrp(Number(updatedAmmData.amount2)).toFixed(8)} ${assetB.currency}\n`;
         } else {
-          output += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${assetA.currency}\n`;
-          output += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${assetB.currency}\n`;
+          message += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${assetA.currency}\n`;
+          message += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${assetB.currency}\n`;
         }
       } else {
-        output += "⚠️ Could not retrieve updated AMM data\n";
+        message += "⚠️ Could not retrieve updated AMM data\n";
       }
     } catch (updateError) {
-      output += `⚠️ Error refreshing AMM data: ${updateError.message}\n`;
+      message += `⚠️ Error refreshing AMM data: ${updateError.message}\n`;
     }
     return {
       success: true,
-      output,
+      message,
       receivedAmountA: actualWithdrawnA?.value,
       receivedAmountB: actualWithdrawnB?.value,
       currencyA: assetA.currency,
@@ -367,13 +367,13 @@ export async function withdrawLiquidityWithLPToken(
       }
     }
 
-    let output = `\n===== Transaction Summary =====\n`;
-    output += `🔹 Transaction Hash: ${response.result.hash}\n`;
-    output += `\n📤 Withdrawn Amounts:\n`;
-    output += `   ${actualWithdrawnA?.value ?? `~${expectedA.toFixed(6)}`} ${assetA.currency}\n`;
-    output += `   ${actualWithdrawnB?.value ?? `~${expectedB.toFixed(6)}`} ${assetB.currency}\n`;
-    output += `\n🔄 LP Tokens Redeemed: ${lpAmount.toFixed(6)}\n`;
-    output += `💸 Transaction Cost: ${xrpl.dropsToXrp(response.result.tx_json?.Fee)} XRP\n`;
+    let message = `\n===== Transaction Summary =====\n`;
+    message += `🔹 Transaction Hash: ${response.result.hash}\n`;
+    message += `\n📤 Withdrawn Amounts:\n`;
+    message += `   ${actualWithdrawnA?.value ?? `~${expectedA.toFixed(6)}`} ${assetA.currency}\n`;
+    message += `   ${actualWithdrawnB?.value ?? `~${expectedB.toFixed(6)}`} ${assetB.currency}\n`;
+    message += `\n🔄 LP Tokens Redeemed: ${lpAmount.toFixed(6)}\n`;
+    message += `💸 Transaction Cost: ${xrpl.dropsToXrp(response.result.tx_json?.Fee)} XRP\n`;
 
     try {
       // Get the updated AMM data
@@ -381,28 +381,28 @@ export async function withdrawLiquidityWithLPToken(
 
       if (updatedAmmData) {
         // Log updated pool balances
-        output += "\n===== Updated AMM Pool State =====\n";
-        output += `LP tokens balance: ${Number(updatedAmmData.lp_token.value).toFixed(2)}\n`;
+        message += "\n===== Updated AMM Pool State =====\n";
+        message += `LP tokens balance: ${Number(updatedAmmData.lp_token.value).toFixed(2)}\n`;
         if (assetA.isXRP) {
-          output += `Token balance: ${xrpl.dropsToXrp(Number(updatedAmmData.amount)).toFixed(8)} ${assetA.currency}\n`;
-          output += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${assetB.currency}\n`;
+          message += `Token balance: ${xrpl.dropsToXrp(Number(updatedAmmData.amount)).toFixed(8)} ${assetA.currency}\n`;
+          message += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${assetB.currency}\n`;
         } else if (assetB.isXRP) {
-          output += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${assetA.currency}\n`;
-          output += `Token balance: ${xrpl.dropsToXrp(Number(updatedAmmData.amount2)).toFixed(8)} ${assetB.currency}\n`;
+          message += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${assetA.currency}\n`;
+          message += `Token balance: ${xrpl.dropsToXrp(Number(updatedAmmData.amount2)).toFixed(8)} ${assetB.currency}\n`;
         } else {
-          output += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${assetA.currency}\n`;
-          output += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${assetB.currency}\n`;
+          message += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${assetA.currency}\n`;
+          message += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${assetB.currency}\n`;
         }
       } else {
-        output += "⚠️ Could not retrieve updated AMM data\n";
+        message += "⚠️ Could not retrieve updated AMM data\n";
       }
     } catch (updateError) {
-      output += `⚠️ Error refreshing AMM data: ${updateError.message}\n`;
+      message += `⚠️ Error refreshing AMM data: ${updateError.message}\n`;
     }
 
     return {
       success: true,
-      output,
+      message,
       withdrawnAmount: {
         [assetA.currency]: actualWithdrawnA?.value ?? expectedA.toFixed(6),
         [assetB.currency]: actualWithdrawnB?.value ?? expectedB.toFixed(6),
@@ -536,41 +536,41 @@ export async function withdrawAllLiquidity(standbyWallet, ammAccount) {
       }
     }
 
-    // Format output for the transaction summary
-    let output = `\n===== Transaction Summary =====\n`;
-    output += `🔹 Transaction Hash: ${response.result.hash}\n`;
-    output += `\n📤 Withdrawn Amounts:\n`;
-    output += `   ${actualWithdrawnA?.value ?? `~${new BigNumber(assetA.value).toFixed(6)}`} ${assetA.currency}\n`;
-    output += `   ${actualWithdrawnB?.value ?? `~${new BigNumber(assetB.value).toFixed(6)}`} ${assetB.currency}\n`;
-    output += `\n🔄 All LP tokens redeemed (${lpBalance} LP tokens)\n`;
-    output += `💸 Transaction Cost: ${xrpl.dropsToXrp(response.result.tx_json?.Fee)} XRP\n`;
+    // Format message for the transaction summary
+    let message = `\n===== Transaction Summary =====\n`;
+    message += `🔹 Transaction Hash: ${response.result.hash}\n`;
+    message += `\n📤 Withdrawn Amounts:\n`;
+    message += `   ${actualWithdrawnA?.value ?? `~${new BigNumber(assetA.value).toFixed(6)}`} ${assetA.currency}\n`;
+    message += `   ${actualWithdrawnB?.value ?? `~${new BigNumber(assetB.value).toFixed(6)}`} ${assetB.currency}\n`;
+    message += `\n🔄 All LP tokens redeemed (${lpBalance} LP tokens)\n`;
+    message += `💸 Transaction Cost: ${xrpl.dropsToXrp(response.result.tx_json?.Fee)} XRP\n`;
 
     // Refresh and log updated AMM pool state
     try {
       const updatedAmmData = await getAmmInfo(ammAccount);
       if (updatedAmmData) {
-        output += "\n===== Updated AMM Pool State =====\n";
-        output += `LP tokens balance: ${Number(updatedAmmData.lp_token.value).toFixed(2)}\n`;
+        message += "\n===== Updated AMM Pool State =====\n";
+        message += `LP tokens balance: ${Number(updatedAmmData.lp_token.value).toFixed(2)}\n`;
         if (assetA.isXRP) {
-          output += `Token balance: ${xrpl.dropsToXrp(Number(updatedAmmData.amount)).toFixed(8)} ${assetA.currency}\n`;
-          output += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${assetB.currency}\n`;
+          message += `Token balance: ${xrpl.dropsToXrp(Number(updatedAmmData.amount)).toFixed(8)} ${assetA.currency}\n`;
+          message += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${assetB.currency}\n`;
         } else if (assetB.isXRP) {
-          output += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${assetA.currency}\n`;
-          output += `Token balance: ${xrpl.dropsToXrp(Number(updatedAmmData.amount2)).toFixed(8)} ${assetB.currency}\n`;
+          message += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${assetA.currency}\n`;
+          message += `Token balance: ${xrpl.dropsToXrp(Number(updatedAmmData.amount2)).toFixed(8)} ${assetB.currency}\n`;
         } else {
-          output += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${assetA.currency}\n`;
-          output += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${assetB.currency}\n`;
+          message += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${assetA.currency}\n`;
+          message += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${assetB.currency}\n`;
         }
       } else {
-        output += "⚠️ Could not retrieve updated AMM data\n";
+        message += "⚠️ Could not retrieve updated AMM data\n";
       }
     } catch (updateError) {
-      output += `⚠️ Error refreshing AMM data: ${updateError.message}\n`;
+      message += `⚠️ Error refreshing AMM data: ${updateError.message}\n`;
     }
 
     return {
       success: true,
-      output,
+      message,
       withdrawnAmount: {
         [assetA.currency]:
           actualWithdrawnA?.value ?? new BigNumber(assetA.value).toFixed(6),
@@ -800,18 +800,18 @@ export async function withdrawSingleAsset(
     }
 
     // Transaction summary
-    let output = "\n===== Transaction Summary =====\n";
-    output += `🔹 Transaction Hash: ${response.result.hash}\n`;
+    let message = "\n===== Transaction Summary =====\n";
+    message += `🔹 Transaction Hash: ${response.result.hash}\n`;
 
     if (actualWithdrawn) {
-      output += `\n📤 Actual amount withdrawn:\n   ${actualWithdrawn.value} ${actualWithdrawn.currency}\n   (You requested: ${withdrawAmount} ${asset.currency})\n`;
+      message += `\n📤 Actual amount withdrawn:\n   ${actualWithdrawn.value} ${actualWithdrawn.currency}\n   (You requested: ${withdrawAmount} ${asset.currency})\n`;
     } else {
-      output += `\n⚠️ Could not determine exact amount withdrawn from transaction metadata\n   Requested: ${withdrawAmount} ${asset.currency}\n`;
+      message += `\n⚠️ Could not determine exact amount withdrawn from transaction metadata\n   Requested: ${withdrawAmount} ${asset.currency}\n`;
     }
-    output += `\n🔄 LP Tokens Redeemed: ${lpTokensUsed}\n`;
+    message += `\n🔄 LP Tokens Redeemed: ${lpTokensUsed}\n`;
 
     if (response.result.tx_json?.Fee) {
-      output += `\n💸 Transaction Cost: ${xrpl.dropsToXrp(response.result.tx_json?.Fee)} XRP\n`;
+      message += `\n💸 Transaction Cost: ${xrpl.dropsToXrp(response.result.tx_json?.Fee)} XRP\n`;
     }
 
     // Update AMM state
@@ -822,28 +822,28 @@ export async function withdrawSingleAsset(
 
       if (updatedAmmData) {
         // Log updated pool balances
-        output += "\n===== Updated AMM Pool State =====\n";
-        output += `LP tokens balance: ${Number(updatedAmmData.lp_token.value).toFixed(2)}\n`;
+        message += "\n===== Updated AMM Pool State =====\n";
+        message += `LP tokens balance: ${Number(updatedAmmData.lp_token.value).toFixed(2)}\n`;
         if (assetA.isXRP) {
-          output += `Token balance: ${xrpl.dropsToXrp(Number(updatedAmmData.amount)).toFixed(8)} ${assetA.currency}\n`;
-          output += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${assetB.currency}\n`;
+          message += `Token balance: ${xrpl.dropsToXrp(Number(updatedAmmData.amount)).toFixed(8)} ${assetA.currency}\n`;
+          message += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${assetB.currency}\n`;
         } else if (assetB.isXRP) {
-          output += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${assetA.currency}\n`;
-          output += `Token balance: ${xrpl.dropsToXrp(Number(updatedAmmData.amount2)).toFixed(8)} ${assetB.currency}\n`;
+          message += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${assetA.currency}\n`;
+          message += `Token balance: ${xrpl.dropsToXrp(Number(updatedAmmData.amount2)).toFixed(8)} ${assetB.currency}\n`;
         } else {
-          output += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${assetA.currency}\n`;
-          output += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${assetB.currency}\n`;
+          message += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${assetA.currency}\n`;
+          message += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${assetB.currency}\n`;
         }
       } else {
-        output += "⚠️ Could not retrieve updated AMM data\n";
+        message += "⚠️ Could not retrieve updated AMM data\n";
       }
     } catch (updateError) {
-      output += `⚠️ Error refreshing AMM data: ${updateError.message}\n`;
+      message += `⚠️ Error refreshing AMM data: ${updateError.message}\n`;
     }
 
     return {
       success: true,
-      output,
+      message,
       receivedAmount: actualWithdrawn ? actualWithdrawn.value : withdrawAmount,
       currency: asset.currency,
       issuer: asset.issuer,
@@ -1003,28 +1003,28 @@ export async function withdrawAllSingleAsset(
       }
     }
 
-    let output = `\n===== Transaction Summary =====\n`;
-    output += `🔹 Transaction Hash: ${response.result.hash}\n`;
+    let message = `\n===== Transaction Summary =====\n`;
+    message += `🔹 Transaction Hash: ${response.result.hash}\n`;
 
     if (actualWithdrawn) {
-      output += `\n📤 Actual amount withdrawn:\n   ${actualWithdrawn.value} ${actualWithdrawn.currency}\n`;
+      message += `\n📤 Actual amount withdrawn:\n   ${actualWithdrawn.value} ${actualWithdrawn.currency}\n`;
       if (desiredAmount) {
-        output += `   (You requested: ${desiredAmount} ${asset.currency})\n`;
+        message += `   (You requested: ${desiredAmount} ${asset.currency})\n`;
       } else {
-        output += `   (True withdraw-all operation - no minimum specified)\n`;
+        message += `   (True withdraw-all operation - no minimum specified)\n`;
       }
     } else {
-      output += `\n⚠️ Could not determine exact amount withdrawn from transaction metadata\n`;
+      message += `\n⚠️ Could not determine exact amount withdrawn from transaction metadata\n`;
       if (desiredAmount) {
-        output += `   Requested: ${desiredAmount} ${asset.currency}\n`;
+        message += `   Requested: ${desiredAmount} ${asset.currency}\n`;
       } else {
-        output += `   True withdraw-all operation completed\n`;
+        message += `   True withdraw-all operation completed\n`;
       }
     }
 
-    output += `\n🔄 LP Tokens Redeemed: ${lpTokensUsed}\n`;
+    message += `\n🔄 LP Tokens Redeemed: ${lpTokensUsed}\n`;
     if (response.result.tx_json?.Fee) {
-      output += `\n💸 Transaction Cost: ${xrpl.dropsToXrp(response.result.tx_json?.Fee)} XRP\n`;
+      message += `\n💸 Transaction Cost: ${xrpl.dropsToXrp(response.result.tx_json?.Fee)} XRP\n`;
     }
 
     try {
@@ -1033,28 +1033,28 @@ export async function withdrawAllSingleAsset(
 
       if (updatedAmmData) {
         // Log updated pool balances
-        output += "\n===== Updated AMM Pool State =====\n";
-        output += `LP tokens balance: ${Number(updatedAmmData.lp_token.value).toFixed(2)}\n`;
+        message += "\n===== Updated AMM Pool State =====\n";
+        message += `LP tokens balance: ${Number(updatedAmmData.lp_token.value).toFixed(2)}\n`;
         if (assetA.isXRP) {
-          output += `Token balance: ${xrpl.dropsToXrp(Number(updatedAmmData.amount)).toFixed(8)} ${assetA.currency}\n`;
-          output += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${assetB.currency}\n`;
+          message += `Token balance: ${xrpl.dropsToXrp(Number(updatedAmmData.amount)).toFixed(8)} ${assetA.currency}\n`;
+          message += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${assetB.currency}\n`;
         } else if (assetB.isXRP) {
-          output += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${assetA.currency}\n`;
-          output += `Token balance: ${xrpl.dropsToXrp(Number(updatedAmmData.amount2)).toFixed(8)} ${assetB.currency}\n`;
+          message += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${assetA.currency}\n`;
+          message += `Token balance: ${xrpl.dropsToXrp(Number(updatedAmmData.amount2)).toFixed(8)} ${assetB.currency}\n`;
         } else {
-          output += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${assetA.currency}\n`;
-          output += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${assetB.currency}\n`;
+          message += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${assetA.currency}\n`;
+          message += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${assetB.currency}\n`;
         }
       } else {
-        output += "⚠️ Could not retrieve updated AMM data\n";
+        message += "⚠️ Could not retrieve updated AMM data\n";
       }
     } catch (updateError) {
-      output += `⚠️ Error refreshing AMM data: ${updateError.message}\n`;
+      message += `⚠️ Error refreshing AMM data: ${updateError.message}\n`;
     }
 
     return {
       success: true,
-      output,
+      message,
       receivedAmount: actualWithdrawn
         ? actualWithdrawn.value
         : desiredAmount?.toFixed(6) || "0",
@@ -1218,19 +1218,19 @@ export async function withdrawSingleAssetWithLPToken(
       }
     }
 
-    let output = `\n===== Transaction Summary =====\n`;
-    output += `🔹 Transaction Hash: ${response.result.hash}\n`;
+    let message = `\n===== Transaction Summary =====\n`;
+    message += `🔹 Transaction Hash: ${response.result.hash}\n`;
 
     if (actualWithdrawn) {
-      output += `\n📤 Actual amount withdrawn:\n   ${actualWithdrawn.value} ${actualWithdrawn.currency}\n`;
+      message += `\n📤 Actual amount withdrawn:\n   ${actualWithdrawn.value} ${actualWithdrawn.currency}\n`;
     } else {
-      output += `\n⚠️ Could not determine exact amount withdrawn from transaction metadata\n`;
+      message += `\n⚠️ Could not determine exact amount withdrawn from transaction metadata\n`;
     }
 
-    output += `\n🔄 LP Tokens Used: ${lpTokensUsed}\n`;
+    message += `\n🔄 LP Tokens Used: ${lpTokensUsed}\n`;
 
     if (response.result.tx_json?.Fee) {
-      output += `\n💸 Transaction Cost: ${xrpl.dropsToXrp(response.result.tx_json?.Fee)} XRP\n`;
+      message += `\n💸 Transaction Cost: ${xrpl.dropsToXrp(response.result.tx_json?.Fee)} XRP\n`;
     }
 
     try {
@@ -1239,28 +1239,28 @@ export async function withdrawSingleAssetWithLPToken(
 
       if (updatedAmmData) {
         // Log updated pool balances
-        output += "\n===== Updated AMM Pool State =====\n";
-        output += `LP tokens balance: ${Number(updatedAmmData.lp_token.value).toFixed(2)}\n`;
+        message += "\n===== Updated AMM Pool State =====\n";
+        message += `LP tokens balance: ${Number(updatedAmmData.lp_token.value).toFixed(2)}\n`;
         if (assetA.isXRP) {
-          output += `Token balance: ${xrpl.dropsToXrp(Number(updatedAmmData.amount)).toFixed(8)} ${assetA.currency}\n`;
-          output += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${assetB.currency}\n`;
+          message += `Token balance: ${xrpl.dropsToXrp(Number(updatedAmmData.amount)).toFixed(8)} ${assetA.currency}\n`;
+          message += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${assetB.currency}\n`;
         } else if (assetB.isXRP) {
-          output += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${assetA.currency}\n`;
-          output += `Token balance: ${xrpl.dropsToXrp(Number(updatedAmmData.amount2)).toFixed(8)} ${assetB.currency}\n`;
+          message += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${assetA.currency}\n`;
+          message += `Token balance: ${xrpl.dropsToXrp(Number(updatedAmmData.amount2)).toFixed(8)} ${assetB.currency}\n`;
         } else {
-          output += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${assetA.currency}\n`;
-          output += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${assetB.currency}\n`;
+          message += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${assetA.currency}\n`;
+          message += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${assetB.currency}\n`;
         }
       } else {
-        output += "⚠️ Could not retrieve updated AMM data\n";
+        message += "⚠️ Could not retrieve updated AMM data\n";
       }
     } catch (updateError) {
-      output += `⚠️ Error refreshing AMM data: ${updateError.message}\n`;
+      message += `⚠️ Error refreshing AMM data: ${updateError.message}\n`;
     }
 
     return {
       success: true,
-      output,
+      message,
       receivedAmount: actualWithdrawn
         ? actualWithdrawn.value
         : expectedAmount.toFixed(6),

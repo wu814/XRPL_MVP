@@ -63,10 +63,15 @@ export default function CreateOffer() {
 
       const result = await res.json();
 
-
       if (!res.ok) throw new Error(result.error || "Offer creation failed");
 
-      setSuccessMessage(result.message || "Offer created successfully!");
+        // If the offer is not filled, (tecKill of other)
+      if (!result.success) {
+        setErrorMessage(result.message || "Transaction failed");
+      } else{
+        setSuccessMessage(result.message || "Offer created successfully!");
+      }
+
     } catch (error) {
       setErrorMessage(error.message);
     } finally {

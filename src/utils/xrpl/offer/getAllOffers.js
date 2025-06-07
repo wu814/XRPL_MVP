@@ -15,7 +15,7 @@ export default async function getAllOffers(takerGets, takerPays) {
     taker_gets: takerGets,
     taker_pays: takerPays,
     ledger_index: "validated",
-    limit: 50, // or increase as needed
+    limit: 100, // or increase as needed
   };
 
   const response = await client.request(request);

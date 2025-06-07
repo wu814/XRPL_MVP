@@ -96,7 +96,6 @@ export async function POST(req) {
       {
         success: result.success,
         sequence: result.sequence,
-        transaction: result.response?.result,
         message: result.message,
       },
       { status: 200 },
