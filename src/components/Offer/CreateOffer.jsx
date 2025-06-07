@@ -38,6 +38,7 @@ export default function CreateOffer() {
   const [successMessage, setSuccessMessage] = useState(null);
 
   const handleSubmit = async () => {
+
     setLoading(true);
     setErrorMessage(null);
     setSuccessMessage(null);
@@ -62,9 +63,10 @@ export default function CreateOffer() {
 
       const result = await res.json();
 
+
       if (!res.ok) throw new Error(result.error || "Offer creation failed");
 
-      setSuccessMessage("Offer created successfully!");
+      setSuccessMessage(result.message || "Offer created successfully!");
     } catch (error) {
       setErrorMessage(error.message);
     } finally {

@@ -49,10 +49,10 @@ export async function POST(req) {
     // You should securely fetch the wallet here. Using a dummy wallet for example:
     const wallet = Wallet.fromSeed(offerCreatorWallet.seed); // replace with real wallet seed logic
 
-    let response;
+    let result;
     switch (offerType) {
       case "FillOrKill":
-        response = await createFillOrKillOffer(
+        result = await createFillOrKillOffer(
           wallet,
           takerPays,
           takerGets,
@@ -60,7 +60,7 @@ export async function POST(req) {
         );
         break;
       case "ImmediateOrCancel":
-        response = await createImmediateOrCancelOffer(
+        result = await createImmediateOrCancelOffer(
           wallet,
           takerPays,
           takerGets,
@@ -68,7 +68,7 @@ export async function POST(req) {
         );
         break;
       case "Passive":
-        response = await createPassiveOffer(
+        result = await createPassiveOffer(
           wallet,
           takerPays,
           takerGets,
@@ -76,7 +76,7 @@ export async function POST(req) {
         );
         break;
       case "Sell":
-        response = await createSellOffer(
+        result = await createSellOffer(
           wallet,
           takerPays,
           takerGets,
@@ -84,7 +84,7 @@ export async function POST(req) {
         );
         break;
       default:
-        response = await createOffer(
+        result = await createOffer(
           wallet,
           takerPays,
           takerGets,
@@ -92,8 +92,15 @@ export async function POST(req) {
         );
         break;
     }
-
-    return NextResponse.json(response, { status: 200 });
+    return NextResponse.json(
+      {
+        success: result.success,
+        sequence: result.sequence,
+        transaction: result.response?.result,
+        message: result.message,
+      },
+      { status: 200 },
+    );
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
