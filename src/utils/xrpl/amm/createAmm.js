@@ -53,8 +53,30 @@ export default async function createAmm(
         };
   };
 
-  const assetA = formatAsset(A, parsedAmountA);
-  const assetB = formatAsset(B, parsedAmountB);
+  // Helper function to format currency for database storage
+  const formatCurrencyForDB = (type, value, issuerWallet) => {
+    if (type === "XRP") {
+      return {
+        currency: "XRP",
+        value: value.toString()
+      };
+    } else {
+      return {
+        currency: type,
+        issuer: issuerWallet.classicAddress,
+        value: value.toString()
+      };
+    }
+  };
+
+  // Sort currencies alphabetically to ensure consistent ordering
+  const currencies = [
+    { type: A, amount: parsedAmountA },
+    { type: B, amount: parsedAmountB }
+  ].sort((a, b) => a.type.localeCompare(b.type));
+
+  const assetA = formatAsset(currencies[0].type, currencies[0].amount);
+  const assetB = formatAsset(currencies[1].type, currencies[1].amount);
 
   // change the fee (in drops) to create AMM
   const tx = {
@@ -97,7 +119,10 @@ export default async function createAmm(
   const poolKey = [A, B].sort().join("/");
 
   return {
-    ammAddress: amm.account,
+    ammAccount: amm.account,
+    currency_a: formatCurrencyForDB(currencies[0].type, currencies[0].amount, issuerWallet),
+    currency_b: formatCurrencyForDB(currencies[1].type, currencies[1].amount, issuerWallet),
+    // Keep pair for backward compatibility during transition
     pair: poolKey,
   };
 }

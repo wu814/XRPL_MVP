@@ -38,8 +38,9 @@ export async function POST(req) {
     const supabase = await createSupabaseAnonClient();
     const { data, error } = await supabase.from("amms").insert([
       {
-        amm_address: ammData.ammAddress,
-        pair: ammData.pair,
+        amm_account: ammData.ammAccount,
+        currency_a: ammData.currency_a,
+        currency_b: ammData.currency_b,
         created_at: new Date().toISOString(),
         issuer_address: issuerWallets[0].classicAddress,
         treasury_address: treasuryWallet.classicAddress,
@@ -47,9 +48,13 @@ export async function POST(req) {
     ]);
 
     if (error) throw error;
+    
+    // Create a readable pair string for the message
+    const pairString = `${ammData.currency_a.currency}/${ammData.currency_b.currency}`;
+    
     return NextResponse.json(
       {
-        message: `${ammData.pair} AMM created! Address: ${ammData.ammAddress}`,
+        message: `${pairString} AMM created! Address: ${ammData.ammAccount}`,
         data: ammData,
       },
       { status: 201 },
