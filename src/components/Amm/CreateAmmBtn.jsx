@@ -29,7 +29,7 @@ export default function CreateAmmBtn({ onAmmCreated }) {
   const [assetB, setAssetB] = useState("");
   const [amountA, setAmountA] = useState("");
   const [amountB, setAmountB] = useState("");
-  const [fee, setFee] = useState("");
+  const [fee, setFee] = useState("0");
 
   const fetchIssuerWallets = async () => {
     try {

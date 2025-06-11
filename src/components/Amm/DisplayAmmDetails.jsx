@@ -49,7 +49,7 @@ class AmmInfo {
   }
 }
 
-export default function DisplayAmmDetails({ ammAddress }) {
+export default function DisplayAmmDetails({ ammAccount }) {
   const router = useRouter();
 
   const [ammInfo, setAmmInfo] = useState(null);
@@ -73,7 +73,7 @@ export default function DisplayAmmDetails({ ammAddress }) {
       const res = await fetch("/api/amms/getAmmInfo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ asset1: ammAddress }),
+        body: JSON.stringify({ asset1: ammAccount }),
       });
 
       const result = await res.json();
@@ -103,16 +103,17 @@ export default function DisplayAmmDetails({ ammAddress }) {
     if (cached) {
       try {
         const parsed = JSON.parse(cached);
-        if (parsed?.ammAddress === ammAddress) {
-          setCurrency1(parsed.pair[0]);
-          setCurrency2(parsed.pair[1]);
+        if (parsed?.ammAccount === ammAccount) {
+          // Use the new currency1 and currency2 fields
+          setCurrency1(parsed.currency1 || "Unknown");
+          setCurrency2(parsed.currency2 || "Unknown");
         }
       } catch (e) {
         console.error("Failed to parse cached AMM", e);
       }
     }
     fetchAmmInfo();
-  }, [ammAddress]);
+  }, [ammAccount]);
 
   // Delete later
   useEffect(() => {
@@ -143,7 +144,7 @@ export default function DisplayAmmDetails({ ammAddress }) {
     <div>
       <h3 className="mb-2 text-mutedText">Trading Fee</h3>
       <p className="text-lg font-semibold">
-        {`${(ammInfo?.trading_fee / 1000).toFixed(2)}%`}
+        {`${(ammInfo?.trading_fee / 1000).toFixed(3)}%`}
       </p>
     </div>
   );

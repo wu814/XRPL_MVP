@@ -8,19 +8,18 @@ import ErrorMdl from "../ErrorMdl";
 import CurrencyIcon from "../Currency/CurrencyIcon";
 import CreateAmmBtn from "./CreateAmmBtn";
 
-class Amm {
-  constructor(ammAddress, pair) {
-    this.ammAddress = ammAddress;
-    this.pair = pair;
-  }
-}
-
 export default function DisplayAmms() {
   const router = useRouter(); // Redirect user to the AMM page when they click on an AMM
   const { data: session, status } = useSession();
   const [amms, setAmms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState(null);
+
+  // Helper function to format fee display
+  const formatFee = (fee) => {
+    if (!fee) return "N/A"; // Default fallback
+    return `${(fee / 1000).toFixed(3)}%`; // Convert basis points to percentage
+  };
 
   const fetchAmms = async () => {
     setLoading(true);
@@ -29,13 +28,17 @@ export default function DisplayAmms() {
       const result = await res.json();
       if (Array.isArray(result.data) && result.data.length > 0) {
         const ammsData = result.data
-          .map((amm) => {
-            const [token1, token2] = amm.pair.split("/");
-            return new Amm(amm.amm_address, [token1, token2]);
-          })
+          .map((amm) => ({
+            ammAccount: amm.amm_account,
+            currency1: amm.currency_a?.currency || "Unknown",
+            currency2: amm.currency_b?.currency || "Unknown",
+            currency_a: amm.currency_a,
+            currency_b: amm.currency_b,
+            fee: amm.fee || 0, // Default to 0 if not set
+          }))
           .sort((a, b) => {
-            const pair1 = a.pair.join("/");
-            const pair2 = b.pair.join("/");
+            const pair1 = `${a.currency1}/${a.currency2}`;
+            const pair2 = `${b.currency1}/${b.currency2}`;
             return pair1.localeCompare(pair2);
           });
         setAmms(ammsData);
@@ -48,12 +51,18 @@ export default function DisplayAmms() {
   };
 
   const handleAmmCreated = (newAmmData) => {
-    const [token1, token2] = newAmmData.pair.split("/");
-    const newAmm = new Amm(newAmmData.ammAddress, [token1, token2]);
+    const newAmm = {
+      ammAccount: newAmmData.ammAccount,
+      currency1: newAmmData.currency_a?.currency || "Unknown",
+      currency2: newAmmData.currency_b?.currency || "Unknown",
+      currency_a: newAmmData.currency_a,
+      currency_b: newAmmData.currency_b,
+      fee: newAmmData.fee || 1000, // Default to 1000 (0.1%) if not set
+    };
     setAmms((prevAmms) =>
       [...prevAmms, newAmm].sort((a, b) => {
-        const pair1 = a.pair.join("/");
-        const pair2 = b.pair.join("/");
+        const pair1 = `${a.currency1}/${a.currency2}`;
+        const pair2 = `${b.currency1}/${b.currency2}`;
         return pair1.localeCompare(pair2);
       }),
     );
@@ -132,16 +141,16 @@ export default function DisplayAmms() {
               className="grid cursor-pointer grid-cols-[2fr_1fr_1fr_1fr] items-center px-4 py-6 hover:bg-color3"
               onClick={() => {
                 localStorage.setItem("selectedAMM", JSON.stringify(amm));
-                router.push(`/trade/amm/${amm.ammAddress}`);
+                router.push(`/trade/amm/${amm.ammAccount}`);
               }}
             >
               <div className="flex gap-1 pl-2">
-                <CurrencyIcon symbol={amm.pair[0]} iconBg="bg-color4" />
-                <CurrencyIcon symbol={amm.pair[1]} iconBg="bg-color4" />
+                <CurrencyIcon symbol={amm.currency1} iconBg="bg-color4" />
+                <CurrencyIcon symbol={amm.currency2} iconBg="bg-color4" />
               </div>
-              <p className="text-center">{amm.ammAddress}</p>
+              <p className="text-center">{amm.ammAccount}</p>
               <p className="text-center">Not Available</p>
-              <p className="text-center">0.1%</p>
+              <p className="text-center">{formatFee(amm.fee)}</p>
             </div>
           ))}
         </div>

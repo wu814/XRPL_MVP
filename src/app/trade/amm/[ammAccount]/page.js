@@ -5,11 +5,11 @@ import DisplayAmmDetails from "@/components/Amm/DisplayAmmDetails";
 
 export default function AmmDetails() {
   const params = useParams();
-  const address = params.ammAddress; // Get the AMM address from the URL
+  const address = params.ammAccount; // Get the AMM address from the URL
 
   return (
     <div>
-      <DisplayAmmDetails ammAddress={address} />
+      <DisplayAmmDetails ammAccount={address} />
     </div>
   );
 }

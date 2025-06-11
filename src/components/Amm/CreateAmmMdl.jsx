@@ -73,7 +73,7 @@ export default function CreateAmmMdl({
           </div>
 
           <div>
-            <label className="mb-1 block">Fee (0-1000)</label>
+            <label className="mb-1 block">Fee (0-1000, integer only)</label>
             <input
               type="number"
               className="bg-color5 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
