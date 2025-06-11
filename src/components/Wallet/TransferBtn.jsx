@@ -40,23 +40,30 @@ export default function TransferBtn({
 
     try {
       const tag = destinationTag.trim() !== "" ? Number(destinationTag) : null;
-      const recipient = useUsername ? recipientUsername : recipientAddress;
       const endpoint =
         currency === "XRP"
           ? "/api/transactions/sendXRP"
           : "/api/transactions/sendIOU";
 
+      const requestBody = {
+        senderWallet,
+        amount,
+        destinationTag: tag,
+        useUsername,
+        ...(currency !== "XRP" && { currency, issuerWallets }),
+      };
+
+      // Add recipient information based on the mode
+      if (useUsername) {
+        requestBody.recipient= recipientUsername;
+      } else {
+        requestBody.recipient = recipientAddress;
+      }
+
       const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          senderWallet,
-          recipient,
-          amount,
-          ...(currency !== "XRP" && { currency, issuerWallets }),
-          destinationTag: tag,
-          useUsername,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       const result = await res.json();

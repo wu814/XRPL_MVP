@@ -92,7 +92,7 @@ export default function WithdrawLiquidity({ ammInfo, onWithdrawn }) {
           setTimeout(() => {
             router.push("/trade/amm");
           }, 5000);
-        }, 5000);
+        }, 3000);
       } else {
         onWithdrawn();
       }

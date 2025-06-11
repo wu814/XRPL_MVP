@@ -258,8 +258,8 @@ export default function AddLiquidity({ ammInfo, onAdded }) {
       <div className="space-y-2 rounded-lg bg-color3 p-4 border border-transparent hover:border-primary focus-within:border-primary">
         <label className="mb-2 block text-sm text-mutedText ">Pay with</label>
         <div className="space-x-4">
-          {["both", token1?.currency, token2?.currency].map((option) => (
-            <label key={option}>
+          {["both", token1?.currency, token2?.currency].map((option, index) => (
+            <label key={`${option}-${index}`}>
               <input
                 type="radio"
                 name="payWith"

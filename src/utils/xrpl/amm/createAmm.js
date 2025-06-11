@@ -43,40 +43,35 @@ export default async function createAmm(
   const A = assetAType.toUpperCase();
   const B = assetBType.toUpperCase();
 
-  const formatAsset = (type, value) => {
-    return type === "XRP"
-      ? xrpl.xrpToDrops(value.toString())
-      : {
-          currency: type,
-          issuer: issuerWallet.classicAddress,
-          value: value.toString(),
-        };
-  };
-
-  // Helper function to format currency for database storage
-  const formatCurrencyForDB = (type, value, issuerWallet) => {
+  // Unified function to format assets for both XRPL transactions and database storage
+  const formatAsset = (type, value, forTransaction = true) => {
     if (type === "XRP") {
-      return {
-        currency: "XRP",
-        value: value.toString()
-      };
+      return forTransaction
+        ? xrpl.xrpToDrops(value.toString())
+        : { currency: "XRP", value: value.toString() };
     } else {
-      return {
-        currency: type,
-        issuer: issuerWallet.classicAddress,
-        value: value.toString()
-      };
+      return forTransaction
+        ? {
+            currency: type,
+            issuer: issuerWallet.classicAddress,
+            value: value.toString(),
+          }
+        : {
+            currency: type,
+            issuer: issuerWallet.classicAddress,
+            value: value.toString(),
+          };
     }
   };
 
   // Sort currencies alphabetically to ensure consistent ordering
   const currencies = [
     { type: A, amount: parsedAmountA },
-    { type: B, amount: parsedAmountB }
+    { type: B, amount: parsedAmountB },
   ].sort((a, b) => a.type.localeCompare(b.type));
 
-  const assetA = formatAsset(currencies[0].type, currencies[0].amount);
-  const assetB = formatAsset(currencies[1].type, currencies[1].amount);
+  const assetA = formatAsset(currencies[0].type, currencies[0].amount, true);
+  const assetB = formatAsset(currencies[1].type, currencies[1].amount, true);
 
   // change the fee (in drops) to create AMM
   const tx = {
@@ -88,6 +83,8 @@ export default async function createAmm(
     Fee: "2000000",
     Flags: 0,
   };
+
+  console.log("📜 AMM Create transaction:", JSON.stringify(tx, null, 2));
 
   const preparedTx = await client.autofill(tx);
   preparedTx.Fee = "2000000";
@@ -102,27 +99,30 @@ export default async function createAmm(
   }
   console.log("✅ AMM created successfully!");
 
-  const formatForAmmInfo = (type, obj) =>
-    type === "XRP"
-      ? { currency: "XRP" }
-      : { currency: obj.currency, issuer: obj.issuer };
+  const formatForAmmInfo = (type) => {
+    if (type === "XRP") {
+      return { currency: "XRP" };
+    } else {
+      // For non-XRP assets, use the original type and issuer wallet
+      return { 
+        currency: type, 
+        issuer: issuerWallet.classicAddress 
+      };
+    }
+  };
 
   const ammInfo = await client.request({
     command: "amm_info",
-    asset: formatForAmmInfo(A, assetA),
-    asset2: formatForAmmInfo(B, assetB),
+    asset: formatForAmmInfo(A),
+    asset2: formatForAmmInfo(B),
   });
 
   const amm = ammInfo.result?.amm;
   if (!amm) throw new Error("AMM not found in ledger after creation.");
 
-  const poolKey = [A, B].sort().join("/");
-
   return {
     ammAccount: amm.account,
-    currency_a: formatCurrencyForDB(currencies[0].type, currencies[0].amount, issuerWallet),
-    currency_b: formatCurrencyForDB(currencies[1].type, currencies[1].amount, issuerWallet),
-    // Keep pair for backward compatibility during transition
-    pair: poolKey,
+    currency_a: formatAsset(currencies[0].type, currencies[0].amount, false),
+    currency_b: formatAsset(currencies[1].type, currencies[1].amount, false),
   };
 }
