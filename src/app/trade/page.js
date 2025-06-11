@@ -28,13 +28,11 @@ export default function Trade() {
               Liquidity Pool
             </Link>
             <p className="leading-loose">
-              Liquidity Pools allow you to swap tokens using Automated Market
-              Makers (AMMs), where users provide token pairs into a shared pool
-              and prices are determined by a constant product formula. It’s a
-              simple and fast way to trade, especially for newer or less
-              frequently traded assets, without needing to match with a specific
-              buyer or seller. You trade directly with the pool, and prices
-              adjust automatically based on supply and demand in the pool.
+              Trade tokens instantly using pre-funded pools. Think of it like a
+              vending machine - you put in one token and get another out
+              immediately. The price changes automatically based on how much of
+              each token is available. Perfect for quick trades without waiting
+              for someone else to match your order.
             </p>
           </div>
           <div className="rounded-lg bg-color2 p-8">
@@ -42,25 +40,23 @@ export default function Trade() {
               Order Book
             </Link>
             <p className="leading-loose">
-              Order Book trading is the traditional decentralized exchange (DEX)
-              method where users place buy and sell offers for tokens. Trades
-              occur when matching orders are found — just like on a stock
-              exchange. This gives you more control over your price and timing
-              but requires a matching counterparty. It’s ideal for
-              high-liquidity assets and precise trading strategies.
+              Place buy and sell orders like a traditional stock market. You set
+              your price and wait for someone to match it. You have full control
+              over your trade price, but you need to wait for another user to
+              accept your offer. Best for popular tokens and when you want to
+              set specific prices.
             </p>
           </div>
           <div className="rounded-lg bg-color2 p-8">
-            <Link href="/trade/amm" className={linkClass("/trade/hybrid")}>
+            <Link href="/trade/amm" className={linkClass("/trade/smart")}>
               Smart Trade
             </Link>
             <p className="leading-loose">
-              Smart Trade automatically finds the best trading route for you by
-              checking both Liquidity Pools and Offer Books. It uses XRPL’s
-              pathfinding algorithm to combine AMM and DEX liquidity, ensuring
-              you get the most efficient trade with the best rate. Whether it's
-              one route or multiple hops, Smart Trade intelligently routes your
-              transaction to optimize results with minimal effort on your part.
+              Let our system find the best deal for you automatically. It checks
+              both trading methods and picks the route that gives you the most
+              tokens for your money. Whether it's a direct swap or multiple
+              steps, Smart Trade handles the complexity so you get the best
+              possible rate with one click.
             </p>
           </div>
         </div>

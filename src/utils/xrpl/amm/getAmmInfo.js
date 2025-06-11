@@ -1,5 +1,6 @@
 import { client, connectXrplClient } from "../testnet";
 import * as xrpl from "xrpl";
+import { createSupabaseAnonClient } from "@/utils/supabase/server";
 
 /**
  * Get information about an AMM instance from the XRPL ledger.
@@ -80,5 +81,49 @@ export default async function getAmmInfo(
 
     // Add context to make debugging easier
     throw new Error(`getAmmInfo error: ${error.message}`);
+  }
+}
+
+/**
+ * Get all AMMs from the database and format them for pathfinding
+ * This function fetches AMM data from the Supabase DB and formats it
+ * to match the expected structure for the pathfinding engine
+ * @returns {Promise<object>} Object with AMM account IDs as keys and AMM data as values
+ */
+export async function getAllAmmInfo() {
+  try {
+    console.log("🔍 Fetching all AMMs from database (direct Supabase)...");
+    
+    const supabase = await createSupabaseAnonClient();
+    const { data, error } = await supabase.from("amms").select("*");
+    
+    if (error) throw error;
+    
+    const amms = data || [];
+    if (!amms || !Array.isArray(amms)) {
+      console.warn("⚠️ No AMM data received from DB");
+      return {};
+    }
+    
+    console.log(`📊 Found ${amms.length} AMMs in database`);
+    const ammData = {};
+    
+    for (const amm of amms) {
+      if (amm.amm_account) {
+        ammData[amm.amm_account] = {
+          amm_account: amm.amm_account,
+          currency_a: amm.currency_a,
+          currency_b: amm.currency_b,
+          fee: amm.fee || 0, // Default to 0% if not set
+        };
+      }
+    }
+    
+    console.log(`✅ Formatted ${Object.keys(ammData).length} AMMs for pathfinding`);
+    return ammData;
+  } catch (error) {
+    console.error(`❌ Error fetching all AMMs: ${error.message}`);
+    // Return empty object to prevent pathfinding from crashing
+    return {};
   }
 }

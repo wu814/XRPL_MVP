@@ -7,7 +7,7 @@ const labelMap = {
   trade: "Trade",
   amm: "Liquidity Pools",
   dex: "Order Book",
-  hybrid: "Smart Trade",
+  smart: "Smart Trade",
   admin: "Wallet",
   user: "Wallet",
   profile: "Profile",

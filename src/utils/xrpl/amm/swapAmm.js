@@ -1,7 +1,7 @@
 import { client, connectXrplClient } from "../testnet";
 import * as xrpl from "xrpl";
 import getAmmInfo from "./getAmmInfo";
-const { findAmmPath } = require("../pathfindingController/pathfindingEngine");
+import findAmmPath from "../pathfind/pathfindEngine"
 
 /**
  * Swap assets in a specific AMM pool with cross-AMM rate checking

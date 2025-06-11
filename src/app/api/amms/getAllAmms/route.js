@@ -1,13 +1,11 @@
-import { createSupabaseAnonClient } from "@/utils/supabase/server";
 import { NextResponse } from "next/server";
+import { getAllAmmInfo } from "@/utils/xrpl/amm/getAmmInfo";
 
 export async function GET() {
   try {
-    const supabase = await createSupabaseAnonClient();
-    const { data, error } = await supabase.from("amms").select("*");
-
-    if (error) throw error;
-
+    const ammData = await getAllAmmInfo();
+    // Convert back to array format for API response
+    const data = Object.values(ammData);
     return NextResponse.json({ data }, { status: 200 });
   } catch (error) {
     return NextResponse.json(
