@@ -15,6 +15,12 @@ export default function DisplayAmms() {
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState(null);
 
+  // Helper function to format fee display
+  const formatFee = (fee) => {
+    if (!fee) return "N/A"; // Default fallback
+    return `${(fee / 1000).toFixed(3)}%`; // Convert basis points to percentage
+  };
+
   const fetchAmms = async () => {
     setLoading(true);
     try {
@@ -28,6 +34,7 @@ export default function DisplayAmms() {
             currency2: amm.currency_b?.currency || "Unknown",
             currency_a: amm.currency_a,
             currency_b: amm.currency_b,
+            fee: amm.fee || 0, // Default to 0 if not set
           }))
           .sort((a, b) => {
             const pair1 = `${a.currency1}/${a.currency2}`;
@@ -50,6 +57,7 @@ export default function DisplayAmms() {
       currency2: newAmmData.currency_b?.currency || "Unknown",
       currency_a: newAmmData.currency_a,
       currency_b: newAmmData.currency_b,
+      fee: newAmmData.fee || 1000, // Default to 1000 (0.1%) if not set
     };
     setAmms((prevAmms) =>
       [...prevAmms, newAmm].sort((a, b) => {
@@ -142,7 +150,7 @@ export default function DisplayAmms() {
               </div>
               <p className="text-center">{amm.ammAccount}</p>
               <p className="text-center">Not Available</p>
-              <p className="text-center">0.1%</p>
+              <p className="text-center">{formatFee(amm.fee)}</p>
             </div>
           ))}
         </div>

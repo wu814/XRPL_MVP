@@ -124,5 +124,6 @@ export default async function createAmm(
     ammAccount: amm.account,
     currency_a: formatAsset(currencies[0].type, currencies[0].amount, false),
     currency_b: formatAsset(currencies[1].type, currencies[1].amount, false),
+    fee: tradingFee,
   };
 }

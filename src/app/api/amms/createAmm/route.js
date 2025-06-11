@@ -41,6 +41,7 @@ export async function POST(req) {
         amm_account: ammData.ammAccount,
         currency_a: ammData.currency_a,
         currency_b: ammData.currency_b,
+        fee: fee,
         created_at: new Date().toISOString(),
         issuer_address: issuerWallets[0].classicAddress,
         treasury_address: treasuryWallet.classicAddress,

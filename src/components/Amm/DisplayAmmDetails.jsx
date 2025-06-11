@@ -144,7 +144,7 @@ export default function DisplayAmmDetails({ ammAccount }) {
     <div>
       <h3 className="mb-2 text-mutedText">Trading Fee</h3>
       <p className="text-lg font-semibold">
-        {`${(ammInfo?.trading_fee / 1000).toFixed(2)}%`}
+        {`${(ammInfo?.trading_fee / 1000).toFixed(3)}%`}
       </p>
     </div>
   );
