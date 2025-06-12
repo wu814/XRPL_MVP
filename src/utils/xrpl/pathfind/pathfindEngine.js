@@ -17,7 +17,7 @@ import { connectXrplClient, client } from "../testnet";
  * @param {string} issuerAddress - Issuer address for tokens
  * @returns {Promise<object>} AMM pathfinding result with rates and paths
  */
-const findAmmPath = async (fromCurrency, toCurrency, fromAmount, issuerAddress) => {
+export async function findAmmPath(fromCurrency, toCurrency, fromAmount, issuerAddress) {
   try {
     await connectXrplClient();
     
@@ -141,8 +141,9 @@ const findAmmPath = async (fromCurrency, toCurrency, fromAmount, issuerAddress) 
       }
     }
     
-    // Multi-hop AMM lookup (e.g., EUR → XRP → USD, EUR → USD → BTC, etc.)
-    if (!bestPath && Object.keys(ammData).length >= 2) {
+    // ENHANCED: Check multi-hop AMM paths whether or not we found a direct path
+    // This ensures we always compare direct vs multi-hop and pick the better rate
+    if (Object.keys(ammData).length >= 2) {
       console.log(`🔍 Searching for multi-hop AMM paths...`);
       
       // ENHANCED: Check all possible intermediate currencies, not just XRP
@@ -204,7 +205,9 @@ const findAmmPath = async (fromCurrency, toCurrency, fromAmount, issuerAddress) 
               
               console.log(`📈 Multi-hop rate: ${displayRate1.toFixed(6)} (${rate1Label}) × ${displayRate2.toFixed(6)} (${rate2Label}) = ${displayCombinedRate.toFixed(6)}`);
               
+              // CRITICAL FIX: Always compare multi-hop vs current best rate (including direct)
               if (combinedRate > bestRate && estimatedOutput > 0.000001) {
+                console.log(`🏆 Multi-hop path is BETTER! ${combinedRate.toFixed(6)} vs ${bestRate.toFixed(6)}`);
                 bestRate = combinedRate;
                 bestPath = {
                   type: 'multi_hop_amm',
@@ -225,15 +228,17 @@ const findAmmPath = async (fromCurrency, toCurrency, fromAmount, issuerAddress) 
                     }
                   ]
                 };
+              } else {
+                console.log(`💭 Multi-hop rate ${combinedRate.toFixed(6)} is not better than current best ${bestRate.toFixed(6)}`);
               }
             }
           }
         }
       }
       
-      // ENHANCED: If no pure AMM multi-hop found, check for hybrid routes
-      if (!bestPath) {
-        console.log(`🔍 No pure AMM multi-hop found, checking for potential AMM participation in hybrid routes...`);
+      // ENHANCED: If no multi-hop found better than direct, check for hybrid routes
+      if (bestPath && bestPath.type === 'direct_amm') {
+        console.log(`🔍 Direct AMM path is still best, checking for potential AMM participation in hybrid routes...`);
         
         // Check if fromCurrency or toCurrency exists in any AMM
         let hasFromCurrencyInAmm = false;
@@ -319,7 +324,7 @@ const findAmmPath = async (fromCurrency, toCurrency, fromAmount, issuerAddress) 
  * @param {string} issuerAddress - Issuer address for tokens
  * @returns {Promise<object>} DEX pathfinding result with rates and paths
  */
-const findDexPath = async (senderAddress, receiverAddress, fromCurrency, toCurrency, fromAmount, issuerAddress) => {
+export async function findDexPath (senderAddress, receiverAddress, fromCurrency, toCurrency, fromAmount, issuerAddress) {
   try {
     await connectXrplClient();
     
@@ -976,6 +981,95 @@ const findDexPath = async (senderAddress, receiverAddress, fromCurrency, toCurre
   }
 };
 
+
+/**
+ * Find hybrid AMM+DEX pathfinding routes
+ * @param {string} senderAddress - Sender's XRPL address
+ * @param {string} receiverAddress - Receiver's XRPL address
+ * @param {string} fromCurrency - Source currency
+ * @param {string} toCurrency - Destination currency
+ * @param {string} fromAmount - Amount to convert
+ * @param {string} issuerAddress - Issuer address for tokens
+ * @returns {Promise<object>} Hybrid pathfinding result
+ */
+export async function findHybridPath (senderAddress, receiverAddress, fromCurrency, toCurrency, fromAmount, issuerAddress) {
+  try {
+    console.log(`🔍 Hybrid Pathfinding: ${fromAmount} ${fromCurrency} → ${toCurrency}`);
+    
+    // Get both AMM and DEX data
+    const [ammData, dexOffers] = await Promise.all([
+      getAllAmmInfo(),
+      getDexOffers(fromCurrency, toCurrency, issuerAddress)
+    ]);
+    
+    const allCurrencies = new Set(['XRP']);
+    Object.values(ammData).forEach(amm => {
+      allCurrencies.add(amm.currency_a?.currency || 'XRP');
+      allCurrencies.add(amm.currency_b?.currency || 'XRP');
+    });
+    
+    // Add currencies from DEX offers
+    if (dexOffers.fromToXrp) allCurrencies.add(fromCurrency);
+    if (dexOffers.xrpToTo) allCurrencies.add(toCurrency);
+    
+    console.log(`🔍 Hybrid routing through: ${Array.from(allCurrencies).join(', ')}`);
+    
+    let bestHybridRate = 0;
+    let bestHybridPath = null;
+    
+    // Try hybrid routes through each intermediate currency
+    for (const intermediateCurrency of allCurrencies) {
+      if (intermediateCurrency === fromCurrency || intermediateCurrency === toCurrency) continue;
+      
+      // Route 1: DEX → AMM
+      const dexToAmm = await tryDexToAmmRoute(fromCurrency, intermediateCurrency, toCurrency, fromAmount, issuerAddress, dexOffers, ammData);
+      if (dexToAmm.rate > bestHybridRate) {
+        bestHybridRate = dexToAmm.rate;
+        bestHybridPath = dexToAmm;
+      }
+      
+      // Route 2: AMM → DEX  
+      const ammToDex = await tryAmmToDexRoute(fromCurrency, intermediateCurrency, toCurrency, fromAmount, issuerAddress, ammData, dexOffers);
+      if (ammToDex.rate > bestHybridRate) {
+        bestHybridRate = ammToDex.rate;
+        bestHybridPath = ammToDex;
+      }
+      
+      // Route 3: Try 3-hop combinations (DEX → AMM → DEX, AMM → DEX → AMM, etc.)
+      for (const secondIntermediate of allCurrencies) {
+        if (secondIntermediate === fromCurrency || secondIntermediate === toCurrency || secondIntermediate === intermediateCurrency) continue;
+        
+        const threeHop = await tryThreeHopRoute(fromCurrency, intermediateCurrency, secondIntermediate, toCurrency, fromAmount, issuerAddress, ammData, dexOffers);
+        if (threeHop.rate > bestHybridRate) {
+          bestHybridRate = threeHop.rate;
+          bestHybridPath = threeHop;
+        }
+      }
+    }
+    
+    if (bestHybridPath) {
+      console.log(`✅ Best hybrid route: ${bestHybridPath.description}`);
+      console.log(`📊 Rate: ${bestHybridRate.toFixed(6)} ${toCurrency}/${fromCurrency}`);
+      console.log(`💰 Output: ${bestHybridPath.estimatedOutput} ${toCurrency}`);
+      
+      return {
+        success: true,
+        type: 'hybrid',
+        bestPath: bestHybridPath,
+        bestRate: bestHybridRate,
+        allPaths: [bestHybridPath]
+      };
+    }
+    
+    return { success: false, type: 'hybrid', error: 'No viable hybrid paths found' };
+    
+  } catch (error) {
+    console.error(`❌ Hybrid pathfinding error: ${error.message}`);
+    return { success: false, error: error.message };
+  }
+};
+
+
 /**
  * Find the best conversion path combining both AMM and DEX liquidity
  * @param {string} senderAddress - Sender's XRPL address
@@ -986,7 +1080,7 @@ const findDexPath = async (senderAddress, receiverAddress, fromCurrency, toCurre
  * @param {string} issuerAddress - Issuer address for tokens
  * @returns {Promise<object>} Combined pathfinding result with best option
  */
-const findBestPath = async (senderAddress, receiverAddress, fromCurrency, toCurrency, fromAmount, issuerAddress) => {
+export async function findBestPath (senderAddress, receiverAddress, fromCurrency, toCurrency, fromAmount, issuerAddress) {
   try {
     console.log(`🎯 Smart Pathfinding: Finding best route for ${fromAmount} ${fromCurrency} → ${toCurrency}`);
     
@@ -1075,16 +1169,16 @@ const calculateAmmRate = (amm, fromCurrency, toCurrency, fromAmount = 1) => {
     // Get reserves, handling both drops and XRP units
     if (currencyA === 'XRP') {
       const xrpValue = parseFloat(amm.currency_a?.value || 0);
-      // If value > 1000000, it's likely in drops, convert to XRP
-      fromReserve = xrpValue > 1000000 ? xrpValue / 1000000 : xrpValue;
+      // If value >= 1000000, it's likely in drops, convert to XRP
+      fromReserve = xrpValue >= 1000000 ? xrpValue / 1000000 : xrpValue;
     } else {
       fromReserve = parseFloat(amm.currency_a?.value || 0);
     }
     
     if (currencyB === 'XRP') {
       const xrpValue = parseFloat(amm.currency_b?.value || 0);
-      // If value > 1000000, it's likely in drops, convert to XRP
-      toReserve = xrpValue > 1000000 ? xrpValue / 1000000 : xrpValue;
+      // If value >= 1000000, it's likely in drops, convert to XRP
+      toReserve = xrpValue >= 1000000 ? xrpValue / 1000000 : xrpValue;
     } else {
       toReserve = parseFloat(amm.currency_b?.value || 0);
     }
@@ -1092,16 +1186,16 @@ const calculateAmmRate = (amm, fromCurrency, toCurrency, fromAmount = 1) => {
     // Get reserves, handling both drops and XRP units
     if (currencyB === 'XRP') {
       const xrpValue = parseFloat(amm.currency_b?.value || 0);
-      // If value > 1000000, it's likely in drops, convert to XRP
-      fromReserve = xrpValue > 1000000 ? xrpValue / 1000000 : xrpValue;
+      // If value >= 1000000, it's likely in drops, convert to XRP
+      fromReserve = xrpValue >= 1000000 ? xrpValue / 1000000 : xrpValue;
     } else {
       fromReserve = parseFloat(amm.currency_b?.value || 0);
     }
     
     if (currencyA === 'XRP') {
       const xrpValue = parseFloat(amm.currency_a?.value || 0);
-      // If value > 1000000, it's likely in drops, convert to XRP
-      toReserve = xrpValue > 1000000 ? xrpValue / 1000000 : xrpValue;
+      // If value >= 1000000, it's likely in drops, convert to XRP
+      toReserve = xrpValue >= 1000000 ? xrpValue / 1000000 : xrpValue;
     } else {
       toReserve = parseFloat(amm.currency_a?.value || 0);
     }
@@ -1275,93 +1369,6 @@ const verifyTestOffers = async (issuerAddress) => {
     
   } catch (error) {
     console.error(`❌ Error verifying test offers: ${error.message}`);
-  }
-};
-
-/**
- * Find hybrid AMM+DEX pathfinding routes
- * @param {string} senderAddress - Sender's XRPL address
- * @param {string} receiverAddress - Receiver's XRPL address
- * @param {string} fromCurrency - Source currency
- * @param {string} toCurrency - Destination currency
- * @param {string} fromAmount - Amount to convert
- * @param {string} issuerAddress - Issuer address for tokens
- * @returns {Promise<object>} Hybrid pathfinding result
- */
-const findHybridPath = async (senderAddress, receiverAddress, fromCurrency, toCurrency, fromAmount, issuerAddress) => {
-  try {
-    console.log(`🔍 Hybrid Pathfinding: ${fromAmount} ${fromCurrency} → ${toCurrency}`);
-    
-    // Get both AMM and DEX data
-    const [ammData, dexOffers] = await Promise.all([
-      getAllAmmInfo(),
-      getDexOffers(fromCurrency, toCurrency, issuerAddress)
-    ]);
-    
-    const allCurrencies = new Set(['XRP']);
-    Object.values(ammData).forEach(amm => {
-      allCurrencies.add(amm.currency_a?.currency || 'XRP');
-      allCurrencies.add(amm.currency_b?.currency || 'XRP');
-    });
-    
-    // Add currencies from DEX offers
-    if (dexOffers.fromToXrp) allCurrencies.add(fromCurrency);
-    if (dexOffers.xrpToTo) allCurrencies.add(toCurrency);
-    
-    console.log(`🔍 Hybrid routing through: ${Array.from(allCurrencies).join(', ')}`);
-    
-    let bestHybridRate = 0;
-    let bestHybridPath = null;
-    
-    // Try hybrid routes through each intermediate currency
-    for (const intermediateCurrency of allCurrencies) {
-      if (intermediateCurrency === fromCurrency || intermediateCurrency === toCurrency) continue;
-      
-      // Route 1: DEX → AMM
-      const dexToAmm = await tryDexToAmmRoute(fromCurrency, intermediateCurrency, toCurrency, fromAmount, issuerAddress, dexOffers, ammData);
-      if (dexToAmm.rate > bestHybridRate) {
-        bestHybridRate = dexToAmm.rate;
-        bestHybridPath = dexToAmm;
-      }
-      
-      // Route 2: AMM → DEX  
-      const ammToDex = await tryAmmToDexRoute(fromCurrency, intermediateCurrency, toCurrency, fromAmount, issuerAddress, ammData, dexOffers);
-      if (ammToDex.rate > bestHybridRate) {
-        bestHybridRate = ammToDex.rate;
-        bestHybridPath = ammToDex;
-      }
-      
-      // Route 3: Try 3-hop combinations (DEX → AMM → DEX, AMM → DEX → AMM, etc.)
-      for (const secondIntermediate of allCurrencies) {
-        if (secondIntermediate === fromCurrency || secondIntermediate === toCurrency || secondIntermediate === intermediateCurrency) continue;
-        
-        const threeHop = await tryThreeHopRoute(fromCurrency, intermediateCurrency, secondIntermediate, toCurrency, fromAmount, issuerAddress, ammData, dexOffers);
-        if (threeHop.rate > bestHybridRate) {
-          bestHybridRate = threeHop.rate;
-          bestHybridPath = threeHop;
-        }
-      }
-    }
-    
-    if (bestHybridPath) {
-      console.log(`✅ Best hybrid route: ${bestHybridPath.description}`);
-      console.log(`📊 Rate: ${bestHybridRate.toFixed(6)} ${toCurrency}/${fromCurrency}`);
-      console.log(`💰 Output: ${bestHybridPath.estimatedOutput} ${toCurrency}`);
-      
-      return {
-        success: true,
-        type: 'hybrid',
-        bestPath: bestHybridPath,
-        bestRate: bestHybridRate,
-        allPaths: [bestHybridPath]
-      };
-    }
-    
-    return { success: false, type: 'hybrid', error: 'No viable hybrid paths found' };
-    
-  } catch (error) {
-    console.error(`❌ Hybrid pathfinding error: ${error.message}`);
-    return { success: false, error: error.message };
   }
 };
 
@@ -1605,4 +1612,3 @@ const getAmmRate = (fromCurrency, toCurrency, ammData, amount) => {
   }
   return 0;
 };
-

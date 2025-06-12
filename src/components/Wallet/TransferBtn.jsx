@@ -6,7 +6,6 @@ import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
 import CurrencyDropDown from "../Currency/CurrencyDropDown";
 import SlippagePanel from "../SlippagePanel";
-import { send } from "process";
 
 export default function TransferBtn({
   senderWallet,
