@@ -1,7 +1,6 @@
 import * as xrpl from "xrpl";
 import { client, connectXrplClient } from "../testnet"
 import { getAllAmmInfo } from '../amm/getAmmInfo';
-import { connectXrplClient, client } from "../testnet";
 
 
 /**

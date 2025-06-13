@@ -27,6 +27,10 @@ export default function TransferBtn({
   const [slippage, setSlippage] = useState("1.01"); // Default 1% slippage
   const [showSlippagePanel, setShowSlippagePanel] = useState(false);
 
+  const [paymentType, setPaymentType] = useState("regular"); // "regular" or "cross"
+  const [sendCurrency, setSendCurrency] = useState(""); // for cross-currency
+  const [receiveCurrency, setReceiveCurrency] = useState(""); // for cross-currency
+
   useEffect(() => {
     if (presetRecipientUsername) {
       setRecipientUsername(presetRecipientUsername);
@@ -39,24 +43,33 @@ export default function TransferBtn({
 
     try {
       const tag = destinationTag.trim() !== "" ? Number(destinationTag) : null;
-      const endpoint =
-        currency === "XRP"
+      let endpoint, requestBody;
+
+      if (paymentType === "cross") {
+        endpoint = "/api/transactions/sendCrossCurrency";
+        requestBody = {
+          senderWallet,
+          sendCurrency,
+          sendAmount: amount,
+          receiveCurrency,
+          issuerAddress: issuerWallets[0].classicAddress, // adjust if you have multiple issuers
+          slippagePercent: parseFloat(slippage),
+          destinationTag: tag,
+          useUsername,
+          recipient: useUsername ? recipientUsername : recipientAddress,
+        };
+      } else {
+        endpoint = currency === "XRP"
           ? "/api/transactions/sendXRP"
           : "/api/transactions/sendIOU";
-
-      const requestBody = {
-        senderWallet,
-        amount,
-        destinationTag: tag,
-        useUsername,
-        ...(currency !== "XRP" && { currency, issuerWallets }),
-      };
-
-      // Add recipient information based on the mode
-      if (useUsername) {
-        requestBody.recipient= recipientUsername;
-      } else {
-        requestBody.recipient = recipientAddress;
+        requestBody = {
+          senderWallet,
+          amount,
+          destinationTag: tag,
+          useUsername,
+          ...(currency !== "XRP" && { currency, issuerWallets }),
+          recipient: useUsername ? recipientUsername : recipientAddress,
+        };
       }
 
       const res = await fetch(endpoint, {
@@ -67,18 +80,18 @@ export default function TransferBtn({
 
       const result = await res.json();
       if (!res.ok) throw new Error(result.error);
-      setSuccessMessage(result.message);
+      setSuccessMessage(result.message || "Payment sent!");
     } catch (err) {
       setErrorMessage(err.message);
     } finally {
       setLoading(false);
       setShowMdl(false);
-      if (!presetRecipientUsername) {
-        setRecipientUsername("");
-      }
+      if (!presetRecipientUsername) setRecipientUsername("");
       setRecipientAddress("");
       setAmount("");
       setCurrency("");
+      setSendCurrency("");
+      setReceiveCurrency("");
       setDestinationTag("");
     }
   };
@@ -93,6 +106,22 @@ export default function TransferBtn({
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/10">
           <div className="w-96 space-y-4 rounded-lg bg-color4 p-6">
             <h2 className="text-center text-xl font-semibold">Transfer</h2>
+            <div className="flex justify-center mb-4">
+              <div className="flex space-x-2">
+                <button
+                  className={`px-4 py-1 rounded-full ${paymentType === "regular" ? "bg-primary text-black" : "bg-color5 text-white"}`}
+                  onClick={() => setPaymentType("regular")}
+                >
+                  Regular
+                </button>
+                <button
+                  className={`px-4 py-1 rounded-full ${paymentType === "cross" ? "bg-primary text-black" : "bg-color5 text-white"}`}
+                  onClick={() => setPaymentType("cross")}
+                >
+                  Cross-Currency
+                </button>
+              </div>
+            </div>
             <div className="relative mb-4 flex justify-between">
               <div className="flex space-x-1 rounded-full bg-color5 p-1">
                 {[true, false].map((type) => (
@@ -165,17 +194,44 @@ export default function TransferBtn({
               </div>
             )}
 
-            <div>
-              <label className="block text-sm font-medium text-mutedText">
-                Currency
-              </label>
-              <CurrencyDropDown
-                value={currency}
-                onChange={setCurrency}
-                disabledOptions={[]}
-                dropdownBg="bg-color5"
-              />
-            </div>
+            {paymentType === "cross" ? (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-mutedText">
+                    Send Currency
+                  </label>
+                  <CurrencyDropDown
+                    value={sendCurrency}
+                    onChange={setSendCurrency}
+                    disabledOptions={[]}
+                    dropdownBg="bg-color5"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-mutedText">
+                    Receive Currency
+                  </label>
+                  <CurrencyDropDown
+                    value={receiveCurrency}
+                    onChange={setReceiveCurrency}
+                    disabledOptions={[]}
+                    dropdownBg="bg-color5"
+                  />
+                </div>
+              </>
+            ) : (
+              <div>
+                <label className="block text-sm font-medium text-mutedText">
+                  Currency
+                </label>
+                <CurrencyDropDown
+                  value={currency}
+                  onChange={setCurrency}
+                  disabledOptions={[]}
+                  dropdownBg="bg-color5"
+                />
+              </div>
+            )}
 
             <div>
               <label className="block text-sm font-medium text-mutedText">
@@ -219,7 +275,7 @@ export default function TransferBtn({
                   loading ||
                   !(useUsername ? recipientUsername : recipientAddress) ||
                   !amount ||
-                  !currency
+                  (paymentType === "regular" ? !currency : (!sendCurrency || !receiveCurrency))
                 }
               >
                 {loading ? "Sending..." : "Send"}

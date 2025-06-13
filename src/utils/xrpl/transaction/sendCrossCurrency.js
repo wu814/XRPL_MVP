@@ -1,7 +1,8 @@
-
 import * as xrpl from "xrpl";
 import { client, connectXrplClient } from "../testnet";
-import { findBestPath } from "../pathfindingController/pathfindingEngine";
+import { findBestPath } from "../pathfind/pathfindEngine";
+import BigNumber from "bignumber.js";
+import { getAllAmmInfo } from "../amm/getAmmInfo";
 
 /**
  * Send a cross-currency payment using smart pathfinding (AMM + DEX combined)
@@ -16,7 +17,7 @@ import { findBestPath } from "../pathfindingController/pathfindingEngine";
  * @returns {object} Transaction result
  */
 export async function sendCrossCurrency (
-  senderWallet, 
+  wallet, 
   destinationAddress, 
   sendCurrency, 
   sendAmount, 
@@ -26,14 +27,17 @@ export async function sendCrossCurrency (
   destinationTag = null
 ) {
   try {
-    await connectIfNotConnected();
+    await connectXrplClient();
     
     console.log("🎯 Smart Cross-Currency Payment (AMM + DEX pathfinding)...");
-    console.log(`Sender: ${senderWallet.classicAddress}`);
+    console.log(`Sender: ${wallet.classicAddress}`);
     console.log(`Destination: ${destinationAddress}`);
     console.log(`Send: ${sendAmount} ${sendCurrency}`);
     console.log(`Convert to: ${receiveCurrency}`);
     console.log(`Slippage Tolerance: ${slippagePercent}%`);
+
+    // generate a wallet from the seed
+    const senderWallet = xrpl.Wallet.fromSeed(wallet.seed);
     
     // Step 1: Use smart pathfinding to find the best route
     const pathfindingResult = await findBestPath(
@@ -56,10 +60,10 @@ export async function sendCrossCurrency (
     // Step 2: Construct send amount with slippage
     let sendMax;
     if (sendCurrency === "XRP") {
-      const maxAmountXRP = parseFloat(sendAmount) * (1 + slippagePercent / 100);
+      const maxAmountXRP = new BigNumber(parseFloat(sendAmount) * (1 + slippagePercent / 100));
       sendMax = xrpl.xrpToDrops(maxAmountXRP.toFixed(6));
     } else {
-      const maxAmountValue = parseFloat(sendAmount) * (1 + slippagePercent / 100);
+      const maxAmountValue = new BigNumber(parseFloat(sendAmount) * (1 + slippagePercent / 100));
       sendMax = {
         currency: sendCurrency,
         issuer: issuerAddress,
@@ -236,13 +240,6 @@ export async function sendCrossCurrency (
         console.error("Error parsing transaction amounts:", parseError.message);
       }
       
-      console.log("\n=== Smart Cross-Currency Payment Details ===");
-      console.log(`👛 From: ${senderWallet.classicAddress}`);
-      console.log(`👛 To: ${destinationAddress}`);
-      console.log(`💸 Amount Sent: ${actualAmountSent}`);
-      console.log(`💰 Amount Delivered: ${actualAmountDelivered}`);
-      console.log(`🎯 Routing Method: ${actualRoutingMethod}`);
-      
       // Create user-friendly rate display for the exchange rate
       let displayRate = recommendation.rate;
       let rateLabel = `${receiveCurrency}/${sendCurrency}`;
@@ -253,9 +250,17 @@ export async function sendCrossCurrency (
         rateLabel = `${receiveCurrency} per XRP`;
       }
       
-      console.log(`📈 Exchange Rate: ${displayRate.toFixed(6)} ${rateLabel}`);
-      console.log(`📋 Transaction Hash: ${response.result.hash}`);
-      console.log(`📋 Ledger Index: ${response.result.ledger_index}`);
+      // Build message string for return 
+      let message = `\n===== Smart Cross-Currency Payment Details =====\n`;
+      message += `👛 From: ${senderWallet.classicAddress}\n`;
+      message += `👛 To: ${destinationAddress}\n`;
+      message += `💸 Amount Sent: ${actualAmountSent}\n`;
+      message += `💰 Amount Delivered: ${actualAmountDelivered}\n`;
+      message += `🎯 Routing Method: ${actualRoutingMethod}\n`;
+      message += `\n📈 Exchange Rate: ${displayRate.toFixed(6)} ${rateLabel}\n`;
+      message += `📋 Transaction Hash: ${response.result.hash}\n`;
+      message += `📋 Ledger Index: ${response.result.ledger_index}\n`;
+      
       
       return {
         success: true,
@@ -266,7 +271,7 @@ export async function sendCrossCurrency (
         routingMethod: actualRoutingMethod,
         exchangeRate: recommendation.rate,
         pathfindingResult: pathfindingResult,
-        response: response
+        message
       };
     } else {
       throw new Error(`Smart cross-currency payment failed: ${response.result.meta.TransactionResult}`);
@@ -301,7 +306,7 @@ export async function sendCrossCurrency (
   destinationTag = null
 ) {
   try {
-    await connectIfNotConnected();
+    await connectXrplClient();
     
     console.log("🔍 AMM-Only Cross-Currency Payment...");
     console.log(`Sender: ${senderWallet.classicAddress}`);
@@ -393,7 +398,6 @@ export async function sendCrossCurrency (
       let intermediateCurrency = null;
       
       try {
-        const { getAllAmmInfo } = require('../ammController/getAmmInfo');
         const ammData = await getAllAmmInfo();
         
         // Find an AMM that has our send currency and a potential intermediate
