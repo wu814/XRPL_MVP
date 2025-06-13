@@ -49,7 +49,7 @@ export default function estimateDepositAmounts({
   const desiredLP = new BigNumber(lpAmount);
   const fee = new BigNumber(ammInfo?.trading_fee).div(1_000_000);
   const weight = new BigNumber(0.5);
-  const slip = new BigNumber(slippage); // Convert slippage to BigNumber safely
+  const slip = new BigNumber(1 + slippage / 100); // Convert slippage to BigNumber safely
 
   if (
     desiredLP.isNaN() ||

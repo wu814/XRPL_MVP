@@ -27,7 +27,7 @@ export default function Trade() {
             <Link href="/trade/amm" className={linkClass("/trade/amm")}>
               Liquidity Pool
             </Link>
-            <p className="leading-loose">
+            <p className="leading-loose text-lg">
               Trade tokens instantly using pre-funded pools. Think of it like a
               vending machine - you put in one token and get another out
               immediately. The price changes automatically based on how much of
@@ -36,27 +36,27 @@ export default function Trade() {
             </p>
           </div>
           <div className="rounded-lg bg-color2 p-8">
-            <Link href="/trade/dex" className={linkClass("/trade/dex")}>
-              Order Book
-            </Link>
-            <p className="leading-loose">
-              Place buy and sell orders like a traditional stock market. You set
-              your price and wait for someone to match it. You have full control
-              over your trade price, but you need to wait for another user to
-              accept your offer. Best for popular tokens and when you want to
-              set specific prices.
-            </p>
-          </div>
-          <div className="rounded-lg bg-color2 p-8">
             <Link href="/trade/amm" className={linkClass("/trade/smart")}>
               Smart Trade
             </Link>
-            <p className="leading-loose">
+            <p className="leading-loose text-lg">
               Let our system find the best deal for you automatically. It checks
               both trading methods and picks the route that gives you the most
               tokens for your money. Whether it's a direct swap or multiple
               steps, Smart Trade handles the complexity so you get the best
               possible rate with one click.
+            </p>
+          </div>
+          <div className="rounded-lg bg-color2 p-8">
+            <Link href="/trade/dex" className={linkClass("/trade/dex")}>
+              Order Book
+            </Link>
+            <p className="leading-loose text-lg">
+              Place buy and sell orders like a traditional stock market. You set
+              your price and wait for someone to match it. You have full control
+              over your trade price, but you need to wait for another user to
+              accept your offer. Best for popular tokens and when you want to
+              set specific prices.
             </p>
           </div>
         </div>

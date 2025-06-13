@@ -3,17 +3,16 @@
 import { useState } from "react";
 
 export default function SlippagePanel({ slippage, setSlippage, onClose }) {
-  // Show percent value in input, even though slippage is stored as multiplier
+  // Slippage is now stored as a simple percentage value (e.g., 5 for 5%)
 
   const [tempSlippage, setTempSlippage] = useState(
-    ((parseFloat(slippage) - 1) * 100).toFixed(1), // convert back to % for display
+    parseFloat(slippage).toFixed(1) // slippage is already in percentage
   );
 
   const handleSave = () => {
     const parsed = parseFloat(tempSlippage);
     if (!isNaN(parsed) && parsed >= 0 && parsed <= 100) {
-      const slippageMultiplier = 1 + parsed / 100;
-      setSlippage(slippageMultiplier.toFixed(6));
+      setSlippage(parsed.toFixed(1)); // Store as simple percentage
       if (onClose) onClose();
     }
   };

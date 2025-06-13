@@ -24,7 +24,7 @@ export default function TransferBtn({
   const [successMessage, setSuccessMessage] = useState(null);
 
   // Slippage state
-  const [slippage, setSlippage] = useState("1.01"); // Default 1% slippage
+  const [slippage, setSlippage] = useState("5"); // Default 5% slippage
   const [showSlippagePanel, setShowSlippagePanel] = useState(false);
 
   const [paymentType, setPaymentType] = useState("regular"); // "regular" or "cross"
@@ -59,9 +59,10 @@ export default function TransferBtn({
           recipient: useUsername ? recipientUsername : recipientAddress,
         };
       } else {
-        endpoint = currency === "XRP"
-          ? "/api/transactions/sendXRP"
-          : "/api/transactions/sendIOU";
+        endpoint =
+          currency === "XRP"
+            ? "/api/transactions/sendXRP"
+            : "/api/transactions/sendIOU";
         requestBody = {
           senderWallet,
           amount,
@@ -106,16 +107,16 @@ export default function TransferBtn({
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/10">
           <div className="w-96 space-y-4 rounded-lg bg-color4 p-6">
             <h2 className="text-center text-xl font-semibold">Transfer</h2>
-            <div className="flex justify-center mb-4">
-              <div className="flex space-x-2">
+            <div className="mb-4 flex justify-center">
+              <div className="flex space-x-2 rounded-full bg-color5 p-1">
                 <button
-                  className={`px-4 py-1 rounded-full ${paymentType === "regular" ? "bg-primary text-black" : "bg-color5 text-white"}`}
+                  className={`rounded-full px-2 py-1 ${paymentType === "regular" ? "bg-primary text-black" : "bg-color5 text-white"}`}
                   onClick={() => setPaymentType("regular")}
                 >
                   Regular
                 </button>
                 <button
-                  className={`px-4 py-1 rounded-full ${paymentType === "cross" ? "bg-primary text-black" : "bg-color5 text-white"}`}
+                  className={`rounded-full px-2 py-1 ${paymentType === "cross" ? "bg-primary text-black" : "bg-color5 text-white"}`}
                   onClick={() => setPaymentType("cross")}
                 >
                   Cross-Currency
@@ -127,7 +128,7 @@ export default function TransferBtn({
                 {[true, false].map((type) => (
                   <button
                     key={String(type)}
-                    className={`rounded-full px-4 py-1 text-sm ${
+                    className={`rounded-full px-2 py-1 text-sm ${
                       useUsername === type
                         ? "bg-primary text-black"
                         : "text-white"
@@ -138,24 +139,26 @@ export default function TransferBtn({
                   </button>
                 ))}
               </div>
-              <button onClick={() => setShowSlippagePanel((prev) => !prev)}>
-                <svg
-                  className="h-6 w-6 text-mutedText hover:text-primary"
-                  aria-hidden="true"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeWidth="2"
-                    d="M20 6H10m0 0a2 2 0 1 0-4 0m4 0a2 2 0 1 1-4 0m0 0H4m16 6h-2m0 0a2 2 0 1 0-4 0m4 0a2 2 0 1 1-4 0m0 0H4m16 6H10m0 0a2 2 0 1 0-4 0m4 0a2 2 0 1 1-4 0m0 0H4"
-                  />
-                </svg>
-              </button>
+              {paymentType === "cross" && (
+                <button onClick={() => setShowSlippagePanel((prev) => !prev)}>
+                  <svg
+                    className="h-6 w-6 text-mutedText hover:text-primary"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeWidth="2"
+                      d="M20 6H10m0 0a2 2 0 1 0-4 0m4 0a2 2 0 1 1-4 0m0 0H4m16 6h-2m0 0a2 2 0 1 0-4 0m4 0a2 2 0 1 1-4 0m0 0H4m16 6H10m0 0a2 2 0 1 0-4 0m4 0a2 2 0 1 1-4 0m0 0H4"
+                    />
+                  </svg>
+                </button>
+              )}
               {showSlippagePanel && (
                 <SlippagePanel
                   slippage={slippage}
@@ -174,7 +177,7 @@ export default function TransferBtn({
                   type="text"
                   value={recipientUsername}
                   onChange={(e) => setRecipientUsername(e.target.value)}
-                  className="bg-color5 mt-1 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
+                  className="mt-1 w-full rounded-lg border border-transparent bg-color5 p-2 hover:border-primary focus:border-primary focus:outline-none"
                   placeholder="Enter recipient username..."
                   readOnly={Boolean(presetRecipientUsername)}
                 />
@@ -188,7 +191,7 @@ export default function TransferBtn({
                   type="text"
                   value={recipientAddress}
                   onChange={(e) => setRecipientAddress(e.target.value)}
-                  className="bg-color5 mt-1 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
+                  className="mt-1 w-full rounded-lg border border-transparent bg-color5 p-2 hover:border-primary focus:border-primary focus:outline-none"
                   placeholder="Enter recipient address..."
                 />
               </div>
@@ -242,7 +245,7 @@ export default function TransferBtn({
                 min="0"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="bg-color5 mt-1 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
+                className="mt-1 w-full rounded-lg border border-transparent bg-color5 p-2 hover:border-primary focus:border-primary focus:outline-none"
                 placeholder="Enter amount..."
               />
             </div>
@@ -255,7 +258,7 @@ export default function TransferBtn({
                 type="text"
                 value={destinationTag}
                 onChange={(e) => setDestinationTag(e.target.value)}
-                className="bg-color5 mt-1 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
+                className="mt-1 w-full rounded-lg border border-transparent bg-color5 p-2 hover:border-primary focus:border-primary focus:outline-none"
                 placeholder="Enter destination tag..."
               />
             </div>
@@ -275,7 +278,9 @@ export default function TransferBtn({
                   loading ||
                   !(useUsername ? recipientUsername : recipientAddress) ||
                   !amount ||
-                  (paymentType === "regular" ? !currency : (!sendCurrency || !receiveCurrency))
+                  (paymentType === "regular"
+                    ? !currency
+                    : !sendCurrency || !receiveCurrency)
                 }
               >
                 {loading ? "Sending..." : "Send"}

@@ -64,6 +64,7 @@ export async function sendCrossCurrency (
       sendMax = xrpl.xrpToDrops(maxAmountXRP.toFixed(6));
     } else {
       const maxAmountValue = new BigNumber(parseFloat(sendAmount) * (1 + slippagePercent / 100));
+      console.log("maxAmountValue", maxAmountValue);
       sendMax = {
         currency: sendCurrency,
         issuer: issuerAddress,

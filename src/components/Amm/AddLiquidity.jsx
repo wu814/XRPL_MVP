@@ -24,7 +24,7 @@ export default function AddLiquidity({ ammInfo, onAdded }) {
 
   // Slippage tolerance state
   const [showSlippagePanel, setShowSlippagePanel] = useState(false);
-  const [slippage, setSlippage] = useState("1.01"); // Default slippage tolerance 1%
+  const [slippage, setSlippage] = useState("5"); // Default slippage tolerance 5%
 
   // Feedback/UI flags
   const [loading, setLoading] = useState(false);

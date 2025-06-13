@@ -89,13 +89,13 @@ export default function DisplayUserOffers() {
       {!loading && offers.length > 0 && (
         <div className="space-y-1">
           <div className="mx-4 flex justify-between px-2 font-semibold text-mutedText">
-            <span>You Want</span>
             <span>You Pay</span>
+            <span>You Want</span>
           </div>
           <div className="my-2 border-b border-border"></div>
           {offers.map((offer, i) => {
-            const gets = parseAsset(offer.taker_gets);
             const pays = parseAsset(offer.taker_pays);
+            const gets = parseAsset(offer.taker_gets);
 
             return (
               <div
@@ -103,10 +103,10 @@ export default function DisplayUserOffers() {
                 className="mx-4 flex justify-between rounded-lg px-2 text-sm transition duration-100 ease-in-out hover:bg-color4"
               >
                 <div>
-                  {pays.value} {pays.currency}
+                  {gets.value} {gets.currency}
                 </div>
                 <div className="flex items-center gap-2">
-                  {gets.value} {gets.currency}
+                  {pays.value} {pays.currency}
                   <CancelOfferBtn
                     wallet={sourceWallet}
                     offerSequence={offer.seq}
