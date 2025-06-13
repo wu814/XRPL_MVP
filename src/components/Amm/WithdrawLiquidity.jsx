@@ -107,7 +107,7 @@ export default function WithdrawLiquidity({ ammInfo, onWithdrawn }) {
   }, [currentUserWallets]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 text-lg">
       <select
         value={mode}
         onChange={(e) => setMode(e.target.value)}
