@@ -2,10 +2,11 @@
 import { useState } from "react";
 import AddLiquidity from "./AddLiquidity";
 import WithdrawLiquidity from "./WithdrawLiquidity";
+import SwapLiquidity from "./SwapLiquidity";
 import SlippagePanel from "../SlippagePanel";
 
 export default function ManageAmmBalance({ ammInfo, onChange }) {
-  const [activeTab, setActiveTab] = useState("add");
+  const [activeTab, setActiveTab] = useState("swap");
 
   return (
     <div>
@@ -39,7 +40,7 @@ export default function ManageAmmBalance({ ammInfo, onChange }) {
         <WithdrawLiquidity ammInfo={ammInfo} onWithdrawn={onChange} />
       )}
       {activeTab === "swap" && (
-        <div className="text-mutedText">Swap feature coming soon...</div>
+        <SwapLiquidity ammInfo={ammInfo} onSwapped={onChange} />
       )}
     </div>
   );
