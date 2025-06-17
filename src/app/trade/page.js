@@ -36,7 +36,7 @@ export default function Trade() {
             </p>
           </div>
           <div className="rounded-lg bg-color2 p-8">
-            <Link href="/trade/amm" className={linkClass("/trade/smart")}>
+            <Link href="/trade/smart" className={linkClass("/trade/smart")}>
               Smart Trade
             </Link>
             <p className="leading-loose text-lg">
