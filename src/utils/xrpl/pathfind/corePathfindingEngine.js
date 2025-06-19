@@ -1238,7 +1238,7 @@ export async function executeSmartTrade(userWallet, fromCurrency, toCurrency, ta
       console.log(`🚀 Executing conversion: ${bufferedInput.toFixed(6)} ${fromCurrency} → ${targetAmount} ${toCurrency}`);
       
       try {
-        const { sendCrossCurrency } = require('../transactionController/sendCrossCurrency');
+        const { sendCrossCurrency } = await import('../transaction/sendCrossCurrency');
         
         const conversionResult = await withRetry(
           async () => {

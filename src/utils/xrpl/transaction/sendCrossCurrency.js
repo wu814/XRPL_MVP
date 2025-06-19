@@ -624,27 +624,28 @@ export async function sendCrossCurrency(
         console.error("Error parsing transaction amounts:", parseError.message);
       }
       
-      console.log("\n=== Smart Cross-Currency Payment Details ===");
-      console.log(`👛 From: ${walletObject.classicAddress}`);
-      console.log(`👛 To: ${destinationAddress}`);
-      console.log(`💸 Amount Sent: ${actualAmountSent}`);
-      console.log(`💰 Amount Delivered: ${actualAmountDelivered}`);
-      console.log(`🎯 Routing Method: ${actualRoutingMethod}`);
-      
+      // Build summary message instead of console.log
+      let message = "\n=== Smart Cross-Currency Payment Details ===\n";
+      message += `👛 From: ${walletObject.classicAddress}\n`;
+      message += `👛 To: ${destinationAddress}\n`;
+      message += `💸 Amount Sent: ${actualAmountSent}\n`;
+      message += `💰 Amount Delivered: ${actualAmountDelivered}\n`;
+      message += `🎯 Routing Method: ${actualRoutingMethod}\n`;
+
       // Create user-friendly rate display for the exchange rate
       let displayRate = recommendation.rate;
       let rateLabel = `${receiveCurrency}/${sendCurrency}`;
-      
+
       if (receiveCurrency === 'XRP' && sendCurrency !== 'XRP') {
         rateLabel = `XRP per ${sendCurrency}`;
       } else if (sendCurrency === 'XRP' && receiveCurrency !== 'XRP') {
         rateLabel = `${receiveCurrency} per XRP`;
       }
-      
-      console.log(`📈 Exchange Rate: ${displayRate.toFixed(6)} ${rateLabel}`);
-      console.log(`📋 Transaction Hash: ${response.result.hash}`);
-      console.log(`📋 Ledger Index: ${response.result.ledger_index}`);
-      
+
+      message += `📈 Exchange Rate: ${displayRate.toFixed(6)} ${rateLabel}\n`;
+      message += `📋 Transaction Hash: ${response.result.hash}\n`;
+      message += `📋 Ledger Index: ${response.result.ledger_index}\n`;
+
       return {
         success: true,
         txHash: response.result.hash,
@@ -654,7 +655,8 @@ export async function sendCrossCurrency(
         routingMethod: actualRoutingMethod,
         exchangeRate: recommendation.rate,
         pathfindingResult: pathfindingResult,
-        response: response
+        response: response,
+        message // <-- add message to return object
       };
     } else {
       throw new Error(`Smart cross-currency payment failed: ${response.result.meta.TransactionResult}`);
@@ -781,7 +783,7 @@ export async function sendCrossCurrencyAmmOnly(
       let intermediateCurrency = null;
       
       try {
-        const { getAllAmmInfo } = await import('../ammController/getAmmInfo.js');
+        const { getAllAmmInfo } = await import('../amm/getAmmInfo.js');
         const ammData = await getAllAmmInfo();
         
         // Find an AMM that has our send currency and a potential intermediate
@@ -962,15 +964,16 @@ export async function sendCrossCurrencyAmmOnly(
         console.error("Error parsing transaction amounts:", parseError.message);
       }
       
-      console.log("\n=== AMM-Only Cross-Currency Payment Details ===");
-      console.log(`👛 From: ${senderWallet.classicAddress}`);
-      console.log(`👛 To: ${destinationAddress}`);
-      console.log(`💸 Amount Sent: ${actualAmountSent}`);
-      console.log(`💰 Amount Delivered: ${actualAmountDelivered}`);
-      console.log(`🎯 Routing Method: AMM-Only`);
-      console.log(`📋 Transaction Hash: ${response.result.hash}`);
-      console.log(`📋 Ledger Index: ${response.result.ledger_index}`);
-      
+      // Build summary message instead of console.log
+      let message = "\n=== AMM-Only Cross-Currency Payment Details ===\n";
+      message += `👛 From: ${senderWallet.classicAddress}\n`;
+      message += `👛 To: ${destinationAddress}\n`;
+      message += `💸 Amount Sent: ${actualAmountSent}\n`;
+      message += `💰 Amount Delivered: ${actualAmountDelivered}\n`;
+      message += `🎯 Routing Method: AMM-Only\n`;
+      message += `📋 Transaction Hash: ${response.result.hash}\n`;
+      message += `📋 Ledger Index: ${response.result.ledger_index}\n`;
+
       return {
         success: true,
         txHash: response.result.hash,
@@ -978,7 +981,8 @@ export async function sendCrossCurrencyAmmOnly(
         amountSent: actualAmountSent,
         amountDelivered: actualAmountDelivered,
         routingMethod: "AMM-Only",
-        response: response
+        response: response,
+        message // <-- add message to return object
       };
     } else {
       throw new Error(`AMM-only cross-currency payment failed: ${response.result.meta.TransactionResult}`);
