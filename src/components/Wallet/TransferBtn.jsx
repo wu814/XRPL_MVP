@@ -27,7 +27,7 @@ export default function TransferBtn({
   const [slippage, setSlippage] = useState("5"); // Default 5% slippage
   const [showSlippagePanel, setShowSlippagePanel] = useState(false);
 
-  const [paymentType, setPaymentType] = useState("regular"); // "regular" or "cross"
+  const [paymentType, setPaymentType] = useState("direct"); // "direct" or "convertable"
   const [sendCurrency, setSendCurrency] = useState(""); // for cross-currency
   const [receiveCurrency, setReceiveCurrency] = useState(""); // for cross-currency
 
@@ -45,7 +45,7 @@ export default function TransferBtn({
       const tag = destinationTag.trim() !== "" ? Number(destinationTag) : null;
       let endpoint, requestBody;
 
-      if (paymentType === "cross") {
+      if (paymentType === "convertable") {
         endpoint = "/api/transactions/sendCrossCurrency";
         requestBody = {
           senderWallet,
@@ -105,42 +105,13 @@ export default function TransferBtn({
 
       {showMdl && (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/10">
-          <div className="w-96 space-y-4 rounded-lg bg-color4 p-6">
-            <h2 className="text-center text-xl font-semibold">Transfer</h2>
-            <div className="relative flex justify-between">
-              <div className="flex space-x-2 rounded-full bg-color5 p-1">
-                <button
-                  className={`rounded-full px-2 py-1 ${paymentType === "regular" ? "bg-primary text-black" : "bg-color5 text-white"}`}
-                  onClick={() => setPaymentType("regular")}
-                >
-                  Regular
-                </button>
-                <button
-                  className={`rounded-full px-2 py-1 ${paymentType === "cross" ? "bg-primary text-black" : "bg-color5 text-white"}`}
-                  onClick={() => setPaymentType("cross")}
-                >
-                  Cross-Currency
-                </button>
-              </div>
-              <div className="flex space-x-1 rounded-full bg-color5 p-1">
-                {[true, false].map((type) => (
-                  <button
-                    key={String(type)}
-                    className={`rounded-full px-2 py-1 text-sm ${
-                      useUsername === type
-                        ? "bg-primary text-black"
-                        : "text-white"
-                    }`}
-                    onClick={() => setUseUsername(type)}
-                  >
-                    {type ? "Username" : "Address"}
-                  </button>
-                ))}
-              </div>
-              {paymentType === "cross" && (
+          <div className="w-auto space-y-4 rounded-lg bg-color4 p-6">
+            <div className="relative text-center">
+              <h2 className="text-center text-xl font-semibold">Transfer</h2>
+              {paymentType === "convertable" && (
                 <button onClick={() => setShowSlippagePanel((prev) => !prev)}>
                   <svg
-                    className="h-6 w-6 text-mutedText hover:text-primary"
+                    className="absolute h-6 w-6 text-mutedText hover:text-primary top-5 right-0"
                     aria-hidden="true"
                     xmlns="http://www.w3.org/2000/svg"
                     width="24"
@@ -164,6 +135,38 @@ export default function TransferBtn({
                   onClose={() => setShowSlippagePanel(false)}
                 />
               )}
+            </div>
+            <div className="flex justify-between space-x-2">
+              <div className="flex space-x-1 rounded-full bg-color5 p-1">
+                <button
+                  className={`rounded-full px-2 py-1 ${paymentType === "direct" ? "bg-primary text-black" : "bg-color5 text-white"}`}
+                  onClick={() => setPaymentType("direct")}
+                >
+                  Direct
+                </button>
+                <button
+                  className={`rounded-full px-2 py-1 ${paymentType === "convertable" ? "bg-primary text-black" : "bg-color5 text-white"}`}
+                  onClick={() => setPaymentType("convertable")}
+                >
+                  Convertable
+                </button>
+              </div>
+              <div className="flex space-x-1 rounded-full bg-color5 p-1">
+                {[true, false].map((type) => (
+                  <button
+                    key={String(type)}
+                    className={`rounded-full px-2 py-1 ${
+                      useUsername === type
+                        ? "bg-primary text-black"
+                        : "text-white"
+                    }`}
+                    onClick={() => setUseUsername(type)}
+                  >
+                    {type ? "Username" : "Address"}
+                  </button>
+                ))}
+              </div>
+              
             </div>
 
             {useUsername ? (
@@ -195,7 +198,7 @@ export default function TransferBtn({
               </div>
             )}
 
-            {paymentType === "cross" ? (
+            {paymentType === "convertable" ? (
               <>
                 <div>
                   <label className="block text-sm font-medium text-mutedText">
@@ -276,7 +279,7 @@ export default function TransferBtn({
                   loading ||
                   !(useUsername ? recipientUsername : recipientAddress) ||
                   !amount ||
-                  (paymentType === "regular"
+                  (paymentType === "direct"
                     ? !currency
                     : !sendCurrency || !receiveCurrency)
                 }
