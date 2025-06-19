@@ -1,13 +1,13 @@
 // Change this file when there are more than 1 issuer wallet
 import { client, connectXrplClient } from "../testnet";
-import * as xrpl from "xrpl";
+import { Wallet } from "xrpl";
 
 export async function setTrustline(wallet, issuerWalletAddress, currency) {
   await connectXrplClient();
   const MAX_TRUST_LIMIT = "1000000000000000";
 
   // Recreate the setter wallet from the seed.
-  const setterWallet = xrpl.Wallet.fromSeed(wallet.seed);
+  const setterWallet = Wallet.fromSeed(wallet.seed);
 
   // Build the TrustSet transaction with the determined currency.
   const trustSetTx = {

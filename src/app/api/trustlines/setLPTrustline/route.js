@@ -1,6 +1,6 @@
 // /app/api/wallets/setLPTrustline/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import * as xrpl from "xrpl";
+import { Wallet } from "xrpl";
 import { setLPTrustlineFromAMMData } from "@/utils/xrpl/trustline/setTrustline";
 
 export async function POST(req) {
@@ -14,7 +14,7 @@ export async function POST(req) {
       );
     }
 
-    const wallet = xrpl.Wallet.fromSeed(walletSeed);
+    const wallet = Wallet.fromSeed(walletSeed);
     const result = await setLPTrustlineFromAMMData(wallet, ammInfo);
 
     if (!result || !result.success) {

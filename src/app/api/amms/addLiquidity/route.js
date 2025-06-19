@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import * as xrpl from "xrpl";
+import { Wallet } from "xrpl";
 import {
   addLiquidityTwoAsset,
   addLiquidityLPToken,
@@ -27,7 +27,7 @@ export async function POST(req) {
 
     // Initialize data
     const ammAccount = ammInfo.account;
-    const providerWallet = xrpl.Wallet.fromSeed(walletSeed);
+    const providerWallet = Wallet.fromSeed(walletSeed);
     let result;
 
     switch (depositType) {
@@ -88,62 +88,6 @@ export async function POST(req) {
           { error: "Invalid depositType specified." },
           { status: 400 },
         );
-    }
-
-    // Update database with current pool balances if operation was successful
-    if (result?.success) {
-      // Fire-and-forget: Update database in background without blocking the response
-      (async () => {
-        try {
-          const currentAmmInfo = await getAmmInfo(ammAccount);
-          
-          if (currentAmmInfo) {
-            const supabase = await createSupabaseAnonClient();
-            
-            // Parse current pool amounts from XRPL
-            const amount1 = currentAmmInfo.amount;
-            const amount2 = currentAmmInfo.amount2;
-            
-            // Helper function to format currency for database
-            const formatCurrencyForDB = (amount) => {
-              if (typeof amount === "string") {
-                // XRP amount (in drops)
-                return {
-                  currency: "XRP",
-                  value: (parseFloat(amount) / 1_000_000).toFixed(6)
-                };
-              } else {
-                // Token amount (object with currency, issuer, value)
-                return {
-                  currency: amount.currency,
-                  issuer: amount.issuer,
-                  value: parseFloat(amount.value).toFixed(6)
-                };
-              }
-            };
-            
-            // Since currencies are always stored in ascending order, 
-            // we can always map amount1 to currency_a and amount2 to currency_b
-            const currencyA = formatCurrencyForDB(amount1);
-            const currencyB = formatCurrencyForDB(amount2);
-            
-            // Update database with current pool balances
-            const { error: updateError } = await supabase
-              .from("amms")
-              .update({
-                currency_a: currencyA,
-                currency_b: currencyB
-              })
-              .eq("amm_account", ammAccount);
-
-            if (updateError) {
-              console.error("❌ Failed to update AMM pool balances:", updateError.message);
-            }
-          }
-        } catch (dbError) {
-          console.error("❌ Error updating database:", dbError.message);
-        }
-      })();
     }
 
     return NextResponse.json(result, { status: 200 });

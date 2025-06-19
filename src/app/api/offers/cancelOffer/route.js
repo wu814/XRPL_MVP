@@ -1,5 +1,5 @@
 import cancelOffer from "@/utils/xrpl/offer/cancelOffer";
-import * as xrpl from "xrpl";
+import { Wallet } from "xrpl";
 import bcrypt from "bcryptjs";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
@@ -48,7 +48,7 @@ export async function POST(req) {
     }
 
     // Reconstruct wallet and cancel the offer
-    const wallet = xrpl.Wallet.fromSeed(walletSeed);
+    const wallet = Wallet.fromSeed(walletSeed);
     const result = await cancelOffer(wallet, offerSequence);
 
     return NextResponse.json(

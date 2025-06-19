@@ -4,7 +4,7 @@ import {
   setTreasuryWalletFlags,
   setPathfindWalletFlags,
 } from "@/utils/xrpl/wallet/setWalletFlags";
-import * as xrpl from "xrpl";
+import { Wallet } from "xrpl";
 
 export async function POST(req) {
   try {
@@ -17,7 +17,7 @@ export async function POST(req) {
       );
     }
 
-    const walletInstance = xrpl.Wallet.fromSeed(wallet.seed);
+    const walletInstance = Wallet.fromSeed(wallet.seed);
 
     switch (wallet.walletType) {
       case "ISSUER":

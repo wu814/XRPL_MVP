@@ -105,8 +105,8 @@ export default function DisplayAmmDetails({ ammAccount }) {
         const parsed = JSON.parse(cached);
         if (parsed?.ammAccount === ammAccount) {
           // Use the new currency1 and currency2 fields
-          setCurrency1(parsed.currency1 || "Unknown");
-          setCurrency2(parsed.currency2 || "Unknown");
+          setCurrency1(parsed.currency_a || "Unknown");
+          setCurrency2(parsed.currency_b || "Unknown");
         }
       } catch (e) {
         console.error("Failed to parse cached AMM", e);
