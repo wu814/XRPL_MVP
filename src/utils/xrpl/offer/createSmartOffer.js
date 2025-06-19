@@ -1,6 +1,6 @@
 import * as xrpl from "xrpl";
 import { client, connectXrplClient } from "../testnet";
-import { findBestPath } from "../pathfind/pathfindEngine";
+import { findBestPath } from "../pathfind/corePathfindingEngine";
 import createOffer from "./createOffer";
 import createImmediateOrCancelOffer from "./createImmediateOrCancelOffer";
 import createFillOrKillOffer from "./createFillOrKillOffer";

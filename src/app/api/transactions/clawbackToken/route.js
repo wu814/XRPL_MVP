@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import clawbackTokens from "@/utils/xrpl/transaction/clawbackToken";
-import * as xrpl from "xrpl";
+import { Wallet } from "xrpl";
 
 export async function POST(req) {
   try {
@@ -15,7 +15,7 @@ export async function POST(req) {
       );
     }
 
-    const wallet = xrpl.Wallet.fromSeed(issuerWallet.seed);
+    const wallet = Wallet.fromSeed(issuerWallet.seed);
     if (!wallet) {
       return NextResponse.json(
         { error: "Issuer wallet not found" },

@@ -1,6 +1,6 @@
 // /app/api/wallets/checkTrustline/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import * as xrpl from "xrpl";
+import { Wallet } from "xrpl";
 import { checkTrustline } from "@/utils/xrpl/trustline/setTrustline";
 
 export async function POST(req) {
@@ -14,7 +14,7 @@ export async function POST(req) {
       );
     }
 
-    const wallet = xrpl.Wallet.fromSeed(walletSeed);
+    const wallet = Wallet.fromSeed(walletSeed);
     const hasTrustline = await checkTrustline(wallet, destination, currency);
 
     return NextResponse.json({ hasTrustline }, { status: 200 });

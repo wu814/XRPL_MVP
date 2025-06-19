@@ -8,7 +8,7 @@ import {
   withdrawSingleAssetWithLPToken,
 } from "@/utils/xrpl/amm/withdrawLiquidity";
 import getAmmInfo from "@/utils/xrpl/amm/getAmmInfo";
-import * as xrpl from "xrpl";
+import { Wallet } from "xrpl";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
 import { get } from "http";
 
@@ -36,7 +36,7 @@ export async function POST(req) {
     }
     // Initialize data
     const ammAccount = ammInfo.account;
-    const standbyWallet = xrpl.Wallet.fromSeed(currentWalletSeed);
+    const standbyWallet = Wallet.fromSeed(currentWalletSeed);
     let result;
 
     switch (mode) {

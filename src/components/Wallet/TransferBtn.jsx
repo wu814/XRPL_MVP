@@ -107,7 +107,7 @@ export default function TransferBtn({
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/10">
           <div className="w-96 space-y-4 rounded-lg bg-color4 p-6">
             <h2 className="text-center text-xl font-semibold">Transfer</h2>
-            <div className="mb-4 flex justify-center">
+            <div className="relative flex justify-between">
               <div className="flex space-x-2 rounded-full bg-color5 p-1">
                 <button
                   className={`rounded-full px-2 py-1 ${paymentType === "regular" ? "bg-primary text-black" : "bg-color5 text-white"}`}
@@ -122,8 +122,6 @@ export default function TransferBtn({
                   Cross-Currency
                 </button>
               </div>
-            </div>
-            <div className="relative mb-4 flex justify-between">
               <div className="flex space-x-1 rounded-full bg-color5 p-1">
                 {[true, false].map((type) => (
                   <button

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import * as xrpl from "xrpl";
-import { findAmmPath } from "@/utils/xrpl/pathfind/pathfindEngine";
+import { Wallet } from "xrpl";
+import { findAmmPath } from "@/utils/xrpl/pathfind/corePathfindingEngine";
 import { sendCrossCurrencyAmmOnly } from "@/utils/xrpl/transaction/sendCrossCurrency";
 import getAmmInfo from "@/utils/xrpl/amm/getAmmInfo";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
@@ -67,7 +67,7 @@ export async function POST(req) {
     }
 
     // Step 2: Execute the swap using cross-currency payment
-    const wallet = xrpl.Wallet.fromSeed(walletSeed);
+    const wallet = Wallet.fromSeed(walletSeed);
     
     const swapResult = await sendCrossCurrencyAmmOnly(
       wallet,

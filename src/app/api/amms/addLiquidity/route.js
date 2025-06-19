@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import * as xrpl from "xrpl";
+import { Wallet } from "xrpl";
 import {
   addLiquidityTwoAsset,
   addLiquidityLPToken,
@@ -27,7 +27,7 @@ export async function POST(req) {
 
     // Initialize data
     const ammAccount = ammInfo.account;
-    const providerWallet = xrpl.Wallet.fromSeed(walletSeed);
+    const providerWallet = Wallet.fromSeed(walletSeed);
     let result;
 
     switch (depositType) {

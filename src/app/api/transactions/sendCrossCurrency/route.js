@@ -1,6 +1,7 @@
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
 import { NextResponse } from "next/server";
 import { sendCrossCurrency } from "@/utils/xrpl/transaction/sendCrossCurrency";
+import { Wallet } from "xrpl";
 
 export async function POST(req) {
   try {
@@ -57,8 +58,10 @@ export async function POST(req) {
       recipientAddress = walletData.classic_address;
     }
 
+    const senderXrplWallet = Wallet.fromSeed(senderWallet.seed);
+
     const result = await sendCrossCurrency(
-      senderWallet,
+      senderXrplWallet,
       recipientAddress,
       sendCurrency,
       sendAmount,
