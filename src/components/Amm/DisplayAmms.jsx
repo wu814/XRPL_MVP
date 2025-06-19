@@ -24,21 +24,19 @@ export default function DisplayAmms() {
   const fetchAmms = async () => {
     setLoading(true);
     try {
+      // Getting amms from the database
       const res = await fetch("/api/amms/getAllAmms");
       const result = await res.json();
       if (Array.isArray(result.data) && result.data.length > 0) {
         const ammsData = result.data
           .map((amm) => ({
             ammAccount: amm.amm_account,
-            currency1: amm.currency_a?.currency || "Unknown",
-            currency2: amm.currency_b?.currency || "Unknown",
-            currency_a: amm.currency_a,
-            currency_b: amm.currency_b,
-            fee: amm.fee || 0, // Default to 0 if not set
+            currency_a: amm.currency_a || "Unknown",
+            currency_b: amm.currency_b || "Unknown",
           }))
           .sort((a, b) => {
-            const pair1 = `${a.currency1}/${a.currency2}`;
-            const pair2 = `${b.currency1}/${b.currency2}`;
+            const pair1 = `${a.currency_a}/${a.currency_b}`;
+            const pair2 = `${b.currency_a}/${b.currency_b}`;
             return pair1.localeCompare(pair2);
           });
         setAmms(ammsData);
@@ -53,16 +51,13 @@ export default function DisplayAmms() {
   const handleAmmCreated = (newAmmData) => {
     const newAmm = {
       ammAccount: newAmmData.ammAccount,
-      currency1: newAmmData.currency_a?.currency || "Unknown",
-      currency2: newAmmData.currency_b?.currency || "Unknown",
-      currency_a: newAmmData.currency_a,
-      currency_b: newAmmData.currency_b,
-      fee: newAmmData.fee || 1000, // Default to 1000 (0.1%) if not set
+      currency_a: newAmmData.currency_a || "Unknown",
+      currency_b: newAmmData.currency_b || "Unknown",
     };
     setAmms((prevAmms) =>
       [...prevAmms, newAmm].sort((a, b) => {
-        const pair1 = `${a.currency1}/${a.currency2}`;
-        const pair2 = `${b.currency1}/${b.currency2}`;
+        const pair1 = `${a.currency_a}/${a.currency_b}`;
+        const pair2 = `${b.currency_a}/${b.currency_b}`;
         return pair1.localeCompare(pair2);
       }),
     );
@@ -145,8 +140,8 @@ export default function DisplayAmms() {
               }}
             >
               <div className="flex gap-1 pl-2">
-                <CurrencyIcon symbol={amm.currency1} iconBg="bg-color4" />
-                <CurrencyIcon symbol={amm.currency2} iconBg="bg-color4" />
+                <CurrencyIcon symbol={amm.currency_a} iconBg="bg-color4" />
+                <CurrencyIcon symbol={amm.currency_b} iconBg="bg-color4" />
               </div>
               <p className="text-center">{amm.ammAccount}</p>
               <p className="text-center">Not Available</p>

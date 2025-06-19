@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import getAmmInfo from "@/utils/xrpl/amm/getAmmInfo";
+import { getAmmInfo } from "@/utils/xrpl/amm/getAmmInfo";
 
 export async function POST(req) {
   try {
