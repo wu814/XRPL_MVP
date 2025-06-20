@@ -14,7 +14,7 @@ import { CurrentUserWalletProvider } from "../Wallet/CurrentUserWalletProvider";
 // This class is used to parse the AMM data returned from the API
 class AmmInfo {
   constructor(data) {
-    this.account = data.account;
+    this.account = data.amm_account;
     this.trading_fee = data.trading_fee;
 
     // LP Token (always IOU format)

@@ -4,6 +4,7 @@ import AddLiquidity from "./AddLiquidity";
 import WithdrawLiquidity from "./WithdrawLiquidity";
 import SwapLiquidity from "./SwapLiquidity";
 import SlippagePanel from "../SlippagePanel";
+import { IssuerWalletProvider } from "../Wallet/IssuerWalletProvider";
 
 export default function ManageAmmBalance({ ammInfo, onChange }) {
   const [activeTab, setActiveTab] = useState("swap");
@@ -40,7 +41,9 @@ export default function ManageAmmBalance({ ammInfo, onChange }) {
         <WithdrawLiquidity ammInfo={ammInfo} onWithdrawn={onChange} />
       )}
       {activeTab === "swap" && (
-        <SwapLiquidity ammInfo={ammInfo} onSwapped={onChange} />
+        <IssuerWalletProvider>
+          <SwapLiquidity ammInfo={ammInfo} onSwapped={onChange} />
+        </IssuerWalletProvider>
       )}
     </div>
   );

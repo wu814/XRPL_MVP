@@ -24,7 +24,7 @@ const Button = ({
 
   // Styles to apply when the button is disabled
   const disabledStyles =
-    "disabled:bg-gray-400 disabled:border-transparent disabled:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100";
+    "disabled:bg-gray-400 disabled:border-transparent disabled:text-white disabled:opacity-80 disabled:cursor-not-allowed disabled:hover:scale-100";
 
   return (
     <button

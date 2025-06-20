@@ -30,8 +30,6 @@ export async function sendCrossCurrency(
     await connectXrplClient();
     
     console.log("🎯 Smart Cross-Currency Payment (AMM + DEX pathfinding)...");
-    console.log(`Sender: ${senderWallet.classicAddress}`);
-    console.log(`Destination: ${destinationAddress}`);
     
     if (paymentType === "exact_input") {
       console.log(`💰 Exact Input: Send ${sendAmount} ${sendCurrency} → Get whatever ${receiveCurrency} possible`);
@@ -656,7 +654,7 @@ export async function sendCrossCurrency(
         exchangeRate: recommendation.rate,
         pathfindingResult: pathfindingResult,
         response: response,
-        message // <-- add message to return object
+        message: message // <-- add message to return object
       };
     } else {
       throw new Error(`Smart cross-currency payment failed: ${response.result.meta.TransactionResult}`);

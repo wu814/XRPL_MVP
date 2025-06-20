@@ -172,7 +172,7 @@ export default function WithdrawLiquidity({ ammInfo, onWithdrawn }) {
       )}
 
       <div className="flex justify-end">
-        <Button variant="primary" onClick={handleSubmit} disabled={loading}>
+        <Button variant="primary" onClick={handleSubmit} disabled={loading} className="w-full">
           {loading ? "Withdrawing..." : "Withdraw"}
         </Button>
       </div>

@@ -28,7 +28,7 @@ export default function TransferBtn({
   const [showSlippagePanel, setShowSlippagePanel] = useState(false);
 
   const [paymentType, setPaymentType] = useState("direct"); // "direct" or "convertable"
-  const [convertInputType, setConvertInputType] = useState(null); // "send" or "receive"
+  const [convertInputType, setConvertInputType] = useState(null); // "exact_input" or "exact_output"
   const [sendCurrency, setSendCurrency] = useState(""); // for cross-currency
   const [receiveCurrency, setReceiveCurrency] = useState(""); // for cross-currency
 
@@ -55,14 +55,14 @@ export default function TransferBtn({
     const value = e.target.value;
     setSendAmount(value);
     setReceiveAmount("");
-    setConvertInputType(value ? "send" : null);
+    setConvertInputType(value ? "exact_input" : null);
   };
 
   const handleReceiveAmountChange = (e) => {
     const value = e.target.value;
     setReceiveAmount(value);
     setSendAmount("");
-    setConvertInputType(value ? "receive" : null);
+    setConvertInputType(value ? "exact_output" : null);
   };
 
   const handleSubmit = async () => {
@@ -85,8 +85,8 @@ export default function TransferBtn({
           destinationTag: tag,
           useUsername,
           recipient: useUsername ? recipientUsername : recipientAddress,
-          paymentType: convertInputType === "send" ? "exact_input" : "exact_output",
-          exactOutputAmount: convertInputType === "receive" ? receiveAmount : undefined,
+          paymentType: convertInputType,
+          exactOutputAmount: convertInputType === "exact_output" ? receiveAmount : undefined,
         };
       } else {
         endpoint =
@@ -263,9 +263,9 @@ export default function TransferBtn({
                       value={sendAmount}
                       onChange={handleSendAmountChange}
                       className={`mt-1 w-full rounded-lg border border-transparent bg-color5 p-2 hover:border-primary focus:border-primary focus:outline-none
-                        ${convertInputType === "receive" ? "opacity-60 cursor-not-allowed" : ""}`}
-                      placeholder="Enter amount to send..."
-                      disabled={convertInputType === "receive"}
+                        ${convertInputType === "exact_output" ? "opacity-60 cursor-not-allowed" : ""}`}
+                      placeholder="Enter send amount"
+                      disabled={convertInputType === "exact_output"}
                     />
                   </div>
                   <div>
@@ -278,9 +278,9 @@ export default function TransferBtn({
                       value={receiveAmount}
                       onChange={handleReceiveAmountChange}
                       className={`mt-1 w-full rounded-lg border border-transparent bg-color5 p-2 hover:border-primary focus:border-primary focus:outline-none
-                        ${convertInputType === "send" ? "opacity-60 cursor-not-allowed" : ""}`}
-                      placeholder="Enter amount to receive..."
-                      disabled={convertInputType === "send"}
+                        ${convertInputType === "exact_input" ? "opacity-60 cursor-not-allowed" : ""}`}
+                      placeholder="Enter receive amount"
+                      disabled={convertInputType === "exact_input"}
                     />
                   </div>
                 </div>
