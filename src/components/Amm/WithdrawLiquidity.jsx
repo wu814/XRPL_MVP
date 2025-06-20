@@ -25,6 +25,36 @@ export default function WithdrawLiquidity({ ammInfo, onWithdrawn }) {
   const token1 = ammInfo?.amount;
   const token2 = ammInfo?.amount2;
 
+  // Add validation function to check if required inputs are filled
+  const isFormValid = () => {
+    // Check if user has a valid wallet
+    const hasValidWallet = currentUserWallets.some(
+      (wallet) =>
+        wallet.walletType === "USER" ||
+        wallet.walletType === "STANDBY TREASURY",
+    );
+    
+    if (!hasValidWallet) return false;
+
+    // Validate based on mode
+    switch (mode) {
+      case "twoAsset":
+        return amountA.trim() !== "" && amountB.trim() !== "";
+      case "lpToken":
+        return lpTokenAmount.trim() !== "";
+      case "all":
+        return true; // No additional inputs required
+      case "singleAsset":
+        return assetType && withdrawAmount.trim() !== "";
+      case "singleAssetAll":
+        return assetType; // Only asset type selection required
+      case "singleAssetLp":
+        return assetType && lpTokenAmount.trim() !== "";
+      default:
+        return false;
+    }
+  };
+
   const buildPayload = () => {
     const currentWalletSeed = currentUserWallets.find(
       (wallet) =>
@@ -107,74 +137,81 @@ export default function WithdrawLiquidity({ ammInfo, onWithdrawn }) {
   }, [currentUserWallets]);
 
   return (
-    <div className="space-y-4 text-lg">
-      <select
-        value={mode}
-        onChange={(e) => setMode(e.target.value)}
-        className="mt-1 rounded-lg border border-transparent bg-color3 p-2 focus:border-primary focus:outline-none hover:border-primary"
-      >
-        <option value="twoAsset">Two Asset Withdraw</option>
-        <option value="lpToken">LP Token Withdraw</option>
-        <option value="all">Withdraw All</option>
-        <option value="singleAsset">Single Asset Withdraw</option>
-        <option value="singleAssetAll">Single Asset Withdraw All</option>
-        <option value="singleAssetLp">Single Asset LP Withdraw</option>
-      </select>
+    <div>
+      <div className="text-lg space-y-4">
+        <select
+          value={mode}
+          onChange={(e) => setMode(e.target.value)}
+          className="mt-1 rounded-lg border border-transparent bg-color3 p-2 focus:border-primary focus:outline-none hover:border-primary"
+        >
+          <option value="twoAsset">Two Asset Withdraw</option>
+          <option value="lpToken">LP Token Withdraw</option>
+          <option value="all">Withdraw All</option>
+          <option value="singleAsset">Single Asset Withdraw</option>
+          <option value="singleAssetAll">Single Asset Withdraw All</option>
+          <option value="singleAssetLp">Single Asset LP Withdraw</option>
+        </select>
 
-      {mode === "twoAsset" && (
-        <>
-          <input
-            type="number"
-            value={amountA}
-            onChange={(e) => setAmountA(e.target.value)}
-            placeholder={`Desire ${token1?.currency || "Token A"} amount`}
-            className="bg-color3 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
-          />
-          <input
-            type="number"
-            value={amountB}
-            onChange={(e) => setAmountB(e.target.value)}
-            placeholder={`Desire ${token2?.currency || "Token B"} amount`}
-            className="bg-color3 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
-          />
-        </>
-      )}
-
-      {mode.includes("singleAsset") && (
-        <>
-          <select
-            value={assetType}
-            onChange={(e) => setAssetType(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-transparent bg-color3 p-2 focus:border-primary focus:outline-none hover:border-primary"
-          >
-            <option value={token1?.currency}>{token1?.currency}</option>
-            <option value={token2?.currency}>{token2?.currency}</option>
-          </select>
-          {mode !== "singleAssetAll" && mode != "singleAssetLp" && (
+        {mode === "twoAsset" && (
+          <>
             <input
-              value={withdrawAmount}
-              onChange={(e) => setWithdrawAmount(e.target.value)}
-              placeholder="Withdraw Amount"
+              type="number"
+              value={amountA}
+              onChange={(e) => setAmountA(e.target.value)}
+              placeholder={`Desire ${token1?.currency || "Token A"} amount`}
               className="bg-color3 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
             />
-          )}
-        </>
-      )}
+            <input
+              type="number"
+              value={amountB}
+              onChange={(e) => setAmountB(e.target.value)}
+              placeholder={`Desire ${token2?.currency || "Token B"} amount`}
+              className="bg-color3 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
+            />
+          </>
+        )}
 
-      {(mode === "lpToken" || mode === "singleAssetLp") && (
-        <input
-          type="number"
-          value={lpTokenAmount}
-          onChange={(e) => setLpTokenAmount(e.target.value)}
-          placeholder="LP Token Amount"
-          className="bg-color3 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
-        />
-      )}
+        {mode.includes("singleAsset") && (
+          <>
+            <select
+              value={assetType}
+              onChange={(e) => setAssetType(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-transparent bg-color3 p-2 focus:border-primary focus:outline-none hover:border-primary"
+            >
+              <option value={token1?.currency}>{token1?.currency}</option>
+              <option value={token2?.currency}>{token2?.currency}</option>
+            </select>
+            {mode !== "singleAssetAll" && mode != "singleAssetLp" && (
+              <input
+                value={withdrawAmount}
+                onChange={(e) => setWithdrawAmount(e.target.value)}
+                placeholder="Withdraw Amount"
+                className="bg-color3 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
+              />
+            )}
+          </>
+        )}
 
-      <div className="flex justify-end">
-        <Button variant="primary" onClick={handleSubmit} disabled={loading} className="w-full">
-          {loading ? "Withdrawing..." : "Withdraw"}
-        </Button>
+        {(mode === "lpToken" || mode === "singleAssetLp") && (
+          <input
+            type="number"
+            value={lpTokenAmount}
+            onChange={(e) => setLpTokenAmount(e.target.value)}
+            placeholder="LP Token Amount"
+            className="bg-color3 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
+          />
+        )}
+
+        <div className="flex justify-end">
+          <Button 
+            variant="primary" 
+            onClick={handleSubmit} 
+            disabled={loading || !isFormValid()} 
+            className="w-full"
+          >
+            {loading ? "Withdrawing..." : "Withdraw"}
+          </Button>
+        </div>
       </div>
 
       {errorMessage && (

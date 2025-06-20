@@ -275,6 +275,18 @@ export default function AddLiquidity({ ammInfo, onAdded }) {
     </>
   );
 
+  const isFormValid = useMemo(() => {
+    if (mode === "quantity") {
+      const val1 = parseFloat(amount1 || "0");
+      const val2 = parseFloat(amount2 || "0");
+      return val1 > 0 || val2 > 0;
+    } else {
+      if (!lpAmount) return false;
+      if (payWith === "both") return true;
+      return !!estimatedAmounts.maxSingleAsset;
+    }
+  }, [mode, amount1, amount2, lpAmount, payWith, estimatedAmounts.maxSingleAsset]);
+
   return (
     <div className="space-y-4">
       {/* Toggle between Quantity and LP Token modes */}
@@ -329,7 +341,7 @@ export default function AddLiquidity({ ammInfo, onAdded }) {
 
       {/* Submit button */}
       <div className="flex justify-end">
-        <Button variant="primary" onClick={handleSubmit} disabled={loading} className="w-full">
+        <Button variant="primary" onClick={handleSubmit} disabled={loading || !isFormValid} className="w-full">
           {loading ? "Submitting..." : "Submit"}
         </Button>
       </div>
