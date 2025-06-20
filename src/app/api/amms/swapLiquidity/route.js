@@ -13,7 +13,7 @@ export async function POST(req) {
       fromCurrency, 
       toCurrency, 
       fromAmount, 
-      slippagePercent = 5,
+      slippagePercent = 0,
       estimateOnly = false
     } = await req.json();
 

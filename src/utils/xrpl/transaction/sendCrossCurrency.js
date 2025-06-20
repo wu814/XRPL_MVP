@@ -21,7 +21,7 @@ export async function sendCrossCurrency(
   sendAmount, 
   receiveCurrency, 
   issuerAddress,
-  slippagePercent = 5,
+  slippagePercent = 0,
   destinationTag = null,
   paymentType = "exact_input",
   exactOutputAmount = null
@@ -68,8 +68,8 @@ export async function sendCrossCurrency(
       
       try {
         // Import and use the universal AMM function for LIVE data
-        const { calculateExactAMMInput } = await import('../../pos/nftManager.js');
-        const { getAmmInfoByCurrencies } = await import('../../utils/ammUtils.js');
+        const { calculateExactAMMInput } = await import('../pos/nftManager.js');
+        const { getAmmInfoByCurrencies } = await import('../amm/ammUtils.js');
         
         // Get LIVE AMM data using the universal function - NO CACHING
         console.log(`📊 Fetching LIVE AMM data for exact output calculation...`);
@@ -687,7 +687,7 @@ export async function sendCrossCurrencyAmmOnly(
   sendAmount, 
   receiveCurrency, 
   issuerAddress,
-  slippagePercent = 5,
+  slippagePercent = 0,
   destinationTag = null
 ) {
   try {

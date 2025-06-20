@@ -36,7 +36,7 @@ export default function CreateSmartOffer() {
   // Smart offer options
   const [checkMarketFirst, setCheckMarketFirst] = useState(true);
   const [competitiveBuffer, setCompetitiveBuffer] = useState(1.0); // 1% default
-  const [slippagePercent, setSlippagePercent] = useState(5);
+  const [slippagePercent, setSlippagePercent] = useState(0);
 
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);

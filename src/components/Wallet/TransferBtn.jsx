@@ -24,18 +24,46 @@ export default function TransferBtn({
   const [successMessage, setSuccessMessage] = useState(null);
 
   // Slippage state
-  const [slippage, setSlippage] = useState("5"); // Default 5% slippage
+  const [slippage, setSlippage] = useState("0"); // Default 0% slippage
   const [showSlippagePanel, setShowSlippagePanel] = useState(false);
 
   const [paymentType, setPaymentType] = useState("direct"); // "direct" or "convertable"
+  const [convertInputType, setConvertInputType] = useState(null); // "send" or "receive"
   const [sendCurrency, setSendCurrency] = useState(""); // for cross-currency
   const [receiveCurrency, setReceiveCurrency] = useState(""); // for cross-currency
+
+  const [sendAmount, setSendAmount] = useState("");
+  const [receiveAmount, setReceiveAmount] = useState("");
 
   useEffect(() => {
     if (presetRecipientUsername) {
       setRecipientUsername(presetRecipientUsername);
     }
   }, [presetRecipientUsername]);
+
+  // When toggling paymentType, reset convertable fields
+  const handlePaymentTypeChange = (type) => {
+    setPaymentType(type);
+    setConvertInputType(null);
+    setSendAmount("");
+    setReceiveAmount("");
+    setAmount("");
+    setCurrency("");
+  };
+
+  const handleSendAmountChange = (e) => {
+    const value = e.target.value;
+    setSendAmount(value);
+    setReceiveAmount("");
+    setConvertInputType(value ? "send" : null);
+  };
+
+  const handleReceiveAmountChange = (e) => {
+    const value = e.target.value;
+    setReceiveAmount(value);
+    setSendAmount("");
+    setConvertInputType(value ? "receive" : null);
+  };
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -50,13 +78,15 @@ export default function TransferBtn({
         requestBody = {
           senderWallet,
           sendCurrency,
-          sendAmount: amount,
+          sendAmount: sendAmount,
           receiveCurrency,
-          issuerAddress: issuerWallets[0].classicAddress, // adjust if you have multiple issuers
+          issuerAddress: issuerWallets[0].classicAddress,
           slippagePercent: parseFloat(slippage),
           destinationTag: tag,
           useUsername,
           recipient: useUsername ? recipientUsername : recipientAddress,
+          paymentType: convertInputType === "send" ? "exact_input" : "exact_output",
+          exactOutputAmount: convertInputType === "receive" ? receiveAmount : undefined,
         };
       } else {
         endpoint =
@@ -140,13 +170,13 @@ export default function TransferBtn({
               <div className="flex space-x-1 rounded-full bg-color5 p-1">
                 <button
                   className={`rounded-full px-2 py-1 ${paymentType === "direct" ? "bg-primary text-black" : "bg-color5 text-white"}`}
-                  onClick={() => setPaymentType("direct")}
+                  onClick={() => handlePaymentTypeChange("direct")}
                 >
                   Direct
                 </button>
                 <button
                   className={`rounded-full px-2 py-1 ${paymentType === "convertable" ? "bg-primary text-black" : "bg-color5 text-white"}`}
-                  onClick={() => setPaymentType("convertable")}
+                  onClick={() => handlePaymentTypeChange("convertable")}
                 >
                   Convertable
                 </button>
@@ -222,6 +252,38 @@ export default function TransferBtn({
                     dropdownBg="bg-color5"
                   />
                 </div>
+                <div className="flex flex-row space-x-2">
+                  <div>
+                    <label className="block text-sm font-medium text-mutedText">
+                      Send Amount
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={sendAmount}
+                      onChange={handleSendAmountChange}
+                      className={`mt-1 w-full rounded-lg border border-transparent bg-color5 p-2 hover:border-primary focus:border-primary focus:outline-none
+                        ${convertInputType === "receive" ? "opacity-60 cursor-not-allowed" : ""}`}
+                      placeholder="Enter amount to send..."
+                      disabled={convertInputType === "receive"}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-mutedText">
+                      Receive Amount
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={receiveAmount}
+                      onChange={handleReceiveAmountChange}
+                      className={`mt-1 w-full rounded-lg border border-transparent bg-color5 p-2 hover:border-primary focus:border-primary focus:outline-none
+                        ${convertInputType === "send" ? "opacity-60 cursor-not-allowed" : ""}`}
+                      placeholder="Enter amount to receive..."
+                      disabled={convertInputType === "send"}
+                    />
+                  </div>
+                </div>
               </>
             ) : (
               <div>
@@ -234,22 +296,19 @@ export default function TransferBtn({
                   disabledOptions={[]}
                   dropdownBg="bg-color5"
                 />
+                <label className="block text-sm font-medium text-mutedText mt-2">
+                  Amount
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-transparent bg-color5 p-2 hover:border-primary focus:border-primary focus:outline-none"
+                  placeholder="Enter amount..."
+                />
               </div>
             )}
-
-            <div>
-              <label className="block text-sm font-medium text-mutedText">
-                Amount
-              </label>
-              <input
-                type="number"
-                min="0"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-transparent bg-color5 p-2 hover:border-primary focus:border-primary focus:outline-none"
-                placeholder="Enter amount..."
-              />
-            </div>
 
             <div>
               <label className="block text-sm font-medium text-mutedText">
@@ -278,10 +337,9 @@ export default function TransferBtn({
                 disabled={
                   loading ||
                   !(useUsername ? recipientUsername : recipientAddress) ||
-                  !amount ||
-                  (paymentType === "direct"
-                    ? !currency
-                    : !sendCurrency || !receiveCurrency)
+                  (paymentType === "convertable"
+                    ? (!sendCurrency || !receiveCurrency || (!sendAmount && !receiveAmount))
+                    : (!amount || (paymentType === "direct" && !currency)))
                 }
               >
                 {loading ? "Sending..." : "Send"}

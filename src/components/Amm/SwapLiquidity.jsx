@@ -23,7 +23,7 @@ export default function SwapLiquidity({ ammInfo, onSwapped }) {
 
   // Slippage tolerance state
   const [showSlippagePanel, setShowSlippagePanel] = useState(false);
-  const [slippage, setSlippage] = useState("5"); // Default slippage tolerance 5%
+  const [slippage, setSlippage] = useState("0"); // Default slippage tolerance 0%
 
   // Feedback/UI flags
   const [loading, setLoading] = useState(false);
@@ -207,58 +207,54 @@ export default function SwapLiquidity({ ammInfo, onSwapped }) {
   return (
     <div className="space-y-6">
       <div className="relative flex items-center justify-between">
-      {/* Currency Selection */}
-      <div className="space-y-4">
-        {/* Currency Display with Swap Button */}
-        <div className="flex items-center justify-center space-x-4">
-          {/* Left Currency */}
-          <div className="flex flex-col items-center space-y-2">
-            <div className="text-sm font-medium text-mutedText">From</div>
-            <div className="flex items-center space-x-2 rounded-lg border border-transparent bg-color3">
-              <CurrencyIcon
-                symbol={fromCurrency}
-                heightClass="h-8"
-                widthClass="w-8"
-                iconBg="bg-transparent"
-              />
+        {/* Currency Selection */}
+        <div className="space-y-4">
+          {/* Currency Display with Swap Button */}
+          <div className="flex items-center justify-center space-x-4">
+            {/* Left Currency */}
+            <div className="flex flex-col items-center space-y-2">
+              <div className="text-sm font-medium text-mutedText">From</div>
+                <CurrencyIcon
+                  symbol={fromCurrency}
+                  heightClass="h-8"
+                  widthClass="w-8"
+                  iconBg="bg-color3"
+                />
             </div>
-          </div>
 
-          {/* Swap Direction Button */}
-          <button
-            onClick={handleCurrencySwap}
-            className="rounded-full border border-transparent bg-color3 p-3 transition-colors hover:border-primary hover:bg-color2"
-            disabled={!fromCurrency || !toCurrency}
-          >
-            <svg
-              className="h-6 w-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+            {/* Swap Direction Button */}
+            <button
+              onClick={handleCurrencySwap}
+              className="hover:text-primary"
+              disabled={!fromCurrency || !toCurrency}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
-              />
-            </svg>
-          </button>
+              <svg
+                className="h-6 w-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+                />
+              </svg>
+            </button>
 
-          {/* Right Currency */}
-          <div className="flex flex-col items-center space-y-2">
-            <div className="text-sm font-medium text-mutedText">To</div>
-            <div className="flex items-center space-x-2 rounded-lg border border-transparent bg-color3">
-              <CurrencyIcon
-                symbol={toCurrency}
-                heightClass="h-8"
-                widthClass="w-8"
-                iconBg="bg-transparent"
-              />
+            {/* Right Currency */}
+            <div className="flex flex-col items-center space-y-2">
+              <div className="text-sm font-medium text-mutedText">To</div>
+                <CurrencyIcon
+                  symbol={toCurrency}
+                  heightClass="h-8"
+                  widthClass="w-8"
+                  iconBg="bg-color3"
+                />
             </div>
           </div>
         </div>
-      </div>
         <button onClick={() => setShowSlippagePanel((prev) => !prev)}>
           <svg
             className="h-6 w-6 text-mutedText hover:text-primary"

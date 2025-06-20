@@ -37,7 +37,7 @@ export async function analyzeMarket(fromCurrency, toCurrency, fromAmount, issuer
       includeAMM = true,
       includeDEX = true,
       includeHybrid = true,
-      slippageBuffer = 0.05, // 5% default slippage buffer
+      slippageBuffer = 0.0, // 0% default slippage buffer
       maxHops = 3,
       purpose = 'analysis', // 'analysis', 'trading', 'offer_creation', 'exact_output_analysis'
       targetOutput = null // For exact output mode

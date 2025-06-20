@@ -32,7 +32,7 @@ export default async function createSmartOffer(
     
     const {
       orderType = 'regular', // 'regular', 'immediate', 'fill_or_kill', 'passive'
-      slippagePercent = 5,
+      slippagePercent = 0,
       checkMarketFirst = true,
       competitiveBuffer = 0.01 // 1% buffer to be competitive
     } = options;

@@ -15,13 +15,15 @@ export async function POST(req) {
       slippagePercent,
       destinationTag,
       useUsername,
+      paymentType,
+      exactOutputAmount,
     } = await req.json();
 
     if (
       !senderWallet ||
       !recipient ||
       !sendCurrency ||
-      !sendAmount ||
+      (!sendAmount && !exactOutputAmount) ||
       !receiveCurrency ||
       !issuerAddress
     ) {
@@ -67,8 +69,10 @@ export async function POST(req) {
       sendAmount,
       receiveCurrency,
       issuerAddress,
-      slippagePercent ?? 5,
-      destinationTag ?? null
+      slippagePercent ?? 0,
+      destinationTag ?? null,
+      paymentType ?? "exact_input",
+      exactOutputAmount ?? null
     );
 
     return NextResponse.json({ 
