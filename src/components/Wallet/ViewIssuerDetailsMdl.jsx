@@ -25,7 +25,7 @@ export default function ViewIssuerDetailsMdl({
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/10">
       <div className="relative h-5/6 w-11/12 max-w-3xl overflow-y-auto rounded-lg bg-color4 p-6">
-        <h2 className="mb-4 text-center text-xl font-bold">
+        <h2 className="mb-4 text-center text-2xl text-primary font-bold">
           Issuer Wallet Details
         </h2>
 
@@ -35,8 +35,8 @@ export default function ViewIssuerDetailsMdl({
         {/* Account Info */}
         {!loading && infoData && (
           <div className="mb-6">
-            <h3 className="mb-2 text-lg font-semibold">Account Info</h3>
-            <ul className="space-y-1 text-sm">
+            <h3 className="mb-2 text-lg font-semibold text-primary">Account Info</h3>
+            <ul className="space-y-1 text-sm border-b border-border pb-2">
               <li>
                 <strong>Address:</strong> {infoData.address}
               </li>
@@ -59,7 +59,7 @@ export default function ViewIssuerDetailsMdl({
         {/* Trust Lines */}
         {!loading && linesData && (
           <div>
-            <h3 className="mb-2 text-lg font-semibold">Trustlines</h3>
+            <h3 className="mb-2 text-lg font-semibold text-primary">Trustlines</h3>
             {linesData.length === 0 ? (
               <p className="text-sm text-mutedText">
                 No trustline data available.

@@ -44,10 +44,10 @@ export default function AuthorizeDepositBtn({ treasuryWallet }) {
       {showMdl && (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/10">
           <div className="w-96 rounded-lg bg-color4 p-6">
-            <h2 className="mb-4 text-center text-xl font-semibold">
+            <h2 className="mb-4 text-2xl text-primary font-semibold">
               Authorize Deposit
             </h2>
-            <label className="text-md font-medium text-mutedText">
+            <label className="text-sm text-mutedText">
               Wallet Address
             </label>
             <input

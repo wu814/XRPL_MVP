@@ -1,9 +1,9 @@
 "use client";
 
 import Navbar from "@/components/Navigation/Navbar";
-import CreateOffer from "@/components/Offer/CreateOffer";
-import DisplayAllOffers from "@/components/Offer/DisplayAllOffers";
-import DisplayUserOffers from "@/components/Offer/DisplayUserOffers";
+import CreateOffer from "@/components/Dex/CreateOffer";
+import DisplayAllOffers from "@/components/Dex/DisplayAllOffers";
+import DisplayUserOffers from "@/components/Dex/DisplayUserOffers";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { CurrentUserWalletProvider } from "@/components/Wallet/CurrentUserWalletProvider";
@@ -53,7 +53,7 @@ export default function DEX() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="rounded-lg bg-color2 p-4">
-                <h1 className="p-4 text-center text-2xl font-semibold">
+                <h1 className="p-4 text-2xl font-semibold">
                   History
                 </h1>
               </div>

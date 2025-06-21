@@ -53,11 +53,11 @@ export default function DisplayUserOffers() {
 
   return (
     <div className="relative p-4">
-      <h1 className="mb-4 text-center text-2xl font-bold">Your Offers</h1>
+      <h1 className="mb-4 text-2xl font-bold">Your Offers</h1>
 
       {/* 🔁 Refresh Button */}
       <button
-        className="absolute right-4 top-4 transition duration-200 ease-in-out hover:scale-110"
+        className="absolute right-4 top-4 transition duration-200 ease-in-out hover:scale-110 focus:outline-none"
         onClick={fetchUserOffers}
         disabled={!sourceWallet?.classicAddress}
       >

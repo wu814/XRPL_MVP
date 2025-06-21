@@ -19,7 +19,7 @@ const OfferRow = ({ offer }) => {
   const quantity = gets.value.toFixed(6);
 
   return (
-    <div className="flex justify-between rounded-lg mx-4 px-2 text-sm hover:bg-color4 transition duration-100 ease-in-out">
+    <div className="flex justify-between rounded-lg mx-4 px-2 text-sm">
       <div>
         {price}
       </div>
@@ -82,11 +82,11 @@ export default function DisplayAllOffers({ baseCurrency, quoteCurrency }) {
 
   return (
     <div className="relative p-4">
-      <h1 className="mb-4 text-center text-2xl font-bold">Offer List</h1>
+      <h1 className="mb-4 text-2xl font-bold">Offer List</h1>
 
       {/* 🔁 Refresh Button */}
       <button
-        className="absolute right-4 top-4 transition duration-200 ease-in-out hover:scale-110"
+        className="absolute right-4 top-4 transition duration-200 ease-in-out hover:scale-110 focus:outline-none"
         onClick={fetchOffers}
         disabled={loading || !baseCurrency || !quoteCurrency || baseCurrency === quoteCurrency}
       >

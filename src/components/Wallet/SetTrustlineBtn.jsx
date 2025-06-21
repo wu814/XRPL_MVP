@@ -58,15 +58,18 @@ export default function SetTrustlineBtn({ setterWallet, issuerWallets }) {
       {showCurrencyMdl && (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/10">
           <div className="w-96 space-y-4 rounded-lg bg-color4 p-6">
-            <h2 className="text-center text-lg font-semibold">
-              Select Currency
+            <h2 className="text-2xl text-primary font-semibold">
+              Set Trustline
             </h2>
-            <CurrencyDropDown
-              value={currency}
-              onChange={setCurrency}
-              disabledOptions={["XRP"]}
-              dropdownBg="bg-color5"
-            />
+            <div>
+              <label className="mb-1 block text-mutedText text-sm">Select Currency</label>
+              <CurrencyDropDown
+                value={currency}
+                onChange={setCurrency}
+                disabledOptions={["XRP"]}
+                dropdownBg="bg-color5"
+              />
+            </div>
             <div className="flex justify-end space-x-2">
               <Button
                 variant="cancel"

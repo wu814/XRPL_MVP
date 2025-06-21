@@ -210,7 +210,7 @@ export default function TransferBtn({
 
             {useUsername ? (
               <div>
-                <label className="block text-sm font-medium text-mutedText">
+                <label className="block text-sm text-mutedText">
                   Recipient Username
                 </label>
                 <input
@@ -224,7 +224,7 @@ export default function TransferBtn({
               </div>
             ) : (
               <div>
-                <label className="block text-sm font-medium text-mutedText">
+                <label className="block text-sm text-mutedText">
                   Recipient Address
                 </label>
                 <input
@@ -240,7 +240,7 @@ export default function TransferBtn({
             {paymentType === "convertable" ? (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-mutedText">
+                  <label className="block text-sm text-mutedText">
                     Send Currency
                   </label>
                   <CurrencyDropDown
@@ -251,7 +251,7 @@ export default function TransferBtn({
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-mutedText">
+                  <label className="block text-sm text-mutedText">
                     Receive Currency
                   </label>
                   <CurrencyDropDown
@@ -263,7 +263,7 @@ export default function TransferBtn({
                 </div>
                 <div className="flex flex-row space-x-2">
                   <div>
-                    <label className="block text-sm font-medium text-mutedText">
+                    <label className="block text-sm text-mutedText">
                       Send Amount
                     </label>
                     <input
@@ -277,7 +277,7 @@ export default function TransferBtn({
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-mutedText">
+                    <label className="block text-sm text-mutedText">
                       Receive Amount
                     </label>
                     <input
@@ -294,7 +294,7 @@ export default function TransferBtn({
               </>
             ) : (
               <div>
-                <label className="block text-sm font-medium text-mutedText">
+                <label className="block text-sm text-mutedText">
                   Currency
                 </label>
                 <CurrencyDropDown
@@ -303,7 +303,7 @@ export default function TransferBtn({
                   disabledOptions={[]}
                   dropdownBg="bg-color5"
                 />
-                <label className="mt-2 block text-sm font-medium text-mutedText">
+                <label className="mt-2 block text-sm text-mutedText">
                   Amount
                 </label>
                 <input
@@ -318,7 +318,7 @@ export default function TransferBtn({
             )}
 
             <div>
-              <label className="block text-sm font-medium text-mutedText">
+              <label className="block text-sm text-mutedText">
                 Destination Tag (optional)
               </label>
               <input

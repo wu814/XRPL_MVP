@@ -13,9 +13,9 @@ export default function PasswordConfirmMdl({
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/10">
       <div className="w-96 rounded-lg bg-color4 p-6">
-        <h2 className="mb-4 text-center text-xl font-bold">Confirm Deletion</h2>
-        <p className="mb-4 text-center">
-          Please enter your password to confirm deletion.
+        <h2 className="mb-4 text-2xl text-cancel font-bold">Confirm Deletion</h2>
+        <p className="mb-4">
+          Enter your password to confirm deletion.
         </p>
         <input
           type="password"

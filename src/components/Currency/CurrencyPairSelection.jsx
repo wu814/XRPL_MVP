@@ -46,7 +46,7 @@ export default function CurrencyPairSelection({ onPairUpdate }) {
     <>
       <button
         onClick={openModal}
-        className="flex w-48 items-center justify-center space-x-2 p-2 rounded-lg bg-color2 hover:bg-color3 transition-colors duration-200"
+        className="flex w-48 items-center justify-center space-x-2 rounded-lg bg-color2 p-2 transition-colors duration-200 hover:bg-color3"
       >
         <div className="flex -space-x-2">
           <img
@@ -60,17 +60,19 @@ export default function CurrencyPairSelection({ onPairUpdate }) {
             className="h-8 w-8 rounded-full"
           />
         </div>
-        <span className="font-semibold text-xl">
+        <span className="text-xl font-semibold">
           {baseCurrency}/{quoteCurrency}
         </span>
       </button>
 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="w-full max-w-md rounded-lg bg-color2 p-6 shadow-lg">
-            <h2 className="text-xl font-bold mb-4">Select Currency Pair</h2>
-            <div className="flex flex-col items-center space-x-4">
-              <div className="flex-1">
+          <div className="w-auto max-w-md rounded-lg bg-color2 p-6">
+            <h2 className="mb-4 text-2xl font-bold text-primary">
+              Select Currency Pair
+            </h2>
+            <div className="flex flex-row items-center space-x-4 p-4">
+              <div>
                 <label className="text-sm font-medium text-mutedText">
                   Base
                 </label>
@@ -83,24 +85,28 @@ export default function CurrencyPairSelection({ onPairUpdate }) {
 
               <button
                 onClick={handleSwap}
-                className="p-2 mt-5 rounded-full hover:bg-color3 transition-colors duration-200"
+                className="mt-6 rounded-full p-2 transition-colors duration-200 hover:text-primary"
               >
                 <svg
-                  className="h-6 w-6"
+                  className="h-7 w-7"
+                  aria-hidden="true"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
                   fill="none"
-                  stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
                   <path
+                    stroke="currentColor"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+                    strokeWidth="2"
+                    d="m16 10 3-3m0 0-3-3m3 3H5v3m3 4-3 3m0 0 3 3m-3-3h14v-3"
                   />
                 </svg>
               </button>
 
-              <div className="flex-1">
+              <div>
                 <label className="text-sm font-medium text-mutedText">
                   Quote
                 </label>
@@ -123,4 +129,4 @@ export default function CurrencyPairSelection({ onPairUpdate }) {
       )}
     </>
   );
-} 
+}

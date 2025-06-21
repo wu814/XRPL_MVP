@@ -79,7 +79,7 @@ export default function CreateOffer({ baseCurrency, quoteCurrency }) {
 
   return (
     <div>
-      <h1 className="py-4 text-center text-2xl font-bold">Create an Offer</h1>
+      <h1 className="p-4 text-2xl font-bold">Create an Offer</h1>
       <div className="space-y-4 px-4">
         {/* Buy/Sell Toggle */}
         <div className="flex rounded-lg bg-color3 p-1 space-x-1">
@@ -107,7 +107,7 @@ export default function CreateOffer({ baseCurrency, quoteCurrency }) {
 
         {/* Limit Price */}
         <div>
-          <label className="mb-2 block text-sm text-mutedText">
+          <label className="mb-1 block text-sm text-mutedText">
             Limit Price ({quoteCurrency})
           </label>
           <input
@@ -115,13 +115,13 @@ export default function CreateOffer({ baseCurrency, quoteCurrency }) {
             placeholder="0.00"
             value={limitPrice}
             onChange={(e) => setLimitPrice(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-transparent bg-color3 p-2 text-right hover:border-primary focus:border-primary focus:outline-none"
+            className="w-full rounded-lg border border-transparent bg-color3 p-2 text-right hover:border-primary focus:border-primary focus:outline-none"
           />
         </div>
 
         {/* Quantity */}
         <div>
-          <label className="mb-2 block text-sm text-mutedText">
+          <label className="mb-1 block text-sm text-mutedText">
             Quantity ({baseCurrency})
           </label>
           <input
@@ -129,14 +129,14 @@ export default function CreateOffer({ baseCurrency, quoteCurrency }) {
             placeholder="0.00"
             value={quantity}
             onChange={(e) => setQuantity(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-transparent bg-color3 p-2 text-right hover:border-primary focus:border-primary focus:outline-none"
+            className="w-full rounded-lg border border-transparent bg-color3 p-2 text-right hover:border-primary focus:border-primary focus:outline-none"
           />
         </div>
 
         {/* Total Value Display */}
         {limitPrice && quantity && (
           <div className="rounded-lg bg-color3 p-4">
-            <label className="mb-2 block text-sm text-mutedText">
+            <label className="mb-1 block text-sm text-mutedText">
               Total Value
             </label>
             <div className="text-right text-lg font-semibold">
@@ -147,11 +147,11 @@ export default function CreateOffer({ baseCurrency, quoteCurrency }) {
 
         {/* Offer type dropdown */}
         <div>
-          <label className="mb-2 block text-sm text-mutedText">
+          <label className="mb-1 block text-sm text-mutedText">
             Offer Type
           </label>
           <select
-            className="mt-1 w-full rounded-lg border border-transparent bg-color3 p-2 hover:border-primary focus:border-primary focus:outline-none"
+            className="w-full rounded-lg border border-transparent bg-color3 p-2 hover:border-primary focus:border-primary focus:outline-none"
             value={offerType}
             onChange={(e) => setOfferType(e.target.value)}
           >
@@ -165,7 +165,7 @@ export default function CreateOffer({ baseCurrency, quoteCurrency }) {
 
         {/* Submit */}
         <div className="flex justify-end">
-          <Button onClick={handleSubmit} disabled={loading || !limitPrice || !quantity}>
+          <Button onClick={handleSubmit} disabled={loading || !limitPrice || !quantity} className="w-full">
             {loading ? "Submitting..." : `${orderType === "buy" ? "Buy" : "Sell"} ${baseCurrency}`}
           </Button>
         </div>

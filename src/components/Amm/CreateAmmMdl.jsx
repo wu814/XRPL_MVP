@@ -27,11 +27,11 @@ export default function CreateAmmMdl({
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/10">
       <div className="w-96 rounded-lg bg-color4 p-6">
-        <h2 className="mb-4 text-xl font-bold">Create AMM</h2>
+        <h2 className="mb-4 text-2xl text-primary font-bold">Create AMM</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="mb-1 block">Asset A</label>
+            <label className="mb-1 block text-mutedText text-sm">Asset A</label>
             <CurrencyDropDown
               value={assetA}
               onChange={setAssetA}
@@ -41,7 +41,7 @@ export default function CreateAmmMdl({
           </div>
 
           <div>
-            <label className="mb-1 block">Amount A</label>
+            <label className="mb-1 block text-mutedText text-sm">Amount A</label>
             <input
               type="number"
               className="bg-color5 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
@@ -52,7 +52,7 @@ export default function CreateAmmMdl({
           </div>
 
           <div>
-            <label className="mb-1 block">Asset B</label>
+            <label className="mb-1 block text-mutedText text-sm">Asset B</label>
             <CurrencyDropDown
               value={assetB}
               onChange={setAssetB}
@@ -62,7 +62,7 @@ export default function CreateAmmMdl({
           </div>
 
           <div>
-            <label className="mb-1 block">Amount B</label>
+            <label className="mb-1 block text-mutedText text-sm">Amount B</label>
             <input
               type="number"
               className="bg-color5 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
@@ -73,7 +73,7 @@ export default function CreateAmmMdl({
           </div>
 
           <div>
-            <label className="mb-1 block">Fee (0-1000, integer only)</label>
+            <label className="mb-1 block text-mutedText text-sm">Fee (0-1000, integer only)</label>
             <input
               type="number"
               className="bg-color5 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"

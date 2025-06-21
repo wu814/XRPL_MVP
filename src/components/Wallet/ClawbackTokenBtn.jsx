@@ -57,7 +57,7 @@ export default function ClawbackTokenBtn({ issuerWallet }) {
       {showModal && (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/10">
           <div className="w-96 space-y-4 rounded-lg bg-color4 p-6">
-            <h2 className="text-center text-xl font-semibold">
+            <h2 className="text-2xl text-primary font-semibold">
               Clawback Token
             </h2>
 
