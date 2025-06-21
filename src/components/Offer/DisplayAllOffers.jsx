@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import CurrencyDropDown from "../Currency/CurrencyDropDown";
 import { useIssuerWallet } from "../Wallet/IssuerWalletProvider";
 
 // Helper: Convert XRP drops or IOU object to unified format
@@ -22,57 +21,64 @@ const OfferRow = ({ offer }) => {
   return (
     <div className="flex justify-between rounded-lg mx-4 px-2 text-sm hover:bg-color4 transition duration-100 ease-in-out">
       <div>
-        {price} {pays.currency} per {gets.currency}
+        {price}
       </div>
       <div>
-        {quantity} {gets.currency}
+        {quantity}
       </div>
     </div>
   );
 };
 
-export default function DisplayAllOffers() {
+export default function DisplayAllOffers({ baseCurrency, quoteCurrency }) {
   const { issuerWallets } = useIssuerWallet();
-  const [baseCurrency, setBaseCurrency] = useState(null);
-  const [counterCurrency, setCounterCurrency] = useState(null);
   const [offers, setOffers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
 
   const fetchOffers = async () => {
-    if (!baseCurrency || !counterCurrency || baseCurrency === counterCurrency) return;
+    if (
+      !baseCurrency ||
+      !quoteCurrency ||
+      baseCurrency === quoteCurrency ||
+      !issuerWallets ||
+      issuerWallets.length === 0
+    )
+      return;
 
     setLoading(true);
+    setSearched(false);
     try {
       const res = await fetch("/api/offers/getAllOffers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           baseCurrency,
-          counterCurrency,
+          quoteCurrency,
           baseIssuerAddress: issuerWallets[0].classicAddress,
-          counterIssuerAddress: issuerWallets[0].classicAddress,
+          quoteIssuerAddress: issuerWallets[0].classicAddress,
         }),
       });
 
       const result = await res.json();
       if (res.ok) {
         setOffers(result.offers);
-        setSearched(true);
       } else {
         console.error("API error:", result.error);
+        setOffers([]);
       }
     } catch (err) {
       console.error("Fetch error:", err);
-      setSearched(true);
+      setOffers([]);
     } finally {
       setLoading(false);
+      setSearched(true);
     }
   };
 
   useEffect(() => {
     fetchOffers();
-  }, [baseCurrency, counterCurrency]);
+  }, [baseCurrency, quoteCurrency, issuerWallets]);
 
   return (
     <div className="relative p-4">
@@ -82,7 +88,7 @@ export default function DisplayAllOffers() {
       <button
         className="absolute right-4 top-4 transition duration-200 ease-in-out hover:scale-110"
         onClick={fetchOffers}
-        disabled={!baseCurrency || !counterCurrency || baseCurrency === counterCurrency}
+        disabled={loading || !baseCurrency || !quoteCurrency || baseCurrency === quoteCurrency}
       >
         <svg
           className="h-6 w-6 hover:text-primary"
@@ -100,37 +106,17 @@ export default function DisplayAllOffers() {
         </svg>
       </button>
 
-      {/* Currency Selectors */}
-      <div className="mb-6 grid grid-cols-2 gap-4">
-        <div>
-          <label className="mb-1 block text-sm text-mutedText">Currency You Pay</label>
-          <CurrencyDropDown
-            value={baseCurrency}
-            onChange={setBaseCurrency}
-            dropdownBg="bg-color3"
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-sm text-mutedText">Currency You Want</label>
-          <CurrencyDropDown
-            value={counterCurrency}
-            onChange={setCounterCurrency}
-            dropdownBg="bg-color3"
-          />
-        </div>
-      </div>
-
       {/* Offer Results */}
-      <div>
+      <div className="mt-6">
         {loading && <p className="text-mutedText">Loading offers...</p>}
         {!loading && searched && offers.length === 0 && (
           <p className="text-mutedText">No offers found for this pair.</p>
         )}
         {!loading && offers.length > 0 && (
           <div className="space-y-1">
-            <div className="flex justify-between px-6 font-semibold text-mutedText">
-              <span>Price</span>
-              <span>Quantity</span>
+            <div className="flex justify-between px-2 font-semibold text-mutedText">
+              <span>Price ({quoteCurrency})</span>
+              <span>Quantity ({baseCurrency})</span>
             </div>
             <div className="border-b border-border my-2"></div>
             {offers.map((offer, i) => (

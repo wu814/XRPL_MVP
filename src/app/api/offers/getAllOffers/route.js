@@ -7,11 +7,11 @@ export async function POST(req) {
     const {
       baseCurrency,
       baseIssuerAddress,
-      counterCurrency,
-      counterIssuerAddress,
+      quoteCurrency,
+      quoteIssuerAddress,
     } = await req.json();
 
-    if (!baseCurrency || !counterCurrency) {
+    if (!baseCurrency || !quoteCurrency) {
       return NextResponse.json(
         { error: "Missing required currencies." },
         { status: 400 },
@@ -20,10 +20,9 @@ export async function POST(req) {
 
     const formatAsset = (currency, issuer) =>
       currency === "XRP" ? { currency: "XRP" } : { currency, issuer };
-
-
+    
     const takerGets = formatAsset(baseCurrency, baseIssuerAddress);
-    const takerPays = formatAsset(counterCurrency, counterIssuerAddress);
+    const takerPays = formatAsset(quoteCurrency, quoteIssuerAddress);
 
     const offers = await getAllOffers(takerGets, takerPays);
 

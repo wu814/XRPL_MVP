@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import CurrencyDropDown from "../Currency/CurrencyDropDown";
 import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
@@ -16,7 +15,7 @@ const OFFER_TYPES = [
   "Sell",
 ];
 
-export default function CreateOffer() {
+export default function CreateOffer({ baseCurrency, quoteCurrency }) {
   // Fetch current user wallets from wallet context
   const { currentUserWallets } = useCurrentUserWallet();
   const { issuerWallets } = useIssuerWallet();
@@ -26,18 +25,16 @@ export default function CreateOffer() {
       wallet.walletType === "USER" || wallet.walletType === "STANDBY PATHFIND",
   );
 
+  const [orderType, setOrderType] = useState("buy"); // "buy" or "sell"
+  const [limitPrice, setLimitPrice] = useState("");
+  const [quantity, setQuantity] = useState("");
   const [offerType, setOfferType] = useState("Regular");
-  const [payCurrency, setPayCurrency] = useState(null);
-  const [getCurrency, setGetCurrency] = useState(null);
-  const [payAmount, setPayAmount] = useState("");
-  const [getAmount, setGetAmount] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
 
   const handleSubmit = async () => {
-
     setLoading(true);
     setErrorMessage(null);
     setSuccessMessage(null);
@@ -45,10 +42,11 @@ export default function CreateOffer() {
     try {
       const payload = {
         offerType,
-        payCurrency,
-        getCurrency,
-        payAmount,
-        getAmount,
+        orderType,
+        baseCurrency,
+        quoteCurrency,
+        limitPrice: parseFloat(limitPrice),
+        quantity: parseFloat(quantity),
         issuerAddress: issuerWallets[0].classicAddress,
         offerCreatorWallet,
       };
@@ -63,13 +61,15 @@ export default function CreateOffer() {
 
       if (!res.ok) throw new Error(result.error || "Offer creation failed");
 
-        // If the offer is not filled, (tecKill of other)
+      // If the offer is not filled, (tecKill of other)
       if (!result.success) {
         setErrorMessage(result.message || "Transaction failed");
-      } else{
+      } else {
         setSuccessMessage(result.message || "Offer created successfully!");
+        // Clear form on success
+        setLimitPrice("");
+        setQuantity("");
       }
-
     } catch (error) {
       setErrorMessage(error.message);
     } finally {
@@ -81,13 +81,77 @@ export default function CreateOffer() {
     <div>
       <h1 className="py-4 text-center text-2xl font-bold">Create an Offer</h1>
       <div className="space-y-4 px-4">
+        {/* Buy/Sell Toggle */}
+        <div className="flex rounded-lg bg-color3 p-1 space-x-1">
+          <button
+            className={`flex-1 rounded-lg py-2 text-sm transition-colors ${
+              orderType === "buy"
+                ? "bg-primary text-black"
+                : "text-mutedText hover:text-white"
+            }`}
+            onClick={() => setOrderType("buy")}
+          >
+            Buy
+          </button>
+          <button
+            className={`flex-1 rounded-lg py-2 text-sm transition-colors ${
+              orderType === "sell"
+                ? "bg-primary text-black"
+                : "text-mutedText hover:text-white"
+            }`}
+            onClick={() => setOrderType("sell")}
+          >
+            Sell
+          </button>
+        </div>
+
+        {/* Limit Price */}
+        <div>
+          <label className="mb-2 block text-sm text-mutedText">
+            Limit Price ({quoteCurrency})
+          </label>
+          <input
+            type="number"
+            placeholder="0.00"
+            value={limitPrice}
+            onChange={(e) => setLimitPrice(e.target.value)}
+            className="mt-1 w-full rounded-lg border border-transparent bg-color3 p-2 text-right hover:border-primary focus:border-primary focus:outline-none"
+          />
+        </div>
+
+        {/* Quantity */}
+        <div>
+          <label className="mb-2 block text-sm text-mutedText">
+            Quantity ({baseCurrency})
+          </label>
+          <input
+            type="number"
+            placeholder="0.00"
+            value={quantity}
+            onChange={(e) => setQuantity(e.target.value)}
+            className="mt-1 w-full rounded-lg border border-transparent bg-color3 p-2 text-right hover:border-primary focus:border-primary focus:outline-none"
+          />
+        </div>
+
+        {/* Total Value Display */}
+        {limitPrice && quantity && (
+          <div className="rounded-lg bg-color3 p-4">
+            <label className="mb-2 block text-sm text-mutedText">
+              Total Value
+            </label>
+            <div className="text-right text-lg font-semibold">
+              {(parseFloat(limitPrice) * parseFloat(quantity)).toFixed(2)} {quoteCurrency}
+            </div>
+          </div>
+        )}
+
         {/* Offer type dropdown */}
-        <div className="rounded-lg bg-color3 p-4">
+        <div>
           <label className="mb-2 block text-sm text-mutedText">
             Offer Type
           </label>
           <select
-            className="mt-1 w-full rounded-lg border border-transparent bg-color4 p-2 hover:border-primary focus:border-primary focus:outline-none"
+            className="mt-1 w-full rounded-lg border border-transparent bg-color3 p-2 hover:border-primary focus:border-primary focus:outline-none"
             value={offerType}
             onChange={(e) => setOfferType(e.target.value)}
           >
@@ -99,54 +163,10 @@ export default function CreateOffer() {
           </select>
         </div>
 
-        {/* Taker Pays Section */}
-        <div className="flex flex-col rounded-lg bg-color3 p-4">
-          <label className="mb-2 block text-sm text-mutedText">
-            Taker Pays
-          </label>
-          <div className="flex flex-row justify-between space-x-2">
-            <CurrencyDropDown
-              value={payCurrency}
-              onChange={setPayCurrency}
-              dropdownBg={"bg-color4"}
-              className="w-min"
-            />
-            <input
-              type="number"
-              placeholder="Amount"
-              value={payAmount}
-              onChange={(e) => setPayAmount(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-transparent bg-color4 p-2 text-right hover:border-primary focus:border-primary focus:outline-none"
-            />
-          </div>
-        </div>
-
-        {/* Taker Gets Section */}
-        <div className="flex flex-col rounded-lg bg-color3 p-4">
-          <label className="mb-2 block text-sm text-mutedText">
-            Taker Gets
-          </label>
-          <div className="flex flex-row justify-between space-x-2">
-            <CurrencyDropDown
-              value={getCurrency}
-              onChange={setGetCurrency}
-              dropdownBg={"bg-color4"}
-              className="w-min"
-            />
-            <input
-              type="number"
-              placeholder="Amount"
-              value={getAmount}
-              onChange={(e) => setGetAmount(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-transparent bg-color4 p-2 text-right hover:border-primary focus:border-primary focus:outline-none"
-            />
-          </div>
-        </div>
-
         {/* Submit */}
         <div className="flex justify-end">
-          <Button onClick={handleSubmit} disabled={loading}>
-            {loading ? "Submitting..." : "Submit Offer"}
+          <Button onClick={handleSubmit} disabled={loading || !limitPrice || !quantity}>
+            {loading ? "Submitting..." : `${orderType === "buy" ? "Buy" : "Sell"} ${baseCurrency}`}
           </Button>
         </div>
 

@@ -6,12 +6,15 @@ import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
 import CurrencyDropDown from "../Currency/CurrencyDropDown";
 import SlippagePanel from "../SlippagePanel";
+import { useSession } from "next-auth/react";
 
 export default function TransferBtn({
   senderWallet,
   issuerWallets,
   presetRecipientUsername,
 }) {
+  const { data: session, status } = useSession();
+
   const [showMdl, setShowMdl] = useState(false);
   const [recipientUsername, setRecipientUsername] = useState("");
   const [recipientAddress, setRecipientAddress] = useState("");
@@ -34,7 +37,7 @@ export default function TransferBtn({
 
   const [sendAmount, setSendAmount] = useState("");
   const [receiveAmount, setReceiveAmount] = useState("");
-
+ 
   useEffect(() => {
     if (presetRecipientUsername) {
       setRecipientUsername(presetRecipientUsername);
@@ -86,7 +89,8 @@ export default function TransferBtn({
           useUsername,
           recipient: useUsername ? recipientUsername : recipientAddress,
           paymentType: convertInputType,
-          exactOutputAmount: convertInputType === "exact_output" ? receiveAmount : undefined,
+          exactOutputAmount:
+            convertInputType === "exact_output" ? receiveAmount : undefined,
         };
       } else {
         endpoint =
@@ -135,13 +139,15 @@ export default function TransferBtn({
 
       {showMdl && (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/10">
-          <div className="w-auto space-y-4 rounded-lg bg-color4 p-6">
-            <div className="relative text-center">
-              <h2 className="text-center text-xl font-semibold">Transfer</h2>
+          <div className="h-[77vh] w-[28vw] space-y-4 rounded-lg bg-color4 p-6">
+            <div className="relative mb-6 flex justify-between">
+              <h2 className="text-start text-2xl font-semibold text-primary">
+                Transfer
+              </h2>
               {paymentType === "convertable" && (
                 <button onClick={() => setShowSlippagePanel((prev) => !prev)}>
                   <svg
-                    className="absolute h-6 w-6 text-mutedText hover:text-primary top-5 right-0"
+                    className="h-6 w-6 text-mutedText hover:text-primary"
                     aria-hidden="true"
                     xmlns="http://www.w3.org/2000/svg"
                     width="24"
@@ -166,37 +172,40 @@ export default function TransferBtn({
                 />
               )}
             </div>
-            <div className="flex justify-between space-x-2">
-              <div className="flex space-x-1 rounded-full bg-color5 p-1">
+            <div className={`flex ${session?.user?.is_admin ? 'justify-between space-x-2' : 'justify-center'}`}>
+              <div className={`flex space-x-1 rounded-lg bg-color5 p-1 ${!session?.user?.is_admin ? 'w-full' : ''}`}>
                 <button
-                  className={`rounded-full px-2 py-1 ${paymentType === "direct" ? "bg-primary text-black" : "bg-color5 text-white"}`}
+                  className={`rounded-lg px-2 py-1 transition-colors flex-1 ${paymentType === "direct" ? "bg-primary text-black" : "bg-color5 text-white"}`}
                   onClick={() => handlePaymentTypeChange("direct")}
                 >
                   Direct
                 </button>
                 <button
-                  className={`rounded-full px-2 py-1 ${paymentType === "convertable" ? "bg-primary text-black" : "bg-color5 text-white"}`}
+                  className={`rounded-lg px-2 py-1 transition-colors flex-1 ${paymentType === "convertable" ? "bg-primary text-black" : "bg-color5 text-white"}`}
                   onClick={() => handlePaymentTypeChange("convertable")}
                 >
                   Convertable
                 </button>
               </div>
-              <div className="flex space-x-1 rounded-full bg-color5 p-1">
-                {[true, false].map((type) => (
-                  <button
-                    key={String(type)}
-                    className={`rounded-full px-2 py-1 ${
-                      useUsername === type
-                        ? "bg-primary text-black"
-                        : "text-white"
-                    }`}
-                    onClick={() => setUseUsername(type)}
-                  >
-                    {type ? "Username" : "Address"}
-                  </button>
-                ))}
-              </div>
-              
+
+              {/* Only show option to send with address for Admin */}
+              {session?.user?.is_admin && (
+                <div className="flex space-x-1 rounded-lg bg-color5 p-1">
+                  {[true, false].map((type) => (
+                    <button
+                      key={String(type)}
+                      className={`rounded-lg px-2 py-1 ${
+                        useUsername === type
+                          ? "bg-primary text-black"
+                          : "text-white"
+                      }`}
+                      onClick={() => setUseUsername(type)}
+                    >
+                      {type ? "Username" : "Address"}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {useUsername ? (
@@ -262,9 +271,8 @@ export default function TransferBtn({
                       min="0"
                       value={sendAmount}
                       onChange={handleSendAmountChange}
-                      className={`mt-1 w-full rounded-lg border border-transparent bg-color5 p-2 hover:border-primary focus:border-primary focus:outline-none
-                        ${convertInputType === "exact_output" ? "opacity-60 cursor-not-allowed" : ""}`}
-                      placeholder="Enter send amount"
+                      className={`mt-1 w-full rounded-lg border border-transparent bg-color5 p-2 hover:border-primary focus:border-primary focus:outline-none ${convertInputType === "exact_output" ? "cursor-not-allowed opacity-60" : ""}`}
+                      placeholder="Enter amount"
                       disabled={convertInputType === "exact_output"}
                     />
                   </div>
@@ -277,9 +285,8 @@ export default function TransferBtn({
                       min="0"
                       value={receiveAmount}
                       onChange={handleReceiveAmountChange}
-                      className={`mt-1 w-full rounded-lg border border-transparent bg-color5 p-2 hover:border-primary focus:border-primary focus:outline-none
-                        ${convertInputType === "exact_input" ? "opacity-60 cursor-not-allowed" : ""}`}
-                      placeholder="Enter receive amount"
+                      className={`mt-1 w-full rounded-lg border border-transparent bg-color5 p-2 hover:border-primary focus:border-primary focus:outline-none ${convertInputType === "exact_input" ? "cursor-not-allowed opacity-60" : ""}`}
+                      placeholder="Enter amount"
                       disabled={convertInputType === "exact_input"}
                     />
                   </div>
@@ -296,7 +303,7 @@ export default function TransferBtn({
                   disabledOptions={[]}
                   dropdownBg="bg-color5"
                 />
-                <label className="block text-sm font-medium text-mutedText mt-2">
+                <label className="mt-2 block text-sm font-medium text-mutedText">
                   Amount
                 </label>
                 <input
@@ -338,8 +345,10 @@ export default function TransferBtn({
                   loading ||
                   !(useUsername ? recipientUsername : recipientAddress) ||
                   (paymentType === "convertable"
-                    ? (!sendCurrency || !receiveCurrency || (!sendAmount && !receiveAmount))
-                    : (!amount || (paymentType === "direct" && !currency)))
+                    ? !sendCurrency ||
+                      !receiveCurrency ||
+                      (!sendAmount && !receiveAmount)
+                    : !amount || (paymentType === "direct" && !currency))
                 }
               >
                 {loading ? "Sending..." : "Send"}
