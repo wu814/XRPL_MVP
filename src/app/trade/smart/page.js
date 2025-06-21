@@ -1,7 +1,7 @@
 "use client";
 
 import Navbar from "@/components/Navigation/Navbar";
-import CreateSmartOffer from "@/components/Offer/CreateSmartOffer";
+import SmartTradeMenu from "@/components/Smart/SmartTradeMenu";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { CurrentUserWalletProvider } from "@/components/Wallet/CurrentUserWalletProvider";
@@ -25,7 +25,7 @@ export default function SmartTrade() {
           <div className="container mx-auto flex flex-col">
             <div className="mx-auto max-w-2xl px-4 py-8">
               <div className="rounded-lg bg-color2 p-6">
-                <CreateSmartOffer />
+                <SmartTradeMenu />
               </div>
             </div>
           </div>

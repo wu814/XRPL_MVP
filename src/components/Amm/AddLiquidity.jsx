@@ -342,7 +342,7 @@ export default function AddLiquidity({ ammInfo, onAdded }) {
       {/* Submit button */}
       <div className="flex justify-end">
         <Button variant="primary" onClick={handleSubmit} disabled={loading || !isFormValid} className="w-full">
-          {loading ? "Submitting..." : "Submit"}
+          {loading ? "Adding Liquidity..." : "Add Liquidity"}
         </Button>
       </div>
 

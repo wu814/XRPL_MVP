@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import CurrencyIcon from "../Currency/CurrencyIcon";
+import CurrencyDropDown from "../Currency/CurrencyDropDown";
 import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
@@ -7,14 +7,14 @@ import SlippagePanel from "../SlippagePanel";
 import { useCurrentUserWallet } from "../Wallet/CurrentUserWalletProvider";
 import { useIssuerWallet } from "../Wallet/IssuerWalletProvider";
 
-export default function SwapLiquidity({ ammInfo, onSwapped }) {
+export default function SmartTradeMenu() {
   // Fetch current user wallets from wallet context
   const { currentUserWallets } = useCurrentUserWallet();
   const { issuerWallets } = useIssuerWallet();
 
   // UI State
-  const [sellCurrency, setSellCurrency] = useState("");
-  const [buyCurrency, setBuyCurrency] = useState("");
+  const [sellCurrency, setSellCurrency] = useState("XRP");
+  const [buyCurrency, setBuyCurrency] = useState("USD");
   const [sellAmount, setSellAmount] = useState("");
   const [buyAmount, setBuyAmount] = useState("");
   const [activeInput, setActiveInput] = useState("sell");
@@ -28,31 +28,25 @@ export default function SwapLiquidity({ ammInfo, onSwapped }) {
   const [errorMessage, setErrorMessage] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
 
-  // Whether user want to sell a fixed amount or receive a fixed amount
-  const [swapInputType, setSwapInputType] = useState("exact_input"); // default to exact_input
-
-  // Auto-select currencies when component mounts
-  useEffect(() => {
-    setSellCurrency(ammInfo?.amount?.currency);
-    setBuyCurrency(ammInfo?.amount2?.currency);
-  }, [ammInfo]);
+  // Whether user want to send a fixed amount or receive a fixed amount
+  const [tradeInputType, setTradeInputType] = useState("exact_input"); // default to exact_input
 
   // Update handlers to set the type
   const handleSellAmountChange = (e) => {
     setActiveInput("sell");
     setSellAmount(e.target.value);
     setBuyAmount(""); // Clear the other field
-    setSwapInputType("exact_input");
+    setTradeInputType("exact_input");
   };
 
   const handleBuyAmountChange = (e) => {
     setActiveInput("buy");
     setBuyAmount(e.target.value);
     setSellAmount(""); // Clear the other field
-    setSwapInputType("exact_output");
+    setTradeInputType("exact_output");
   };
 
-  const handleSwap = async () => {
+  const handleSmartTrade = async () => {
     setLoading(true);
     setErrorMessage(null);
     setSuccessMessage(null);
@@ -68,17 +62,21 @@ export default function SwapLiquidity({ ammInfo, onSwapped }) {
         throw new Error("No suitable wallet found");
       }
 
-      const response = await fetch("/api/amms/swapLiquidity", {
+      if (!issuerWallets || issuerWallets.length === 0) {
+        throw new Error("No issuer wallet found");
+      }
+
+      const response = await fetch("/api/smart/smartTrade", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+        body: JSON.stringify({ 
           senderWallet: wallet,
           sendCurrency: sellCurrency,
           sendAmount: sellAmount,
           receiveCurrency: buyCurrency,
           issuerAddress: issuerWallets[0].classicAddress,
           slippagePercent: parseFloat(slippage),
-          paymentType: swapInputType,
+          paymentType: tradeInputType,
           exactOutputAmount: buyAmount,
         }),
       });
@@ -86,11 +84,10 @@ export default function SwapLiquidity({ ammInfo, onSwapped }) {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || "Swap failed");
+        throw new Error(result.error || "Smart trade failed");
       }
 
-      setSuccessMessage(result.message || "Swap completed successfully!");
-      onSwapped(); // Refresh parent component
+      setSuccessMessage(result.message || "Smart trade completed successfully!");
 
       // Reset form
       setSellAmount("");
@@ -111,14 +108,16 @@ export default function SwapLiquidity({ ammInfo, onSwapped }) {
     setActiveInput("sell");
   };
 
-  const canSwap =
+  const canTrade =
     sellCurrency &&
     buyCurrency &&
+    sellCurrency !== buyCurrency &&
     ((sellAmount && parseFloat(sellAmount) > 0) ||
       (buyAmount && parseFloat(buyAmount) > 0));
 
   return (
     <div className="space-y-4">
+      <h2 className="text-xl font-bold text-center">Smart Trade</h2>
       <div className="relative flex items-center justify-end">
         <button onClick={() => setShowSlippagePanel((prev) => !prev)}>
           <svg
@@ -152,9 +151,12 @@ export default function SwapLiquidity({ ammInfo, onSwapped }) {
         <div className="flex items-center justify-between rounded-lg border border-transparent bg-color3 p-4 focus-within:border-primary hover:border-primary">
           <div className="flex flex-col space-y-2">
             <label className="text-sm font-medium text-mutedText">Sell</label>
-            {sellCurrency && (
-              <CurrencyIcon symbol={sellCurrency} iconBg="bg-color4" />
-            )}
+            <CurrencyDropDown
+              value={sellCurrency}
+              onChange={setSellCurrency}
+              disabledOptions={[buyCurrency]}
+              className="w-32"
+            />
           </div>
           <input
             type="number"
@@ -194,9 +196,12 @@ export default function SwapLiquidity({ ammInfo, onSwapped }) {
       <div className="flex items-center justify-between rounded-lg border border-transparent bg-color3 p-4 focus-within:border-primary hover:border-primary">
         <div className="flex flex-col space-y-2">
           <label className="text-sm font-medium text-mutedText">Buy</label>
-          {buyCurrency && (
-            <CurrencyIcon symbol={buyCurrency} iconBg="bg-color4" />
-          )}
+          <CurrencyDropDown
+            value={buyCurrency}
+            onChange={setBuyCurrency}
+            disabledOptions={[sellCurrency]}
+            className="w-32"
+          />
         </div>
         <input
           type="number"
@@ -209,19 +214,19 @@ export default function SwapLiquidity({ ammInfo, onSwapped }) {
         />
       </div>
 
-      {/* Swap Button */}
+      {/* Trade Button */}
       <Button
-        onClick={handleSwap}
-        disabled={!canSwap || loading}
+        onClick={handleSmartTrade}
+        disabled={!canTrade || loading}
         className="w-full"
       >
         {loading ? (
           <div className="flex items-center justify-center space-x-2">
             <div className="h-5 w-5 animate-spin rounded-full border-b-4 border-primary"></div>
-            <span>{"Swapping..."}</span>
+            <span>{"Trading..."}</span>
           </div>
         ) : (
-          "Swap"
+          "Execute Smart Trade"
         )}
       </Button>
 

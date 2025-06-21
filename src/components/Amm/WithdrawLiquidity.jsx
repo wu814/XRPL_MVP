@@ -209,7 +209,7 @@ export default function WithdrawLiquidity({ ammInfo, onWithdrawn }) {
             disabled={loading || !isFormValid()} 
             className="w-full"
           >
-            {loading ? "Withdrawing..." : "Withdraw"}
+            {loading ? "Withdrawing Liquidity..." : "Withdraw Liquidity"}
           </Button>
         </div>
       </div>
