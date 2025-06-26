@@ -37,7 +37,7 @@ export default function TransferBtn({
 
   const [sendAmount, setSendAmount] = useState("");
   const [receiveAmount, setReceiveAmount] = useState("");
- 
+
   useEffect(() => {
     if (presetRecipientUsername) {
       setRecipientUsername(presetRecipientUsername);
@@ -172,16 +172,20 @@ export default function TransferBtn({
                 />
               )}
             </div>
-            <div className={`flex ${session?.user?.is_admin ? 'justify-between space-x-2' : 'justify-center'}`}>
-              <div className={`flex space-x-1 rounded-lg bg-color5 p-1 ${!session?.user?.is_admin ? 'w-full' : ''}`}>
+            <div
+              className={`flex ${session?.user?.is_admin ? "justify-between space-x-2" : "justify-center"}`}
+            >
+              <div
+                className={`flex space-x-1 rounded-lg bg-color5 p-1 ${!session?.user?.is_admin ? "w-full" : ""}`}
+              >
                 <button
-                  className={`rounded-lg px-2 py-1 transition-colors flex-1 ${paymentType === "direct" ? "bg-primary text-black" : "bg-color5 text-white"}`}
+                  className={`flex-1 rounded-lg px-2 py-1 transition-colors ${paymentType === "direct" ? "bg-primary text-black" : "bg-color5 text-white"}`}
                   onClick={() => handlePaymentTypeChange("direct")}
                 >
                   Direct
                 </button>
                 <button
-                  className={`rounded-lg px-2 py-1 transition-colors flex-1 ${paymentType === "convertable" ? "bg-primary text-black" : "bg-color5 text-white"}`}
+                  className={`flex-1 rounded-lg px-2 py-1 transition-colors ${paymentType === "convertable" ? "bg-primary text-black" : "bg-color5 text-white"}`}
                   onClick={() => handlePaymentTypeChange("convertable")}
                 >
                   Convertable
@@ -293,28 +297,30 @@ export default function TransferBtn({
                 </div>
               </>
             ) : (
-              <div>
-                <label className="block text-sm text-mutedText">
-                  Currency
-                </label>
-                <CurrencyDropDown
-                  value={currency}
-                  onChange={setCurrency}
-                  disabledOptions={[]}
-                  dropdownBg="bg-color5"
-                />
-                <label className="mt-2 block text-sm text-mutedText">
-                  Amount
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-transparent bg-color5 p-2 hover:border-primary focus:border-primary focus:outline-none"
-                  placeholder="Enter amount..."
-                />
-              </div>
+              <>
+                <div>
+                  <label className="block text-sm text-mutedText">
+                    Currency
+                  </label>
+                  <CurrencyDropDown
+                    value={currency}
+                    onChange={setCurrency}
+                    disabledOptions={[]}
+                    dropdownBg="bg-color5"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-mutedText">Amount</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    className="mt-1 w-full rounded-lg border border-transparent bg-color5 p-2 hover:border-primary focus:border-primary focus:outline-none"
+                    placeholder="Enter amount..."
+                  />
+                </div>
+              </>
             )}
 
             <div>

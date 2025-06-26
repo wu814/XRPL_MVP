@@ -19,8 +19,8 @@ export default async function getUserOffers(wallet) {
 
     const directOffers = accountOffers.result.offers || [];
 
-    console.log(`📋 Found ${directOffers.length} direct offers for ${wallet.classicAddress}`);
-    console.log("📜 Direct Offers:", JSON.stringify(directOffers, null, 4));
+    // Sort offers by the time they were created (sequence number)
+    directOffers.sort((a, b) => a.seq - b.seq);
 
     return directOffers;
   } catch (error) {

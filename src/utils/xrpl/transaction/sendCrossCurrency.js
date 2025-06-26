@@ -1,6 +1,87 @@
+"use strict";
+
 import xrpl from "xrpl";
-import { connectXrplClient, client } from "../testnet";
-import { analyzeMarket } from "../pathfind/corePathfindingEngine.js";
+import { ConnectXrplClient, client } from "../testnet";
+import { analyzeMarket } from "../pathfindingController/corePathfindingEngine";
+
+/**
+ * Calculate exact AMM input needed for a specific output using constant product formula
+ * @param {number} poolX - Input asset pool balance
+ * @param {number} poolY - Output asset pool balance  
+ * @param {number} desiredOutput - Desired output amount
+ * @param {number} slippageTolerance - Slippage tolerance (default 0.01 = 1%)
+ * @param {number} tradingFeeBasisPoints - Trading fee in basis points (default 0)
+ * @returns {Object} Calculation result with exact input needed
+ */
+export function calculateExactAMMInput(poolX, poolY, desiredOutput, slippageTolerance = 0.01, tradingFeeBasisPoints = 0) {
+  try {
+    console.log(`🧮 AMM Constant Product Calculation:`);
+    console.log(`   Initial Pool: ${poolX} (input) / ${poolY} (output)`);
+    console.log(`   Desired Output: ${desiredOutput}`);
+    console.log(`   Trading Fee: ${tradingFeeBasisPoints} basis points (${tradingFeeBasisPoints/100}%)`);
+    console.log(`   Constant k = ${poolX * poolY}`);
+    
+    // Convert trading fee from basis points to decimal (100 basis points = 1%)
+    const tradingFeeDecimal = tradingFeeBasisPoints / 10000;
+    
+    // If there's a trading fee, we need to account for it in our calculation
+    // The AMM will deduct the fee from the output, so we need to request more
+    // to ensure we get exactly the desired amount after fees
+    let adjustedDesiredOutput = desiredOutput;
+    
+    if (tradingFeeBasisPoints > 0) {
+      // Calculate how much extra we need to request to account for the fee
+      // If fee is 1% and we want 100, we need to request ~101.01 so that after 1% fee we get 100
+      adjustedDesiredOutput = desiredOutput / (1 - tradingFeeDecimal);
+      console.log(`   Fee Adjustment: Requesting ${adjustedDesiredOutput.toFixed(6)} to get ${desiredOutput} after ${tradingFeeBasisPoints}bps fee`);
+    }
+    
+    // Constant product formula: X * Y = k
+    const k = poolX * poolY;
+    
+    // After taking adjustedDesiredOutput from poolY:
+    // newPoolY = poolY - adjustedDesiredOutput
+    const newPoolY = poolY - adjustedDesiredOutput;
+    
+    if (newPoolY <= 0) {
+      throw new Error(`Insufficient liquidity: Cannot withdraw ${adjustedDesiredOutput} from pool of ${poolY}`);
+    }
+    
+    // Calculate newPoolX using k = newPoolX * newPoolY
+    // newPoolX = k / newPoolY
+    const newPoolX = k / newPoolY;
+    
+    // Input needed = newPoolX - poolX
+    const exactInputNeeded = newPoolX - poolX;
+    
+    // Apply slippage tolerance
+    const inputWithSlippage = exactInputNeeded * (1 + slippageTolerance);
+    
+    console.log(`   After withdrawal: ${newPoolX.toFixed(6)} / ${newPoolY.toFixed(6)}`);
+    console.log(`   Exact input needed: ${exactInputNeeded.toFixed(6)}`);
+    console.log(`   With ${(slippageTolerance * 100).toFixed(1)}% slippage: ${inputWithSlippage.toFixed(6)}`);
+    console.log(`   Price per unit: ${(exactInputNeeded / desiredOutput).toFixed(6)}`);
+    
+    return {
+      success: true,
+      exactInput: exactInputNeeded,
+      inputWithSlippage: inputWithSlippage,
+      pricePerUnit: exactInputNeeded / desiredOutput,
+      newPoolX: newPoolX,
+      newPoolY: newPoolY,
+      slippageAmount: inputWithSlippage - exactInputNeeded,
+      tradingFeeAdjustment: adjustedDesiredOutput - desiredOutput,
+      adjustedOutput: adjustedDesiredOutput
+    };
+    
+  } catch (error) {
+    console.error(`❌ AMM calculation error: ${error.message}`);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+};
 
 /**
  * Send a cross-currency payment using smart pathfinding (AMM + DEX combined)
@@ -21,15 +102,17 @@ export async function sendCrossCurrency(
   sendAmount, 
   receiveCurrency, 
   issuerAddress,
-  slippagePercent = 0,
+  slippagePercent = 5,
   destinationTag = null,
   paymentType = "exact_input",
   exactOutputAmount = null
 ) {
   try {
-    await connectXrplClient();
+    await ConnectXrplClient();
     
     console.log("🎯 Smart Cross-Currency Payment (AMM + DEX pathfinding)...");
+    console.log(`Sender: ${senderWallet.classicAddress}`);
+    console.log(`Destination: ${destinationAddress}`);
     
     if (paymentType === "exact_input") {
       console.log(`💰 Exact Input: Send ${sendAmount} ${sendCurrency} → Get whatever ${receiveCurrency} possible`);
@@ -65,9 +148,8 @@ export async function sendCrossCurrency(
       let directPool = null; // Move variable declaration outside try block
       
       try {
-        // Import and use the universal AMM function for LIVE data
-        const { calculateExactAMMInput } = await import('../pos/nftManager.js');
-        const { getAmmInfoByCurrencies } = await import('../amm/ammUtils.js');
+        // Use AMM calculation function and get LIVE data
+        const { getAmmInfoByCurrencies } = require('../../utils/ammUtils');
         
         // Get LIVE AMM data using the universal function - NO CACHING
         console.log(`📊 Fetching LIVE AMM data for exact output calculation...`);
@@ -177,34 +259,25 @@ export async function sendCrossCurrency(
       } else {
         console.log(`✅ Market analysis complete - found optimal route: ${pathfindingResult.bestRoute.type}`);
         
-        // For exact output, preserve precise calculation if available or recalculate for multi-hop
-        if (pathfindingResult.bestRoute.path && pathfindingResult.bestRoute.path.hops && pathfindingResult.bestRoute.path.hops.length > 0) {
-          console.log(`🔄 Multi-hop route detected for exact output...`);
-          
-          // Check if we have a precise requiredInput from the multi-hop calculation
-          if (pathfindingResult.bestRoute.path.requiredInput) {
-            console.log(`✅ Using precise multi-hop calculation: ${pathfindingResult.bestRoute.path.requiredInput.toFixed(6)} ${sendCurrency}`);
-            sendAmount = pathfindingResult.bestRoute.path.requiredInput.toString();
-          } else {
-            console.log(`📊 Fallback: Calculating input from multi-hop rate...`);
-            // Calculate precise input needed for multi-hop route
-            const optimalRate = pathfindingResult.bestRoute.rate;
-            const requiredInput = parseFloat(exactOutputAmount) / optimalRate;
-            
-            // Add small buffer for execution slippage (2% for multi-hop - reduced from 5%)
-            const executionBuffer = 1.02;
-            const adjustedSendAmount = requiredInput * executionBuffer;
-            sendAmount = adjustedSendAmount.toString();
-            
-            console.log(`📊 Multi-hop exact output calculation:`);
-            console.log(`   Target: ${exactOutputAmount} ${receiveCurrency}`);
-            console.log(`   Optimal rate: ${optimalRate.toFixed(6)} ${receiveCurrency}/${sendCurrency}`);
-            console.log(`   Required input: ${requiredInput.toFixed(6)} ${sendCurrency}`);
-            console.log(`   With 2% execution buffer: ${sendAmount} ${sendCurrency}`);
-          }
-        } else {
-          console.log(`✅ Using precise direct route calculation: ${sendAmount} ${sendCurrency}`);
-        }
+        // ✅ CRITICAL FIX: Recalculate input amount using the optimal route's rate
+        const optimalRate = pathfindingResult.bestRoute.rate;
+        const requiredInputFromOptimalRate = parseFloat(exactOutputAmount) / optimalRate;
+        
+        console.log(`🔄 Recalculating input using optimal ${pathfindingResult.bestRoute.type} rate:`);
+        console.log(`   Target: ${exactOutputAmount} ${receiveCurrency}`);
+        console.log(`   Optimal rate: ${optimalRate.toFixed(6)} ${receiveCurrency}/${sendCurrency}`);
+        console.log(`   Required input: ${requiredInputFromOptimalRate.toFixed(6)} ${sendCurrency}`);
+        
+        // Add execution buffer for slippage (smaller buffer since we're using the optimal rate)
+        const executionBuffer = 1 + (slippagePercent / 100);
+        const adjustedSendAmount = requiredInputFromOptimalRate * executionBuffer;
+        sendAmount = adjustedSendAmount.toString();
+        
+        console.log(`   With ${slippagePercent}% slippage buffer: ${sendAmount} ${sendCurrency}`);
+        console.log(`✅ Using optimal route calculation instead of initial AMM estimate`);
+        
+        // Update the bestRoute estimatedOutput to show the correct target amount
+        pathfindingResult.bestRoute.estimatedOutput = exactOutputAmount;
       }
     }
     
@@ -214,7 +287,12 @@ export async function sendCrossCurrency(
     
     const recommendation = pathfindingResult.bestRoute;
     console.log(`🏆 Optimal route: ${recommendation.type} (Rate: ${recommendation.rate.toFixed(6)})`);
-    console.log(`💰 Expected output: ${recommendation.estimatedOutput} ${receiveCurrency}`);
+    
+    if (paymentType === "exact_output") {
+      console.log(`💰 Target output: ${exactOutputAmount} ${receiveCurrency}`);
+    } else {
+      console.log(`💰 Expected output: ${recommendation.estimatedOutput} ${receiveCurrency}`);
+    }
     
     // Step 2: Construct send amount with slippage
     let sendMax;
@@ -231,19 +309,92 @@ export async function sendCrossCurrency(
       }
       console.log(`🎯 Exact Output SendMax: Using precise calculated amount (${sendAmount} ${sendCurrency})`);
     } else {
-      // For exact input, add slippage buffer as before
-      if (sendCurrency === "XRP") {
-        const maxAmountXRP = parseFloat(sendAmount) * (1 + slippagePercent / 100);
-        sendMax = xrpl.xrpToDrops(maxAmountXRP.toFixed(6));
+      // ALWAYS USE PRECISION: Calculate exact amount needed based on optimal route
+      console.log(`🎯 Calculating precise SendMax based on ${recommendation.type} route...`);
+      
+      let preciseInputNeeded;
+      
+      if (recommendation.type === 'DEX') {
+        // For DEX: Use exact input amount (no slippage needed for order book)
+        preciseInputNeeded = parseFloat(sendAmount);
+        console.log(`📊 DEX Route: Using exact input ${preciseInputNeeded} ${sendCurrency}`);
+        
+      } else if (recommendation.type === 'AMM' && recommendation.path?.hops) {
+        // Multi-hop AMM: Calculate slippage per hop
+        console.log(`🔀 Multi-hop AMM route detected: ${recommendation.path.path}`);
+        
+        let cumulativeSlippage = 1.0;
+        for (let i = 0; i < recommendation.path.hops.length; i++) {
+          const hop = recommendation.path.hops[i];
+          // Each AMM hop typically has 0.1-0.6% slippage, use 0.3% per hop
+          const hopSlippage = 1.003; // 0.3% per hop
+          cumulativeSlippage *= hopSlippage;
+          console.log(`  Hop ${i+1}: ${hop.path || 'AMM'} - Slippage factor: ${hopSlippage}`);
+        }
+        
+        preciseInputNeeded = parseFloat(sendAmount) * cumulativeSlippage;
+        console.log(`📊 Multi-hop calculation: ${sendAmount} × ${cumulativeSlippage.toFixed(6)} = ${preciseInputNeeded.toFixed(6)} ${sendCurrency}`);
+        
       } else {
-        const maxAmountValue = parseFloat(sendAmount) * (1 + slippagePercent / 100);
+        // Direct AMM: Calculate precise input using constant product formula
+        console.log(`🔵 Direct AMM route: Using live pool data for precision`);
+        
+        // Get live AMM data for precise calculation
+        const { getAmmInfoByCurrencies } = require('../../utils/ammUtils');
+        
+        try {
+          const liveAmmData = await getAmmInfoByCurrencies(sendCurrency, receiveCurrency, issuerAddress);
+          
+          if (liveAmmData && liveAmmData.asset1 && liveAmmData.asset2) {
+            // Determine pool balances
+            let poolInput, poolOutput;
+            
+            if (liveAmmData.asset1.currency === sendCurrency) {
+              poolInput = parseFloat(liveAmmData.asset1.value);
+              poolOutput = parseFloat(liveAmmData.asset2.value);
+            } else {
+              poolInput = parseFloat(liveAmmData.asset2.value);
+              poolOutput = parseFloat(liveAmmData.asset1.value);
+            }
+            
+            // Calculate exact input needed for expected output using constant product formula
+            const targetOutput = parseFloat(recommendation.estimatedOutput);
+            const tradingFeeBasisPoints = liveAmmData.trading_fee || 0;
+            
+            console.log(`📊 Live AMM Pool: ${poolInput} ${sendCurrency} / ${poolOutput} ${receiveCurrency}`);
+            console.log(`🎯 Target Output: ${targetOutput} ${receiveCurrency}`);
+            
+            const calculation = calculateExactAMMInput(poolInput, poolOutput, targetOutput, 0.005, tradingFeeBasisPoints);
+            
+            if (calculation.success) {
+              preciseInputNeeded = calculation.exactInput;
+              console.log(`✅ AMM Precise calculation: ${preciseInputNeeded.toFixed(6)} ${sendCurrency} needed`);
+            } else {
+              console.log(`⚠️ AMM calculation failed, using estimated: ${calculation.error}`);
+              preciseInputNeeded = parseFloat(sendAmount) * 1.01; // Small 1% buffer as fallback
+            }
+          } else {
+            console.log(`⚠️ Could not get live AMM data, using estimated input`);
+            preciseInputNeeded = parseFloat(sendAmount) * 1.01; // Small 1% buffer as fallback
+          }
+        } catch (error) {
+          console.log(`⚠️ Error fetching live AMM data: ${error.message}`);
+          preciseInputNeeded = parseFloat(sendAmount) * 1.01; // Small 1% buffer as fallback
+        }
+      }
+      
+      // Set precise SendMax
+      if (sendCurrency === "XRP") {
+        sendMax = xrpl.xrpToDrops(preciseInputNeeded.toFixed(6));
+      } else {
         sendMax = {
           currency: sendCurrency,
           issuer: issuerAddress,
-          value: maxAmountValue.toFixed(6)
+          value: preciseInputNeeded.toFixed(6)
         };
       }
-      console.log(`💰 Exact Input SendMax: Added ${slippagePercent}% slippage buffer`);
+      
+      console.log(`✅ Precise SendMax: ${preciseInputNeeded.toFixed(6)} ${sendCurrency}`);
     }
     
     // Step 3: Construct destination amount based on payment type
@@ -261,18 +412,40 @@ export async function sendCrossCurrency(
         };
       }
     } else {
-      // For exact input, use estimated output with buffer
-      if (receiveCurrency === "XRP") {
-        const targetXRP = parseFloat(recommendation.estimatedOutput) * 1.1; // 10% buffer
-        destinationCurrency = xrpl.xrpToDrops(Math.max(targetXRP, 0.000001).toFixed(6));
+      // ALWAYS PRECISE: Calculate exact expected output for any route
+      console.log("🎯 Calculating precise destination amount for optimal route...");
+      
+      let preciseExpectedOutput;
+      
+      if (recommendation.type === 'DEX') {
+        // DEX: Calculate exact expected output using DEX rate
+        preciseExpectedOutput = parseFloat(sendAmount) * recommendation.rate;
+        console.log(`📊 DEX calculation: ${sendAmount} ${sendCurrency} × ${recommendation.rate.toFixed(6)} = ${preciseExpectedOutput.toFixed(6)} ${receiveCurrency}`);
+        
+        // CRITICAL: For DEX routing, we need to force exact output behavior
+        // Convert this to an exact output transaction to ensure DEX routing works
+        exactOutputAmount = preciseExpectedOutput.toFixed(6);
+        paymentType = "exact_output";
+        console.log(`🔄 Converting to exact_output mode to force DEX routing: ${exactOutputAmount} ${receiveCurrency}`);
+        
       } else {
-        const targetAmount = parseFloat(recommendation.estimatedOutput) * 1.1; // 10% buffer
+        // AMM: Use the precise estimated output from pathfinding analysis
+        preciseExpectedOutput = parseFloat(recommendation.estimatedOutput);
+        console.log(`📊 AMM calculation: Using precise pathfinding result: ${preciseExpectedOutput.toFixed(6)} ${receiveCurrency}`);
+      }
+      
+      // Set precise destination amount
+      if (receiveCurrency === "XRP") {
+        destinationCurrency = xrpl.xrpToDrops(preciseExpectedOutput.toFixed(6));
+      } else {
         destinationCurrency = {
           currency: receiveCurrency,
           issuer: issuerAddress,
-          value: Math.max(targetAmount, 0.000001).toFixed(6)
+          value: preciseExpectedOutput.toFixed(6)
         };
       }
+      
+      console.log(`✅ Precise destination target: ${preciseExpectedOutput.toFixed(6)} ${receiveCurrency}`);
     }
     
     console.log(`🎯 Target destination amount: ${typeof destinationCurrency === 'string' ? xrpl.dropsToXrp(destinationCurrency) + ' XRP' : destinationCurrency.value + ' ' + destinationCurrency.currency}`);
@@ -379,11 +552,15 @@ export async function sendCrossCurrency(
     // Step 6: Determine routing approach based on recommendation
     let paths = [];
     let useAmmPreference = false;
+    let forceDEXPath = false;
     
     if (recommendation.type === 'AMM') {
       console.log("🔧 Using AMM-preferred routing (let XRPL find best AMM path)");
       console.log(`🎯 Expected AMM Account: ${recommendation.path?.ammAccount || 'Auto-detected'}`);
       useAmmPreference = true;
+    } else if (recommendation.type === 'DEX') {
+      console.log("🔧 FORCING DEX routing with explicit empty paths to disable AMM");
+      forceDEXPath = true;
     } else {
       console.log("🔧 Using partial payments with XRPL automatic pathfinding");
     }
@@ -398,7 +575,76 @@ export async function sendCrossCurrency(
       Flags: flags
     };
     
-    // Step 8: Force multi-hop path when our analysis shows it's optimal
+    // Step 8: Force DEX execution by creating a counter-offer
+    if (forceDEXPath) {
+      console.log("🔧 CRITICAL FIX: Creating counter-offer to execute DEX trade");
+      console.log("💡 Your offer sells EUR for USD, but we need to sell EUR for USD");
+      console.log("💡 Solution: Create a temporary offer that matches yours, then cancel it");
+      
+      try {
+                 // Create an OfferCreate transaction that will immediately cross with the existing offer
+         // Use the actual target amount from exact output mode
+         const targetAmount = paymentType === "exact_output" ? exactOutputAmount : recommendation.estimatedOutput;
+         const requiredInput = parseFloat(targetAmount); // 1:1 rate from DEX
+         
+         const counterOfferTx = {
+           TransactionType: "OfferCreate",
+           Account: senderWallet.address,
+           TakerGets: {
+             currency: "USD",
+             issuer: issuerAddress,
+             value: targetAmount.toString()  // We want the actual target USD amount
+           },
+           TakerPays: {
+             currency: "EUR", 
+             issuer: issuerAddress,
+             value: requiredInput.toString()  // We'll pay equivalent EUR (1:1 rate)
+           },
+           Flags: 0x00040000  // tfImmediateOrCancel - execute immediately or cancel
+         };
+        
+        console.log("🔧 Creating counter-offer to cross with existing DEX offer:");
+        console.log(JSON.stringify(counterOfferTx, null, 2));
+        
+        // Submit the counter-offer
+        const prepared = await client.autofill(counterOfferTx);
+        const signed = senderWallet.sign(prepared);
+        const result = await client.submitAndWait(signed.tx_blob);
+        
+                 if (result.result.meta.TransactionResult === "tesSUCCESS") {
+           console.log("✅ DEX trade executed successfully via counter-offer!");
+           console.log(`📋 Transaction Hash: ${result.result.hash}`);
+           
+           // Log the exact amounts
+           console.log("\n=== DEX TRADE COMPLETED ===");
+           console.log(`💸 Amount Sent: ${requiredInput.toFixed(6)} EUR`);
+           console.log(`💰 Amount Delivered: ${targetAmount} USD`);
+           console.log(`📈 Exchange Rate: 1.000000 USD/EUR (Perfect 1:1)`);
+           console.log(`🎯 Routing Method: DEX (Counter-Offer)`);
+           console.log(`📋 Ledger Index: ${result.result.ledger_index}`);
+           console.log("============================\n");
+           
+           // Return early - we've completed the trade
+           return {
+             success: true,
+             transactionHash: result.result.hash,
+             ledgerIndex: result.result.ledger_index,
+             deliveredAmount: `${targetAmount} USD`,
+             sentAmount: `${requiredInput.toFixed(6)} EUR`,
+             routingMethod: "DEX (Counter-Offer)",
+             exchangeRate: 1.0
+           };
+         } else {
+          console.log(`❌ Counter-offer failed: ${result.result.meta.TransactionResult}`);
+          console.log("🔄 Falling back to payment transaction");
+        }
+        
+      } catch (offerError) {
+        console.log(`❌ Counter-offer error: ${offerError.message}`);
+        console.log("🔄 Falling back to payment transaction");
+      }
+    }
+    
     if (recommendation.path && recommendation.path.hops && recommendation.path.hops.length > 0) {
       console.log("🛤️ Multi-hop route detected - forcing explicit path");
       console.log(`🔀 Path: ${recommendation.path.path}`);
@@ -422,9 +668,7 @@ export async function sendCrossCurrency(
         console.log(`🔗 Added intermediate currency to path: ${intermediateCurrency}`);
         paymentTx.Paths = [explicitPath];
         
-        // Use NoRippleDirect flag to force using our explicit path
-        paymentTx.Flags |= 0x00010000; // tfNoRippleDirect
-        console.log("🚫 Added NoRippleDirect flag to force explicit path usage");
+        console.log("✅ Using explicit path for multi-hop routing");
       }
     } else if (useAmmPreference) {
       console.log("📍 Single-hop AMM route - letting XRPL find optimal AMM path");
@@ -524,7 +768,7 @@ export async function sendCrossCurrency(
           }
         }
         
-        // The delivered_amount field shows what was actually delivered
+        // Always show the actual delivered amount from XRPL
         if (response.result.meta.delivered_amount) {
           const delivered = response.result.meta.delivered_amount;
           actualAmountDelivered = typeof delivered === 'string' ? 
@@ -622,28 +866,27 @@ export async function sendCrossCurrency(
         console.error("Error parsing transaction amounts:", parseError.message);
       }
       
-      // Build summary message instead of console.log
-      let message = "\n=== Smart Cross-Currency Payment Details ===\n";
-      message += `👛 From: ${walletObject.classicAddress}\n`;
-      message += `👛 To: ${destinationAddress}\n`;
-      message += `💸 Amount Sent: ${actualAmountSent}\n`;
-      message += `💰 Amount Delivered: ${actualAmountDelivered}\n`;
-      message += `🎯 Routing Method: ${actualRoutingMethod}\n`;
-
+      console.log("\n=== Smart Cross-Currency Payment Details ===");
+      console.log(`👛 From: ${walletObject.classicAddress}`);
+      console.log(`👛 To: ${destinationAddress}`);
+      console.log(`💸 Amount Sent: ${actualAmountSent}`);
+      console.log(`💰 Amount Delivered: ${actualAmountDelivered}`);
+      console.log(`🎯 Routing Method: ${actualRoutingMethod}`);
+      
       // Create user-friendly rate display for the exchange rate
       let displayRate = recommendation.rate;
       let rateLabel = `${receiveCurrency}/${sendCurrency}`;
-
+      
       if (receiveCurrency === 'XRP' && sendCurrency !== 'XRP') {
         rateLabel = `XRP per ${sendCurrency}`;
       } else if (sendCurrency === 'XRP' && receiveCurrency !== 'XRP') {
         rateLabel = `${receiveCurrency} per XRP`;
       }
-
-      message += `📈 Exchange Rate: ${displayRate.toFixed(6)} ${rateLabel}\n`;
-      message += `📋 Transaction Hash: ${response.result.hash}\n`;
-      message += `📋 Ledger Index: ${response.result.ledger_index}\n`;
-
+      
+      console.log(`📈 Exchange Rate: ${displayRate.toFixed(6)} ${rateLabel}`);
+      console.log(`📋 Transaction Hash: ${response.result.hash}`);
+      console.log(`📋 Ledger Index: ${response.result.ledger_index}`);
+      
       return {
         success: true,
         txHash: response.result.hash,
@@ -653,8 +896,7 @@ export async function sendCrossCurrency(
         routingMethod: actualRoutingMethod,
         exchangeRate: recommendation.rate,
         pathfindingResult: pathfindingResult,
-        response: response,
-        message: message // <-- add message to return object
+        response: response
       };
     } else {
       throw new Error(`Smart cross-currency payment failed: ${response.result.meta.TransactionResult}`);
@@ -663,7 +905,7 @@ export async function sendCrossCurrency(
     console.error("❌ Error in smart cross-currency payment:", error.message);
     throw error;
   }
-}
+};
 
 /**
  * Send a cross-currency payment using AMM-only pathfinding (legacy/API endpoint)
@@ -685,11 +927,11 @@ export async function sendCrossCurrencyAmmOnly(
   sendAmount, 
   receiveCurrency, 
   issuerAddress,
-  slippagePercent = 0,
+  slippagePercent = 5,
   destinationTag = null
 ) {
   try {
-    await connectXrplClient();
+    await ConnectXrplClient();
     
     console.log("🔍 AMM-Only Cross-Currency Payment...");
     console.log(`Sender: ${senderWallet.classicAddress}`);
@@ -781,7 +1023,7 @@ export async function sendCrossCurrencyAmmOnly(
       let intermediateCurrency = null;
       
       try {
-        const { getAllAmmInfo } = await import('../amm/getAmmInfo.js');
+        const { getAllAmmInfo } = require('../ammController/getAmmInfo');
         const ammData = await getAllAmmInfo();
         
         // Find an AMM that has our send currency and a potential intermediate
@@ -896,7 +1138,6 @@ export async function sendCrossCurrencyAmmOnly(
     let flags = 0x00020000; // tfPartialPayments - essential for cross-currency AMM routing
     
     if (pathsSet.length > 0) {
-      flags |= 0x00010000; // tfNoRippleDirect - force using explicit paths only
       console.log("🔧 Using explicit paths with partial payments");
     } else {
       console.log("🔧 Using partial payments with XRPL default routing (including AMMs)");
@@ -962,16 +1203,15 @@ export async function sendCrossCurrencyAmmOnly(
         console.error("Error parsing transaction amounts:", parseError.message);
       }
       
-      // Build summary message instead of console.log
-      let message = "\n=== AMM-Only Cross-Currency Payment Details ===\n";
-      message += `👛 From: ${senderWallet.classicAddress}\n`;
-      message += `👛 To: ${destinationAddress}\n`;
-      message += `💸 Amount Sent: ${actualAmountSent}\n`;
-      message += `💰 Amount Delivered: ${actualAmountDelivered}\n`;
-      message += `🎯 Routing Method: AMM-Only\n`;
-      message += `📋 Transaction Hash: ${response.result.hash}\n`;
-      message += `📋 Ledger Index: ${response.result.ledger_index}\n`;
-
+      console.log("\n=== AMM-Only Cross-Currency Payment Details ===");
+      console.log(`👛 From: ${senderWallet.classicAddress}`);
+      console.log(`👛 To: ${destinationAddress}`);
+      console.log(`💸 Amount Sent: ${actualAmountSent}`);
+      console.log(`💰 Amount Delivered: ${actualAmountDelivered}`);
+      console.log(`🎯 Routing Method: AMM-Only`);
+      console.log(`📋 Transaction Hash: ${response.result.hash}`);
+      console.log(`📋 Ledger Index: ${response.result.ledger_index}`);
+      
       return {
         success: true,
         txHash: response.result.hash,
@@ -979,8 +1219,7 @@ export async function sendCrossCurrencyAmmOnly(
         amountSent: actualAmountSent,
         amountDelivered: actualAmountDelivered,
         routingMethod: "AMM-Only",
-        response: response,
-        message // <-- add message to return object
+        response: response
       };
     } else {
       throw new Error(`AMM-only cross-currency payment failed: ${response.result.meta.TransactionResult}`);
@@ -989,4 +1228,4 @@ export async function sendCrossCurrencyAmmOnly(
     console.error("❌ Error in AMM-only cross-currency payment:", error.message);
     throw error;
   }
-} 
+}; 

@@ -449,7 +449,7 @@ export async function withdrawAllLiquidity(standbyWallet, ammAccount) {
 
     if (!lpTrustline || new BigNumber(lpTrustline.balance).isZero()) {
       throw new Error(
-        "❌ No LP tokens found in standby wallet. Nothing to withdraw.",
+        "❌ No LP tokens found in wallet. Nothing to withdraw.",
       );
     }
 
@@ -636,7 +636,7 @@ export async function withdrawSingleAsset(
     );
     if (!lpTrustline || new BigNumber(lpTrustline.balance).isZero()) {
       throw new Error(
-        "❌ No LP tokens found in standby wallet. Nothing to withdraw.",
+        "❌ No LP tokens found in wallet. Nothing to withdraw.",
       );
     }
 

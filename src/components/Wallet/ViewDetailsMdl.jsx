@@ -11,7 +11,7 @@ export default function ViewDetailsMdl({
 }) {
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/10">
-      <div className="relative h-5/6 w-11/12 max-w-3xl rounded-lg bg-color4 p-6">
+      <div className="relative h-full w-1/2 max-w-3xl rounded-lg bg-color4 p-6">
         <h2 className="mb-4 text-2xl text-center text-primary font-bold">Wallet Details</h2>
 
         {/* Loading */}
@@ -50,7 +50,7 @@ export default function ViewDetailsMdl({
                 No trustline data available.
               </p>
             ) : (
-              <ul className="max-h-72 space-y-2 overflow-y-auto text-sm">
+              <ul className="max-h-96 space-y-2 overflow-y-auto text-sm">
                 {linesData.map((line, idx) => (
                   <li key={idx} className="border-b border-border pb-2">
                     <div>

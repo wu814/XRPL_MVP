@@ -1,6 +1,7 @@
 // app/api/offers/listAllOffers/route.js
 import { NextResponse } from "next/server";
-import getAllOffers from "@/utils/xrpl/offer/getAllOffers";
+import { getAllSellOffers, getAllBuyOffers } from "@/utils/xrpl/offer/getAllOffers";
+
 
 export async function POST(req) {
   try {
@@ -24,9 +25,10 @@ export async function POST(req) {
     const takerGets = formatAsset(baseCurrency, baseIssuerAddress);
     const takerPays = formatAsset(quoteCurrency, quoteIssuerAddress);
 
-    const offers = await getAllOffers(takerGets, takerPays);
+    const sellOffers = await getAllSellOffers(takerGets, takerPays);
+    const buyOffers = await getAllBuyOffers(takerGets, takerPays);
 
-    return NextResponse.json({ offers }, { status: 200 });
+    return NextResponse.json({ sellOffers, buyOffers }, { status: 200 });
   } catch (err) {
     console.error("Error listing offers:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });

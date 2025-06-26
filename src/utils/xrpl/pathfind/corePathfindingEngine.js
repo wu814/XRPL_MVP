@@ -1,12 +1,12 @@
 import xrpl from "xrpl";
 import { connectXrplClient, client } from "../testnet";
-import {
-  withRetry,
-  withTimeout,
-  safeTransactionSubmit,
-  reportError,
+import { 
+  withRetry, 
+  withTimeout, 
+  safeTransactionSubmit, 
+  reportError, 
   RetryConfigs,
-  ErrorTypes
+  ErrorTypes 
 } from '../errorHandler.js';
 
 /**
@@ -37,7 +37,7 @@ export async function analyzeMarket(fromCurrency, toCurrency, fromAmount, issuer
       includeAMM = true,
       includeDEX = true,
       includeHybrid = true,
-      slippageBuffer = 0.0, // 0% default slippage buffer
+      slippageBuffer = 0.05, // 5% default slippage buffer
       maxHops = 3,
       purpose = 'analysis', // 'analysis', 'trading', 'offer_creation', 'exact_output_analysis'
       targetOutput = null // For exact output mode
@@ -95,39 +95,31 @@ export async function analyzeMarket(fromCurrency, toCurrency, fromAmount, issuer
     console.log(`🔍 Route Comparison Summary:`);
     candidates.forEach(candidate => {
       const path = candidate.analysis.bestPath;
-      console.log(`  📊 ${candidate.type}: Rate ${candidate.analysis.bestRate?.toFixed(6)}, Output ${path.amountOut?.toFixed(6)}, Path: ${path.path}`);
+      // For exact output mode, show the target amount instead of inflated estimates
+      const displayOutput = (purpose === 'exact_output_analysis' && options.targetOutput) ? 
+        options.targetOutput.toFixed(6) : 
+        path.amountOut?.toFixed(6);
+      console.log(`  📊 ${candidate.type}: Rate ${candidate.analysis.bestRate?.toFixed(6)}, Output ${displayOutput}, Path: ${path.path}`);
     });
     
     if (candidates.length > 0) {
-      // For exact output mode, we need to compare by input required, not rate
+      // ✅ FIXED: Always use rate comparison for optimal routing
+      // Higher rate = better exchange rate = less input needed for same output
       let bestCandidate;
       if (purpose === 'exact_output_analysis') {
-        console.log(`🎯 EXACT OUTPUT MODE: Comparing by input efficiency (less input = better)`);
+        console.log(`🎯 EXACT OUTPUT MODE: Comparing by exchange rate efficiency (higher rate = better)`);
         bestCandidate = candidates.reduce((best, current) => {
-          // For exact output, lower input requirement is better
-          // Use the requiredInput from the bestPath if available, otherwise calculate from rate
-          const currentInputRequired = current.analysis.bestPath.requiredInput || (parseFloat(fromAmount) / current.analysis.bestRate);
-          const bestInputRequired = best.analysis.bestPath.requiredInput || (parseFloat(fromAmount) / best.analysis.bestRate);
+          console.log(`  🔄 Comparing ${current.type} (rate: ${current.analysis.bestRate?.toFixed(6)}) vs ${best.type} (rate: ${best.analysis.bestRate?.toFixed(6)})`);
           
-          console.log(`  🔄 Comparing ${current.type} (needs ${currentInputRequired.toFixed(6)} input) vs ${best.type} (needs ${bestInputRequired.toFixed(6)} input)`);
-          
-          // Prefer multi-hop routes when input requirements are close (within 5%) for reliability
-          const inputDifference = Math.abs(currentInputRequired - bestInputRequired) / Math.min(currentInputRequired, bestInputRequired);
-          if (inputDifference < 0.05) {
-            // If inputs are similar, prefer multi-hop for reliability (it avoids trustline mismatches)
-            const currentIsMultiHop = current.analysis.bestPath.path && current.analysis.bestPath.path.includes('→') && current.analysis.bestPath.path.split('→').length > 2;
-            const bestIsMultiHop = best.analysis.bestPath.path && best.analysis.bestPath.path.includes('→') && best.analysis.bestPath.path.split('→').length > 2;
-            
-            if (currentIsMultiHop && !bestIsMultiHop) {
-              console.log(`    🎯 Preferring multi-hop ${current.type} for reliability (inputs within 5%)`);
+          // ✅ Higher rate is ALWAYS better - it means you get more output per unit of input
+          // This applies to both exact input and exact output modes
+          if (current.analysis.bestRate > best.analysis.bestRate) {
+            console.log(`    ✅ ${current.type} has better rate (${current.analysis.bestRate?.toFixed(6)} > ${best.analysis.bestRate?.toFixed(6)})`);
               return current;
-            } else if (!currentIsMultiHop && bestIsMultiHop) {
-              console.log(`    🎯 Keeping multi-hop ${best.type} for reliability (inputs within 5%)`);
+          } else {
+            console.log(`    ⚪ ${best.type} maintains better rate (${best.analysis.bestRate?.toFixed(6)} >= ${current.analysis.bestRate?.toFixed(6)})`);
               return best;
             }
-          }
-          
-          return currentInputRequired < bestInputRequired ? current : best;
         });
       } else {
         // Standard mode: higher rate is better
@@ -140,19 +132,18 @@ export async function analyzeMarket(fromCurrency, toCurrency, fromAmount, issuer
       analysis.bestRoute = {
         type: bestCandidate.type,
         rate: bestCandidate.analysis.bestRate,
-        estimatedOutput: bestCandidate.analysis.bestPath.amountOut ? 
+        estimatedOutput: options.isExactOutput && options.targetOutput ? 
+          options.targetOutput.toFixed(6) : 
+          (bestCandidate.analysis.bestPath.amountOut ? 
           bestCandidate.analysis.bestPath.amountOut.toFixed(6) : 
-          bestCandidate.analysis.bestPath.estimatedOutput,
+            bestCandidate.analysis.bestPath.estimatedOutput),
         path: bestCandidate.analysis.bestPath,
-        confidence: calculateConfidence(bestCandidate.analysis),
         slippage: calculateSlippage(bestCandidate.analysis, slippageBuffer)
       };
       
       analysis.success = true;
       
       console.log(`🏆 Best Route: ${analysis.bestRoute.type} (Rate: ${analysis.bestRoute.rate.toFixed(6)})`);
-      console.log(`💰 Output: ${analysis.bestRoute.estimatedOutput} ${toCurrency}`);
-      console.log(`🎯 Confidence: ${(analysis.bestRoute.confidence * 100).toFixed(1)}%`);
       console.log(`🛤️ Path: ${analysis.bestRoute.path.path}`);
     } else {
       console.log(`❌ No viable routes found`);
@@ -183,10 +174,34 @@ export async function analyzeAMMRoutes(fromCurrency, toCurrency, fromAmount, iss
     }
     
     // Get LIVE AMM data using universal function - NO CACHING for accuracy
-    const { getAllAmmInfo } = await import("../amm/getAmmInfo.js");
-    const ammData = await getAllAmmInfo();
+    const { getAmmData, getAmmInfo } = require("../../utils/ammUtils");
+    const ammRegistry = getAmmData();
+    const ammData = {};
     
-    
+    // Get live data for each pool using universal function
+    for (const [pairKey, poolInfo] of Object.entries(ammRegistry)) {
+      try {
+        const liveInfo = await getAmmInfo(poolInfo.amm_account);
+        if (liveInfo) {
+          ammData[pairKey] = {
+            amm_account: liveInfo.amm_account,
+            currency_a: {
+              currency: liveInfo.asset1.currency,
+              issuer: liveInfo.asset1.issuer,
+              value: liveInfo.asset1.value
+            },
+            currency_b: {
+              currency: liveInfo.asset2.currency,
+              issuer: liveInfo.asset2.issuer,
+              value: liveInfo.asset2.value
+            },
+            trading_fee: liveInfo.trading_fee
+          };
+        }
+      } catch (error) {
+        console.warn(`⚠️ Failed to get live data for ${pairKey}: ${error.message}`);
+      }
+    }
     const routes = [];
     let bestRate = 0;
     let bestPath = null;
@@ -308,9 +323,34 @@ export async function analyzeHybridRoutes(fromCurrency, toCurrency, fromAmount, 
     console.log(`🟣 Hybrid Route Analysis...`);
     
     // Get both AMM and DEX data using universal function
-    const { getAllAmmInfo } = await import("../amm/getAmmInfo.js");
-    const ammData = await getAllAmmInfo();
+    const { getAmmData, getAmmInfo } = require("../../utils/ammUtils");
+    const ammRegistry = getAmmData();
+    const ammData = {};
     
+    // Get live AMM data for hybrid routes
+    for (const [pairKey, poolInfo] of Object.entries(ammRegistry)) {
+      try {
+        const liveInfo = await getAmmInfo(poolInfo.amm_account);
+        if (liveInfo) {
+          ammData[pairKey] = {
+            amm_account: liveInfo.amm_account,
+            currency_a: {
+              currency: liveInfo.asset1.currency,
+              issuer: liveInfo.asset1.issuer,
+              value: liveInfo.asset1.value
+            },
+            currency_b: {
+              currency: liveInfo.asset2.currency,
+              issuer: liveInfo.asset2.issuer,
+              value: liveInfo.asset2.value
+            },
+            trading_fee: liveInfo.trading_fee
+          };
+        }
+      } catch (error) {
+        console.warn(`⚠️ Failed to get live data for ${pairKey}: ${error.message}`);
+      }
+    }
     
     const orderBooks = await getOrderBookData(fromCurrency, toCurrency, issuerAddress);
     
@@ -389,6 +429,8 @@ export async function getOrderBookData(fromCurrency, toCurrency, issuerAddress) 
   };
   
   try {
+    await connectXrplClient();
+    
     // Direct order book
     if (fromCurrency !== toCurrency) {
       let takerGets, takerPays;
@@ -400,6 +442,8 @@ export async function getOrderBookData(fromCurrency, toCurrency, issuerAddress) 
         takerGets = { currency: fromCurrency, issuer: issuerAddress };
         takerPays = { currency: "XRP" };
       } else {
+        // FINAL FIX: Your offer has TakerGets=EUR, TakerPays=USD
+        // To find this offer, we need to query with the SAME structure
         takerGets = { currency: fromCurrency, issuer: issuerAddress };
         takerPays = { currency: toCurrency, issuer: issuerAddress };
       }
@@ -412,6 +456,23 @@ export async function getOrderBookData(fromCurrency, toCurrency, issuerAddress) 
       });
       
       orderBooks.direct = directResponse.result.offers || [];
+      
+      // DEBUG: Log what offers were found
+      console.log(`🔍 DEBUG: Querying ${fromCurrency} → ${toCurrency} order book:`);
+      console.log(`   TakerGets: ${JSON.stringify(takerGets)}`);
+      console.log(`   TakerPays: ${JSON.stringify(takerPays)}`);
+      console.log(`   Found ${orderBooks.direct.length} offers`);
+      
+      if (orderBooks.direct.length > 0) {
+        orderBooks.direct.forEach((offer, index) => {
+          console.log(`   Offer ${index + 1}:`);
+          console.log(`     TakerGets: ${JSON.stringify(offer.TakerGets)}`);
+          console.log(`     TakerPays: ${JSON.stringify(offer.TakerPays)}`);
+          console.log(`     Account: ${offer.Account}`);
+        });
+      } else {
+        console.log(`   ❌ No offers found in this order book`);
+      }
     }
     
     // Multi-hop routes via XRP
@@ -453,29 +514,7 @@ export async function getOrderBookData(fromCurrency, toCurrency, issuerAddress) 
   return orderBooks;
 };
 
-/**
- * Calculate confidence score for a route based on liquidity and spread
- */
-export function calculateConfidence(routeAnalysis) {
-  let confidence = 0.5; // Base confidence
-  
-  if (routeAnalysis.type === 'amm') {
-    // AMM confidence based on liquidity ratio
-    if (routeAnalysis.bestPath.liquidityRatio > 100) confidence += 0.4;
-    else if (routeAnalysis.bestPath.liquidityRatio > 10) confidence += 0.3;
-    else if (routeAnalysis.bestPath.liquidityRatio > 2) confidence += 0.1;
-  } else if (routeAnalysis.type === 'dex') {
-    // DEX confidence based on order book depth
-    if (routeAnalysis.orderBookDepth > 10) confidence += 0.4;
-    else if (routeAnalysis.orderBookDepth > 5) confidence += 0.3;
-    else if (routeAnalysis.orderBookDepth > 1) confidence += 0.1;
-  } else if (routeAnalysis.type === 'hybrid') {
-    // Hybrid confidence (generally lower due to complexity)
-    confidence += 0.2;
-  }
-  
-  return Math.min(confidence, 1.0);
-};
+// Removed calculateConfidence - routes are chosen purely based on rate efficiency
 
 /**
  * Calculate expected slippage for a route
@@ -500,7 +539,7 @@ export function calculateSlippage(routeAnalysis, slippageBuffer) {
 };
 
 // Real implementations for specific route analysis functions
-const analyzeDirectAMMRoute = (amm, fromCurrency, toCurrency, fromAmount) => {
+export function analyzeDirectAMMRoute(amm, fromCurrency, toCurrency, fromAmount) {
   try {
     const asset1 = amm.currency_a;
     const asset2 = amm.currency_b;
@@ -576,7 +615,7 @@ const analyzeDirectAMMRoute = (amm, fromCurrency, toCurrency, fromAmount) => {
   }
 };
 
-const analyzeMultiHopAMMRoutes = (ammData, fromCurrency, toCurrency, fromAmount, issuerAddress, isExactOutput = false, targetOutput = null) => {
+export function analyzeMultiHopAMMRoutes(ammData, fromCurrency, toCurrency, fromAmount, issuerAddress, isExactOutput = false, targetOutput = null) {
   const routes = [];
   
   try {
@@ -724,7 +763,7 @@ const analyzeMultiHopAMMRoutes = (ammData, fromCurrency, toCurrency, fromAmount,
 /**
  * Calculate required input for AMM to get exact output (reverse calculation)
  */
-const calculateAMMInputForOutput = (amm, fromCurrency, toCurrency, targetOutput) => {
+export function calculateAMMInputForOutput(amm, fromCurrency, toCurrency, targetOutput) {
   try {
     const asset1 = amm.currency_a;
     const asset2 = amm.currency_b;
@@ -822,7 +861,7 @@ const calculateAMMInputForOutput = (amm, fromCurrency, toCurrency, targetOutput)
 /**
  * Calculate liquidity ratio for a trade
  */
-const calculateLiquidityRatio = (amm, fromCurrency, tradeAmount) => {
+export function calculateLiquidityRatio(amm, fromCurrency, tradeAmount) {
   try {
     const asset1 = amm.currency_a;
     const asset2 = amm.currency_b;
@@ -844,7 +883,7 @@ const calculateLiquidityRatio = (amm, fromCurrency, tradeAmount) => {
   }
 };
 
-const analyzeDirectDEXRoute = (offers, fromCurrency, toCurrency, fromAmount) => {
+export function analyzeDirectDEXRoute(offers, fromCurrency, toCurrency, fromAmount) {
   try {
     if (!offers || offers.length === 0) return { rate: 0 };
     
@@ -870,12 +909,20 @@ const analyzeDirectDEXRoute = (offers, fromCurrency, toCurrency, fromAmount) => 
         offerWants = parseFloat(offer.TakerPays.value);
       }
       
-      // Calculate rate for this offer
-      const offerRate = offerGives / offerWants;
+      // CRITICAL FIX: Handle reverse offer crossing
+      // Your offer: TakerGets=40 EUR, TakerPays=40 USD (offer creator sells EUR for USD)
+      // We want: EUR → USD (we want to sell EUR and get USD)
+      // This is a REVERSE crossing - we take the opposite side of their offer
       
-      // Determine how much we can take from this offer
-      const amountToTake = Math.min(remainingAmount, offerWants);
-      const amountReceived = amountToTake * offerRate;
+      // For reverse crossing: if they give 40 EUR for 40 USD, we can give 40 USD for 40 EUR
+      // But we want EUR→USD, so we calculate: how much USD we get per EUR we give
+      const reverseRate = offerWants / offerGives; // USD per EUR we can get
+      
+      // Determine how much we can take from this offer (limited by what they're offering)
+      const amountToTake = Math.min(remainingAmount, offerGives); // Limited by their EUR amount
+      const amountReceived = amountToTake * reverseRate; // USD we receive
+      
+      console.log(`   🔄 Reverse crossing: Give ${amountToTake} ${fromCurrency} → Get ${amountReceived} ${toCurrency} (rate: ${reverseRate})`);
       
       totalReceived += amountReceived;
       remainingAmount -= amountToTake;
@@ -890,6 +937,7 @@ const analyzeDirectDEXRoute = (offers, fromCurrency, toCurrency, fromAmount) => 
       rate: avgRate,
       amountOut: totalReceived,
       offersUsed,
+      orderBookDepth: offers.length, // Add this for confidence calculation
       path: `${fromCurrency} → ${toCurrency} (DEX)`
     };
     
@@ -899,7 +947,7 @@ const analyzeDirectDEXRoute = (offers, fromCurrency, toCurrency, fromAmount) => 
   }
 };
 
-const analyzeMultiHopDEXRoute = (multiHopData, fromCurrency, toCurrency, fromAmount) => {
+export function analyzeMultiHopDEXRoute(multiHopData, fromCurrency, toCurrency, fromAmount) {
   try {
     // Analyze fromCurrency → XRP → toCurrency route
     const firstHop = analyzeDirectDEXRoute(multiHopData.fromToXrp, fromCurrency, 'XRP', fromAmount);
@@ -938,7 +986,7 @@ const analyzeMultiHopDEXRoute = (multiHopData, fromCurrency, toCurrency, fromAmo
   }
 };
 
-const analyzeHybridRoute = (routeType, fromCurrency, intermediateCurrency, toCurrency, fromAmount, orderBooks, ammData, issuerAddress) => {
+export function analyzeHybridRoute(routeType, fromCurrency, intermediateCurrency, toCurrency, fromAmount, orderBooks, ammData, issuerAddress) {
   try {
     if (routeType === 'dex_to_amm') {
       // DEX: fromCurrency → intermediateCurrency, then AMM: intermediateCurrency → toCurrency
@@ -993,7 +1041,7 @@ const analyzeHybridRoute = (routeType, fromCurrency, intermediateCurrency, toCur
   }
 };
 
-const calculateOrderBookDepth = (orderBooks) => {
+export function calculateOrderBookDepth(orderBooks) {
   return orderBooks.direct.length + orderBooks.multiHop.fromToXrp.length + orderBooks.multiHop.xrpToTo.length;
 };
 
@@ -1238,7 +1286,7 @@ export async function executeSmartTrade(userWallet, fromCurrency, toCurrency, ta
       console.log(`🚀 Executing conversion: ${bufferedInput.toFixed(6)} ${fromCurrency} → ${targetAmount} ${toCurrency}`);
       
       try {
-        const { sendCrossCurrency } = await import('../transaction/sendCrossCurrency');
+        const { sendCrossCurrency } = require('../transactionController/sendCrossCurrency');
         
         const conversionResult = await withRetry(
           async () => {
@@ -1561,13 +1609,11 @@ export async function getCompetitiveOfferPricing(sellCurrency, sellAmount, buyCu
       marketAnalysisData = {
         currentMarketRate: marketRate,
         marketValue: marketOutput,
-        confidence: marketAnalysis.bestRoute.confidence,
         routeType: marketAnalysis.bestRoute.type
       };
       
       console.log(`📈 Current Market Rate: ${marketRate.toFixed(6)} (via ${marketAnalysis.bestRoute.type})`);
       console.log(`💰 Market Value: ${marketOutput.toFixed(6)} ${buyCurrency}`);
-      console.log(`🎯 Confidence: ${(marketAnalysis.bestRoute.confidence * 100).toFixed(1)}%`);
       
       if (buyAmount === 'market') {
         // Set buy amount based on market rate with competitive buffer

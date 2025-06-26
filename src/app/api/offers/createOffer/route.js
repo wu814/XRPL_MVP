@@ -38,7 +38,7 @@ export async function POST(req) {
     }
 
     // Calculate total value
-    const totalValue = limitPrice * quantity;
+    const totalValue = (limitPrice * quantity).toFixed(6);
 
     // Construct takerPays and takerGets based on order type
     let takerPays, takerGets;

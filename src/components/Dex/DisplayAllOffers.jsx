@@ -11,28 +11,36 @@ const parseAsset = (asset) => {
   return { currency: asset.currency, value: Number(asset.value) };
 };
 
-// Component to render each offer
-const OfferRow = ({ offer }) => {
+// Helper: Calculate price for sell offer
+const getSellOfferPrice = (offer) => {
   const pays = parseAsset(offer.TakerPays);
   const gets = parseAsset(offer.TakerGets);
-  const price = (pays.value / gets.value).toFixed(6);
-  const quantity = gets.value.toFixed(6);
+  return pays.value / gets.value;
+};
+
+// Component to render each offer
+const OfferRow = ({ offer, colorClass, isSell }) => {
+  const pays = parseAsset(offer.TakerPays);
+  const gets = parseAsset(offer.TakerGets);
+  const price = isSell
+    ? (pays.value / gets.value).toFixed(6)
+    : (gets.value / pays.value).toFixed(6);
+  const quantity = isSell ? gets.value.toFixed(6) : pays.value.toFixed(6);
 
   return (
-    <div className="flex justify-between rounded-lg mx-4 px-2 text-sm">
-      <div>
-        {price}
-      </div>
-      <div>
-        {quantity}
-      </div>
+    <div
+      className={`flex justify-between rounded-lg px-2 text-sm ${colorClass}`}
+    >
+      <div>{price}</div>
+      <div>{quantity}</div>
     </div>
   );
 };
 
 export default function DisplayAllOffers({ baseCurrency, quoteCurrency }) {
   const { issuerWallets } = useIssuerWallet();
-  const [offers, setOffers] = useState([]);
+  const [sellOffers, setSellOffers] = useState([]);
+  const [buyOffers, setBuyOffers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
 
@@ -60,16 +68,19 @@ export default function DisplayAllOffers({ baseCurrency, quoteCurrency }) {
         }),
       });
 
-      const result = await res.json();
+      const data = await res.json();
       if (res.ok) {
-        setOffers(result.offers);
+        setSellOffers(data.sellOffers || []);
+        setBuyOffers(data.buyOffers || []);
       } else {
-        console.error("API error:", result.error);
-        setOffers([]);
+        console.error("API error:", data.error);
+        setSellOffers([]);
+        setBuyOffers([]);
       }
     } catch (err) {
       console.error("Fetch error:", err);
-      setOffers([]);
+      setSellOffers([]);
+      setBuyOffers([]);
     } finally {
       setLoading(false);
       setSearched(true);
@@ -88,7 +99,12 @@ export default function DisplayAllOffers({ baseCurrency, quoteCurrency }) {
       <button
         className="absolute right-4 top-4 transition duration-200 ease-in-out hover:scale-110 focus:outline-none"
         onClick={fetchOffers}
-        disabled={loading || !baseCurrency || !quoteCurrency || baseCurrency === quoteCurrency}
+        disabled={
+          loading ||
+          !baseCurrency ||
+          !quoteCurrency ||
+          baseCurrency === quoteCurrency
+        }
       >
         <svg
           className="h-6 w-6 hover:text-primary"
@@ -107,20 +123,47 @@ export default function DisplayAllOffers({ baseCurrency, quoteCurrency }) {
       </button>
 
       {/* Offer Results */}
+      <div className="flex justify-between px-2 font-semibold">
+        <span>Price ({quoteCurrency})</span>
+        <span>Quantity ({baseCurrency})</span>
+      </div>
+      <div className="my-2 border-b border-border"></div>
       <div className="mt-6">
         {loading && <p className="text-mutedText">Loading offers...</p>}
-        {!loading && searched && offers.length === 0 && (
-          <p className="text-mutedText">No offers found for this pair.</p>
+        {!loading &&
+          searched &&
+          sellOffers.length === 0 &&
+          buyOffers.length === 0 && (
+            <p className="text-mutedText">No offers found for this pair.</p>
+          )}
+
+        {/* Sell Offers */}
+        {!loading && sellOffers.length > 0 && (
+          <div className="mb-6">
+            {/* Sort sell offers by price in descending order */}
+            {sellOffers
+              .slice() // create a shallow copy to avoid mutating state
+              .sort((a, b) => getSellOfferPrice(b) - getSellOfferPrice(a))
+              .map((offer, i) => (
+                <OfferRow
+                  key={`sell-${i}`}
+                  offer={offer}
+                  colorClass="text-red-500"
+                  isSell
+                />
+              ))}
+          </div>
         )}
-        {!loading && offers.length > 0 && (
-          <div className="space-y-1">
-            <div className="flex justify-between px-2 font-semibold text-mutedText">
-              <span>Price ({quoteCurrency})</span>
-              <span>Quantity ({baseCurrency})</span>
-            </div>
-            <div className="border-b border-border my-2"></div>
-            {offers.map((offer, i) => (
-              <OfferRow key={i} offer={offer} />
+        {/* Buy Offers */}
+        {!loading && buyOffers.length > 0 && (
+          <div>
+            {buyOffers.map((offer, i) => (
+              <OfferRow
+                key={`buy-${i}`}
+                offer={offer}
+                colorClass="text-green-500"
+                isSell={false}
+              />
             ))}
           </div>
         )}
