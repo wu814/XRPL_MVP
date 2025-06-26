@@ -12,6 +12,7 @@ export default function TransferBtn({
   senderWallet,
   issuerWallets,
   presetRecipientUsername,
+  onSuccess,
 }) {
   const { data: session, status } = useSession();
 
@@ -116,6 +117,11 @@ export default function TransferBtn({
       const result = await res.json();
       if (!res.ok) throw new Error(result.error);
       setSuccessMessage(result.message || "Payment sent!");
+      
+      // Call the onSuccess callback if provided
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (err) {
       setErrorMessage(err.message);
     } finally {

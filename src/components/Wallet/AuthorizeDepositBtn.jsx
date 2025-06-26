@@ -5,7 +5,7 @@ import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
 
-export default function AuthorizeDepositBtn({ treasuryWallet }) {
+export default function AuthorizeDepositBtn({ treasuryWallet, onSuccess }) {
   const [showMdl, setShowMdl] = useState(false);
   const [authorizedAddress, setAuthorizedAddress] = useState("");
   const [loading, setLoading] = useState(false);
@@ -27,6 +27,11 @@ export default function AuthorizeDepositBtn({ treasuryWallet }) {
         throw new Error(result.error || "Failed to authorize deposit");
 
       setSuccessMessage(result.message);
+      
+      // Call the onSuccess callback if provided
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (err) {
       setErrorMessage(err.message);
     } finally {

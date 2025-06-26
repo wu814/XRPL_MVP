@@ -8,7 +8,7 @@ export default function AmmDetails() {
   const address = params.ammAccount; // Get the AMM address from the URL
 
   return (
-    <div>
+    <div className="p-8">
       <DisplayAmmDetails ammAccount={address} />
     </div>
   );

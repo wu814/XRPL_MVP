@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAccountLines } from "@/utils/xrpl/wallet/getWalletInfo";
+import { client, connectXrplClient } from "@/utils/xrpl/testnet";
 
 export async function POST(req) {
   try {
@@ -12,12 +12,19 @@ export async function POST(req) {
       return NextResponse.json({ error: "Missing address or wallet" }, { status: 400 });
     }
 
-    const lines = await getAccountLines(targetAddress);
-    return NextResponse.json({ data: lines }, { status: 200 });
+    await connectXrplClient();
+    
+    const accountObjects = await client.request({
+      command: "account_objects",
+      account: targetAddress,
+      ledger_index: "validated",
+    });
+
+    return NextResponse.json({ data: accountObjects.result }, { status: 200 });
   } catch (error) {
     return NextResponse.json(
-      { error: `getAccountLines failed: ${error.message}` },
+      { error: `getAccountObjects failed: ${error.message}` },
       { status: 500 },
     );
   }
-}
+} 
