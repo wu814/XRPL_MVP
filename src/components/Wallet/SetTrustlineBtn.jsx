@@ -8,7 +8,7 @@ import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
 import CurrencyDropDown from "../Currency/CurrencyDropDown";
 
-export default function SetTrustlineBtn({ setterWallet, issuerWallets }) {
+export default function SetTrustlineBtn({ setterWallet, issuerWallets, onSuccess }) {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
@@ -36,6 +36,11 @@ export default function SetTrustlineBtn({ setterWallet, issuerWallets }) {
       if (!res.ok) throw new Error(result.error || "Failed to set trustline");
 
       setSuccessMessage(result.message);
+      
+      // Call the onSuccess callback if provided
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (err) {
       setErrorMessage(err.message);
     } finally {

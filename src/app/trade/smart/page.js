@@ -1,6 +1,5 @@
 "use client";
 
-import Navbar from "@/components/Navigation/Navbar";
 import SmartTradeMenu from "@/components/Smart/SmartTradeMenu";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
@@ -18,8 +17,8 @@ export default function SmartTrade() {
   }, [session, status]);
 
   return (
-    <div>
-      <Navbar username={username} />
+    <div className="p-8">
+      <h1 className="text-4xl font-bold mb-8 text-center">Smart Trade</h1>
       <CurrentUserWalletProvider>
         <IssuerWalletProvider>
           <div className="container mx-auto flex flex-col">

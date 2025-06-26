@@ -1,7 +1,6 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import Navbar from "@/components/Navigation/Navbar";
 import TransferBtn from "@/components/Wallet/TransferBtn";
 import AddFriendBtn from "@/components/Friend/AddFriendBtn";
 import ErrorMdl from "@/components/ErrorMdl";
@@ -26,10 +25,9 @@ export default function UserPage() {
   }, [loadWalletErrorMessage]);
 
   return (
-    <div>
-      <Navbar username={username} />
+    <div className="p-8">
       <div className="flex flex-col items-center">
-        <h1 className="mb-5 text-2xl font-bold">User Profile: {username}</h1>
+        <h1 className="mb-5 text-4xl font-bold">User Profile: {username}</h1>
 
         <div className="flex flex-row space-x-4">
           {username && currentUserWallets.length > 0 && (
