@@ -58,16 +58,6 @@ export default function DisplayAmmDetails({ ammAccount }) {
   const [currency1, setCurrency1] = useState("");
   const [currency2, setCurrency2] = useState("");
 
-  // Pass username to the Navbar
-  const [username, setUsername] = useState(null);
-  const { data: session, status } = useSession();
-
-  useEffect(() => {
-    if (status === "authenticated") {
-      setUsername(session.user.username);
-    }
-  }, [session, status]);
-
   const fetchAmmInfo = async () => {
     try {
       const res = await fetch("/api/amms/getAmmInfo", {
@@ -151,7 +141,6 @@ export default function DisplayAmmDetails({ ammAccount }) {
 
   return (
     <div>
-      <Navbar username={username} />
       <div className="container mx-auto">
         <Breadcrumbs customLabel={`${currency1}/${currency2}`} />
         <div className="flex flex-row gap-2 py-6">

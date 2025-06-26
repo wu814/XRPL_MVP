@@ -7,15 +7,6 @@ import { CurrentUserWalletProvider } from "@/components/Wallet/CurrentUserWallet
 import { IssuerWalletProvider } from "@/components/Wallet/IssuerWalletProvider";
 
 export default function SmartTrade() {
-  const { data: session, status } = useSession();
-  const [username, setUsername] = useState("");
-
-  useEffect(() => {
-    if (status === "authenticated") {
-      setUsername(session.user.username || "");
-    }
-  }, [session, status]);
-
   return (
     <div className="p-8">
       <h1 className="text-4xl font-bold mb-8 text-center">Smart Trade</h1>
