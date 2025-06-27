@@ -92,7 +92,6 @@ export async function getAmmData() {
     const { data, error } = await supabase
       .from("amms")
       .select("*");
-    
     if (error) {
       console.error(`❌ Error fetching AMM data from Supabase: ${error.message}`);
       return [];

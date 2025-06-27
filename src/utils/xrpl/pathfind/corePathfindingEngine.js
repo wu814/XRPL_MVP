@@ -9,6 +9,7 @@ import {
   ErrorTypes 
 } from '../errorHandler.js';
 
+
 /**
  * 🧠 UNIFIED PATHFINDING ENGINE
  * Single source of truth for all pathfinding, market analysis, and smart calculations
@@ -174,14 +175,15 @@ export async function analyzeAMMRoutes(fromCurrency, toCurrency, fromAmount, iss
     }
     
     // Get LIVE AMM data using universal function - NO CACHING for accuracy
-    const { getAmmData, getAmmInfo } = require("../../utils/ammUtils");
-    const ammRegistry = getAmmData();
+    const { getAmmData, getAmmInfo } = await import("../amm/ammUtils.js");
+    const ammRegistry = await getAmmData();
     const ammData = {};
     
     // Get live data for each pool using universal function
     for (const [pairKey, poolInfo] of Object.entries(ammRegistry)) {
       try {
         const liveInfo = await getAmmInfo(poolInfo.amm_account);
+
         if (liveInfo) {
           ammData[pairKey] = {
             amm_account: liveInfo.amm_account,
@@ -323,8 +325,8 @@ export async function analyzeHybridRoutes(fromCurrency, toCurrency, fromAmount, 
     console.log(`🟣 Hybrid Route Analysis...`);
     
     // Get both AMM and DEX data using universal function
-    const { getAmmData, getAmmInfo } = require("../../utils/ammUtils");
-    const ammRegistry = getAmmData();
+    const { getAmmData, getAmmInfo } = await import("../amm/ammUtils.js");
+    const ammRegistry = await getAmmData();
     const ammData = {};
     
     // Get live AMM data for hybrid routes
@@ -1286,7 +1288,7 @@ export async function executeSmartTrade(userWallet, fromCurrency, toCurrency, ta
       console.log(`🚀 Executing conversion: ${bufferedInput.toFixed(6)} ${fromCurrency} → ${targetAmount} ${toCurrency}`);
       
       try {
-        const { sendCrossCurrency } = require('../transactionController/sendCrossCurrency');
+        const { sendCrossCurrency } = await import('../transaction/sendCrossCurrency.js');
         
         const conversionResult = await withRetry(
           async () => {

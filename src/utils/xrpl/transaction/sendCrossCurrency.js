@@ -1,8 +1,8 @@
 "use strict";
 
 import xrpl from "xrpl";
-import { ConnectXrplClient, client } from "../testnet";
-import { analyzeMarket } from "../pathfindingController/corePathfindingEngine";
+import { connectXrplClient, client } from "../testnet";
+import { analyzeMarket } from "../pathfind/corePathfindingEngine";
 
 /**
  * Calculate exact AMM input needed for a specific output using constant product formula
@@ -108,7 +108,7 @@ export async function sendCrossCurrency(
   exactOutputAmount = null
 ) {
   try {
-    await ConnectXrplClient();
+    await connectXrplClient();
     
     console.log("🎯 Smart Cross-Currency Payment (AMM + DEX pathfinding)...");
     console.log(`Sender: ${senderWallet.classicAddress}`);
@@ -149,7 +149,7 @@ export async function sendCrossCurrency(
       
       try {
         // Use AMM calculation function and get LIVE data
-        const { getAmmInfoByCurrencies } = require('../../utils/ammUtils');
+        const { getAmmInfoByCurrencies } = await import('../amm/ammUtils.js');
         
         // Get LIVE AMM data using the universal function - NO CACHING
         console.log(`📊 Fetching LIVE AMM data for exact output calculation...`);
@@ -340,7 +340,7 @@ export async function sendCrossCurrency(
         console.log(`🔵 Direct AMM route: Using live pool data for precision`);
         
         // Get live AMM data for precise calculation
-        const { getAmmInfoByCurrencies } = require('../../utils/ammUtils');
+        const { getAmmInfoByCurrencies } = await import('../amm/ammUtils.js');
         
         try {
           const liveAmmData = await getAmmInfoByCurrencies(sendCurrency, receiveCurrency, issuerAddress);
@@ -578,32 +578,37 @@ export async function sendCrossCurrency(
     // Step 8: Force DEX execution by creating a counter-offer
     if (forceDEXPath) {
       console.log("🔧 CRITICAL FIX: Creating counter-offer to execute DEX trade");
-      console.log("💡 Your offer sells EUR for USD, but we need to sell EUR for USD");
-      console.log("💡 Solution: Create a temporary offer that matches yours, then cancel it");
+      console.log("💡 Using actual DEX rate from pathfinding analysis");
       
       try {
-                 // Create an OfferCreate transaction that will immediately cross with the existing offer
-         // Use the actual target amount from exact output mode
-         const targetAmount = paymentType === "exact_output" ? exactOutputAmount : recommendation.estimatedOutput;
-         const requiredInput = parseFloat(targetAmount); // 1:1 rate from DEX
-         
-         const counterOfferTx = {
-           TransactionType: "OfferCreate",
-           Account: senderWallet.address,
-           TakerGets: {
-             currency: "USD",
-             issuer: issuerAddress,
-             value: targetAmount.toString()  // We want the actual target USD amount
-           },
-           TakerPays: {
-             currency: "EUR", 
-             issuer: issuerAddress,
-             value: requiredInput.toString()  // We'll pay equivalent EUR (1:1 rate)
-           },
-           Flags: 0x00040000  // tfImmediateOrCancel - execute immediately or cancel
-         };
+        // Create an OfferCreate transaction that will immediately cross with the existing offer
+        // Use the actual target amount and REAL exchange rate from pathfinding
+        const targetAmount = paymentType === "exact_output" ? exactOutputAmount : recommendation.estimatedOutput;
+        const actualRate = recommendation.rate; // Use the real rate from pathfinding
+        const requiredInput = parseFloat(targetAmount) / actualRate; // Calculate actual input needed
         
-        console.log("🔧 Creating counter-offer to cross with existing DEX offer:");
+        console.log(`📊 DEX Rate Analysis:`);
+        console.log(`   Target Output: ${targetAmount} ${receiveCurrency}`);
+        console.log(`   Actual DEX Rate: ${actualRate.toFixed(6)} ${receiveCurrency}/${sendCurrency}`);
+        console.log(`   Required Input: ${requiredInput.toFixed(6)} ${sendCurrency}`);
+        
+        const counterOfferTx = {
+          TransactionType: "OfferCreate",
+          Account: senderWallet.address,
+          TakerGets: {
+            currency: receiveCurrency,
+            issuer: issuerAddress,
+            value: targetAmount.toString()  // We want the actual target amount
+          },
+          TakerPays: {
+            currency: sendCurrency, 
+            issuer: issuerAddress,
+            value: requiredInput.toFixed(6)  // Pay the calculated amount based on actual rate
+          },
+          Flags: 0x00040000  // tfImmediateOrCancel - execute immediately or cancel
+        };
+        
+        console.log("🔧 Creating counter-offer with actual exchange rate:");
         console.log(JSON.stringify(counterOfferTx, null, 2));
         
         // Submit the counter-offer
@@ -611,30 +616,32 @@ export async function sendCrossCurrency(
         const signed = senderWallet.sign(prepared);
         const result = await client.submitAndWait(signed.tx_blob);
         
-                 if (result.result.meta.TransactionResult === "tesSUCCESS") {
-           console.log("✅ DEX trade executed successfully via counter-offer!");
-           console.log(`📋 Transaction Hash: ${result.result.hash}`);
-           
-           // Log the exact amounts
-           console.log("\n=== DEX TRADE COMPLETED ===");
-           console.log(`💸 Amount Sent: ${requiredInput.toFixed(6)} EUR`);
-           console.log(`💰 Amount Delivered: ${targetAmount} USD`);
-           console.log(`📈 Exchange Rate: 1.000000 USD/EUR (Perfect 1:1)`);
-           console.log(`🎯 Routing Method: DEX (Counter-Offer)`);
-           console.log(`📋 Ledger Index: ${result.result.ledger_index}`);
-           console.log("============================\n");
-           
-           // Return early - we've completed the trade
-           return {
-             success: true,
-             transactionHash: result.result.hash,
-             ledgerIndex: result.result.ledger_index,
-             deliveredAmount: `${targetAmount} USD`,
-             sentAmount: `${requiredInput.toFixed(6)} EUR`,
-             routingMethod: "DEX (Counter-Offer)",
-             exchangeRate: 1.0
-           };
-         } else {
+        if (result.result.meta.TransactionResult === "tesSUCCESS") {
+          console.log("✅ DEX trade executed successfully via counter-offer!");
+          console.log(`📋 Transaction Hash: ${result.result.hash}`);
+          
+          // Create a message string by building it line by line
+          let message = "";
+          message += "\n=== DEX TRADE COMPLETED ===\n";
+          message += `💸 Amount Sent: ${requiredInput.toFixed(6)} ${sendCurrency}\n`;
+          message += `💰 Amount Delivered: ${targetAmount} ${receiveCurrency}\n`;
+          message += `📈 Exchange Rate: ${actualRate.toFixed(6)} ${receiveCurrency}/${sendCurrency}\n`;
+          message += `🎯 Routing Method: DEX (Counter-Offer)\n`;
+          message += `📋 Ledger Index: ${result.result.ledger_index}\n`;
+          message += "============================\n";
+          
+          // Return early - we've completed the trade
+          return {
+            success: true,
+            transactionHash: result.result.hash,
+            ledgerIndex: result.result.ledger_index,
+            deliveredAmount: `${targetAmount} ${receiveCurrency}`,
+            sentAmount: `${requiredInput.toFixed(6)} ${sendCurrency}`,
+            routingMethod: "DEX (Counter-Offer)",
+            exchangeRate: actualRate,  // Use the actual calculated rate
+            message: message // Add the message to the return object
+          };
+        } else {
           console.log(`❌ Counter-offer failed: ${result.result.meta.TransactionResult}`);
           console.log("🔄 Falling back to payment transaction");
         }
@@ -866,12 +873,13 @@ export async function sendCrossCurrency(
         console.error("Error parsing transaction amounts:", parseError.message);
       }
       
-      console.log("\n=== Smart Cross-Currency Payment Details ===");
-      console.log(`👛 From: ${walletObject.classicAddress}`);
-      console.log(`👛 To: ${destinationAddress}`);
-      console.log(`💸 Amount Sent: ${actualAmountSent}`);
-      console.log(`💰 Amount Delivered: ${actualAmountDelivered}`);
-      console.log(`🎯 Routing Method: ${actualRoutingMethod}`);
+      let message = "";
+      message += "\n=== Smart Cross-Currency Payment Details ===\n";
+      message += `👛 From: ${walletObject.classicAddress}\n`;
+      message += `👛 To: ${destinationAddress}\n`;
+      message += `💸 Amount Sent: ${actualAmountSent}\n`;
+      message += `💰 Amount Delivered: ${actualAmountDelivered}\n`;
+      message += `🎯 Routing Method: ${actualRoutingMethod}\n`;
       
       // Create user-friendly rate display for the exchange rate
       let displayRate = recommendation.rate;
@@ -883,9 +891,9 @@ export async function sendCrossCurrency(
         rateLabel = `${receiveCurrency} per XRP`;
       }
       
-      console.log(`📈 Exchange Rate: ${displayRate.toFixed(6)} ${rateLabel}`);
-      console.log(`📋 Transaction Hash: ${response.result.hash}`);
-      console.log(`📋 Ledger Index: ${response.result.ledger_index}`);
+      message += `📈 Exchange Rate: ${displayRate.toFixed(6)} ${rateLabel}\n`;
+      message += `📋 Transaction Hash: ${response.result.hash}\n`;
+      message += `📋 Ledger Index: ${response.result.ledger_index}\n`;
       
       return {
         success: true,
@@ -896,7 +904,8 @@ export async function sendCrossCurrency(
         routingMethod: actualRoutingMethod,
         exchangeRate: recommendation.rate,
         pathfindingResult: pathfindingResult,
-        response: response
+        response: response,
+        message: message // Add the message to the return object
       };
     } else {
       throw new Error(`Smart cross-currency payment failed: ${response.result.meta.TransactionResult}`);

@@ -1,52 +1,221 @@
 "use client";
 
 import { useState, useContext, useEffect } from "react";
-import { ArrowUpRight, ArrowDownLeft, Building2, Search, Star, X, ChevronDown, RefreshCw } from "lucide-react";
+import { ArrowUpRight, ArrowDownLeft, Building2, Search, Star, X, ChevronDown, RefreshCw, Settings } from "lucide-react";
 import ConvertCurrencyDropDown from "@/components/Currency/ConvertCurrencyDropDown";
 import SendCurrencyDropDown from "@/components/Currency/SendCurrencyDropDown";
+import CurrencyDropDown from "@/components/Currency/CurrencyDropDown";
+import SlippagePanel from "@/components/SlippagePanel";
+import ErrorMdl from "@/components/ErrorMdl";
+import SuccessMdl from "@/components/SuccessMdl";
 import { useCurrentUserWallet } from "@/components/Wallet/CurrentUserWalletProvider";
 import { useIssuerWallet } from "@/components/Wallet/IssuerWalletProvider";
 import { availableCurrencies } from "@/utils/currencies";
-
+import { useSession } from "next-auth/react";
 
 export default function TradePanel({ user, session }) {
+  const { data: sessionData, status } = useSession();
   const [activeTab, setActiveTab] = useState("Convert");
-  const [amount, setAmount] = useState("");
 
-  // Trade panel assets for Convert
-  const [fromAsset, setFromAsset] = useState(availableCurrencies[3]); // BTC
-  const [toAsset, setToAsset] = useState(availableCurrencies[4]); // ETH
+  // Convert states (integrated from SmartTradeMenu)
+  const [sellCurrency, setSellCurrency] = useState("XRP");
+  const [buyCurrency, setBuyCurrency] = useState("USD");
+  const [sellAmount, setSellAmount] = useState("");
+  const [buyAmount, setBuyAmount] = useState("");
+  const [activeInput, setActiveInput] = useState("sell");
+  const [tradeInputType, setTradeInputType] = useState("exact_input");
   
-  // Send form states
-  const [sendRecipient, setSendRecipient] = useState("");
+  // Send form states (Enhanced from TransferBtn)
+  const [recipientUsername, setRecipientUsername] = useState("");
+  const [recipientAddress, setRecipientAddress] = useState("");
+  const [useUsername, setUseUsername] = useState(true);
+  const [amount, setAmount] = useState("");
+  const [currency, setCurrency] = useState("");
+  const [destinationTag, setDestinationTag] = useState("");
+  const [paymentType, setPaymentType] = useState("direct"); // "direct" or "convertable"
+  const [convertInputType, setConvertInputType] = useState(null); // "exact_input" or "exact_output"
+  const [sendCurrency, setSendCurrency] = useState(""); // for cross-currency
+  const [receiveCurrency, setReceiveCurrency] = useState(""); // for cross-currency
   const [sendAmount, setSendAmount] = useState("");
-  const [sendCurrency, setSendCurrency] = useState("XRP");
-  const [receiveCurrency, setReceiveCurrency] = useState("USD");
-  const [sendDestTag, setSendDestTag] = useState("");
-  const [sendSlippage, setSendSlippage] = useState("0.0");
-  const [sendMode, setSendMode] = useState("direct"); // "direct" or "convertible"
-  const [message, setMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [openDropdown, setOpenDropdown] = useState(null); // Track which dropdown is open
+  const [receiveAmount, setReceiveAmount] = useState("");
+  
+  // Common states
+  const [slippage, setSlippage] = useState("0");
+  const [showSlippagePanel, setShowSlippagePanel] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
+  const [openDropdown, setOpenDropdown] = useState(null);
 
   const { currentUserWallets } = useCurrentUserWallet();
   const { issuerWallets } = useIssuerWallet();
 
-  // Get the primary wallet for sending
+  // Get the primary wallet
   const senderWallet = currentUserWallets?.find(
-    (wallet) => wallet.walletType === "USER" || wallet.walletType === "STANDBY PATHFIND"
+    (wallet) => wallet.walletType === "USER" || wallet.walletType === "STANDBY PATHFIND" || wallet.walletType === "STANDBY TREASURY"
   );
 
-  // Ensure send and receive currencies are different for convertible payments
-  useEffect(() => {
-    if (sendMode === "convertible" && sendCurrency === receiveCurrency) {
-      // Find a different currency for receive
-      const differentCurrency = availableCurrencies.find(c => c.id !== sendCurrency);
-      if (differentCurrency) {
-        setReceiveCurrency(differentCurrency.id);
+  // Convert functionality integration
+  const handleSellAmountChange = (e) => {
+    setActiveInput("sell");
+    setSellAmount(e.target.value);
+    setBuyAmount(""); // Clear the other field
+    setTradeInputType("exact_input");
+  };
+
+  const handleBuyAmountChange = (e) => {
+    setActiveInput("buy");
+    setBuyAmount(e.target.value);
+    setSellAmount(""); // Clear the other field
+    setTradeInputType("exact_output");
+  };
+
+  const handleCurrencySwap = () => {
+    const temp = sellCurrency;
+    setSellCurrency(buyCurrency);
+    setBuyCurrency(temp);
+    setSellAmount(buyAmount);
+    setBuyAmount(sellAmount);
+    setActiveInput("sell");
+  };
+
+  const handleSmartTrade = async () => {
+    setLoading(true);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+
+    try {
+      if (!senderWallet) {
+        throw new Error("No suitable wallet found");
       }
+
+      if (!issuerWallets || issuerWallets.length === 0) {
+        throw new Error("No issuer wallet found");
+      }
+
+      const response = await fetch("/api/smart/smartTrade", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          senderWallet: senderWallet,
+          sendCurrency: sellCurrency,
+          sendAmount: sellAmount,
+          receiveCurrency: buyCurrency,
+          issuerAddress: issuerWallets[0].classicAddress,
+          slippagePercent: parseFloat(slippage),
+          paymentType: tradeInputType,
+          exactOutputAmount: buyAmount,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Smart trade failed");
+      }
+
+      setSuccessMessage(result.message || "Smart trade completed successfully!");
+
+      // Reset form
+      setSellAmount("");
+      setBuyAmount("");
+    } catch (error) {
+      setErrorMessage(error.message);
+    } finally {
+      setLoading(false);
     }
-  }, [sendCurrency, receiveCurrency, sendMode, availableCurrencies]);
+  };
+
+  // TransferBtn functionality for Send tab
+  const handlePaymentTypeChange = (type) => {
+    setPaymentType(type);
+    setConvertInputType(null);
+    setSendAmount("");
+    setReceiveAmount("");
+    setAmount("");
+    setCurrency("");
+  };
+
+  const handleSendAmountChangeForPayment = (e) => {
+    const value = e.target.value;
+    setSendAmount(value);
+    setReceiveAmount("");
+    setConvertInputType(value ? "exact_input" : null);
+  };
+
+  const handleReceiveAmountChangeForPayment = (e) => {
+    const value = e.target.value;
+    setReceiveAmount(value);
+    setSendAmount("");
+    setConvertInputType(value ? "exact_output" : null);
+  };
+
+  const handleSendSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setErrorMessage(null);
+
+    try {
+      const tag = destinationTag.trim() !== "" ? Number(destinationTag) : null;
+      let endpoint, requestBody;
+
+      if (paymentType === "convertable") {
+        endpoint = "/api/transactions/sendCrossCurrency";
+        requestBody = {
+          senderWallet,
+          sendCurrency,
+          sendAmount: sendAmount,
+          receiveCurrency,
+          issuerAddress: issuerWallets[0].classicAddress,
+          slippagePercent: parseFloat(slippage),
+          destinationTag: tag,
+          useUsername,
+          recipient: useUsername ? recipientUsername : recipientAddress,
+          paymentType: convertInputType,
+          exactOutputAmount:
+            convertInputType === "exact_output" ? receiveAmount : undefined,
+        };
+      } else {
+        endpoint =
+          currency === "XRP"
+            ? "/api/transactions/sendXRP"
+            : "/api/transactions/sendIOU";
+        requestBody = {
+          senderWallet,
+          amount,
+          destinationTag: tag,
+          useUsername,
+          ...(currency !== "XRP" && { currency, issuerWallets }),
+          recipient: useUsername ? recipientUsername : recipientAddress,
+        };
+      }
+
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody),
+      });
+
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error);
+      setSuccessMessage(result.message || "Payment sent!");
+      
+      // Reset form
+      if (!recipientUsername) setRecipientUsername("");
+      setRecipientAddress("");
+      setAmount("");
+      setCurrency("");
+      setSendCurrency("");
+      setReceiveCurrency("");
+      setDestinationTag("");
+      setSendAmount("");
+      setReceiveAmount("");
+    } catch (err) {
+      setErrorMessage(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Mock favorites and recents for the modal
   const favorites = [
@@ -61,7 +230,10 @@ export default function TradePanel({ user, session }) {
   
   const handleMax = () => {
     if (activeTab === "Convert") {
-      setAmount("10.49");
+      setSellAmount("10.49");
+      setBuyAmount("");
+      setActiveInput("sell");
+      setTradeInputType("exact_input");
     }
   };
 
@@ -70,94 +242,40 @@ export default function TradePanel({ user, session }) {
   };
 
   const handleRecipientClick = (recipient) => {
-    setSendRecipient(recipient.address || recipient.name);
+    if (useUsername) {
+      setRecipientUsername(recipient.name || recipient.address);
+    } else {
+      setRecipientAddress(recipient.address || recipient.name);
+    }
   };
 
   const handleDropdownToggle = (dropdownId) => {
     setOpenDropdown(openDropdown === dropdownId ? null : dropdownId);
   };
 
-  const handleSendSubmit = async (e) => {
-    e.preventDefault();
-    if (!sendRecipient || !sendAmount || !senderWallet) return;
-
-    setIsLoading(true);
-    setMessage("");
-
-    try {
-      if (sendMode === "direct") {
-        // Direct payment (trustline-to-trustline)
-        const endpoint = sendCurrency === "XRP" ? "/api/transactions/sendXRP" : "/api/transactions/sendIOU";
-        const payload = {
-          senderWallet: senderWallet,
-          amount: sendAmount,
-          recipient: sendRecipient,
-          useUsername: true,
-          ...(sendCurrency !== "XRP" && { 
-            currency: sendCurrency, 
-            issuerWallets: issuerWallets 
-          }),
-          ...(sendDestTag && { destinationTag: parseInt(sendDestTag) })
-        };
-
-        const response = await fetch(endpoint, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-
-        const result = await response.json();
-        if (response.ok) {
-          setMessage("Direct payment sent successfully!");
-          setSendRecipient("");
-          setSendAmount("");
-          setSendDestTag("");
-        } else {
-          setMessage(`Error: ${result.error}`);
-        }
-      } else {
-        // Convertible payment (cross-currency)
-        const response = await fetch("/api/transactions/sendCrossCurrency", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            senderWallet: senderWallet,
-            recipient: sendRecipient,
-            useUsername: true,
-            sendAmount: sendAmount,
-            sendCurrency: sendCurrency,
-            receiveCurrency: receiveCurrency,
-            issuerAddress: issuerWallets?.[0]?.classicAddress,
-            slippagePercent: parseFloat(sendSlippage),
-            paymentType: "exact_input",
-            ...(sendDestTag && { destinationTag: parseInt(sendDestTag) })
-          })
-        });
-
-        const result = await response.json();
-        if (response.ok) {
-          setMessage("Cross-currency payment sent successfully!");
-          setSendRecipient("");
-          setSendAmount("");
-          setSendDestTag("");
-          setSendSlippage("0.0");
-        } else {
-          setMessage(`Error: ${result.error}`);
-        }
-      }
-    } catch (error) {
-      setMessage(`Error: ${error.message}`);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const canTrade = sellCurrency && buyCurrency && sellCurrency !== buyCurrency && 
+    ((sellAmount && parseFloat(sellAmount) > 0) || (buyAmount && parseFloat(buyAmount) > 0));
 
   return (
     <>
       <div className="w-[32rem] fixed right-0 top-0 h-full bg-color2 border-l border-gray-700 overflow-y-auto">
         {/* Smart Trade Header */}
-        <div className="p-6 border-b border-gray-600 text-center">
+        <div className="p-6 border-b border-gray-600 text-center relative">
           <h2 className="text-2xl font-bold text-white">Smart Trade</h2>
+          {/* Slippage Settings Button - Show for both tabs */}
+          <button 
+            onClick={() => setShowSlippagePanel((prev) => !prev)}
+            className="absolute right-6 top-6 p-2 hover:bg-color3 rounded-lg transition-colors"
+          >
+            <Settings className="w-5 h-5 text-gray-400 hover:text-white" />
+          </button>
+          {showSlippagePanel && (
+            <SlippagePanel
+              slippage={slippage}
+              setSlippage={setSlippage}
+              onClose={() => setShowSlippagePanel(false)}
+            />
+          )}
         </div>
         
         {/* Trade Section */}
@@ -180,186 +298,276 @@ export default function TradePanel({ user, session }) {
           </div>
 
           {activeTab === "Convert" ? (
-            // Convert Layout
+            // Convert Layout - Integrated SmartTradeMenu functionality
             <>
-              {/* Amount Input */}
-              <div className="mb-8 bg-color3 rounded-lg p-6">
+              {/* Sell Section */}
+              <div className="mb-4 bg-color3 rounded-lg p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="flex-1">
-                    <input
-                      type="text"
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
-                      placeholder="0"
-                      className="bg-transparent text-6xl font-light w-full outline-none text-white"
+                  <div className="flex flex-col space-y-2">
+                    <label className="text-sm font-medium text-gray-400">Sell</label>
+                    <ConvertCurrencyDropDown
+                      asset={getCurrencyData(sellCurrency)}
+                      onSelect={setSellCurrency}
+                      label=""
+                      currencies={availableCurrencies.filter(c => c.id !== buyCurrency)}
                     />
-                    <div className="text-xl font-medium mb-2 text-gray-300">USD</div>
-                    <div className="text-blue-400 text-sm flex items-center">
-                      <RefreshCw className="w-3 h-3 mr-1" />
-                      ≈ 0 {toAsset.name}
-                    </div>
                   </div>
-                  <button 
-                    onClick={handleMax}
-                    className="bg-gray-600 hover:bg-gray-500 px-6 py-3 rounded-lg text-sm font-medium ml-4"
-                  >
-                    Max
-                  </button>
+                  <div className="flex flex-col items-end">
+                    <input
+                      type="number"
+                      value={sellAmount}
+                      onChange={handleSellAmountChange}
+                      placeholder="0.0"
+                      className={`bg-transparent text-right text-4xl font-light outline-none text-white w-48 ${!!buyAmount ? "cursor-not-allowed opacity-60" : ""}`}
+                      min="0"
+                      disabled={!!buyAmount}
+                    />
+                    <button 
+                      onClick={handleMax}
+                      className="bg-gray-600 hover:bg-gray-500 px-4 py-2 rounded-lg text-xs font-medium mt-2"
+                    >
+                      Max
+                    </button>
+                  </div>
                 </div>
               </div>
-
-              {/* From Section */}
-              <ConvertCurrencyDropDown
-                asset={fromAsset}
-                onSelect={(assetId) => setFromAsset(getCurrencyData(assetId))}
-                label="From"
-                availableAmount="10.49"
-                currencies={availableCurrencies}
-              />
 
               {/* Swap Icon */}
               <div className="flex justify-center my-4">
                 <button
-                  onClick={() => {
-                    const temp = fromAsset;
-                    setFromAsset(toAsset);
-                    setToAsset(temp);
-                  }}
+                  onClick={handleCurrencySwap}
                   className="p-3 bg-color3 rounded-full hover:bg-gray-600 transition-colors"
+                  disabled={!sellCurrency || !buyCurrency}
                 >
                   <RefreshCw className="w-5 h-5 text-gray-400" />
                 </button>
               </div>
 
-              {/* To Section */}
-              <ConvertCurrencyDropDown
-                asset={toAsset}
-                onSelect={(assetId) => setToAsset(getCurrencyData(assetId))}
-                label="To"
-                currencies={availableCurrencies}
-              />
+              {/* Buy Section */}
+              <div className="mb-8 bg-color3 rounded-lg p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex flex-col space-y-2">
+                    <label className="text-sm font-medium text-gray-400">Buy</label>
+                    <ConvertCurrencyDropDown
+                      asset={getCurrencyData(buyCurrency)}
+                      onSelect={setBuyCurrency}
+                      label=""
+                      currencies={availableCurrencies.filter(c => c.id !== sellCurrency)}
+                    />
+                  </div>
+                  <input
+                    type="number"
+                    value={buyAmount}
+                    onChange={handleBuyAmountChange}
+                    placeholder="0.0"
+                    className={`bg-transparent text-right text-4xl font-light outline-none text-white w-48 ${!!sellAmount ? "cursor-not-allowed opacity-60" : ""}`}
+                    min="0"
+                    disabled={!!sellAmount}
+                  />
+                </div>
+              </div>
 
-              {/* Review Order Button */}
-              <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-lg font-medium transition-colors mt-8 text-lg">
-                Review order
+              {/* Execute Trade Button */}
+              <button 
+                onClick={handleSmartTrade}
+                disabled={!canTrade || loading}
+                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white py-4 rounded-lg font-medium transition-colors text-lg"
+              >
+                {loading ? (
+                  <div className="flex items-center justify-center space-x-2">
+                    <div className="h-5 w-5 animate-spin rounded-full border-b-4 border-white"></div>
+                    <span>Trading...</span>
+                  </div>
+                ) : (
+                  "Execute Smart Trade"
+                )}
               </button>
             </>
           ) : (
-            // Send Layout
+            // Send Layout - Full TransferBtn functionality integration
             <>
-              {/* Recipient Search */}
-              <div className="relative mb-6">
-                <Search className="w-5 h-5 absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Username, address, or ENS"
-                  value={sendRecipient}
-                  onChange={(e) => setSendRecipient(e.target.value)}
-                  className="w-full bg-color3 border border-gray-600 rounded-lg pl-12 pr-4 py-4 outline-none focus:border-blue-500 text-lg"
-                />
+              {/* Payment Type and Username/Address Toggle */}
+              <div className={`flex ${sessionData?.user?.is_admin ? "justify-between space-x-2" : "justify-center"} mb-6`}>
+                <div className={`flex space-x-1 rounded-lg bg-color3 p-1 ${!sessionData?.user?.is_admin ? "w-full" : ""}`}>
+                  <button
+                    className={`flex-1 rounded-lg px-2 py-1 text-sm transition-colors ${paymentType === "direct" ? "bg-blue-600 text-white" : "bg-color3 text-gray-400 hover:text-white"}`}
+                    onClick={() => handlePaymentTypeChange("direct")}
+                  >
+                    Direct
+                  </button>
+                  <button
+                    className={`flex-1 rounded-lg px-2 py-1 text-sm transition-colors ${paymentType === "convertable" ? "bg-blue-600 text-white" : "bg-color3 text-gray-400 hover:text-white"}`}
+                    onClick={() => handlePaymentTypeChange("convertable")}
+                  >
+                    Convertable
+                  </button>
+                </div>
+
+                {/* Only show option to send with address for Admin */}
+                {sessionData?.user?.is_admin && (
+                  <div className="flex space-x-1 rounded-lg bg-color3 p-1">
+                    {[true, false].map((type) => (
+                      <button
+                        key={String(type)}
+                        className={`rounded-lg px-2 py-1 text-sm ${
+                          useUsername === type
+                            ? "bg-blue-600 text-white"
+                            : "text-gray-400 hover:text-white"
+                        }`}
+                        onClick={() => setUseUsername(type)}
+                      >
+                        {type ? "Username" : "Address"}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              {/* Payment Mode Toggle */}
-              <div className="mb-6">
-                <div className="flex bg-color3 rounded-lg p-1">
-                  <button
-                    onClick={() => setSendMode("direct")}
-                    className={`flex-1 py-3 px-4 rounded-md text-sm font-medium transition-colors ${
-                      sendMode === "direct"
-                        ? "bg-blue-600 text-white"
-                        : "text-gray-400 hover:text-white"
-                    }`}
-                  >
-                    Send Direct
-                  </button>
-                  <button
-                    onClick={() => setSendMode("convertible")}
-                    className={`flex-1 py-3 px-4 rounded-md text-sm font-medium transition-colors ${
-                      sendMode === "convertible"
-                        ? "bg-blue-600 text-white"
-                        : "text-gray-400 hover:text-white"
-                    }`}
-                  >
-                    Send Convertible
-                  </button>
-                </div>
-                <div className="text-xs text-gray-400 mt-3">
-                  {sendMode === "direct" 
-                    ? "Trustline-to-trustline payment" 
-                    : "Cross-currency XRPL send"}
-                </div>
+              {/* Payment type info */}
+              <div className="text-xs text-gray-400 mb-6">
+                {paymentType === "direct" 
+                  ? "Trustline-to-trustline payment" 
+                  : "Cross-currency XRPL send"}
               </div>
 
               {/* Send Form */}
               <form onSubmit={handleSendSubmit} className="space-y-5">
-                <div className="space-y-4">
-                  <div className="grid grid-cols-7 gap-4">
-                    {/* Send Currency Dropdown */}
-                    <SendCurrencyDropdown
-                      value={sendCurrency}
-                      onChange={setSendCurrency}
-                      currencies={sendMode === "convertible" ? availableCurrencies.filter(c => c.id !== receiveCurrency) : availableCurrencies}
-                      className="col-span-3"
-                      isOpen={openDropdown === "sendCurrency"}
-                      onToggle={handleDropdownToggle}
-                      dropdownId="sendCurrency"
-                    />
+                {/* Recipient Input */}
+                {useUsername ? (
+                  <div className="relative">
+                    <Search className="w-5 h-5 absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
                     <input
-                      type="number"
-                      placeholder="Amount"
-                      value={sendAmount}
-                      onChange={(e) => setSendAmount(e.target.value)}
-                      className="bg-color3 col-span-4 border border-gray-600 rounded-lg px-4 py-3 outline-none focus:border-blue-500 text-lg"
+                      type="text"
+                      placeholder="Recipient Username"
+                      value={recipientUsername}
+                      onChange={(e) => setRecipientUsername(e.target.value)}
+                      className="w-full bg-color3 border border-gray-600 rounded-lg pl-12 pr-4 py-4 outline-none focus:border-blue-500 text-lg"
                       required
                     />
-                    
                   </div>
+                ) : (
+                  <div className="relative">
+                    <Search className="w-5 h-5 absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Recipient Address"
+                      value={recipientAddress}
+                      onChange={(e) => setRecipientAddress(e.target.value)}
+                      className="w-full bg-color3 border border-gray-600 rounded-lg pl-12 pr-4 py-4 outline-none focus:border-blue-500 text-lg"
+                      required
+                    />
+                  </div>
+                )}
 
-                  {/* Show destination currency for convertible payments */}
-                  {sendMode === "convertible" && (
-                    <div className="bg-color3 border border-gray-600 rounded-lg p-4">
-                      <div className="text-sm text-gray-400 mb-2">Recipient will receive:</div>
-                      <SendCurrencyDropdown
-                        value={receiveCurrency}
-                        onChange={setReceiveCurrency}
-                        currencies={availableCurrencies.filter(c => c.id !== sendCurrency)}
-                        className="w-full"
-                        isOpen={openDropdown === "receiveCurrency"}
-                        onToggle={handleDropdownToggle}
-                        dropdownId="receiveCurrency"
+                {paymentType === "convertable" ? (
+                  <>
+                    {/* Send Currency */}
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-2">Send Currency</label>
+                      <CurrencyDropDown
+                        value={sendCurrency}
+                        onChange={setSendCurrency}
+                        disabledOptions={[]}
+                        dropdownBg="bg-color3"
                       />
                     </div>
-                  )}
-                </div>
+                    
+                    {/* Receive Currency */}
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-2">Receive Currency</label>
+                      <CurrencyDropDown
+                        value={receiveCurrency}
+                        onChange={setReceiveCurrency}
+                        disabledOptions={[]}
+                        dropdownBg="bg-color3"
+                      />
+                    </div>
+                    
+                    {/* Send and Receive Amounts */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-2">Send Amount</label>
+                        <input
+                          type="number"
+                          min="0"
+                          value={sendAmount}
+                          onChange={handleSendAmountChangeForPayment}
+                          className={`w-full bg-color3 border border-gray-600 rounded-lg px-4 py-3 outline-none focus:border-blue-500 ${convertInputType === "exact_output" ? "cursor-not-allowed opacity-60" : ""}`}
+                          placeholder="Enter amount"
+                          disabled={convertInputType === "exact_output"}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-2">Receive Amount</label>
+                        <input
+                          type="number"
+                          min="0"
+                          value={receiveAmount}
+                          onChange={handleReceiveAmountChangeForPayment}
+                          className={`w-full bg-color3 border border-gray-600 rounded-lg px-4 py-3 outline-none focus:border-blue-500 ${convertInputType === "exact_input" ? "cursor-not-allowed opacity-60" : ""}`}
+                          placeholder="Enter amount"
+                          disabled={convertInputType === "exact_input"}
+                        />
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {/* Currency */}
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-2">Currency</label>
+                      <CurrencyDropDown
+                        value={currency}
+                        onChange={setCurrency}
+                        disabledOptions={[]}
+                        dropdownBg="bg-color3"
+                      />
+                    </div>
+                    
+                    {/* Amount */}
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-2">Amount</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={amount}
+                        onChange={(e) => setAmount(e.target.value)}
+                        className="w-full bg-color3 border border-gray-600 rounded-lg px-4 py-3 outline-none focus:border-blue-500"
+                        placeholder="Enter amount..."
+                        required
+                      />
+                    </div>
+                  </>
+                )}
 
+                {/* Destination Tag */}
                 <div>
+                  <label className="block text-sm text-gray-400 mb-2">Destination Tag (optional)</label>
                   <input
                     type="text"
-                    placeholder="Destination tag (optional)"
-                    value={sendDestTag}
-                    onChange={(e) => setSendDestTag(e.target.value)}
+                    placeholder="Enter destination tag..."
+                    value={destinationTag}
+                    onChange={(e) => setDestinationTag(e.target.value)}
                     className="w-full bg-color3 border border-gray-600 rounded-lg px-4 py-3 outline-none focus:border-blue-500"
                   />
                 </div>
 
-
-
                 <button
                   type="submit"
-                  disabled={isLoading || !senderWallet}
+                  disabled={
+                    loading ||
+                    !(useUsername ? recipientUsername : recipientAddress) ||
+                    (paymentType === "convertable"
+                      ? !sendCurrency ||
+                        !receiveCurrency ||
+                        (!sendAmount && !receiveAmount)
+                      : !amount || (paymentType === "direct" && !currency))
+                  }
                   className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white py-4 rounded-lg font-medium transition-colors text-lg"
                 >
-                  {isLoading ? "Sending..." : `Send ${sendMode === "direct" ? "Direct" : "Convertible"}`}
+                  {loading ? "Sending..." : "Send"}
                 </button>
               </form>
-
-              {message && (
-                <div className={`mt-5 p-4 rounded-lg text-sm ${
-                  message.includes("Error") ? "bg-red-900 text-red-300" : "bg-green-900 text-green-300"
-                }`}>
-                  {message}
-                </div>
-              )}
 
               {/* Favorites Section */}
               {favorites.length > 0 && (
@@ -452,6 +660,22 @@ export default function TradePanel({ user, session }) {
           </div>
         </div>
       </div>
+
+      {/* Error Modal */}
+      {errorMessage && (
+        <ErrorMdl
+          errorMessage={errorMessage}
+          onClose={() => setErrorMessage(null)}
+        />
+      )}
+
+      {/* Success Modal */}
+      {successMessage && (
+        <SuccessMdl
+          successMessage={successMessage}
+          onClose={() => setSuccessMessage(null)}
+        />
+      )}
     </>
   );
 } 

@@ -6,7 +6,7 @@ export default function ConvertCurrencyDropDown({ asset, onSelect, label, availa
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="bg-color3 rounded-lg p-5 mb-3 relative">
+    <div className="bg-color4 rounded-lg p-5 mb-3 relative">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <div className={`w-10 h-10 ${asset.color} rounded-full flex items-center justify-center text-white font-bold`}>
@@ -34,7 +34,7 @@ export default function ConvertCurrencyDropDown({ asset, onSelect, label, availa
         )}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="p-2 hover:bg-color2 rounded transition-colors"
+          className="p-2 hover:bg-color5 rounded transition-colors"
         >
           <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
         </button>

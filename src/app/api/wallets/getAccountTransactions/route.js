@@ -2,6 +2,216 @@ import { NextResponse } from "next/server";
 import { client, connectXrplClient } from "@/utils/xrpl/testnet";
 import * as xrpl from "xrpl";
 
+// Function to extract deposited amounts from AMM deposit transaction metadata
+function extractAmmDepositAmounts(txData, senderAddress) {
+  const meta = txData.meta;
+  if (!meta || !meta.AffectedNodes) {
+    return "Liquidity deposit";
+  }
+
+  const assetsDeposited = [];
+  const addedAssets = new Set();
+
+  for (const node of meta.AffectedNodes) {
+    // For token deposits (check trustline modifications)
+    if (node.ModifiedNode && node.ModifiedNode.LedgerEntryType === "RippleState") {
+      const state = node.ModifiedNode;
+
+      if (state.FinalFields && state.PreviousFields && 
+          state.FinalFields.Balance && state.PreviousFields.Balance) {
+        
+        const finalBalance = state.FinalFields.Balance;
+        const prevBalance = state.PreviousFields.Balance;
+
+        // Skip LP tokens (usually have 40-char currency codes)
+        if (!finalBalance.currency || finalBalance.currency.length === 40) {
+          continue;
+        }
+
+        const highAccount = state.FinalFields.HighLimit?.issuer;
+        const lowAccount = state.FinalFields.LowLimit?.issuer;
+
+        // Only process entries where one of the accounts is the sender
+        if (highAccount !== senderAddress && lowAccount !== senderAddress) {
+          continue;
+        }
+
+        const issuer = lowAccount === senderAddress ? highAccount : lowAccount;
+        const assetKey = `${finalBalance.currency}:${issuer}`;
+
+        if (addedAssets.has(assetKey)) {
+          continue;
+        }
+
+        const prevValue = parseFloat(prevBalance.value || "0");
+        const finalValue = parseFloat(finalBalance.value || "0");
+        const isFromSenderPerspective = lowAccount === senderAddress;
+
+        let diff;
+        if (isFromSenderPerspective) {
+          diff = prevValue - finalValue; // If positive, sender sent funds (deposit)
+        } else {
+          diff = finalValue - prevValue; // If positive, sender sent funds (deposit)
+        }
+
+        if (diff > 0.000001) {
+          assetsDeposited.push({
+            currency: finalBalance.currency,
+            value: diff.toFixed(6),
+          });
+          addedAssets.add(assetKey);
+        }
+      }
+    }
+    // For XRP deposits (check AccountRoot modifications)
+    else if (node.ModifiedNode && node.ModifiedNode.LedgerEntryType === "AccountRoot") {
+      const state = node.ModifiedNode;
+
+      if (state.FinalFields?.Account !== senderAddress) {
+        continue;
+      }
+
+      if (state.FinalFields && state.PreviousFields && 
+          state.FinalFields.Balance && state.PreviousFields.Balance) {
+        
+        const finalDrops = parseInt(state.FinalFields.Balance);
+        const prevDrops = parseInt(state.PreviousFields.Balance);
+        const fee = parseInt(txData.tx?.Fee || txData.Fee || 0);
+        const xrpSent = prevDrops - finalDrops - fee; // Subtract fee since it was deducted
+
+        if (addedAssets.has("XRP")) continue;
+
+        if (xrpSent > 1000) { // 1000 drops threshold (0.001 XRP)
+          const xrpValue = xrpl.dropsToXrp(xrpSent.toString());
+          assetsDeposited.push({
+            currency: "XRP",
+            value: parseFloat(xrpValue).toFixed(6),
+          });
+          addedAssets.add("XRP");
+        }
+      }
+    }
+  }
+
+  // Format the deposited amounts for display
+  if (assetsDeposited.length === 0) {
+    return "Liquidity deposit";
+  } else if (assetsDeposited.length === 1) {
+    const asset = assetsDeposited[0];
+    return `${asset.value} ${asset.currency}`;
+  } else {
+    // Multiple assets deposited
+    return assetsDeposited
+      .map(asset => `${asset.value} ${asset.currency}`)
+      .join(" + ");
+  }
+}
+
+// Function to extract withdrawn amounts from AMM withdraw transaction metadata
+function extractAmmWithdrawAmounts(txData, senderAddress) {
+  const meta = txData.meta;
+  if (!meta || !meta.AffectedNodes) {
+    return "Liquidity withdrawal";
+  }
+
+  const assetsWithdrawn = [];
+  const addedAssets = new Set();
+
+  for (const node of meta.AffectedNodes) {
+    // For token withdrawals (check trustline modifications)
+    if (node.ModifiedNode && node.ModifiedNode.LedgerEntryType === "RippleState") {
+      const state = node.ModifiedNode;
+
+      if (state.FinalFields && state.PreviousFields && 
+          state.FinalFields.Balance && state.PreviousFields.Balance) {
+        
+        const finalBalance = state.FinalFields.Balance;
+        const prevBalance = state.PreviousFields.Balance;
+
+        // Skip LP tokens (usually have 40-char currency codes)
+        if (!finalBalance.currency || finalBalance.currency.length === 40) {
+          continue;
+        }
+
+        const highAccount = state.FinalFields.HighLimit?.issuer;
+        const lowAccount = state.FinalFields.LowLimit?.issuer;
+
+        // Only process entries where one of the accounts is the sender
+        if (highAccount !== senderAddress && lowAccount !== senderAddress) {
+          continue;
+        }
+
+        const issuer = lowAccount === senderAddress ? highAccount : lowAccount;
+        const assetKey = `${finalBalance.currency}:${issuer}`;
+
+        if (addedAssets.has(assetKey)) {
+          continue;
+        }
+
+        const prevValue = parseFloat(prevBalance.value || "0");
+        const finalValue = parseFloat(finalBalance.value || "0");
+        const isFromSenderPerspective = lowAccount === senderAddress;
+
+        let diff;
+        if (isFromSenderPerspective) {
+          diff = finalValue - prevValue; // If positive, sender received funds
+        } else {
+          diff = prevValue - finalValue; // If positive, sender received funds
+        }
+
+        if (diff > 0.000001) {
+          assetsWithdrawn.push({
+            currency: finalBalance.currency,
+            value: diff.toFixed(6),
+          });
+          addedAssets.add(assetKey);
+        }
+      }
+    }
+    // For XRP withdrawals (check AccountRoot modifications)
+    else if (node.ModifiedNode && node.ModifiedNode.LedgerEntryType === "AccountRoot") {
+      const state = node.ModifiedNode;
+
+      if (state.FinalFields?.Account !== senderAddress) {
+        continue;
+      }
+
+      if (state.FinalFields && state.PreviousFields && 
+          state.FinalFields.Balance && state.PreviousFields.Balance) {
+        
+        const finalDrops = parseInt(state.FinalFields.Balance);
+        const prevDrops = parseInt(state.PreviousFields.Balance);
+        const fee = parseInt(txData.tx?.Fee || txData.Fee || 0);
+        const xrpReceived = finalDrops - prevDrops + fee; // Add fee back since it was deducted
+
+        if (addedAssets.has("XRP")) continue;
+
+        if (xrpReceived > 1000) { // 1000 drops threshold (0.001 XRP)
+          const xrpValue = xrpl.dropsToXrp(xrpReceived.toString());
+          assetsWithdrawn.push({
+            currency: "XRP",
+            value: parseFloat(xrpValue).toFixed(6),
+          });
+          addedAssets.add("XRP");
+        }
+      }
+    }
+  }
+
+  // Format the withdrawn amounts for display
+  if (assetsWithdrawn.length === 0) {
+    return "Liquidity withdrawal";
+  } else if (assetsWithdrawn.length === 1) {
+    const asset = assetsWithdrawn[0];
+    return `${asset.value} ${asset.currency}`;
+  } else {
+    // Multiple assets withdrawn
+    return assetsWithdrawn
+      .map(asset => `${asset.value} ${asset.currency}`)
+      .join(" + ");
+  }
+}
+
 export async function POST(req) {
   try {
     const { address, wallet, limit = 50, marker } = await req.json();
@@ -294,13 +504,15 @@ export async function POST(req) {
           case "AMMDeposit":
             direction = "amm_deposit";
             counterparty = null;
-            amount = "Liquidity deposit";
+            amount = extractAmmDepositAmounts(txData, targetAddress);
+            currency = ""; // Currency info is already included in the amount string
             break;
             
           case "AMMWithdraw":
             direction = "amm_withdraw";
             counterparty = null;
-            amount = "Liquidity withdrawal";
+            amount = extractAmmWithdrawAmounts(txData, targetAddress);
+            currency = ""; // Currency info is already included in the amount string
             break;
             
           case "AMMVote":

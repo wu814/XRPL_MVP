@@ -7,7 +7,7 @@ import { ArrowUpRight, ArrowDownLeft, RefreshCw, ExternalLink, Clock, CheckCircl
 const getTransactionIcon = (direction, type) => {
   switch (direction) {
     case "sent":
-      return <ArrowUpRight className="w-4 h-4 text-red-400" />;
+      return <ArrowUpRight className="w-4 h-4 text-green-400" />;
     case "received":
       return <ArrowDownLeft className="w-4 h-4 text-green-400" />;
     case "offer_create":
@@ -28,7 +28,7 @@ const getTransactionIcon = (direction, type) => {
 const getTransactionColor = (direction) => {
   switch (direction) {
     case "sent":
-      return "text-red-400";
+      return "text-green-400";
     case "received":
       return "text-green-400";
     case "offer_create":
@@ -77,6 +77,12 @@ const formatAmount = (amount, currency) => {
   
   if (typeof amount === "string" && amount.includes("→")) {
     return amount; // Already formatted for offers
+  }
+  
+  // Check if amount is already formatted (contains currency symbols or +)
+  if (typeof amount === "string" && (amount.includes(" ") || amount.includes("+"))) {
+    // For AMM deposits like "1.000000 ETH" or "1.000000 ETH + 0.500000 XRP"
+    return amount;
   }
   
   if (currency === "XRP") {

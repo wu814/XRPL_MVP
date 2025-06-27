@@ -1,7 +1,7 @@
 import { ChevronDown } from "lucide-react";
 
 // Custom Currency Dropdown Component
-function SendCurrencyDropdown({ value, onChange, currencies, className = "", isOpen, onToggle, dropdownId }) {
+export default function SendCurrencyDropDown({ value, onChange, currencies, className = "", isOpen, onToggle, dropdownId }) {
   const selectedCurrency = currencies.find(c => c.id === value) || currencies[0];
 
   return (
