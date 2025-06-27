@@ -5,7 +5,7 @@ import { Search } from "lucide-react";
 import DisplayPendingFriendRequests from "@/components/Friend/DisplayPendingFriendRequests";
 import DisplayFriends from "@/components/Friend/DisplayFriends";
 import ErrorMdl from "@/components/ErrorMdl";
-import TradePanel from "@/components/TradePanel";
+import TradePanel from "@/components/Smart/TradePanel";
 import { CurrentUserWalletProvider } from "@/components/Wallet/CurrentUserWalletProvider";
 import { IssuerWalletProvider } from "@/components/Wallet/IssuerWalletProvider";
 import { useSession } from "next-auth/react";

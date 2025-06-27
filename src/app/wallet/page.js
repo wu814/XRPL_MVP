@@ -7,7 +7,7 @@ import DisplayUserWallets from "@/components/Wallet/DisplayUserWallets";
 import UpdateUsernameMdl from "@/components/UpdateUsernameMdl";
 import DashboardHeader from "@/components/DashboardHeader";
 import AssetTable from "@/components/AssetTable";
-import TradePanel from "@/components/TradePanel";
+import TradePanel from "@/components/Smart/TradePanel";
 import TransactionHistory from "@/components/TransactionHistory";
 import { IssuerWalletProvider } from "@/components/Wallet/IssuerWalletProvider";
 import { CurrentUserWalletProvider } from "@/components/Wallet/CurrentUserWalletProvider";

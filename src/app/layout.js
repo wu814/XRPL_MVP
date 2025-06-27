@@ -3,7 +3,7 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
 import SessionWrapper from "@/components/SessionWrapper";
-import Sidebar from "@/components/Sidebar";
+import Sidebar from "@/components/Navigation/Sidebar";
 import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 

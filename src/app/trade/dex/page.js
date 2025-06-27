@@ -60,11 +60,11 @@ export default function DEX() {
           <div className="w-full space-y-4">
             {/* Top Row: Chart and Order Book */}
             <div className="grid grid-cols-4 gap-4">
-              <div className="col-span-2 rounded-lg bg-color2 p-4">
-                <h2 className="text-xl font-bold mb-4">Price Chart</h2>
-                <div className="h-64 flex items-center justify-center text-gray-400">
-                  Chart visualization coming soon
-                </div>
+              <div className="col-span-1 rounded-lg bg-color2 p-4">
+                <CreateOffer 
+                  baseCurrency={baseCurrency}
+                  quoteCurrency={quoteCurrency}
+                />
               </div>
               <div className="col-span-1 rounded-lg bg-color2 p-4">
                 <DisplayAllOffers
@@ -72,11 +72,11 @@ export default function DEX() {
                   quoteCurrency={quoteCurrency}
                 />
               </div>
-              <div className="col-span-1 rounded-lg bg-color2 p-4">
-                <CreateOffer 
-                  baseCurrency={baseCurrency}
-                  quoteCurrency={quoteCurrency}
-                />
+              <div className="col-span-2 rounded-lg bg-color2 p-4">
+                <h2 className="text-xl font-bold mb-4">Price Chart</h2>
+                <div className="h-64 flex items-center justify-center text-gray-400">
+                  Chart visualization coming soon
+                </div>
               </div>
             </div>
 

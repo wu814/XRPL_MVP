@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import TradePanel from "@/components/TradePanel";
+import TradePanel from "@/components/Smart/TradePanel";
 import { CurrentUserWalletProvider } from "@/components/Wallet/CurrentUserWalletProvider";
 import { IssuerWalletProvider } from "@/components/Wallet/IssuerWalletProvider";
 

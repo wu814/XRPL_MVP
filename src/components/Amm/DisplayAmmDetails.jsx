@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import Navbar from "../Navigation/Navbar";
 import ErrorMdl from "../ErrorMdl";
 import CurrencyIcon from "../Currency/CurrencyIcon";
 import AmmCompositionBar from "./AmmCompositionBar";
