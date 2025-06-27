@@ -71,7 +71,7 @@ function AssetTableWrapper() {
           usdValue: (xrpBalance * 0.50).toFixed(2), // Mock USD value
           change24h: "+2.3%",
           changeValue: "+$0.12",
-          icon: "/icons/xrp.svg",
+          icon: "/icons/XRP.svg",
         });
       }
 

@@ -6,22 +6,12 @@ import ConvertCurrencyDropDown from "@/components/Currency/ConvertCurrencyDropDo
 import SendCurrencyDropDown from "@/components/Currency/SendCurrencyDropDown";
 import { useCurrentUserWallet } from "@/components/Wallet/CurrentUserWalletProvider";
 import { useIssuerWallet } from "@/components/Wallet/IssuerWalletProvider";
-
+import { availableCurrencies } from "@/utils/currencies";
 
 
 export default function TradePanel({ user, session }) {
   const [activeTab, setActiveTab] = useState("Convert");
   const [amount, setAmount] = useState("");
-  
-  // Available currencies with avatars
-  const availableCurrencies = [
-    { id: "XRP", name: "XRP", icon: "◊", color: "bg-blue-500", avatar: "/icons/xrp.svg" },
-    { id: "USD", name: "USD", icon: "$", color: "bg-green-500", avatar: "/icons/usd.svg" },
-    { id: "EUR", name: "EUR", icon: "€", color: "bg-purple-500", avatar: "/icons/eur.svg" },
-    { id: "BTC", name: "Bitcoin", icon: "₿", color: "bg-orange-500", avatar: "/icons/btc.svg" },
-    { id: "ETH", name: "Ethereum", icon: "Ξ", color: "bg-gray-600", avatar: "/icons/eth.svg" },
-    { id: "SOL", name: "Solana", icon: "◎", color: "bg-indigo-500", avatar: "/icons/sol.svg" },
-  ];
 
   // Trade panel assets for Convert
   const [fromAsset, setFromAsset] = useState(availableCurrencies[3]); // BTC

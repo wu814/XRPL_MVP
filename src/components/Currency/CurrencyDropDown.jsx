@@ -8,15 +8,8 @@ import {
   Transition,
 } from "@headlessui/react";
 import { Fragment } from "react";
+import { availableCurrencies } from "@/utils/currencies";
 
-const currencies = [
-  { id: "XRP", name: "XRP", avatar: "/icons/XRP.svg" },
-  { id: "USD", name: "USD", avatar: "/icons/USD.svg" },
-  { id: "EUR", name: "EUR", avatar: "/icons/EUR.svg" },
-  { id: "BTC", name: "BTC", avatar: "/icons/BTC.svg" },
-  { id: "ETH", name: "ETH", avatar: "/icons/ETH.svg" },
-  { id: "SOL", name: "SOL", avatar: "/icons/SOL.svg" },
-];
 
 export default function CurrencyDropDown({
   value,
@@ -25,7 +18,7 @@ export default function CurrencyDropDown({
   dropdownBg = "bg-color4",
   className = "",
 }) {
-  const selectedCurrency = currencies.find((c) => c.id === value);
+  const selectedCurrency = availableCurrencies.find((c) => c.id === value);
 
   return (
     <Listbox value={value} onChange={onChange}>
@@ -69,7 +62,7 @@ export default function CurrencyDropDown({
           leaveTo="opacity-0"
         >
           <ListboxOptions className="absolute z-30 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-border bg-color2">
-            {currencies.map((c) => {
+            {availableCurrencies.map((c) => {
               const isDisabled = disabledOptions.includes(c.id);
               return (
                 <ListboxOption
