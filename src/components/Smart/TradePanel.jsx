@@ -474,8 +474,8 @@ export default function TradePanel({ user, session }) {
             // Send Layout - Full TransferBtn functionality integration
             <>
               {/* Payment Type and Username/Address Toggle */}
-              <div className={`flex ${sessionData?.user?.is_admin ? "justify-between space-x-2" : "justify-center"} mb-6`}>
-                <div className={`flex space-x-1 rounded-lg bg-color3 p-1 ${!sessionData?.user?.is_admin ? "w-full" : ""}`}>
+              <div className={`flex ${sessionData?.user?.role === "ADMIN" ? "justify-between space-x-2" : "justify-center"} mb-6`}>
+                <div className={`flex space-x-1 rounded-lg bg-color3 p-1 ${!sessionData?.user?.role === "ADMIN" ? "w-full" : ""}`}>
                   <button
                     className={`flex-1 rounded-lg px-2 py-1 text-sm transition-colors ${paymentType === "direct" ? "bg-blue-600 text-white" : "bg-color3 text-gray-400 hover:text-white"}`}
                     onClick={() => handlePaymentTypeChange("direct")}
@@ -491,7 +491,7 @@ export default function TradePanel({ user, session }) {
                 </div>
 
                 {/* Only show option to send with address for Admin */}
-                {sessionData?.user?.is_admin && (
+                {sessionData?.user?.role === "ADMIN" && (
                   <div className="flex space-x-1 rounded-lg bg-color3 p-1">
                     {[true, false].map((type) => (
                       <button

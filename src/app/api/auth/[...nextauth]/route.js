@@ -49,7 +49,7 @@ export const authOptions = {
         const supabase = await createSupabaseAnonClient();
         const { data: userData, error } = await supabase
           .from("users")
-          .select("user_id, username, is_admin")
+          .select("user_id, username, role")
           .eq("email_address", profile.email)
           .single();
         if (error || !userData) {
@@ -57,7 +57,7 @@ export const authOptions = {
           throw new Error("No user found");
         }
         token.user_id = userData.user_id;
-        token.is_admin = userData.is_admin;
+        token.role = userData.role;
         token.username = userData.username;
       }
       return token;

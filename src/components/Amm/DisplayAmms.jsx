@@ -74,7 +74,7 @@ export default function DisplayAmms() {
           Liquidity Pools
         </h1>
         {/* Only show the button if the user is an admin and there are issuer wallet and treasury wallet */}
-        {session?.user?.is_admin && (
+        {session?.user?.role === "ADMIN" && (
           <CreateAmmBtn onAmmCreated={handleAmmCreated} />
         )}
       </div>

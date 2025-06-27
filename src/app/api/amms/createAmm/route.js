@@ -6,7 +6,7 @@ import createAmm from "@/utils/xrpl/amm/createAmm";
 
 export async function POST(req) {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.is_admin) {
+  if (!session?.user?.role === "ADMIN") {
     return NextResponse.json(
       { error: "Must be an Admin to create AMMs" },
       { status: 401 },

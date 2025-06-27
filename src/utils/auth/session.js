@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth";
 
 export const session = async ({ session, token }) => {
   session.user.user_id = token.user_id;
-  session.user.is_admin = token.is_admin;
+  session.user.role = token.role;
   session.user.username = token.username;
   return session;
 };

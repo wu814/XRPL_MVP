@@ -179,10 +179,10 @@ export default function TransferBtn({
               )}
             </div>
             <div
-              className={`flex ${session?.user?.is_admin ? "justify-between space-x-2" : "justify-center"}`}
+              className={`flex ${session?.user?.role === "ADMIN" ? "justify-between space-x-2" : "justify-center"}`}
             >
               <div
-                className={`flex space-x-1 rounded-lg bg-color5 p-1 ${!session?.user?.is_admin ? "w-full" : ""}`}
+                className={`flex space-x-1 rounded-lg bg-color5 p-1 ${!session?.user?.role === "ADMIN" ? "w-full" : ""}`}
               >
                 <button
                   className={`flex-1 rounded-lg px-2 py-1 transition-colors ${paymentType === "direct" ? "bg-primary text-black" : "bg-color5 text-white"}`}
@@ -199,7 +199,7 @@ export default function TransferBtn({
               </div>
 
               {/* Only show option to send with address for Admin */}
-              {session?.user?.is_admin && (
+              {session?.user?.role === "ADMIN" && (
                 <div className="flex space-x-1 rounded-lg bg-color5 p-1">
                   {[true, false].map((type) => (
                     <button

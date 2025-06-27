@@ -901,7 +901,7 @@ export default function WalletPage() {
   
   // Determine current tab from URL params
   const currentTab = searchParams.get('tab') || 'home';
-  const isAdmin = session?.user?.is_admin;
+  const isAdmin = session?.user?.role === "ADMIN";
 
   if (status === "loading") {
     return (

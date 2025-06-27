@@ -17,7 +17,7 @@ export default function Sidebar() {
       const urlParams = new URLSearchParams(window.location.search)
       const tab = urlParams.get('tab')
       if (tab === 'assets') {
-        setActiveTab(session?.user?.is_admin ? "My Wallets" : "My Assets")
+        setActiveTab(session?.user?.role === "ADMIN" ? "My Wallets" : "My Assets")
       } else if (tab === 'transactions') {
         setActiveTab("Transactions")
       } else {
@@ -71,7 +71,7 @@ export default function Sidebar() {
       queryParams: null
     },
     {
-      name: session.user.is_admin ? "My Wallets" : "My Assets",
+      name: session.user.role === "ADMIN" ? "My Wallets" : "My Assets",
       icon: Wallet,
       path: "/wallet",
       queryParams: "tab=assets"
@@ -146,7 +146,7 @@ export default function Sidebar() {
               Welcome, {session.user.username}
             </p>
             <p className="text-xs text-gray-400">
-              {session.user.is_admin ? "Admin" : "User"}
+              {session.user.role === "ADMIN" ? "Admin" : "User"}
             </p>
           </div>
         </div>

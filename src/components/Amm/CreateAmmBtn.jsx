@@ -66,7 +66,7 @@ export default function CreateAmmBtn({ onAmmCreated }) {
   };
 
   useEffect(() => {
-    if (status === "authenticated" && session?.user?.is_admin) {
+    if (status === "authenticated" && session?.user?.role === "ADMIN") {
       fetchIssuerWallets();
       fetchTreasuryWallet();
     }
