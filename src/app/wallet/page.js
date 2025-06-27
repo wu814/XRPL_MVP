@@ -560,7 +560,7 @@ function AdminWalletsView() {
             currency: line.currency,
             balance: parseFloat(line.balance).toFixed(6),
             issuer: line.account,
-            usdValue: (parseFloat(line.balance) * 1.0).toFixed(2),
+            usdValue: (parseFloat(line.balance) * 1.0).toFixed(6),
           });
         });
       }

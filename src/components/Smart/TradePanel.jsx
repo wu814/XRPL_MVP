@@ -55,6 +55,10 @@ export default function TradePanel({ user, session }) {
     (wallet) => wallet.walletType === "USER" || wallet.walletType === "STANDBY PATHFIND" || wallet.walletType === "STANDBY TREASURY"
   );
 
+  // Add new state for wallet balance
+  const [walletBalances, setWalletBalances] = useState({});
+  const [loadingBalance, setLoadingBalance] = useState(false);
+
   // Convert functionality integration
   const handleSellAmountChange = (e) => {
     setActiveInput("sell");
@@ -115,6 +119,7 @@ export default function TradePanel({ user, session }) {
       }
 
       setSuccessMessage(result.message || "Smart trade completed successfully!");
+      fetchWalletBalances();
 
       // Reset form
       setSellAmount("");
@@ -199,6 +204,7 @@ export default function TradePanel({ user, session }) {
       const result = await res.json();
       if (!res.ok) throw new Error(result.error);
       setSuccessMessage(result.message || "Payment sent!");
+      fetchWalletBalances();
       
       // Reset form
       if (!recipientUsername) setRecipientUsername("");
@@ -229,8 +235,9 @@ export default function TradePanel({ user, session }) {
   ];
   
   const handleMax = () => {
-    if (activeTab === "Convert") {
-      setSellAmount("10.49");
+    if (activeTab === "Convert" && sellCurrency) {
+      const maxBalance = walletBalances[sellCurrency] || 0;
+      setSellAmount(maxBalance.toString());
       setBuyAmount("");
       setActiveInput("sell");
       setTradeInputType("exact_input");
@@ -255,6 +262,77 @@ export default function TradePanel({ user, session }) {
 
   const canTrade = sellCurrency && buyCurrency && sellCurrency !== buyCurrency && 
     ((sellAmount && parseFloat(sellAmount) > 0) || (buyAmount && parseFloat(buyAmount) > 0));
+
+  // Add function to fetch wallet balances
+  const fetchWalletBalances = async () => {
+    if (!senderWallet) return;
+    
+    setLoadingBalance(true);
+    try {
+      const [accountInfoResponse, accountLinesResponse] = await Promise.all([
+        fetch("/api/wallets/getAccountInfo", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ wallet: senderWallet }),
+        }),
+        fetch("/api/wallets/getAccountLines", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ wallet: senderWallet }),
+        }),
+      ]);
+
+      const accountInfo = await accountInfoResponse.json();
+      const accountLines = await accountLinesResponse.json();
+
+
+      const balances = {};
+
+      // Add XRP balance (accounting for reserves)
+      if (accountInfo.data?.balance) {
+        const xrpBalance = parseFloat(accountInfo.data.balance); // Already converted from drops
+        const ownerCount = accountInfo.data.ownerCount || 0;
+        const BASE_RESERVE_XRP = 1;
+        const OWNER_RESERVE_XRP = 0.2;
+        const totalReserve = BASE_RESERVE_XRP + (OWNER_RESERVE_XRP * ownerCount);
+        const availableBalance = Math.max(0, xrpBalance - totalReserve);
+        
+        balances["XRP"] = availableBalance;
+      }
+
+      // Add IOU balances from account lines
+      if (accountLines.data?.lines) {
+        accountLines.data.lines.forEach(line => {
+          if (line.currency && line.balance) {
+            balances[line.currency] = parseFloat(line.balance);
+          }
+        });
+      }
+
+      setWalletBalances(balances);
+    } catch (error) {
+      console.error("Error fetching wallet balances:", error);
+    } finally {
+      setLoadingBalance(false);
+    }
+  };
+
+  // Fetch balances when wallet changes
+  useEffect(() => {
+    if (senderWallet) {
+      fetchWalletBalances();
+    }
+  }, [senderWallet]);
+
+  // Reset amounts when sell currency changes
+  useEffect(() => {
+    setSellAmount("");
+  }, [sellCurrency]);
+
+  // Reset amounts when buy currency changes  
+  useEffect(() => {
+    setBuyAmount("");
+  }, [buyCurrency]);
 
   return (
     <>
@@ -311,6 +389,11 @@ export default function TradePanel({ user, session }) {
                       label=""
                       currencies={availableCurrencies.filter(c => c.id !== buyCurrency)}
                     />
+                    {sellCurrency && (
+                        <div className="text-xs text-gray-400">
+                          Balance: {loadingBalance ? "Loading..." : (walletBalances[sellCurrency]?.toFixed(6) || "0.000000")} {sellCurrency}
+                        </div>
+                      )}
                   </div>
                   <div className="flex flex-col items-end">
                     <input
@@ -322,12 +405,16 @@ export default function TradePanel({ user, session }) {
                       min="0"
                       disabled={!!buyAmount}
                     />
-                    <button 
-                      onClick={handleMax}
-                      className="bg-gray-600 hover:bg-gray-500 px-4 py-2 rounded-lg text-xs font-medium mt-2"
-                    >
-                      Max
-                    </button>
+                    <div className="flex items-center space-x-2 mt-2">
+                      
+                      <button 
+                        onClick={handleMax}
+                        disabled={loadingBalance || !sellCurrency || (walletBalances[sellCurrency] || 0) <= 0}
+                        className="bg-gray-600 hover:bg-gray-500 disabled:bg-gray-700 disabled:cursor-not-allowed px-4 py-2 rounded-lg text-xs font-medium"
+                      >
+                        Max
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

@@ -10,6 +10,8 @@ const getTransactionIcon = (direction, type) => {
       return <ArrowUpRight className="w-4 h-4 text-green-400" />;
     case "received":
       return <ArrowDownLeft className="w-4 h-4 text-green-400" />;
+    case "smart_trade":
+      return <div className="w-4 h-4 rounded-full bg-yellow-400 flex items-center justify-center text-xs font-bold text-white">S</div>;
     case "offer_create":
       return <div className="w-4 h-4 rounded-full bg-blue-400 flex items-center justify-center text-xs font-bold text-white">+</div>;
     case "offer_cancel":
@@ -31,6 +33,8 @@ const getTransactionColor = (direction) => {
       return "text-green-400";
     case "received":
       return "text-green-400";
+    case "smart_trade":
+      return "text-yellow-400";
     case "offer_create":
       return "text-blue-400";
     case "offer_cancel":
@@ -52,6 +56,8 @@ const formatTransactionType = (type, direction) => {
       return "Sent";
     case "received":
       return "Received";
+    case "smart_trade":
+      return "Smart Trade";
     case "offer_create":
       return "Create Offer";
     case "offer_cancel":

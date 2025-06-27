@@ -13,7 +13,7 @@ import { analyzeMarket } from "../pathfind/corePathfindingEngine";
  * @param {number} tradingFeeBasisPoints - Trading fee in basis points (default 0)
  * @returns {Object} Calculation result with exact input needed
  */
-export function calculateExactAMMInput(poolX, poolY, desiredOutput, slippageTolerance = 0.01, tradingFeeBasisPoints = 0) {
+export function calculateExactAMMInput(poolX, poolY, desiredOutput, slippageTolerance = 0, tradingFeeBasisPoints = 0) {
   try {
     console.log(`🧮 AMM Constant Product Calculation:`);
     console.log(`   Initial Pool: ${poolX} (input) / ${poolY} (output)`);
@@ -59,7 +59,7 @@ export function calculateExactAMMInput(poolX, poolY, desiredOutput, slippageTole
     
     console.log(`   After withdrawal: ${newPoolX.toFixed(6)} / ${newPoolY.toFixed(6)}`);
     console.log(`   Exact input needed: ${exactInputNeeded.toFixed(6)}`);
-    console.log(`   With ${(slippageTolerance * 100).toFixed(1)}% slippage: ${inputWithSlippage.toFixed(6)}`);
+    console.log(`   With ${slippageTolerance}% slippage: ${inputWithSlippage.toFixed(6)}`);
     console.log(`   Price per unit: ${(exactInputNeeded / desiredOutput).toFixed(6)}`);
     
     return {
@@ -364,7 +364,7 @@ export async function sendCrossCurrency(
             console.log(`📊 Live AMM Pool: ${poolInput} ${sendCurrency} / ${poolOutput} ${receiveCurrency}`);
             console.log(`🎯 Target Output: ${targetOutput} ${receiveCurrency}`);
             
-            const calculation = calculateExactAMMInput(poolInput, poolOutput, targetOutput, 0.005, tradingFeeBasisPoints);
+            const calculation = calculateExactAMMInput(poolInput, poolOutput, targetOutput, slippagePercent / 100, tradingFeeBasisPoints);
             
             if (calculation.success) {
               preciseInputNeeded = calculation.exactInput;
