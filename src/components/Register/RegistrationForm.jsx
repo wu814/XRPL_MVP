@@ -101,8 +101,8 @@ export default function RegistrationForm() {
 
     if (!formData.password) {
       newErrors.password = "Password is required.";
-    } else if (formData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters long.";
+    } else if (formData.password.length < 5) {
+      newErrors.password = "Password must be at least 5 characters long.";
     }
 
     if (!formData.confirmPassword) {

@@ -53,8 +53,8 @@ export default function DisplayFriends() {
               className="flex items-center justify-between rounded-lg bg-color3 p-4"
             >
               <div>
-                <p>Username: {friend.username}</p>
-                <p>
+                <p className="font-semibold">{friend.username}</p>
+                <p className="text-sm text-mutedText">
                   Friends since:{" "}
                   {new Date(friend.responded_at).toLocaleDateString()}
                 </p>

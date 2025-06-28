@@ -66,7 +66,7 @@ export default function PasswordInput({ value, onChange, error }) {
       )}
       {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
       <p className="mt-1 text-xs text-mutedText">
-        Password must be at least 6 characters long
+        Password must be at least 5 characters long
       </p>
     </div>
   );

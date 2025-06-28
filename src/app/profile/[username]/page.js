@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
 import { Search } from "lucide-react";
 import DisplayPendingFriendRequests from "@/components/Friend/DisplayPendingFriendRequests";
 import DisplayFriends from "@/components/Friend/DisplayFriends";
@@ -9,6 +10,7 @@ import TradePanel from "@/components/Smart/TradePanel";
 import { CurrentUserWalletProvider } from "@/components/Wallet/CurrentUserWalletProvider";
 import { IssuerWalletProvider } from "@/components/Wallet/IssuerWalletProvider";
 import { useSession } from "next-auth/react";
+import AddFriendBtn from "@/components/Friend/AddFriendBtn";
 
 export default function ProfilePage() {
   const { data: session } = useSession();
@@ -18,25 +20,9 @@ export default function ProfilePage() {
   const params = useParams();
   const userID = params.userID; // Get the userID from the URL
 
-  const [userData, setUserData] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
-
-  const fetchUserData = async () => {
-    try {
-      const res = await fetch("/api/users/getUserByUserID");
-      if (!res.ok) throw new Error("Failed to fetch user data");
-      const result = await res.json();
-      setUserData(result.data);
-    } catch (error) {
-      setErrorMessage(error.message || "Failed to fetch user data");
-    }
-  };
-
-  useEffect(() => {
-    fetchUserData();
-  }, [userID]);
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
@@ -74,21 +60,6 @@ export default function ProfilePage() {
     <CurrentUserWalletProvider>
       <IssuerWalletProvider>
         <div className="min-h-screen bg-color1 p-8 ml-64" style={{ maxWidth: 'calc(100vw - 16rem - 32rem)' }}>
-          {/* Page Header */}
-          <div className="mb-8">
-            {userData ? (
-              <div className="text-center">
-                <h1 className="mb-4 text-4xl font-bold">Profile: {userData.username}</h1>
-                <p className="text-xl text-gray-400">Email Address: {userData.email_address}</p>
-                <p className="text-xl text-gray-400">Joined at: {new Date(userData.created_at).toLocaleDateString()}</p>
-              </div>
-            ) : (
-              <div className="text-center">
-                <p className="text-xl">Loading user data...</p>
-              </div>
-            )}
-          </div>
-
           {/* Search Bar */}
           <div className="mb-8">
             <div className="max-w-lg mx-auto">
@@ -111,16 +82,15 @@ export default function ProfilePage() {
                   ) : searchResults.length > 0 ? (
                     <div className="divide-y divide-gray-600">
                       {searchResults.map((user, index) => (
-                        <div key={index} className="p-4 hover:bg-color3 cursor-pointer transition-colors">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <div className="font-medium text-lg">{user.username}</div>
-                              <div className="text-sm text-gray-400">User</div>
-                            </div>
-                            <button className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                              Add Friend
-                            </button>
-                          </div>
+                        <div key={index} className="flex items-center justify-between p-4 hover:bg-color3 transition-colors">
+                          <Link
+                            href={`/user/${user.username}`}
+                            className="flex-1 cursor-pointer"
+                            onClick={() => setSearchQuery("")}
+                          >
+                            <div className="font-medium text-lg">{user.username}</div>
+                          </Link>
+                          <AddFriendBtn receiver={user.username} />
                         </div>
                       ))}
                     </div>

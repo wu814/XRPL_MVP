@@ -34,7 +34,7 @@ export default function RemoveFriendBtn({ friendId, onRemoved }) {
   return (
     <>
       <Button variant="cancel" onClick={handleRemove} disabled={loading}>
-        {loading ? "Removing..." : "Remove Friend"}
+        {loading ? "Removing..." : "Remove"}
       </Button>
 
       {errorMessage && (

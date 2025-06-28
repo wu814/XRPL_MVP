@@ -60,7 +60,7 @@ export default function DisplayPendingFriendRequests() {
             >
               <div>
                 <p className="font-medium">From: {req.sender || "Unknown"}</p>
-                <p>Sent on: {new Date(req.sent_at).toLocaleDateString()}</p>
+                <p className="text-sm text-mutedText">Sent on: {new Date(req.sent_at).toLocaleDateString()}</p>
               </div>
               <div className="space-x-2">
                 <Button
