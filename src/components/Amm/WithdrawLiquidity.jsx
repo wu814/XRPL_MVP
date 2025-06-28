@@ -31,6 +31,7 @@ export default function WithdrawLiquidity({ ammInfo, onWithdrawn }) {
     const hasValidWallet = currentUserWallets.some(
       (wallet) =>
         wallet.walletType === "USER" ||
+        wallet.walletType === "BUSINESS" ||
         wallet.walletType === "STANDBY TREASURY",
     );
     
@@ -59,6 +60,7 @@ export default function WithdrawLiquidity({ ammInfo, onWithdrawn }) {
     const currentWalletSeed = currentUserWallets.find(
       (wallet) =>
         wallet.walletType === "USER" ||
+        wallet.walletType === "BUSINESS" ||
         wallet.walletType === "STANDBY TREASURY",
     )?.seed;
     if (!currentWalletSeed) {

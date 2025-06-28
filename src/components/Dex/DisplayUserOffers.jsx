@@ -21,7 +21,9 @@ export default function DisplayUserOffers() {
 
   const sourceWallet = currentUserWallets?.find(
     (wallet) =>
-      wallet.walletType === "USER" || wallet.walletType === "STANDBY PATHFIND",
+      wallet.walletType === "USER" ||
+      wallet.walletType === "STANDBY PATHFIND" ||
+      wallet.walletType === "BUSINESS",
   );
 
   const fetchUserOffers = async () => {

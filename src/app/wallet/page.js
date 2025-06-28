@@ -29,7 +29,7 @@ function AssetTableWrapper() {
 
   // Get the primary wallet for fetching balances
   const primaryWallet = currentUserWallets?.find(
-    (wallet) => wallet.walletType === "USER" || wallet.walletType === "STANDBY PATHFIND"
+    (wallet) => wallet.walletType === "USER" || wallet.walletType === "STANDBY PATHFIND" || wallet.walletType === "BUSINESS"
   );
 
   const handleWalletCreated = async () => {
@@ -170,7 +170,7 @@ function UserWalletDetails() {
 
   // Get the user's primary wallet
   const userWallet = currentUserWallets?.find(
-    (wallet) => wallet.walletType === "USER"
+    (wallet) => wallet.walletType === "USER" || wallet.walletType === "STANDBY PATHFIND" || wallet.walletType === "BUSINESS"
   );
 
   // Constants for reserve calculation
@@ -346,6 +346,7 @@ function UserWalletDetails() {
           {userWallet.classicAddress}
         </p>
       </div>
+      
 
       {/* Reserve Breakdown */}
       {reserveBreakdown.length > 0 && (

@@ -94,60 +94,6 @@ const checkDestinationTrustline = async (
     );
 };
 
-const findBestPath = async (
-  sender,
-  destination,
-  amountString,
-  currency,
-  issuerAddress,
-) => {
-  const { result } = await client.request({
-    command: "ripple_path_find",
-    source_account: sender,
-    destination_account: destination,
-    destination_amount: {
-      currency,
-      issuer: issuerAddress,
-      value: amountString,
-    },
-  });
-
-  const alternatives = result.alternatives;
-  if (!alternatives || alternatives.length === 0) {
-    console.warn("⚠️ No path alternatives found.");
-    return null;
-  }
-
-  // Find the best (cheapest) alternative
-  const bestAlternative = alternatives.reduce((best, current) => {
-    const bestValue = new BigNumber(best.source_amount.value);
-    const currentValue = new BigNumber(current.source_amount.value);
-    return currentValue.isLessThan(bestValue) ? current : best;
-  });
-
-  const sendMaxValue = new BigNumber(
-    bestAlternative.source_amount.value,
-  ).toFixed(6);
-
-  const paths =
-    bestAlternative.paths_computed ||
-    bestAlternative.paths_canonical ||
-    bestAlternative.paths;
-
-  if (!paths || paths.length === 0) {
-    console.warn("⚠️ Computed path is empty. This may cause a path error.");
-    return null;
-  }
-
-  return {
-    SendMax: {
-      currency: bestAlternative.source_amount.currency,
-      issuer: bestAlternative.source_amount.issuer || issuerAddress,
-      value: sendMaxValue,
-    },
-    Paths: paths,
-  };
-};
 
 const sendIOU = async (
   wallet,
@@ -191,7 +137,6 @@ const sendIOU = async (
       ...(destinationTag != null && { DestinationTag: destinationTag }),
     };
   } else {
-    try {
       // Case 2: Sender has IOU and enough balance
       await checkSenderBalance(
         senderWallet,
@@ -211,36 +156,6 @@ const sendIOU = async (
         },
         ...(destinationTag != null && { DestinationTag: destinationTag }),
       };
-    } catch {
-      // Case 3: Fallback to path finding
-      const pathData = await findBestPath(
-        senderAddress,
-        destination,
-        amountString,
-        currency,
-        issuerAddress,
-      );
-
-      if (!pathData) {
-        throw new Error(
-          "No valid payment path found. Either the sender lacks sufficient IOUs or no viable conversion path exists.",
-        );
-      }
-
-      payment = {
-        TransactionType: "Payment",
-        Account: senderAddress,
-        Destination: destination,
-        Amount: {
-          currency,
-          issuer: issuerAddress,
-          value: amountString,
-        },
-        ...pathData,
-        ...(destinationTag !== null &&
-          destinationTag !== "" && { DestinationTag: destinationTag }),
-      };
-    }
   }
 
   const prepared = await client.autofill(payment);

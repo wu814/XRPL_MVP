@@ -22,7 +22,9 @@ export default function CreateOffer({ baseCurrency, quoteCurrency }) {
 
   const offerCreatorWallet = currentUserWallets?.find(
     (wallet) =>
-      wallet.walletType === "USER" || wallet.walletType === "STANDBY PATHFIND",
+      wallet.walletType === "USER" ||
+      wallet.walletType === "BUSINESS" ||
+      wallet.walletType === "STANDBY PATHFIND",
   );
 
   const [orderType, setOrderType] = useState("buy"); // "buy" or "sell"
@@ -82,7 +84,7 @@ export default function CreateOffer({ baseCurrency, quoteCurrency }) {
       <h1 className="p-4 text-2xl font-bold">Create an Offer</h1>
       <div className="space-y-4 px-4">
         {/* Buy/Sell Toggle */}
-        <div className="flex rounded-lg bg-color3 p-1 space-x-1">
+        <div className="flex space-x-1 rounded-lg bg-color3 p-1">
           <button
             className={`flex-1 rounded-lg py-2 text-sm transition-colors ${
               orderType === "buy"
@@ -140,7 +142,8 @@ export default function CreateOffer({ baseCurrency, quoteCurrency }) {
               Total Value
             </label>
             <div className="text-right text-lg font-semibold">
-              {(parseFloat(limitPrice) * parseFloat(quantity)).toFixed(2)} {quoteCurrency}
+              {(parseFloat(limitPrice) * parseFloat(quantity)).toFixed(2)}{" "}
+              {quoteCurrency}
             </div>
           </div>
         )}
@@ -165,8 +168,14 @@ export default function CreateOffer({ baseCurrency, quoteCurrency }) {
 
         {/* Submit */}
         <div className="flex justify-end">
-          <Button onClick={handleSubmit} disabled={loading || !limitPrice || !quantity} className="w-full">
-            {loading ? "Submitting..." : `${orderType === "buy" ? "Buy" : "Sell"} ${baseCurrency}`}
+          <Button
+            onClick={handleSubmit}
+            disabled={loading || !limitPrice || !quantity}
+            className="w-full"
+          >
+            {loading
+              ? "Submitting..."
+              : `${orderType === "buy" ? "Buy" : "Sell"} ${baseCurrency}`}
           </Button>
         </div>
 

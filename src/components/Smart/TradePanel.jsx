@@ -18,8 +18,8 @@ export default function TradePanel({ user, session }) {
   const [activeTab, setActiveTab] = useState("Convert");
 
   // Convert states (integrated from SmartTradeMenu)
-  const [sellCurrency, setSellCurrency] = useState("XRP");
-  const [buyCurrency, setBuyCurrency] = useState("USD");
+  const [sellCurrency, setSellCurrency] = useState("USD");
+  const [buyCurrency, setBuyCurrency] = useState("XRP");
   const [sellAmount, setSellAmount] = useState("");
   const [buyAmount, setBuyAmount] = useState("");
   const [activeInput, setActiveInput] = useState("sell");
@@ -30,12 +30,12 @@ export default function TradePanel({ user, session }) {
   const [recipientAddress, setRecipientAddress] = useState("");
   const [useUsername, setUseUsername] = useState(true);
   const [amount, setAmount] = useState("");
-  const [currency, setCurrency] = useState("");
+  const [currency, setCurrency] = useState("USD");
   const [destinationTag, setDestinationTag] = useState("");
   const [paymentType, setPaymentType] = useState("direct"); // "direct" or "convertable"
   const [convertInputType, setConvertInputType] = useState(null); // "exact_input" or "exact_output"
-  const [sendCurrency, setSendCurrency] = useState(""); // for cross-currency
-  const [receiveCurrency, setReceiveCurrency] = useState(""); // for cross-currency
+  const [sendCurrency, setSendCurrency] = useState("USD"); // for cross-currency
+  const [receiveCurrency, setReceiveCurrency] = useState("XRP"); // for cross-currency
   const [sendAmount, setSendAmount] = useState("");
   const [receiveAmount, setReceiveAmount] = useState("");
   
@@ -52,7 +52,7 @@ export default function TradePanel({ user, session }) {
 
   // Get the primary wallet
   const senderWallet = currentUserWallets?.find(
-    (wallet) => wallet.walletType === "USER" || wallet.walletType === "STANDBY PATHFIND" || wallet.walletType === "STANDBY TREASURY"
+    (wallet) => wallet.walletType === "USER" || wallet.walletType === "BUSINESS" || wallet.walletType === "ISSUER"
   );
 
   // Add new state for wallet balance

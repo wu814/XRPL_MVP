@@ -20,7 +20,7 @@ export default function RegisterPage() {
     }
     
     // If user already has a complete profile, redirect to dashboard
-    if (session.user?.username && session.user.username !== session.user.email) {
+    if (session.user?.username) {
       router.push("/wallet");
       return;
     }

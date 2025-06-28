@@ -57,6 +57,7 @@ export default function AddLiquidity({ ammInfo, onAdded }) {
     const wallet = currentUserWallets.find(
       (wallet) =>
         wallet.walletType === "USER" ||
+        wallet.walletType === "BUSINESS" ||
         wallet.walletType === "STANDBY TREASURY",
     );
 

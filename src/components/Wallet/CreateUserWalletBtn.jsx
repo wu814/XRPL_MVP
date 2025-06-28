@@ -1,9 +1,11 @@
 "use client";
 
+// This creates either a Business or User Wallet
 import React, { useState } from "react";
 import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
+import { useSession } from "next-auth/react";
 
 export default function CreateUserWalletBtn({ onWalletCreated }) {
   const [showMdl, setShowMdl] = useState(false);
@@ -11,6 +13,8 @@ export default function CreateUserWalletBtn({ onWalletCreated }) {
   const [errorMessage, setErrorMessage] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
   const [method, setMethod] = useState("custodial");
+
+  const { data: session } = useSession();
 
   const handleCreateWallet = async () => {
     setLoading(true);
@@ -20,7 +24,7 @@ export default function CreateUserWalletBtn({ onWalletCreated }) {
       const res = await fetch("/api/wallets/createWallet", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ walletType: "USER" }),
+        body: JSON.stringify({ walletType: session?.user.role }),
       });
 
       const result = await res.json();

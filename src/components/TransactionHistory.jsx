@@ -111,7 +111,10 @@ export default function TransactionHistory() {
     (wallet) => wallet.walletType === "USER"
   ) || currentUserWallets?.find(
     (wallet) => wallet.walletType === "STANDBY PATHFIND"
-  ) || currentUserWallets?.[0]; // Fallback to first wallet if none match
+  ) || currentUserWallets?.find(
+    (wallet) => wallet.walletType === "BUSINESS"
+  )
+  || currentUserWallets?.[0]; // Fallback to first wallet if none match
 
   const fetchTransactions = async (isLoadMore = false) => {
     if (!primaryWallet?.classicAddress) {

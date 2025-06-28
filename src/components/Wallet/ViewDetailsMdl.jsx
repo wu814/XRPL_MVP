@@ -11,7 +11,7 @@ export default function ViewDetailsMdl({
 }) {
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/10">
-      <div className="relative h-full w-1/2 max-w-3xl rounded-lg bg-color4 p-6">
+      <div className="relative h-full w-1/2 max-w-3xl rounded-lg bg-color4 p-6 flex flex-col">
         <h2 className="mb-4 text-2xl text-center text-primary font-bold">Wallet Details</h2>
 
         {/* Loading */}
@@ -19,7 +19,7 @@ export default function ViewDetailsMdl({
 
         {/* Account Info */}
         {!loading && infoData && (
-          <div className="mb-6">
+          <div className="mb-6 flex-shrink-0">
             <h3 className="mb-2 text-lg font-semibold text-primary">Account Info</h3>
             <ul className="space-y-1 text-sm border-b border-border pb-2">
               <li>
@@ -43,14 +43,14 @@ export default function ViewDetailsMdl({
 
         {/* Trust Lines */}
         {!loading && linesData && (
-          <div>
-            <h3 className="mb-2 text-lg font-semibold text-primary">Trustlines</h3>
+          <div className="flex-1 flex flex-col min-h-0">
+            <h3 className="mb-2 text-lg font-semibold text-primary flex-shrink-0">Trustlines</h3>
             {linesData.length === 0 ? (
               <p className="text-sm text-mutedText">
                 No trustline data available.
               </p>
             ) : (
-              <ul className="max-h-96 space-y-2 overflow-y-auto text-sm">
+              <ul className="flex-1 space-y-2 overflow-y-auto text-sm">
                 {linesData.map((line, idx) => (
                   <li key={idx} className="border-b border-border pb-2">
                     <div>
@@ -76,7 +76,7 @@ export default function ViewDetailsMdl({
         )}
 
         {/* Close Button */}
-        <div className="absolute bottom-5 right-6 mt-4 flex">
+        <div className="flex-shrink-0 mt-4 flex justify-end">
           <Button variant="cancel" onClick={onClose}>
             Close
           </Button>
