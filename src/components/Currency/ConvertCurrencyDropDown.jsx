@@ -6,14 +6,14 @@ export default function ConvertCurrencyDropDown({ asset, onSelect, label, availa
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="bg-color4 rounded-lg p-5 mb-3 relative">
+    <div className="bg-color4 rounded-lg p-4 mb-3 relative">
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-3">
           <div className={`w-10 h-10 ${asset.color} rounded-full flex items-center justify-center text-white font-bold`}>
             <img
               src={asset.avatar}
               alt={asset.name}
-              className="w-8 h-8 rounded-full"
+              className="w-10 h-10 rounded-full"
               onError={(e) => {
                 e.target.style.display = 'none';
                 e.target.nextSibling.style.display = 'block';
@@ -23,7 +23,7 @@ export default function ConvertCurrencyDropDown({ asset, onSelect, label, availa
           </div>
           <div>
             <div className="font-medium text-lg">{label}</div>
-            <div className="text-sm text-gray-400">{asset.name}</div>
+            <div className="">{asset.name}</div>
           </div>
         </div>
         {availableAmount && (

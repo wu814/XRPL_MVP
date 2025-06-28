@@ -381,7 +381,7 @@ export default function TradePanel({ user, session }) {
               {/* Sell Section */}
               <div className="mb-4 bg-color3 rounded-lg p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="flex flex-col space-y-2">
+                  <div className="flex flex-1 flex-col space-y-2">
                     <label className="text-sm font-medium text-gray-400">Sell</label>
                     <ConvertCurrencyDropDown
                       asset={getCurrencyData(sellCurrency)}
@@ -433,7 +433,7 @@ export default function TradePanel({ user, session }) {
               {/* Buy Section */}
               <div className="mb-8 bg-color3 rounded-lg p-6">
                 <div className="flex items-center justify-between">
-                  <div className="flex flex-col space-y-2">
+                  <div className="flex flex-1 flex-col space-y-2">
                     <label className="text-sm font-medium text-gray-400">Buy</label>
                     <ConvertCurrencyDropDown
                       asset={getCurrencyData(buyCurrency)}
@@ -551,22 +551,26 @@ export default function TradePanel({ user, session }) {
                     {/* Send Currency */}
                     <div>
                       <label className="block text-sm text-gray-400 mb-2">Send Currency</label>
-                      <CurrencyDropDown
+                      <SendCurrencyDropDown
                         value={sendCurrency}
                         onChange={setSendCurrency}
-                        disabledOptions={[]}
-                        dropdownBg="bg-color3"
+                        currencies={availableCurrencies}
+                        isOpen={openDropdown === "sendCurrency"}
+                        onToggle={handleDropdownToggle}
+                        dropdownId="sendCurrency"
                       />
                     </div>
                     
                     {/* Receive Currency */}
                     <div>
                       <label className="block text-sm text-gray-400 mb-2">Receive Currency</label>
-                      <CurrencyDropDown
+                      <SendCurrencyDropDown
                         value={receiveCurrency}
                         onChange={setReceiveCurrency}
-                        disabledOptions={[]}
-                        dropdownBg="bg-color3"
+                        currencies={availableCurrencies}
+                        isOpen={openDropdown === "receiveCurrency"}
+                        onToggle={handleDropdownToggle}
+                        dropdownId="receiveCurrency"
                       />
                     </div>
                     
@@ -603,11 +607,13 @@ export default function TradePanel({ user, session }) {
                     {/* Currency */}
                     <div>
                       <label className="block text-sm text-gray-400 mb-2">Currency</label>
-                      <CurrencyDropDown
+                      <SendCurrencyDropDown
                         value={currency}
                         onChange={setCurrency}
-                        disabledOptions={[]}
-                        dropdownBg="bg-color3"
+                        currencies={availableCurrencies}
+                        isOpen={openDropdown === "currency"}
+                        onToggle={handleDropdownToggle}
+                        dropdownId="currency"
                       />
                     </div>
                     
