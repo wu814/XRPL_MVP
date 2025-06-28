@@ -16,8 +16,8 @@ function LayoutContent({ children }) {
   const { data: session, status } = useSession();
   const pathname = usePathname();
   
-  // Don't show sidebar on splash page or when not authenticated
-  const showSidebar = session && pathname !== "/";
+ // Don't show sidebar on splash page, register page, or when not authenticated
+ const showSidebar = session && pathname !== "/" && pathname !== "/register";
   
   return (
     <div className="min-h-screen bg-color1 text-white">

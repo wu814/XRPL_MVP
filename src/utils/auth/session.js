@@ -4,6 +4,7 @@ export const session = async ({ session, token }) => {
   session.user.user_id = token.user_id;
   session.user.role = token.role;
   session.user.username = token.username;
+  session.user.needsRegistration = token.needsRegistration;
   return session;
 };
 

@@ -146,7 +146,7 @@ export default function Sidebar() {
               Welcome, {session.user.username}
             </p>
             <p className="text-xs text-gray-400">
-              {session.user.role === "ADMIN" ? "Admin" : "User"}
+              {session.user.role}
             </p>
           </div>
         </div>

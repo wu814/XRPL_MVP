@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import DisplayAdminWallets from "@/components/Wallet/DisplayAdminWallets";
 import DisplayUserWallets from "@/components/Wallet/DisplayUserWallets";
-import UpdateUsernameMdl from "@/components/UpdateUsernameMdl";
 import DashboardHeader from "@/components/DashboardHeader";
 import AssetTable from "@/components/AssetTable";
 import TradePanel from "@/components/Smart/TradePanel";
@@ -897,7 +896,6 @@ function AdminWalletsView() {
 export default function WalletPage() {
   const { data: session, status } = useSession();
   const searchParams = useSearchParams();
-  const [showUpdateUsernameMdl, setShowUpdateUsernameMdl] = useState(false);
   
   // Determine current tab from URL params
   const currentTab = searchParams.get('tab') || 'home';
@@ -986,11 +984,6 @@ export default function WalletPage() {
               </div>
             )}
           </div>
-
-          {/* Update Username Modal */}
-          {showUpdateUsernameMdl && (
-            <UpdateUsernameMdl onClose={() => setShowUpdateUsernameMdl(false)} />
-          )}
         </div>
 
         {/* Trade Panel - Always visible */}

@@ -11,7 +11,18 @@ export default function Login() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  // Remove auto-redirect - let user choose to login
+  useEffect(() => {
+    if (session) {
+      // Check if user needs to complete registration
+      if (session.user?.needsRegistration || (session.user?.username === session.user?.email)) {
+        router.push("/register");
+      } else if (session.user?.username) {
+        // User is fully registered, redirect to dashboard
+        router.push("/wallet");
+      }
+    }
+  }, [session, router]);
+
   return (
     <>
       <Head>
