@@ -438,43 +438,29 @@ export async function getOrderBookData(fromCurrency, toCurrency, issuerAddress) 
       let takerGets, takerPays;
       
       if (fromCurrency === "XRP") {
-        takerGets = { currency: "XRP" };
-        takerPays = { currency: toCurrency, issuer: issuerAddress };
-      } else if (toCurrency === "XRP") {
-        takerGets = { currency: fromCurrency, issuer: issuerAddress };
+        takerGets = { currency: toCurrency, issuer: issuerAddress };
         takerPays = { currency: "XRP" };
+      } else if (toCurrency === "XRP") {
+        takerGets = { currency: "XRP" };
+        takerPays = { currency: fromCurrency, issuer: issuerAddress };
       } else {
-        // FINAL FIX: Your offer has TakerGets=EUR, TakerPays=USD
-        // To find this offer, we need to query with the SAME structure
-        takerGets = { currency: fromCurrency, issuer: issuerAddress };
-        takerPays = { currency: toCurrency, issuer: issuerAddress };
+        takerGets = { currency: toCurrency, issuer: issuerAddress };   // What we want
+        takerPays = { currency: fromCurrency, issuer: issuerAddress }; // What we're giving
       }
       
       const directResponse = await client.request({
         command: "book_offers",
         taker_gets: takerGets,
         taker_pays: takerPays,
-        limit: 20 // Get more offers for better depth analysis
+        limit: 20
       });
       
       orderBooks.direct = directResponse.result.offers || [];
       
-      // DEBUG: Log what offers were found
       console.log(`🔍 DEBUG: Querying ${fromCurrency} → ${toCurrency} order book:`);
       console.log(`   TakerGets: ${JSON.stringify(takerGets)}`);
       console.log(`   TakerPays: ${JSON.stringify(takerPays)}`);
       console.log(`   Found ${orderBooks.direct.length} offers`);
-      
-      if (orderBooks.direct.length > 0) {
-        orderBooks.direct.forEach((offer, index) => {
-          console.log(`   Offer ${index + 1}:`);
-          console.log(`     TakerGets: ${JSON.stringify(offer.TakerGets)}`);
-          console.log(`     TakerPays: ${JSON.stringify(offer.TakerPays)}`);
-          console.log(`     Account: ${offer.Account}`);
-        });
-      } else {
-        console.log(`   ❌ No offers found in this order book`);
-      }
     }
     
     // Multi-hop routes via XRP
@@ -896,35 +882,48 @@ export function analyzeDirectDEXRoute(offers, fromCurrency, toCurrency, fromAmou
     for (const offer of offers) {
       if (remainingAmount <= 0) break;
       
-      // Parse offer amounts
+      // ✅ VALIDATE: Check if this offer actually matches the requested currency pair
+      let offerFromCurrency, offerToCurrency;
+      
+      // Extract actual currencies from the offer
+      if (typeof offer.TakerPays === 'string') {
+        offerFromCurrency = "XRP";
+      } else {
+        offerFromCurrency = offer.TakerPays.currency;
+      }
+      
+      if (typeof offer.TakerGets === 'string') {
+        offerToCurrency = "XRP";
+      } else {
+        offerToCurrency = offer.TakerGets.currency;
+      }
+      
+      // ✅ SKIP offers that don't match the requested currency pair
+      if (offerFromCurrency !== fromCurrency || offerToCurrency !== toCurrency) {
+        console.log(`   ⚠️ Skipping mismatched offer: ${offerFromCurrency}→${offerToCurrency} (expected ${fromCurrency}→${toCurrency})`);
+        continue;
+      }
+      
+      // Parse offer amounts (only if currencies match)
       let offerGives, offerWants;
       
       if (typeof offer.TakerGets === 'string') {
-        offerGives = parseFloat(offer.TakerGets) / 1000000; // XRP drops to XRP
+        offerGives = parseFloat(offer.TakerGets) / 1000000;
       } else {
         offerGives = parseFloat(offer.TakerGets.value);
       }
       
       if (typeof offer.TakerPays === 'string') {
-        offerWants = parseFloat(offer.TakerPays) / 1000000; // XRP drops to XRP
+        offerWants = parseFloat(offer.TakerPays) / 1000000;
       } else {
         offerWants = parseFloat(offer.TakerPays.value);
       }
       
-      // CRITICAL FIX: Handle reverse offer crossing
-      // Your offer: TakerGets=40 EUR, TakerPays=40 USD (offer creator sells EUR for USD)
-      // We want: EUR → USD (we want to sell EUR and get USD)
-      // This is a REVERSE crossing - we take the opposite side of their offer
+      const rate = offerGives / offerWants;
+      const amountToTake = Math.min(remainingAmount, offerWants);
+      const amountReceived = amountToTake * rate;
       
-      // For reverse crossing: if they give 40 EUR for 40 USD, we can give 40 USD for 40 EUR
-      // But we want EUR→USD, so we calculate: how much USD we get per EUR we give
-      const reverseRate = offerWants / offerGives; // USD per EUR we can get
-      
-      // Determine how much we can take from this offer (limited by what they're offering)
-      const amountToTake = Math.min(remainingAmount, offerGives); // Limited by their EUR amount
-      const amountReceived = amountToTake * reverseRate; // USD we receive
-      
-      console.log(`   🔄 Reverse crossing: Give ${amountToTake} ${fromCurrency} → Get ${amountReceived} ${toCurrency} (rate: ${reverseRate})`);
+      console.log(`   ➡️ Valid crossing: Give ${amountToTake} ${fromCurrency} → Get ${amountReceived.toFixed(6)} ${toCurrency} (rate: ${rate.toFixed(6)})`);
       
       totalReceived += amountReceived;
       remainingAmount -= amountToTake;
@@ -939,7 +938,7 @@ export function analyzeDirectDEXRoute(offers, fromCurrency, toCurrency, fromAmou
       rate: avgRate,
       amountOut: totalReceived,
       offersUsed,
-      orderBookDepth: offers.length, // Add this for confidence calculation
+      orderBookDepth: offers.length,
       path: `${fromCurrency} → ${toCurrency} (DEX)`
     };
     

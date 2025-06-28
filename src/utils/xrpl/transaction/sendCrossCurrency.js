@@ -102,7 +102,7 @@ export async function sendCrossCurrency(
   sendAmount, 
   receiveCurrency, 
   issuerAddress,
-  slippagePercent = 5,
+  slippagePercent = 0,
   destinationTag = null,
   paymentType = "exact_input",
   exactOutputAmount = null
@@ -371,15 +371,15 @@ export async function sendCrossCurrency(
               console.log(`✅ AMM Precise calculation: ${preciseInputNeeded.toFixed(6)} ${sendCurrency} needed`);
             } else {
               console.log(`⚠️ AMM calculation failed, using estimated: ${calculation.error}`);
-              preciseInputNeeded = parseFloat(sendAmount) * 1.01; // Small 1% buffer as fallback
+              preciseInputNeeded = parseFloat(sendAmount);
             }
           } else {
             console.log(`⚠️ Could not get live AMM data, using estimated input`);
-            preciseInputNeeded = parseFloat(sendAmount) * 1.01; // Small 1% buffer as fallback
+            preciseInputNeeded = parseFloat(sendAmount);
           }
         } catch (error) {
           console.log(`⚠️ Error fetching live AMM data: ${error.message}`);
-          preciseInputNeeded = parseFloat(sendAmount) * 1.01; // Small 1% buffer as fallback
+          preciseInputNeeded = parseFloat(sendAmount);
         }
       }
       
