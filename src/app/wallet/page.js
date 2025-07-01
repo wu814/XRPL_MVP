@@ -680,7 +680,7 @@ function AdminWalletsView() {
                 obj.HighLimit?.issuer === wallet.classicAddress
                   ? obj.LowLimit?.issuer
                   : obj.HighLimit?.issuer;
-              details = `${currency} (${issuer?.slice(0, 8)}...)`;
+              details = `${currency} (${issuer})`;
               break;
             case "Offer":
               description = "DEX Offer";
@@ -692,7 +692,7 @@ function AdminWalletsView() {
               break;
             case "DepositPreauth":
               description = "Deposit Authorization";
-              details = `Authorized: ${obj.Authorize?.slice(0, 8)}...`;
+              details = `Authorized: ${obj.Authorize}`;
               break;
             case "Escrow":
               description = "Escrow";
@@ -700,11 +700,11 @@ function AdminWalletsView() {
               break;
             case "PayChannel":
               description = "Payment Channel";
-              details = `Channel to ${obj.Destination?.slice(0, 8)}...`;
+              details = `Channel to ${obj.Destination}`;
               break;
             case "Check":
               description = "Check";
-              details = `Check from ${obj.Account?.slice(0, 8)}...`;
+              details = `Check from ${obj.Account}`;
               break;
             default:
               description = type;

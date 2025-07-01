@@ -67,11 +67,11 @@ export default function CurrencyPairSelection({ onPairUpdate }) {
 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="w-auto max-w-md rounded-lg bg-color2 p-6">
+          <div className="w-auto max-w-lg rounded-lg bg-color2 p-6">
             <h2 className="mb-4 text-2xl font-bold text-primary">
               Select Currency Pair
             </h2>
-            <div className="flex flex-row items-center space-x-4 p-4">
+            <div className="flex flex-row items-center justify-between space-x-4 p-4">
               <div>
                 <label className="text-sm font-medium text-mutedText">
                   Base
@@ -80,6 +80,7 @@ export default function CurrencyPairSelection({ onPairUpdate }) {
                   value={modalBase}
                   onChange={setModalBase}
                   disabledOptions={[modalQuote]}
+                  className="w-40"
                 />
               </div>
 
@@ -114,6 +115,7 @@ export default function CurrencyPairSelection({ onPairUpdate }) {
                   value={modalQuote}
                   onChange={setModalQuote}
                   disabledOptions={[modalBase]}
+                  className="w-40"
                 />
               </div>
             </div>

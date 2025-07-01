@@ -86,7 +86,8 @@ export default function CurrencyDropDown({
                     alt={c.name}
                     className="h-6 w-6 rounded-full"
                   />
-                  <span>{c.name}</span>
+                  <span>{c.id}</span>
+                  <span className="text-gray-400 text-sm">- {c.name}</span>
                 </ListboxOption>
               );
             })}
