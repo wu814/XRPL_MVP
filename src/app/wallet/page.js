@@ -193,6 +193,7 @@ function UserWalletDetails() {
   const [walletBalance, setWalletBalance] = useState(null);
   const [reserveBreakdown, setReserveBreakdown] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [expandedReserveItems, setExpandedReserveItems] = useState(new Set());
 
   // Get the user's primary wallet
   const userWallet = currentUserWallets?.find(
@@ -337,6 +338,18 @@ function UserWalletDetails() {
     await fetchWalletBalance();
   };
 
+  const toggleReserveItemExpansion = (index) => {
+    setExpandedReserveItems(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
+  };
+
   if (!userWallet) return null;
 
   return (
@@ -410,13 +423,34 @@ function UserWalletDetails() {
                 {reserve.items && reserve.items.length > 0 && (
                   <div className="ml-11 border-t border-gray-600 pt-3">
                     <div className="space-y-2 text-base text-gray-500">
-                      {reserve.items.slice(0, 2).map((item, itemIndex) => (
-                        <div key={itemIndex}>• {item}</div>
-                      ))}
-                      {reserve.items.length > 2 && (
-                        <div className="text-gray-600">
-                          ... and {reserve.items.length - 2} more
-                        </div>
+                      {expandedReserveItems.has(index) ? (
+                        // Show all items when expanded
+                        <>
+                          {reserve.items.map((item, itemIndex) => (
+                            <div key={itemIndex}>• {item}</div>
+                          ))}
+                          <button
+                            onClick={() => toggleReserveItemExpansion(index)}
+                            className="mt-2 text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                          >
+                            Show less
+                          </button>
+                        </>
+                      ) : (
+                        // Show first 2 items with expand option
+                        <>
+                          {reserve.items.slice(0, 2).map((item, itemIndex) => (
+                            <div key={itemIndex}>• {item}</div>
+                          ))}
+                          {reserve.items.length > 2 && (
+                            <button
+                              onClick={() => toggleReserveItemExpansion(index)}
+                              className="mt-2 text-sm text-blue-400 hover:text-blue-300 transition-colors cursor-pointer"
+                            >
+                              ... and {reserve.items.length - 2} more (click to expand)
+                            </button>
+                          )}
+                        </>
                       )}
                     </div>
                   </div>
@@ -428,7 +462,7 @@ function UserWalletDetails() {
       )}
 
       {/* Wallet Management Actions */}
-      <div className="flex flex-wrap gap-4 border-t border-gray-600 pt-6">
+      <div className="flex gap-2 border-t border-gray-600 pt-6">
         <TransferBtn
           senderWallet={userWallet}
           issuerWallets={issuerWallets}
@@ -500,6 +534,7 @@ function AdminWalletsView() {
   const [walletAssets, setWalletAssets] = useState([]);
   const [loading, setLoading] = useState(false);
   const [walletBalances, setWalletBalances] = useState({});
+  const [expandedReserveItems, setExpandedReserveItems] = useState(new Set());
 
   // Constants for reserve calculation
   const BASE_RESERVE_XRP = 1; // Base reserve for an account in XRP
@@ -724,6 +759,18 @@ function AdminWalletsView() {
     await fetchIssuerWallets();
   };
 
+  const toggleReserveItemExpansion = (index) => {
+    setExpandedReserveItems(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
+  };
+
   if (selectedWallet) {
     return (
       <div className="space-y-6">
@@ -781,13 +828,34 @@ function AdminWalletsView() {
                   {reserve.items && reserve.items.length > 0 && (
                     <div className="ml-11 border-t border-gray-600 pt-2">
                       <div className="space-y-1 text-xs text-gray-500">
-                        {reserve.items.slice(0, 3).map((item, itemIndex) => (
-                          <div key={itemIndex}>• {item}</div>
-                        ))}
-                        {reserve.items.length > 3 && (
-                          <div className="text-gray-600">
-                            ... and {reserve.items.length - 3} more
-                          </div>
+                        {expandedReserveItems.has(index) ? (
+                          // Show all items when expanded
+                          <>
+                            {reserve.items.map((item, itemIndex) => (
+                              <div key={itemIndex}>• {item}</div>
+                            ))}
+                            <button
+                              onClick={() => toggleReserveItemExpansion(index)}
+                              className="mt-1 text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                            >
+                              Show less
+                            </button>
+                          </>
+                        ) : (
+                          // Show first 3 items with expand option
+                          <>
+                            {reserve.items.slice(0, 3).map((item, itemIndex) => (
+                              <div key={itemIndex}>• {item}</div>
+                            ))}
+                            {reserve.items.length > 3 && (
+                              <button
+                                onClick={() => toggleReserveItemExpansion(index)}
+                                className="mt-1 text-xs text-blue-400 hover:text-blue-300 transition-colors cursor-pointer"
+                              >
+                                ... and {reserve.items.length - 3} more (click to expand)
+                              </button>
+                            )}
+                          </>
                         )}
                       </div>
                     </div>
@@ -917,8 +985,8 @@ function AdminWalletsView() {
                 </div>
 
                 {/* Wallet Management Options */}
-                <div className="flex flex-wrap justify-between gap-2 border-t border-gray-600 pt-4">
-                  <div className="flex flex-row">
+                <div className="flex justify-between gap-2 border-t border-gray-600 pt-4">
+                  <div className="flex flex-row gap-2">
                     {/* Transfer Button - Available for all wallets */}
                     <TransferBtn
                       senderWallet={wallet}
@@ -955,11 +1023,11 @@ function AdminWalletsView() {
                       View Details
                     </Button>
                   </div>
+                </div>
                   <DeleteWalletBtn
                     classicAddress={wallet.classicAddress}
                     onWalletDeleted={handleDeleteWallet}
                   />
-                </div>
               </div>
             );
           })}
