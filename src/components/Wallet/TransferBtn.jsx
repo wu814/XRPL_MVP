@@ -6,6 +6,7 @@ import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
 import CurrencyDropDown from "../Currency/CurrencyDropDown";
 import SlippagePanel from "../SlippagePanel";
+import { Settings } from "lucide-react";
 import { useSession } from "next-auth/react";
 
 export default function TransferBtn({
@@ -117,7 +118,7 @@ export default function TransferBtn({
       const result = await res.json();
       if (!res.ok) throw new Error(result.error);
       setSuccessMessage(result.message || "Payment sent!");
-      
+
       // Call the onSuccess callback if provided
       if (onSuccess) {
         onSuccess();
@@ -152,22 +153,7 @@ export default function TransferBtn({
               </h2>
               {paymentType === "convertable" && (
                 <button onClick={() => setShowSlippagePanel((prev) => !prev)}>
-                  <svg
-                    className="h-6 w-6 text-mutedText hover:text-primary"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeWidth="2"
-                      d="M20 6H10m0 0a2 2 0 1 0-4 0m4 0a2 2 0 1 1-4 0m0 0H4m16 6h-2m0 0a2 2 0 1 0-4 0m4 0a2 2 0 1 1-4 0m0 0H4m16 6H10m0 0a2 2 0 1 0-4 0m4 0a2 2 0 1 1-4 0m0 0H4"
-                    />
-                  </svg>
+                  <Settings className="h-5 w-5 text-gray-400 hover:text-white" />
                 </button>
               )}
               {showSlippagePanel && (

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter, usePathname } from "next/navigation"
-import { Home, Wallet, TrendingUp, User, Settings, Receipt } from "lucide-react"
+import { Home, Wallet, TrendingUp, User, Settings, Receipt, Image } from "lucide-react"
 
 export default function Sidebar() {
   const { data: session, status } = useSession()
@@ -43,14 +43,19 @@ export default function Sidebar() {
       path: session.user.role === "ADMIN" ? "/wallet" : "/assets"
     },
     {
-      name: "Transactions",
-      icon: Receipt,
-      path: "/transactions"
-    },
-    {
       name: "Advanced Trading",
       icon: TrendingUp,
       path: "/trade"
+    },
+    {
+      name: session.user.role === "BUSINESS" ? "Mint NFT" : "Buy NFT",
+      icon: Image,
+      path: "/nft"
+    },
+    {
+      name: "Transactions",
+      icon: Receipt,
+      path: "/transactions"
     },
     {
       name: "Friends",
