@@ -59,7 +59,7 @@ export default function ProfilePage() {
   return (
     <CurrentUserWalletProvider>
       <IssuerWalletProvider>
-        <div className="min-h-screen bg-color1 p-8 ml-64" style={{ maxWidth: 'calc(100vw - 16rem - 32rem)' }}>
+        <div className="min-h-screen bg-color1 p-8 " style={{ maxWidth: 'calc(100vw - 16rem - 32rem)' }}>
           {/* Search Bar */}
           <div className="mb-8">
             <div className="max-w-lg mx-auto">
@@ -117,7 +117,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Trade Panel - Always visible for consistency */}
-        {session && <TradePanel user={session.user} session={session} />}
+        {session && <TradePanel />}
       </IssuerWalletProvider>
     </CurrentUserWalletProvider>
   );

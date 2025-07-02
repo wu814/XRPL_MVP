@@ -1,49 +1,17 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useSession, signOut } from "next-auth/react"
+import { useSession } from "next-auth/react"
 import { useRouter, usePathname } from "next/navigation"
-import { Home, Wallet, TrendingUp, User, Settings, LogOut, ChevronDown, Receipt } from "lucide-react"
+import { Home, Wallet, TrendingUp, User, Settings, Receipt } from "lucide-react"
 
 export default function Sidebar() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const pathname = usePathname()
-  const [activeTab, setActiveTab] = useState("Home")
 
-  // Determine active tab based on current path and query params
-  useEffect(() => {
-    if (pathname === "/wallet") {
-      const urlParams = new URLSearchParams(window.location.search)
-      const tab = urlParams.get('tab')
-      if (tab === 'assets') {
-        setActiveTab(session?.user?.role === "ADMIN" ? "My Wallets" : "My Assets")
-      } else if (tab === 'transactions') {
-        setActiveTab("Transactions")
-      } else {
-        setActiveTab("Home")
-      }
-    } else if (pathname.startsWith("/trade")) {
-      setActiveTab("Advanced Trading")
-    } else if (pathname.startsWith("/profile")) {
-      setActiveTab("Friends")
-    } else if (pathname.startsWith("/settings")) {
-      setActiveTab("Settings")
-    }
-  }, [pathname, session])
-
-  const handleNavigation = (tab, path, queryParams = null) => {
-    setActiveTab(tab)
-    if (queryParams) {
-      router.push(`${path}?${queryParams}`)
-    } else {
-      router.push(path)
-    }
-  }
-
-  const handleLogout = async () => {
-    await signOut({ redirect: false })
-    router.push("/")
+  const handleNavigation = (path) => {
+    router.push(path)
   }
 
   if (status === "loading") {
@@ -67,20 +35,17 @@ export default function Sidebar() {
     {
       name: "Home",
       icon: Home,
-      path: "/wallet",
-      queryParams: null
+      path: "/home"
     },
     {
       name: session.user.role === "ADMIN" ? "My Wallets" : "My Assets",
       icon: Wallet,
-      path: "/wallet",
-      queryParams: "tab=assets"
+      path: session.user.role === "ADMIN" ? "/wallet" : "/assets"
     },
     {
       name: "Transactions",
       icon: Receipt,
-      path: "/wallet",
-      queryParams: "tab=transactions"
+      path: "/transactions"
     },
     {
       name: "Advanced Trading",
@@ -114,12 +79,14 @@ export default function Sidebar() {
         <ul className="space-y-2">
           {navigationItems.map((item) => {
             const Icon = item.icon
-            const isActive = activeTab === item.name
+            const isActive = pathname === item.path || 
+              (item.path === "/trade" && pathname.startsWith("/trade")) ||
+              (item.path.startsWith("/profile") && pathname.startsWith("/profile"))
             
             return (
               <li key={item.name}>
                 <button
-                  onClick={() => handleNavigation(item.name, item.path, item.queryParams)}
+                  onClick={() => handleNavigation(item.path)}
                   className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
                     isActive
                       ? "bg-blue-600 text-white"
@@ -135,9 +102,9 @@ export default function Sidebar() {
         </ul>
       </nav>
 
-      {/* User Info */}
+      {/* User Info - Removed logout button */}
       <div className="border-t border-gray-700 pt-4">
-        <div className="flex items-center space-x-3 mb-3">
+        <div className="flex items-center space-x-3">
           <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
             <User className="w-5 h-5 text-gray-300" />
           </div>
@@ -150,14 +117,6 @@ export default function Sidebar() {
             </p>
           </div>
         </div>
-        
-        <button
-          onClick={handleLogout}
-          className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:bg-red-600 hover:text-white transition-colors"
-        >
-          <LogOut className="w-5 h-5" />
-          <span>Log Out</span>
-        </button>
       </div>
     </div>
   )

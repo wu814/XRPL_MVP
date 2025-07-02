@@ -9,7 +9,7 @@ export default function AMM() {
 
   if (status === "loading") {
     return (
-      <div className="min-h-screen bg-color1 p-8 ml-64">
+      <div className="min-h-screen bg-color1 p-8 ">
         <div className="animate-pulse">
           <div className="h-8 bg-gray-600 rounded w-48 mb-8"></div>
           <div className="h-32 bg-gray-600 rounded mb-6"></div>
@@ -21,7 +21,7 @@ export default function AMM() {
 
   if (!session) {
     return (
-      <div className="min-h-screen bg-color1 p-8 ml-64">
+      <div className="min-h-screen bg-color1 p-8 ">
         <div className="text-center py-20">
           <h1 className="text-2xl font-bold text-gray-400">Please log in to access liquidity pools</h1>
         </div>
@@ -30,13 +30,7 @@ export default function AMM() {
   }
 
   return (
-    <div className="min-h-screen bg-color1 p-3 ml-64">
-      {/* Page Header */}
-      <div className="mb-4">
-        <h1 className="text-2xl font-bold mb-1">Liquidity Pools</h1>
-        <p className="text-gray-400 text-sm">Automated Market Maker trading pools</p>
-      </div>
-
+    <div className="min-h-screen bg-color1 p-3 ">
       {/* Breadcrumbs */}
       <div className="mb-4">
         <Breadcrumbs />

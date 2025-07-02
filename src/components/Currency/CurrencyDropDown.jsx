@@ -34,7 +34,7 @@ export default function CurrencyDropDown({
                   alt={selectedCurrency.name}
                   className="h-6 w-6 rounded-full"
                 />
-                <span>{selectedCurrency.name}</span>
+                <span>{selectedCurrency.id}</span>
               </>
             ) : (
               <span className="text-mutedText">Select</span>

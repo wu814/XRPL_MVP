@@ -13,7 +13,7 @@ import { useIssuerWallet } from "@/components/Wallet/IssuerWalletProvider";
 import { availableCurrencies } from "@/utils/currencies";
 import { useSession } from "next-auth/react";
 
-export default function TradePanel({ user, session }) {
+export default function TradePanel() {
   const { data: sessionData, status } = useSession();
   const [activeTab, setActiveTab] = useState("Convert");
 
@@ -336,7 +336,7 @@ export default function TradePanel({ user, session }) {
 
   return (
     <>
-      <div className="w-[32rem] fixed right-0 top-0 h-full bg-color2 border-l border-gray-700 overflow-y-auto">
+      <div className="w-[32rem] fixed right-0 top-24 h-full bg-color2 border-l border-gray-700 overflow-y-auto">
         {/* Smart Trade Header */}
         <div className="p-6 border-b border-gray-600 text-center relative">
           <h2 className="text-2xl font-bold text-white">Smart Trade</h2>
