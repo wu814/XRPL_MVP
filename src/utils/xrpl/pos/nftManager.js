@@ -479,7 +479,7 @@ export async function purchaseNFTWithSmartTrade(issuerWalletAddress, offerID, pa
     console.log(`✅ Currency conversion completed!`);
     console.log(`   📋 Transaction Hash: ${conversionResult.txHash}`);
     console.log(`   💰 Amount Sent: ${conversionResult.amountSent}`);
-    console.log(`   💵 Amount Delivered: ${Number(conversionResult.amountDelivered).toFixed(2)}`);
+    console.log(`   💵 Amount Delivered: ${conversionResult.amountDelivered}`);
       
     const conversionHash = conversionResult.txHash;
     

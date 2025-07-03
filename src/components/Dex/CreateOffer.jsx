@@ -114,6 +114,7 @@ export default function CreateOffer({ baseCurrency, quoteCurrency }) {
           </label>
           <input
             type="number"
+            step="0.000001"
             placeholder="0.00"
             value={limitPrice}
             onChange={(e) => setLimitPrice(e.target.value)}
@@ -128,6 +129,7 @@ export default function CreateOffer({ baseCurrency, quoteCurrency }) {
           </label>
           <input
             type="number"
+            step="0.000001"
             placeholder="0.00"
             value={quantity}
             onChange={(e) => setQuantity(e.target.value)}

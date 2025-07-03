@@ -145,6 +145,7 @@ export default function SwapLiquidity({ ammInfo, onSwapped }) {
           </div>
           <input
             type="number"
+            step="0.000001"
             value={sellAmount}
             onChange={handleSellAmountChange}
             placeholder="0.00"
@@ -187,6 +188,7 @@ export default function SwapLiquidity({ ammInfo, onSwapped }) {
         </div>
         <input
           type="number"
+          step="0.000001"
           value={buyAmount}
           onChange={handleBuyAmountChange}
           placeholder="0.00"

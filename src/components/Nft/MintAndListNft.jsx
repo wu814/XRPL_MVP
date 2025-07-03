@@ -113,7 +113,7 @@ export default function MintAndListNft() {
             </label>
             <input
               type="number"
-              step="0.01"
+              step="0.000001"
               min="0.01"
               value={priceUSD}
               onChange={(e) => setPriceUSD(e.target.value)}
@@ -150,6 +150,7 @@ export default function MintAndListNft() {
             </label>
             <input
               type="number"
+              step="0.000001"
               value={taxon}
               onChange={(e) => setTaxon(e.target.value)}
               placeholder="1001"

@@ -55,7 +55,7 @@ export default function AssetTable({ assets = [] }) {
   };
 
   return (
-    <div className="w-full bg-color2 rounded-lg border border-gray-700">
+    <div className="w-full bg-color2 border border-gray-700">
       <div className="p-4 border-b border-gray-700">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold">Assets</h2>

@@ -336,7 +336,7 @@ export default function TradePanel() {
 
   return (
     <>
-      <div className="w-[32rem] fixed right-0 top-24 h-full bg-color2 border-l border-gray-700 overflow-y-auto">
+      <div className="w-[32rem] fixed right-0 top-24 bottom-0 bg-color2 border-l border-gray-700 overflow-y-auto">
         {/* Smart Trade Header */}
         <div className="p-6 border-b border-gray-600">
           <div className="flex flex-row justify-between items-center relative">
@@ -400,6 +400,7 @@ export default function TradePanel() {
                   <div className="flex flex-col items-end">
                     <input
                       type="number"
+                      step="0.000001"
                       value={sellAmount}
                       onChange={handleSellAmountChange}
                       placeholder="0.00"
@@ -446,6 +447,7 @@ export default function TradePanel() {
                   </div>
                   <input
                     type="number"
+                    step="0.000001"
                     value={buyAmount}
                     onChange={handleBuyAmountChange}
                     placeholder="0.00"
@@ -582,6 +584,7 @@ export default function TradePanel() {
                         <label className="block text-sm text-gray-400 mb-2">Send Amount</label>
                         <input
                           type="number"
+                          step="0.000001"
                           min="0"
                           value={sendAmount}
                           onChange={handleSendAmountChangeForPayment}
@@ -594,6 +597,7 @@ export default function TradePanel() {
                         <label className="block text-sm text-gray-400 mb-2">Receive Amount</label>
                         <input
                           type="number"
+                          step="0.000001"
                           min="0"
                           value={receiveAmount}
                           onChange={handleReceiveAmountChangeForPayment}
@@ -624,6 +628,7 @@ export default function TradePanel() {
                       <label className="block text-sm text-gray-400 mb-2">Amount</label>
                       <input
                         type="number"
+                        step="0.000001"
                         min="0"
                         value={amount}
                         onChange={(e) => setAmount(e.target.value)}

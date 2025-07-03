@@ -158,6 +158,7 @@ export default function WithdrawLiquidity({ ammInfo, onWithdrawn }) {
           <>
             <input
               type="number"
+              step="0.000001"
               value={amountA}
               onChange={(e) => setAmountA(e.target.value)}
               placeholder={`Desire ${token1?.currency || "Token A"} amount`}
@@ -165,6 +166,7 @@ export default function WithdrawLiquidity({ ammInfo, onWithdrawn }) {
             />
             <input
               type="number"
+              step="0.000001"
               value={amountB}
               onChange={(e) => setAmountB(e.target.value)}
               placeholder={`Desire ${token2?.currency || "Token B"} amount`}
@@ -197,6 +199,7 @@ export default function WithdrawLiquidity({ ammInfo, onWithdrawn }) {
         {(mode === "lpToken" || mode === "singleAssetLp") && (
           <input
             type="number"
+            step="0.000001"
             value={lpTokenAmount}
             onChange={(e) => setLpTokenAmount(e.target.value)}
             placeholder="LP Token Amount"

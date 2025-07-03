@@ -206,6 +206,7 @@ export default function AddLiquidity({ ammInfo, onAdded }) {
           </div>
           <input
             type="number"
+            step="0.000001"
             placeholder="0.00"
             value={value}
             onChange={(e) => setValue(e.target.value)}
@@ -224,6 +225,7 @@ export default function AddLiquidity({ ammInfo, onAdded }) {
         <label className="mb-2 block text-sm text-mutedText">Desired LP Token Amount</label>
         <input
           type="number"
+          step="0.000001"
           placeholder="0.00"
           value={lpAmount}
           onChange={(e) => setLpAmount(e.target.value)}

@@ -44,6 +44,7 @@ export default function CreateAmmMdl({
             <label className="mb-1 block text-mutedText text-sm">Amount A</label>
             <input
               type="number"
+              step="0.000001"
               className="bg-color5 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
               value={amountA}
               placeholder="0.00"
@@ -65,6 +66,7 @@ export default function CreateAmmMdl({
             <label className="mb-1 block text-mutedText text-sm">Amount B</label>
             <input
               type="number"
+              step="0.000001"
               className="bg-color5 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
               value={amountB}
               placeholder="0.00"
@@ -76,6 +78,7 @@ export default function CreateAmmMdl({
             <label className="mb-1 block text-mutedText text-sm">Fee (0-1000, integer only)</label>
             <input
               type="number"
+              step="0.000001"
               className="bg-color5 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
               value={fee}
               placeholder="1000 = 1%"
