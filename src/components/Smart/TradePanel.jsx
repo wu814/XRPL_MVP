@@ -400,7 +400,7 @@ export default function TradePanel() {
                       type="number"
                       value={sellAmount}
                       onChange={handleSellAmountChange}
-                      placeholder="0.0"
+                      placeholder="0.00"
                       className={`bg-transparent text-right text-4xl font-light outline-none text-white w-48 ${!!buyAmount ? "cursor-not-allowed opacity-60" : ""}`}
                       min="0"
                       disabled={!!buyAmount}
@@ -446,7 +446,7 @@ export default function TradePanel() {
                     type="number"
                     value={buyAmount}
                     onChange={handleBuyAmountChange}
-                    placeholder="0.0"
+                    placeholder="0.00"
                     className={`bg-transparent text-right text-4xl font-light outline-none text-white w-48 ${!!sellAmount ? "cursor-not-allowed opacity-60" : ""}`}
                     min="0"
                     disabled={!!sellAmount}
@@ -584,7 +584,7 @@ export default function TradePanel() {
                           value={sendAmount}
                           onChange={handleSendAmountChangeForPayment}
                           className={`w-full bg-color3 border border-gray-600 rounded-lg px-4 py-3 outline-none focus:border-blue-500 ${convertInputType === "exact_output" ? "cursor-not-allowed opacity-60" : ""}`}
-                          placeholder="Enter amount"
+                          placeholder="0.00"
                           disabled={convertInputType === "exact_output"}
                         />
                       </div>
@@ -596,7 +596,7 @@ export default function TradePanel() {
                           value={receiveAmount}
                           onChange={handleReceiveAmountChangeForPayment}
                           className={`w-full bg-color3 border border-gray-600 rounded-lg px-4 py-3 outline-none focus:border-blue-500 ${convertInputType === "exact_input" ? "cursor-not-allowed opacity-60" : ""}`}
-                          placeholder="Enter amount"
+                          placeholder="0.00"
                           disabled={convertInputType === "exact_input"}
                         />
                       </div>
@@ -626,7 +626,7 @@ export default function TradePanel() {
                         value={amount}
                         onChange={(e) => setAmount(e.target.value)}
                         className="w-full bg-color3 border border-gray-600 rounded-lg px-4 py-3 outline-none focus:border-blue-500"
-                        placeholder="Enter amount..."
+                        placeholder="0.00"
                         required
                       />
                     </div>

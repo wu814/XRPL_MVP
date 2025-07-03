@@ -46,7 +46,7 @@ export default function CreateAmmMdl({
               type="number"
               className="bg-color5 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
               value={amountA}
-              placeholder="Enter amount..."
+              placeholder="0.00"
               onChange={(e) => setAmountA(e.target.value)}
             />
           </div>
@@ -67,7 +67,7 @@ export default function CreateAmmMdl({
               type="number"
               className="bg-color5 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
               value={amountB}
-              placeholder="Enter amount..."
+              placeholder="0.00"
               onChange={(e) => setAmountB(e.target.value)}
             />
           </div>

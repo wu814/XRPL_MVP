@@ -268,7 +268,7 @@ export default function TransferBtn({
                       value={sendAmount}
                       onChange={handleSendAmountChange}
                       className={`mt-1 w-full rounded-lg border border-transparent bg-color5 p-2 hover:border-primary focus:border-primary focus:outline-none ${convertInputType === "exact_output" ? "cursor-not-allowed opacity-60" : ""}`}
-                      placeholder="Enter amount"
+                      placeholder="0.00"
                       disabled={convertInputType === "exact_output"}
                     />
                   </div>
@@ -282,7 +282,7 @@ export default function TransferBtn({
                       value={receiveAmount}
                       onChange={handleReceiveAmountChange}
                       className={`mt-1 w-full rounded-lg border border-transparent bg-color5 p-2 hover:border-primary focus:border-primary focus:outline-none ${convertInputType === "exact_input" ? "cursor-not-allowed opacity-60" : ""}`}
-                      placeholder="Enter amount"
+                      placeholder="0.00"
                       disabled={convertInputType === "exact_input"}
                     />
                   </div>
@@ -309,7 +309,7 @@ export default function TransferBtn({
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                     className="mt-1 w-full rounded-lg border border-transparent bg-color5 p-2 hover:border-primary focus:border-primary focus:outline-none"
-                    placeholder="Enter amount..."
+                    placeholder="0.00"
                   />
                 </div>
               </>

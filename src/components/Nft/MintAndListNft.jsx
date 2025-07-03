@@ -100,7 +100,7 @@ export default function MintAndListNft() {
             <input
               value={uri}
               onChange={(e) => setUri(e.target.value)}
-              placeholder="https://yourdomain.com/metadata/nft.json"
+              placeholder="Enter your metadata URI"
               className="w-full bg-color3 border border-transparent rounded-lg p-3 hover:border-primary focus:border-primary focus:outline-none"
               required
             />
@@ -117,7 +117,7 @@ export default function MintAndListNft() {
               min="0.01"
               value={priceUSD}
               onChange={(e) => setPriceUSD(e.target.value)}
-              placeholder="10.00"
+              placeholder="0.00"
               className="w-full bg-color3 border border-transparent rounded-lg p-3 hover:border-primary focus:border-primary focus:outline-none"
               required
             />
@@ -135,7 +135,7 @@ export default function MintAndListNft() {
               type="text"
               value={destination}
               onChange={(e) => setDestination(e.target.value)}
-              placeholder="rXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+              placeholder="Enter destination address"
               className="w-full bg-color3 border border-transparent rounded-lg p-3 hover:border-primary focus:border-primary focus:outline-none"
             />
             <p className="text-xs text-mutedText mt-1">

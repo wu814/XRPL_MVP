@@ -147,7 +147,7 @@ export default function SwapLiquidity({ ammInfo, onSwapped }) {
             type="number"
             value={sellAmount}
             onChange={handleSellAmountChange}
-            placeholder="0.0"
+            placeholder="0.00"
             className={`bg-transparent text-right text-xl focus:outline-none ${!!buyAmount ? "cursor-not-allowed opacity-60" : ""}`}
             min="0"
             disabled={!!buyAmount}
@@ -189,7 +189,7 @@ export default function SwapLiquidity({ ammInfo, onSwapped }) {
           type="number"
           value={buyAmount}
           onChange={handleBuyAmountChange}
-          placeholder="0.0"
+          placeholder="0.00"
           className={`bg-transparent text-right text-xl focus:outline-none ${!!sellAmount ? "cursor-not-allowed opacity-60" : ""}`}
           min="0"
           disabled={!!sellAmount}
