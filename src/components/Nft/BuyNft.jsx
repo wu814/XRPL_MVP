@@ -102,9 +102,9 @@ export default function BuyNft() {
 
   return (
     <div className="w-full max-w-md mx-auto">
-      <div className="bg-color4 rounded-lg p-6">
-        <h2 className="text-2xl font-bold text-primary mb-6 text-center">
-          🛒 Buy NFT
+      <div className="bg-color2 rounded-lg p-6">
+        <h2 className="text-2xl font-bold text-primary mb-6">
+          Buy NFT
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -161,7 +161,7 @@ export default function BuyNft() {
 
           {/* Info Text */}
           <div className="text-xs text-mutedText text-center">
-            <p>💡 Smart conversion will automatically exchange your chosen currency for the NFT's required currency</p>
+            <p>💡 Smart conversion will automatically exchange your chosen currency for the NFT's required currency (USD)</p>
           </div>
         </form>
       </div>

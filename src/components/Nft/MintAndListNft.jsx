@@ -96,9 +96,9 @@ export default function MintAndListNft() {
 
   return (
     <div className="w-full max-w-md mx-auto">
-      <div className="bg-color4 rounded-lg p-6">
-        <h2 className="text-2xl font-bold text-primary mb-6 text-center">
-          🎫 Mint & List NFT
+      <div className="bg-color2 rounded-lg p-6">
+        <h2 className="text-2xl font-bold text-primary mb-6">
+          Mint & List NFT
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -192,7 +192,6 @@ export default function MintAndListNft() {
           {/* Info Text */}
           <div className="text-xs text-mutedText text-center">
             <p>🏢 Business wallets mint NFTs and list them on DEX for USD</p>
-            <p>💡 NFTs are automatically burnable and transferable</p>
           </div>
         </form>
       </div>

@@ -22,6 +22,12 @@ const getTransactionIcon = (direction, type) => {
       return <div className="w-4 h-4 rounded-full bg-cyan-400 flex items-center justify-center text-xs font-bold text-white">D</div>;
     case "amm_withdraw":
       return <div className="w-4 h-4 rounded-full bg-orange-400 flex items-center justify-center text-xs font-bold text-white">W</div>;
+    case "nft_mint":
+      return <div className="w-4 h-4 rounded-full bg-pink-400 flex items-center justify-center text-xs font-bold text-white">M</div>;
+    case "nft_create_offer":
+      return <div className="w-4 h-4 rounded-full bg-indigo-400 flex items-center justify-center text-xs font-bold text-white">O</div>;
+    case "nft_accept_offer":
+      return <div className="w-4 h-4 rounded-full bg-emerald-400 flex items-center justify-center text-xs font-bold text-white">A</div>;
     default:
       return <Clock className="w-4 h-4 text-gray-400" />;
   }
@@ -45,6 +51,12 @@ const getTransactionColor = (direction) => {
       return "text-cyan-400";
     case "amm_withdraw":
       return "text-orange-400";
+    case "nft_mint":
+      return "text-pink-400";
+    case "nft_create_offer":
+      return "text-indigo-400";
+    case "nft_accept_offer":
+      return "text-emerald-400";
     default:
       return "text-gray-400";
   }
@@ -68,6 +80,12 @@ const formatTransactionType = (type, direction) => {
       return "AMM Deposit";
     case "amm_withdraw":
       return "AMM Withdraw";
+    case "nft_mint":
+      return "NFT Mint";
+    case "nft_create_offer":
+      return "NFT Create Offer";
+    case "nft_accept_offer":
+      return "NFT Accept Offer";
     default:
       return type || "Unknown";
   }
@@ -75,7 +93,7 @@ const formatTransactionType = (type, direction) => {
 
 const formatAddress = (address) => {
   if (!address) return "N/A";
-  return `${address.slice(0, 8)}...${address.slice(-6)}`;
+  return `${address}`;
 };
 
 const formatAmount = (amount, currency) => {
@@ -138,7 +156,7 @@ export default function TransactionHistory() {
         requestBody.marker = marker;
       }
 
-      const response = await fetch("/api/wallets/getAccountTransactions", {
+      const response = await fetch("/api/transactions/getAccountTransactions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestBody),

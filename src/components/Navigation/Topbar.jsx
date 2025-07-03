@@ -51,7 +51,7 @@ export default function Topbar() {
     <div className="fixed justify-between left-64 right-0 top-0 z-40 flex h-24 items-center border-b border-gray-700 bg-color2 px-6">
       {/* Page Title */}
       <div className="flex">
-        <h1 className="mr-6 text-3xl font-bold text-white">{getPageTitle()}</h1>
+        <h1 className="ml-8 text-4xl font-bold text-white">{getPageTitle()}</h1>
       </div>
       <div className="flex flex-row items-center">
         {/* Search Bar */}

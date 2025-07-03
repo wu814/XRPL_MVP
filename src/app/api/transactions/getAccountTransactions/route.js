@@ -2,6 +2,97 @@ import { NextResponse } from "next/server";
 import { client, connectXrplClient } from "@/utils/xrpl/testnet";
 import * as xrpl from "xrpl";
 
+// Function to extract NFT Token ID from transaction metadata
+function extractNftTokenId(txData) {
+  const meta = txData.meta;
+  if (!meta || !meta.AffectedNodes) return null;
+
+  for (const node of meta.AffectedNodes) {
+    if (node.CreatedNode?.LedgerEntryType === "NFTokenPage") {
+      const nftPage = node.CreatedNode;
+      if (nftPage.NewFields?.NFTokens && nftPage.NewFields.NFTokens.length > 0) {
+        return nftPage.NewFields.NFTokens[0].NFToken?.NFTokenID;
+      }
+    }
+    if (node.ModifiedNode?.LedgerEntryType === "NFTokenPage") {
+      const nftPage = node.ModifiedNode;
+      if (nftPage.FinalFields?.NFTokens && nftPage.PreviousFields?.NFTokens) {
+        const finalTokens = nftPage.FinalFields.NFTokens;
+        const prevTokens = nftPage.PreviousFields.NFTokens;
+        
+        // Find the newly added token
+        for (const token of finalTokens) {
+          const tokenId = token.NFToken?.NFTokenID;
+          if (tokenId && !prevTokens.some(prevToken => prevToken.NFToken?.NFTokenID === tokenId)) {
+            return tokenId;
+          }
+        }
+      }
+    }
+  }
+  return null;
+}
+
+// Function to extract NFT offer price from transaction metadata
+function extractNftOfferPrice(txData, tx) {
+  // First check if there's a direct Amount in the transaction
+  if (tx.Amount) {
+    return formatAmount(tx.Amount);
+  }
+
+  // Check metadata for offer information
+  const meta = txData.meta;
+  if (!meta || !meta.AffectedNodes) return null;
+
+  for (const node of meta.AffectedNodes) {
+    if (node.CreatedNode?.LedgerEntryType === "NFTokenOffer") {
+      const offer = node.CreatedNode;
+      if (offer.NewFields?.Amount) {
+        return formatAmount(offer.NewFields.Amount);
+      }
+    }
+    if (node.DeletedNode?.LedgerEntryType === "NFTokenOffer") {
+      const offer = node.DeletedNode;
+      // For NFTokenAcceptOffer, the offer is deleted, so we need to check FinalFields
+      if (offer.FinalFields?.Amount) {
+        return formatAmount(offer.FinalFields.Amount);
+      }
+      // Also check PreviousFields as a fallback
+      if (offer.PreviousFields?.Amount) {
+        return formatAmount(offer.PreviousFields.Amount);
+      }
+    }
+    if (node.ModifiedNode?.LedgerEntryType === "NFTokenOffer") {
+      const offer = node.ModifiedNode;
+      if (offer.FinalFields?.Amount) {
+        return formatAmount(offer.FinalFields.Amount);
+      }
+      if (offer.PreviousFields?.Amount) {
+        return formatAmount(offer.PreviousFields.Amount);
+      }
+    }
+  }
+
+  // For NFTokenAcceptOffer, try to find the offer ID from the transaction fields
+  if (tx.TransactionType === "NFTokenAcceptOffer") {
+    const offerId = tx.NFTokenSellOffer || tx.NFTokenBuyOffer;
+    if (offerId) {
+      // Look for the specific offer in the metadata
+      for (const node of meta.AffectedNodes) {
+        if (node.DeletedNode?.LedgerEntryType === "NFTokenOffer" && 
+            node.DeletedNode?.LedgerIndex === offerId) {
+          const offer = node.DeletedNode;
+          if (offer.FinalFields?.Amount) {
+            return formatAmount(offer.FinalFields.Amount);
+          }
+        }
+      }
+    }
+  }
+
+  return null;
+}
+
 // Function to extract deposited amounts from AMM deposit transaction metadata
 function extractAmmDepositAmounts(txData, senderAddress) {
   const meta = txData.meta;
@@ -315,6 +406,41 @@ export async function POST(req) {
             counterparty = tx.Amount?.issuer;
             amount = tx.Amount?.value || "Clawback";
             currency = tx.Amount?.currency || "Unknown";
+            break;
+
+          case "NFTokenMint":
+            direction = "nft_mint";
+            const tokenId = extractNftTokenId(txData);
+            if (tokenId) {
+              amount = `Token ID: ${tokenId}`;
+            } else {
+              amount = tx.NFTokenTaxon ? `NFT #${tx.NFTokenTaxon}` : "NFT Minted";
+            }
+            currency = "";
+            break;
+
+          case "NFTokenCreateOffer":
+            direction = "nft_create_offer";
+            counterparty = tx.Owner || tx.Destination;
+            const offerPrice = extractNftOfferPrice(txData, tx);
+            if (offerPrice) {
+              amount = `${offerPrice}`;
+            } else {
+              amount = "NFT Offer Created";
+            }
+            currency = "";
+            break;
+
+          case "NFTokenAcceptOffer":
+            direction = "nft_accept_offer";
+            counterparty = tx.NFTokenSellOffer || tx.NFTokenBuyOffer;
+            const acceptPrice = extractNftOfferPrice(txData, tx);
+            if (acceptPrice) {
+              amount = `${acceptPrice}`;
+            } else {
+              amount = "NFT Offer Accepted";
+            }
+            currency = "";
             break;
 
           default:
