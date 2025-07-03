@@ -166,12 +166,12 @@ export default function MintAndListNft() {
             disabled={loading}
             className="w-full"
           >
-            {loading ? "Processing..." : "🎫 Mint & List NFT"}
+            {loading ? "Processing..." : "Mint & List NFT"}
           </Button>
 
           {/* Info Text */}
           <div className="text-xs text-mutedText text-center">
-            <p>🏢 Business wallets mint NFTs and list them on DEX for USD</p>
+            <p>Business wallets mint NFTs and list them on DEX for USD</p>
           </div>
         </form>
       </div>

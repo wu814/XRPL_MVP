@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+
 export default function SlippagePanel({ slippage, setSlippage, onClose }) {
   // Slippage is now stored as a simple percentage value (e.g., 5 for 5%)
 
@@ -19,9 +20,9 @@ export default function SlippagePanel({ slippage, setSlippage, onClose }) {
 
   return (
     <div
-      className={`absolute right-2 top-10 z-10 w-3/5 rounded-lg bg-color6 p-4 border border-border`}
+      className={`flex flex-col absolute right-2 top-10 z-10 w-3/5 rounded-lg bg-color6 p-4 border border-border`}
     >
-      <label className="mb-1 block text-sm font-medium">
+      <label className="mb-2 font-medium">
         Slippage Tolerance
       </label>
       <div className="relative flex flex-row">
@@ -35,16 +36,16 @@ export default function SlippagePanel({ slippage, setSlippage, onClose }) {
         />
         <p className="absolute right-2 top-2">%</p>
       </div>
-      <div className="mt-3 flex justify-end space-x-2">
+      <div className="mt-3 flex justify-end space-x-3">
         <button
           onClick={onClose}
-          className="text-sm text-mutedText hover:underline"
+          className="text-mutedText hover:underline"
         >
           Cancel
         </button>
         <button
           onClick={handleSave}
-          className="text-sm font-medium text-primary hover:underline"
+          className="font-medium text-primary hover:underline"
         >
           Save
         </button>

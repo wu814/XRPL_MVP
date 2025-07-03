@@ -338,22 +338,24 @@ export default function TradePanel() {
     <>
       <div className="w-[32rem] fixed right-0 top-24 h-full bg-color2 border-l border-gray-700 overflow-y-auto">
         {/* Smart Trade Header */}
-        <div className="flex flex-row justify-between items-center relative p-6 border-b border-gray-600 text-center">
-          <h2 className="text-2xl font-bold text-white">Smart Trade</h2>
-          {/* Slippage Settings Button - Show for both tabs */}
-          <button 
-            onClick={() => setShowSlippagePanel((prev) => !prev)}
-            className="p-2 hover:bg-color3 rounded-lg transition-colors"
-          >
-            <Settings className="w-5 h-5 text-gray-400 hover:text-white" />
-          </button>
-          {showSlippagePanel && (
-            <SlippagePanel
-              slippage={slippage}
-              setSlippage={setSlippage}
-              onClose={() => setShowSlippagePanel(false)}
-            />
-          )}
+        <div className="p-6 border-b border-gray-600">
+          <div className="flex flex-row justify-between items-center relative">
+            <h2 className="text-2xl font-bold text-white">Smart Trade / Payment</h2>
+            {/* Slippage Settings Button - Show for both tabs */}
+            <button 
+              onClick={() => setShowSlippagePanel((prev) => !prev)}
+              className="p-2 hover:bg-color3 rounded-lg transition-colors"
+            >
+              <Settings className="w-5 h-5 text-gray-400 hover:text-white" />
+            </button>
+            {showSlippagePanel && (
+              <SlippagePanel
+                slippage={slippage}
+                setSlippage={setSlippage}
+                onClose={() => setShowSlippagePanel(false)}
+              />
+            )}
+          </div>
         </div>
         
         {/* Trade Section */}
