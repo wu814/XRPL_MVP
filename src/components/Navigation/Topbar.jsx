@@ -25,6 +25,7 @@ export default function Topbar() {
     if (pathname === "/wallets" || pathname === "/wallet") return "My Wallets";
     if (pathname === "/transactions") return "Transactions";
     if (pathname === "/settings") return "Settings";
+    if (pathname === "/nft") return "NFT";
 
     // Handle trade routes
     if (pathname.startsWith("/trade")) {
