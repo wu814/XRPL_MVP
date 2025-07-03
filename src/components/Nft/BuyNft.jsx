@@ -76,18 +76,7 @@ export default function BuyNft() {
       }
 
       if (result.success) {
-        const data = result.data;
-        let message = "🎉 NFT purchased successfully!";
-        
-        if (data.conversionUsed) {
-          message += `\n💱 Currency conversion completed: ${data.amounts?.inputUsed} ${data.paymentCurrency} → ${data.amounts?.amountDelivered} ${data.nftCurrency}`;
-        }
-        
-        if (data.nftTransactionHash) {
-          message += `\n📋 Transaction: ${data.nftTransactionHash}`;
-        }
-
-        setSuccessMessage(message);
+        setSuccessMessage(result.message);
         setOfferID(""); // Clear form on success
       } else {
         throw new Error(result.error || "Purchase failed");
@@ -127,7 +116,7 @@ export default function BuyNft() {
           </div>
 
           {/* Payment Currency Selection */}
-          <div>
+          <div className="pb-4">
             <label className="block text-sm text-mutedText mb-1">
               Payment Currency
             </label>
@@ -141,22 +130,13 @@ export default function BuyNft() {
             </p>
           </div>
 
-          {/* Wallet Info Display */}
-          {userWallet && (
-            <div className="bg-color3 rounded-lg p-3">
-              <p className="text-xs text-mutedText">Payment Wallet:</p>
-              <p className="text-sm font-mono">{userWallet.classicAddress}</p>
-              <p className="text-xs text-mutedText">Type: {userWallet.walletType}</p>
-            </div>
-          )}
-
           {/* Submit Button */}
           <Button
             type="submit"
-            disabled={loading || !userWallet || !issuerWallet}
+            disabled={loading || !userWallet || !issuerWallet || !offerID}
             className="w-full"
           >
-            {loading ? "Processing Purchase..." : "🛒 Buy NFT"}
+            {loading ? "Processing Purchase..." : "Buy NFT"}
           </Button>
 
           {/* Info Text */}

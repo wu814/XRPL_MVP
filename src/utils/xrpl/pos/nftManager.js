@@ -1,4 +1,3 @@
-
 import { connectXrplClient, client } from '../testnet';
 import * as xrpl from 'xrpl';
 
@@ -309,6 +308,7 @@ export async function mintAndListNFTUSD(businessWalletSeed, issuerWalletAddress,
     return {
       success: true,
       workflow: "complete",
+      message: `✅ NFT minted and listed successfully!\n\n🎫 NFT ID: ${mintResult.nftTokenID}\n💰 Listed for: $${priceUSD} USD\n🆔 Offer ID: ${sellResult.offerID}`,
       nft: {
         nftTokenID: mintResult.nftTokenID,
         transactionHash: mintResult.transactionHash,
@@ -339,6 +339,7 @@ export async function mintAndListNFTUSD(businessWalletSeed, issuerWalletAddress,
     return {
       success: false,
       workflow: "failed",
+      message: `❌ NFT workflow failed: ${error.message}`,
       error: error.message,
       uri: uri,
       priceUSD: priceUSD
@@ -439,6 +440,7 @@ export async function purchaseNFTWithSmartTrade(issuerWalletAddress, offerID, pa
         
         return {
           success: true,
+          message: `🎉 NFT purchased successfully!\n\n🎫 NFT ID: ${nftTokenID}\n💰 Paid: ${requiredAmount} ${nftCurrency}\n📋 Transaction: ${response.result.hash}`,
           transactionHash: response.result.hash,
           buyer: userWallet.classicAddress,
           offerID: offerID,
@@ -477,7 +479,7 @@ export async function purchaseNFTWithSmartTrade(issuerWalletAddress, offerID, pa
     console.log(`✅ Currency conversion completed!`);
     console.log(`   📋 Transaction Hash: ${conversionResult.txHash}`);
     console.log(`   💰 Amount Sent: ${conversionResult.amountSent}`);
-    console.log(`   💵 Amount Delivered: ${conversionResult.amountDelivered}`);
+    console.log(`   💵 Amount Delivered: ${Number(conversionResult.amountDelivered).toFixed(2)}`);
       
     const conversionHash = conversionResult.txHash;
     
@@ -507,6 +509,7 @@ export async function purchaseNFTWithSmartTrade(issuerWalletAddress, offerID, pa
       
       return {
         success: true,
+        message: `🎉 NFT purchased successfully!\n\n🎫 NFT ID: ${nftTokenID}\n💱 Converted: ${conversionResult.amountSent} → ${conversionResult.amountDelivered}\n📋 Purchase: ${nftResponse.result.hash}\n🔄 Conversion: ${conversionHash}`,
         nftTransactionHash: nftResponse.result.hash,
         conversionTransactionHash: conversionHash,
         buyer: userWallet.classicAddress,

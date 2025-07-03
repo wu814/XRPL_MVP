@@ -63,8 +63,7 @@ export async function POST(req) {
       console.log(`✅ NFT purchase successful!`);
       return NextResponse.json({
         success: true,
-        message: "NFT purchased successfully!",
-        data: result
+        message: result.message,
       }, { status: 200 });
     } else {
       console.log(`❌ NFT purchase failed: ${result.error}`);

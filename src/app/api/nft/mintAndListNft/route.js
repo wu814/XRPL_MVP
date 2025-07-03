@@ -63,10 +63,7 @@ export async function POST(req) {
       console.log(`✅ NFT mint and list successful!`);
       return NextResponse.json({
         success: true,
-        message: result.workflow === "complete" 
-          ? "NFT minted and listed successfully!" 
-          : "NFT minted successfully but listing failed",
-        data: result
+        message: result.message,
       }, { status: 200 });
     } else {
       console.log(`❌ NFT mint and list failed: ${result.error}`);

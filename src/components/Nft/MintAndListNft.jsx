@@ -67,16 +67,7 @@ export default function MintAndListNft() {
       }
 
       if (result.success) {
-        const data = result.data;
-        let message = "🎉 NFT operation completed!";
-        
-        if (data.workflow === "complete") {
-          message = `✅ NFT minted and listed successfully!\n\n🎫 NFT ID: ${data.summary?.nftTokenID}\n💰 Listed for: ${data.summary?.price}\n🆔 Offer ID: ${data.summary?.offerID}`;
-        } else if (data.workflow === "partial") {
-          message = `⚠️ NFT minted but listing failed!\n\n🎫 NFT ID: ${data.nft?.nftTokenID}\n❌ Listing Error: ${data.sellOffer?.error}`;
-        }
-
-        setSuccessMessage(message);
+        setSuccessMessage(result.message);
         
         // Clear form on success
         setUri("");
@@ -87,7 +78,6 @@ export default function MintAndListNft() {
         throw new Error(result.error || "Operation failed");
       }
     } catch (error) {
-      console.error("❌ Mint and list error:", error);
       setErrorMessage(error.message);
     } finally {
       setLoading(false);
@@ -169,16 +159,6 @@ export default function MintAndListNft() {
               NFT collection identifier (1001 = Receipt NFTs)
             </p>
           </div>
-
-          {/* Price Preview */}
-          {priceUSD && !isNaN(parseFloat(priceUSD)) && (
-            <div className="bg-color3 rounded-lg p-3">
-              <p className="text-sm text-mutedText">Listing Preview:</p>
-              <p className="text-lg font-semibold text-primary">
-                ${parseFloat(priceUSD).toFixed(2)} USD
-              </p>
-            </div>
-          )}
 
           {/* Submit Button */}
           <Button

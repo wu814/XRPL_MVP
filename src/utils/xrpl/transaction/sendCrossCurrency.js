@@ -915,17 +915,3 @@ export async function sendCrossCurrency(
     throw error;
   }
 };
-
-/**
- * Send a cross-currency payment using AMM-only pathfinding (legacy/API endpoint)
- * This preserves the original AMM-only logic for backwards compatibility and API endpoints
- * @param {Wallet} senderWallet - The wallet sending the payment
- * @param {string} destinationAddress - The recipient's address
- * @param {string} sendCurrency - Currency the sender wants to pay with
- * @param {string} sendAmount - Amount the sender wants to pay
- * @param {string} receiveCurrency - Currency the recipient should receive
- * @param {string} issuerAddress - The issuer address for currencies
- * @param {number} slippagePercent - Slippage tolerance percentage (e.g., 5 for 5%)
- * @param {number} destinationTag - Optional destination tag
- * @returns {object} Transaction result
- */

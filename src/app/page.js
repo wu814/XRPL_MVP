@@ -43,7 +43,7 @@ export default function Login() {
           <Button
             variant="login"
             onClick={async () => {
-              const result = await signIn("google", { callbackUrl: "/wallet" });
+              const result = await signIn("google", { callbackUrl: "/home" });
             }}
             disabled={status === "loading"}
             className="mt-6 px-6 py-3 text-lg font-semibold"
