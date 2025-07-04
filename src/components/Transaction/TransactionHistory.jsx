@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useCurrentUserWallet } from "./Wallet/CurrentUserWalletProvider";
+import { useCurrentUserWallet } from "../Wallet/CurrentUserWalletProvider";
 import { ArrowUpRight, ArrowDownLeft, RefreshCw, ExternalLink, Clock, CheckCircle, XCircle } from "lucide-react";
 
 const getTransactionIcon = (direction, type) => {
@@ -15,7 +15,7 @@ const getTransactionIcon = (direction, type) => {
     case "offer_create":
       return <div className="w-4 h-4 rounded-full bg-blue-400 flex items-center justify-center text-xs font-bold text-white">+</div>;
     case "offer_cancel":
-      return <div className="w-4 h-4 rounded-full bg-gray-400 flex items-center justify-center text-xs font-bold text-white">×</div>;
+      return <div className="w-4 h-4 rounded-full bg-red-400 flex items-center justify-center text-xs font-bold text-white">×</div>;
     case "trustline_set":
       return <div className="w-4 h-4 rounded-full bg-purple-400 flex items-center justify-center text-xs font-bold text-white">T</div>;
     case "amm_deposit":
@@ -44,7 +44,7 @@ const getTransactionColor = (direction) => {
     case "offer_create":
       return "text-blue-400";
     case "offer_cancel":
-      return "text-gray-400";
+      return "text-red-400";
     case "trustline_set":
       return "text-purple-400";
     case "amm_deposit":

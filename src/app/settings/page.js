@@ -2,6 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
+import ChangePasswordBtn from "@/components/Setting/ChangePasswordBtn";
 
 export default function SettingsPage() {
   const { data: session, status } = useSession();
@@ -15,9 +16,7 @@ export default function SettingsPage() {
 
   return (
     <div className="p-8">
-      <div className="container mx-auto max-w-4xl">
-        <h1 className="text-4xl font-bold mb-8">Settings</h1>
-        
+      <div className="container mx-auto max-w-4xl">        
         <div className="grid gap-6">
           {/* User Information */}
           <div className="rounded-lg bg-color2 p-6">
@@ -69,9 +68,7 @@ export default function SettingsPage() {
                   <h3 className="font-medium">Change Password</h3>
                   <p className="text-sm text-gray-300">Update your account password</p>
                 </div>
-                <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">
-                  Change
-                </button>
+                <ChangePasswordBtn />
               </div>
               
               <div className="flex items-center justify-between p-4 rounded bg-color3">

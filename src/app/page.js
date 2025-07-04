@@ -18,7 +18,7 @@ export default function Login() {
         router.push("/register");
       } else if (session.user?.username) {
         // User is fully registered, redirect to dashboard
-        router.push("/wallet");
+        router.push("/home");
       }
     }
   }, [session, router]);

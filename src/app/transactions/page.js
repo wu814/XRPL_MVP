@@ -1,6 +1,6 @@
 "use client";
 
-import TransactionHistory from '@/components/TransactionHistory';
+import TransactionHistory from '@/components/Transaction/TransactionHistory';
 import TradePanel from '@/components/Smart/TradePanel';
 import { CurrentUserWalletProvider } from '@/components/Wallet/CurrentUserWalletProvider';
 import { IssuerWalletProvider } from '@/components/Wallet/IssuerWalletProvider';

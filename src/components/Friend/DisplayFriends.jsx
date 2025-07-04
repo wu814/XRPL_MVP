@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import ErrorMdl from "../ErrorMdl";
 import RemoveFriendBtn from "./RemoveFriendBtn";
 import TransferBtn from "@/components/Wallet/TransferBtn";
+import FavoriteBtn from "./FavoriteBtn";
 import { useCurrentUserWallet } from "../Wallet/CurrentUserWalletProvider";
 import { useIssuerWallet } from "../Wallet/IssuerWalletProvider";
 
@@ -52,6 +53,9 @@ export default function DisplayFriends() {
               key={friend.id}
               className="flex items-center justify-between rounded-lg bg-color3 p-4"
             >
+              <FavoriteBtn
+                  friendUsername={friend.username}
+                />
               <div>
                 <p className="font-semibold">{friend.username}</p>
                 <p className="text-sm text-mutedText">
@@ -70,6 +74,7 @@ export default function DisplayFriends() {
                   friendId={friend.id}
                   onRemoved={fetchFriends}
                 />
+                
               </div>
             </li>
           ))}
