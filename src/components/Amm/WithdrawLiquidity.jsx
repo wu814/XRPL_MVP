@@ -207,7 +207,7 @@ export default function WithdrawLiquidity({ ammInfo, onWithdrawn }) {
           />
         )}
 
-        <div className="flex justify-end">
+        <div className="flex">
           <Button 
             variant="primary" 
             onClick={handleSubmit} 

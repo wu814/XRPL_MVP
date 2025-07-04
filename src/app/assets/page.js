@@ -104,7 +104,7 @@ function AssetTableWrapper() {
       <div className="space-y-6">
         <div className="w-full rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white">
           <h2 className="mb-2 text-xl font-bold">No Wallet Found</h2>
-          <p className="mb-4 text-blue-100">
+          <p className="mb-4">
             Create your first XRPL wallet to start managing your digital assets.
           </p>
           <div className="rounded-lg border border-white/20 bg-white/10 p-4 backdrop-blur">
@@ -126,7 +126,7 @@ function AssetTableWrapper() {
               </div>
               <div className="flex-1">
                 <h3 className="mb-1 font-semibold">Create Your First Wallet</h3>
-                <p className="text-sm text-blue-100">
+                <p className="text-sm">
                   Start managing your XRPL assets with a secure custodial
                   wallet.
                 </p>

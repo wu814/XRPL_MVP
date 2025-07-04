@@ -81,14 +81,8 @@ export default function Sidebar() {
   return (
     <div className="fixed left-0 top-0 flex h-full w-64 flex-col border-r border-gray-700 bg-color2 p-6">
       {/* Logo */}
-      <div className="p-2 pb-4">
-        <Image 
-          src="/yona_logo.png" 
-          alt="Yona" 
-          width={80} 
-          height={40}
-          className="rounded-md"
-        />
+      <div className="p-2 pb-8">
+        <p className="text-4xl font-extrabold">Yona ツ</p>
       </div>
       {/* Navigation */}
       <nav className="flex-1">
@@ -107,7 +101,7 @@ export default function Sidebar() {
                   onClick={() => handleNavigation(item.path)}
                   className={`flex w-full items-center space-x-3 rounded-lg px-3 py-2 transition-colors ${
                     isActive
-                      ? "bg-blue-600 text-white"
+                      ? "bg-color4 text-white"
                       : "text-gray-300 hover:bg-color3 hover:text-white"
                   }`}
                 >

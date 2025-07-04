@@ -358,15 +358,15 @@ export default function TradePanel() {
         {/* Trade Section */}
         <div className="mb-8 p-8">
           {/* Tab Buttons */}
-          <div className="flex bg-color3 rounded-lg p-1 mb-8">
+          <div className="flex bg-color3 rounded-lg p-1 mb-6">
             {["Convert", "Send"].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`flex-1 py-3 px-4 rounded-md text-sm font-medium transition-colors ${
+                className={`flex-1 py-3 px-4 rounded-md font-semibold text-md transition-colors ${
                   activeTab === tab
-                    ? "bg-white text-gray-900"
-                    : "text-gray-400 hover:text-white"
+                    ? "bg-primary text-black"
+                    : "text-gray-300 hover:text-white"
                 }`}
               >
                 {tab}
@@ -478,13 +478,13 @@ export default function TradePanel() {
               <div className={`flex ${sessionData?.user?.role === "ADMIN" ? "justify-between space-x-2" : "justify-center"} mb-6`}>
                 <div className={`flex space-x-1 rounded-lg bg-color3 p-1 ${!sessionData?.user?.role === "ADMIN" ? "w-full" : ""}`}>
                   <button
-                    className={`flex-1 rounded-lg px-2 py-1 text-sm transition-colors ${paymentType === "direct" ? "bg-blue-600 text-white" : "bg-color3 text-gray-400 hover:text-white"}`}
+                    className={`flex-1 rounded-lg px-2 py-1 text-md transition-colors ${paymentType === "direct" ? "bg-primary text-black" : "bg-color3 text-gray-300 hover:text-white"}`}
                     onClick={() => handlePaymentTypeChange("direct")}
                   >
                     Direct
                   </button>
                   <button
-                    className={`flex-1 rounded-lg px-2 py-1 text-sm transition-colors ${paymentType === "convertable" ? "bg-blue-600 text-white" : "bg-color3 text-gray-400 hover:text-white"}`}
+                    className={`flex-1 rounded-lg px-2 py-1 text-md transition-colors ${paymentType === "convertable" ? "bg-primary text-black" : "bg-color3 text-gray-300 hover:text-white"}`}
                     onClick={() => handlePaymentTypeChange("convertable")}
                   >
                     Convertable
@@ -497,10 +497,10 @@ export default function TradePanel() {
                     {[true, false].map((type) => (
                       <button
                         key={String(type)}
-                        className={`rounded-lg px-2 py-1 text-sm ${
+                        className={`rounded-lg px-2 py-1 text-md ${
                           useUsername === type
-                            ? "bg-blue-600 text-white"
-                            : "text-gray-400 hover:text-white"
+                            ? "bg-primary text-black"
+                            : "text-gray-300 hover:text-white"
                         }`}
                         onClick={() => setUseUsername(type)}
                       >

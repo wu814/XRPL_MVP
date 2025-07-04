@@ -120,11 +120,11 @@ export default function CurrencyPairSelection({ onPairUpdate }) {
               </div>
             </div>
 
-            <div className="mt-6 flex justify-end space-x-4">
-              <Button onClick={closeModal} variant="cancel">
+            <div className="mt-6 flex space-x-4">
+              <Button onClick={closeModal} variant="cancel" className="flex-1">
                 Cancel
               </Button>
-              <Button onClick={handleConfirm}>Confirm</Button>
+              <Button onClick={handleConfirm} className="flex-1">Confirm</Button>
             </div>
           </div>
         </div>

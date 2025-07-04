@@ -86,11 +86,11 @@ export default function CreateAmmMdl({
             />
           </div>
 
-          <div className="flex justify-end space-x-2 pt-2">
-            <Button variant="cancel" onClick={onClose} disabled={loading}>
+          <div className="flex space-x-2 pt-2">
+            <Button variant="cancel" onClick={onClose} disabled={loading} className="flex-1">
               Cancel
             </Button>
-            <Button type="submit" variant="primary" disabled={loading}>
+            <Button type="submit" variant="primary" disabled={loading} className="flex-1">
               {loading ? "Creating..." : "Create"}
             </Button>
           </div>

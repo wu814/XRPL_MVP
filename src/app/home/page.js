@@ -24,7 +24,7 @@ function WelcomeSection({ session }) {
         <h2 className="mb-2 text-xl font-bold">
           Welcome to XRPL MVP, {session.user.username}!
         </h2>
-        <p className="mb-4 text-blue-100">
+        <p className="mb-4">
           Get started by creating your first XRPL wallet to manage your digital assets.
         </p>
         <div className="rounded-lg border border-white/20 bg-white/10 p-4 backdrop-blur">
@@ -36,7 +36,7 @@ function WelcomeSection({ session }) {
             </div>
             <div className="flex-1">
               <h3 className="mb-1 font-semibold">Create Your First Wallet</h3>
-              <p className="text-sm text-blue-100">
+              <p className="text-sm">
                 Start managing your XRPL assets with a secure custodial wallet.
               </p>
             </div>
@@ -51,7 +51,7 @@ function WelcomeSection({ session }) {
   return (
     <div className="space-y-6">
       {/* Welcome Message */}
-      <div className="w-full rounded-lg bg-gradient-to-r from-green-600 to-blue-600 p-6 text-white">
+      <div className="w-full rounded-lg bg-gradient-to-r from-[#30ccfe] to-[#b06cfd] p-6 text-white">
         <h2 className="mb-2 text-xl font-bold">
           Welcome back, {session.user.username}!
         </h2>

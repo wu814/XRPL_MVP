@@ -2,6 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
+import Button from "@/components/Button";
 import ChangePasswordBtn from "@/components/Setting/ChangePasswordBtn";
 
 export default function SettingsPage() {
@@ -42,9 +43,9 @@ export default function SettingsPage() {
                   <h3 className="font-medium">Two-Factor Authentication</h3>
                   <p className="text-sm text-gray-300">Add an extra layer of security to your account</p>
                 </div>
-                <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">
+                <Button className="bg-blue-600 hover:bg-blue-700">
                   Enable
-                </button>
+                </Button>
               </div>
               
               <div className="flex items-center justify-between p-4 rounded bg-color3">
@@ -52,9 +53,9 @@ export default function SettingsPage() {
                   <h3 className="font-medium">Email Notifications</h3>
                   <p className="text-sm text-gray-300">Receive updates about your transactions</p>
                 </div>
-                <button className="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg transition-colors">
+                <Button className="bg-gray-600 hover:bg-gray-700">
                   Configure
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -76,9 +77,9 @@ export default function SettingsPage() {
                   <h3 className="font-medium">Active Sessions</h3>
                   <p className="text-sm text-gray-300">Manage your active login sessions</p>
                 </div>
-                <button className="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg transition-colors">
+                <Button className="bg-gray-600 hover:bg-gray-700">
                   View Sessions
-                </button>
+                </Button>
               </div>
             </div>
           </div>

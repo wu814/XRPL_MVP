@@ -24,11 +24,11 @@ export default function PasswordConfirmMdl({
           className="bg-color6 mb-4 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
           placeholder="Enter Password"
         />
-        <div className="flex justify-end space-x-2">
-          <Button variant="cancel" onClick={onClose} disabled={loading}>
+        <div className="flex space-x-2">
+          <Button variant="cancel" onClick={onClose} disabled={loading} className="flex-1">
             Cancel
           </Button>
-          <Button variant="primary" onClick={onConfirm} disabled={loading}>
+          <Button variant="primary" onClick={onConfirm} disabled={loading} className="flex-1">
             {loading ? "Deleting..." : "Delete"}
           </Button>
         </div>

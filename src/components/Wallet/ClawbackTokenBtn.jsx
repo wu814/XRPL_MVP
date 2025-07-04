@@ -101,11 +101,12 @@ export default function ClawbackTokenBtn({ issuerWallet }) {
               />
             </div>
 
-            <div className="flex justify-end space-x-2">
+            <div className="flex space-x-2">
               <Button
                 variant="cancel"
                 onClick={() => setShowModal(false)}
                 disabled={loading}
+                className="flex-1"
               >
                 Cancel
               </Button>
@@ -118,6 +119,7 @@ export default function ClawbackTokenBtn({ issuerWallet }) {
                   !amount ||
                   loading
                 }
+                className="flex-1"
               >
                 {loading ? "Processing..." : "Clawback"}
               </Button>

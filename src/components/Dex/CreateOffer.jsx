@@ -169,7 +169,7 @@ export default function CreateOffer({ baseCurrency, quoteCurrency }) {
         </div>
 
         {/* Submit */}
-        <div className="flex justify-end">
+        <div className="flex">
           <Button
             onClick={handleSubmit}
             disabled={loading || !limitPrice || !quantity}

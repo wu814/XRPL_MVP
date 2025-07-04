@@ -62,11 +62,12 @@ export default function AuthorizeDepositBtn({ treasuryWallet, onSuccess }) {
               className="bg-color6 mt-1 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
               placeholder="Enter wallet address to authorize"
             />
-            <div className="mt-4 flex justify-end space-x-2">
+            <div className="mt-4 flex space-x-2">
               <Button
                 variant="cancel"
                 onClick={() => setShowMdl(false)}
                 disabled={loading}
+                className="flex-1"
               >
                 Cancel
               </Button>
@@ -74,6 +75,7 @@ export default function AuthorizeDepositBtn({ treasuryWallet, onSuccess }) {
                 variant="primary"
                 onClick={handleAuthorize}
                 disabled={loading || !authorizedAddress}
+                className="flex-1"
               >
                 {loading ? "Authorizing..." : "Authorize"}
               </Button>

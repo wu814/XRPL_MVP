@@ -26,8 +26,8 @@ export default function Login() {
   return (
     <>
       <Head>
-        <title>XRPL MVP - Control the Ledger</title>
-        <meta name="description" content="XRPL MVP - Shape the Future of Digital Assets" />
+        <title>Yona ツ - Control the Ledger</title>
+        <meta name="description" content="Yona ツ - Shape the Future of Digital Assets" />
       </Head>
       <div
         className="flex min-h-screen flex-row items-center justify-between bg-cover bg-center"
@@ -37,7 +37,7 @@ export default function Login() {
       >
         <div></div>
         <div className="mr-20 mt-20 flex flex-col content-end items-center">
-          <h1 className="mb-14 text-4xl font-bold text-primary">XRPL MVP</h1>
+          <h1 className="mb-14 text-6xl font-bold text-primary">Yona ツ</h1>
           <h3 className="mb-7 text-6xl font-semibold">Control the Ledger</h3>
           <h3 className="mb-7 text-6xl font-semibold">Shape the Future.</h3>
           <Button

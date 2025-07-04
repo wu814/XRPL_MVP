@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { Eye, EyeOff } from "lucide-react";
+import Button from "../Button";
 
 export default function ChangePasswordBtn() {
   const { data: session } = useSession();
@@ -99,17 +100,17 @@ export default function ChangePasswordBtn() {
 
   return (
     <>
-      <button
+      <Button
         onClick={() => setIsOpen(true)}
-        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+        variant="primary"
       >
         Change
-      </button>
+      </Button>
 
       {isOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-color2 rounded-lg p-6 w-full max-w-md mx-4">
-            <h2 className="text-xl font-semibold mb-4">Change Password</h2>
+            <h2 className="text-2xl text-primary font-semibold mb-4">Change Password</h2>
             
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -194,33 +195,35 @@ export default function ChangePasswordBtn() {
               </div>
 
               {error && (
-                <div className="text-red-500 text-sm bg-red-100 bg-opacity-20 p-3 rounded-lg">
+                <div className="text-red-500 text-lg font-bold">
                   {error}
                 </div>
               )}
 
               {success && (
-                <div className="text-green-500 text-sm bg-green-100 bg-opacity-20 p-3 rounded-lg">
+                <div className="text-green-500 text-lg ">
                   {success}
                 </div>
               )}
 
               <div className="flex gap-3 pt-4">
-                <button
+                <Button
                   type="button"
                   onClick={handleClose}
-                  className="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg transition-colors"
+                  variant="cancel"
+                  className="flex-1"
                   disabled={isLoading}
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
                   type="submit"
                   disabled={isLoading}
-                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50"
+                  variant="primary"
+                  className="flex-1"
                 >
                   {isLoading ? "Changing..." : "Change Password"}
-                </button>
+                </Button>
               </div>
             </form>
           </div>

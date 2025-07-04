@@ -171,13 +171,13 @@ export default function TransferBtn({
                 className={`flex space-x-1 rounded-lg bg-color5 p-1 ${!session?.user?.role === "ADMIN" ? "w-full" : ""}`}
               >
                 <button
-                  className={`flex-1 rounded-lg px-2 py-1 transition-colors ${paymentType === "direct" ? "bg-primary text-black" : "bg-color5 text-white"}`}
+                  className={`flex-1 rounded-lg px-2 py-1 transition-colors ${paymentType === "direct" ? "bg-primary text-black" : "text-gray-300 hover:text-white"}`}
                   onClick={() => handlePaymentTypeChange("direct")}
                 >
                   Direct
                 </button>
                 <button
-                  className={`flex-1 rounded-lg px-2 py-1 transition-colors ${paymentType === "convertable" ? "bg-primary text-black" : "bg-color5 text-white"}`}
+                  className={`flex-1 rounded-lg px-2 py-1 transition-colors ${paymentType === "convertable" ? "bg-primary text-black" : "text-gray-300 hover:text-white"}`}
                   onClick={() => handlePaymentTypeChange("convertable")}
                 >
                   Convertable
@@ -331,15 +331,17 @@ export default function TransferBtn({
               />
             </div>
 
-            <div className="flex justify-end space-x-2">
+            <div className="flex space-x-2">
               <Button
                 variant="cancel"
                 onClick={() => setShowMdl(false)}
                 disabled={loading}
+                className="flex-1"
               >
                 Cancel
               </Button>
               <Button
+                className="flex-1"
                 variant="primary"
                 onClick={handleSubmit}
                 disabled={
@@ -353,6 +355,7 @@ export default function TransferBtn({
                 }
               >
                 {loading ? "Sending..." : "Send"}
+                
               </Button>
             </div>
           </div>

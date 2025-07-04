@@ -75,11 +75,12 @@ export default function SetTrustlineBtn({ setterWallet, issuerWallets, onSuccess
                 dropdownBg="bg-color5"
               />
             </div>
-            <div className="flex justify-end space-x-2">
+            <div className="flex space-x-2">
               <Button
                 variant="cancel"
                 onClick={() => setShowCurrencyMdl(false)}
                 disabled={loading}
+                className="flex-1"
               >
                 Cancel
               </Button>
@@ -87,6 +88,7 @@ export default function SetTrustlineBtn({ setterWallet, issuerWallets, onSuccess
                 variant="primary"
                 onClick={() => doRequest(currency)}
                 disabled={loading || !currency}
+                className="flex-1"
               >
                 {loading ? "Setting..." : "Set Trustline"}
               </Button>

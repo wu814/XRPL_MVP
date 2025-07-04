@@ -300,7 +300,7 @@ export default function AddLiquidity({ ammInfo, onAdded }) {
             <button
               key={type}
               className={`rounded-full px-4 py-1 text-sm ${
-                mode === type ? "bg-primary text-black" : "text-white"
+                mode === type ? "bg-primary text-black" : "text-gray-300 hover:text-white"
               }`}
               onClick={() => setMode(type)}
             >
@@ -329,7 +329,7 @@ export default function AddLiquidity({ ammInfo, onAdded }) {
       )}
 
       {/* Submit button */}
-      <div className="flex justify-end">
+      <div className="flex">
         <Button variant="primary" onClick={handleSubmit} disabled={loading || !isFormValid} className="w-full">
           {loading ? "Adding Liquidity..." : "Add Liquidity"}
         </Button>

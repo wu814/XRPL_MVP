@@ -73,11 +73,12 @@ export default function CreateUserWalletBtn({ onWalletCreated }) {
                 </select>
               </div>
 
-              <div className="flex justify-end space-x-2">
+              <div className="flex space-x-2">
                 <Button
                   variant="cancel"
                   onClick={() => setShowMdl(false)}
                   disabled={loading}
+                  className="flex-1"
                 >
                   Cancel
                 </Button>
@@ -85,6 +86,7 @@ export default function CreateUserWalletBtn({ onWalletCreated }) {
                   type="submit"
                   variant="primary"
                   disabled={loading || method !== "custodial"}
+                  className="flex-1"
                 >
                   {loading ? "Creating..." : "Add Wallet"}
                 </Button>

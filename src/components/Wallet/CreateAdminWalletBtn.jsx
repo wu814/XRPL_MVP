@@ -87,15 +87,16 @@ export default function CreateAdminWalletBtn({ onWalletCreated }) {
                 </select>
               </div>
 
-              <div className="flex justify-end space-x-2">
+              <div className="flex space-x-2">
                 <Button
                   variant="cancel"
                   onClick={() => setShowMdl(false)}
                   disabled={loading}
+                  className="flex-1"
                 >
                   Cancel
                 </Button>
-                <Button type="submit" variant="primary" disabled={loading}>
+                <Button type="submit" variant="primary" disabled={loading} className="flex-1">
                   {loading ? "Creating..." : "Add Wallet"}
                 </Button>
               </div>
