@@ -35,11 +35,11 @@ export default function Topbar() {
       return "Advanced Trading";
     }
 
-    // Handle profile/friends routes
+    // Handle friends routes
     if (pathname.startsWith("/friends")) return "Friends";
 
-    // Handle user routes
-    if (pathname.startsWith("/user")) return "Profile";
+    // Handle when user search for a user
+    if (pathname.startsWith("/user")) return "Search Result";
 
     // Default fallback
     return "Dashboard";

@@ -385,7 +385,7 @@ export default function DisplayAdminWallets() {
                       <div className="font-medium">{asset.currency}</div>
                       {asset.issuer && (
                         <div className="text-xs text-gray-400">
-                          Issuer: {asset.issuer.slice(0, 8)}...
+                          Issuer: {asset.issuer}
                         </div>
                       )}
                     </div>

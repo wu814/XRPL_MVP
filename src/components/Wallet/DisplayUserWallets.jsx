@@ -200,7 +200,7 @@ function UserWalletDetails() {
                   obj.HighLimit?.issuer === userWallet.classicAddress
                     ? obj.LowLimit?.issuer
                     : obj.HighLimit?.issuer;
-                details = `${currency} (${issuer?.slice(0, 8)}...)`;
+                details = `${currency} (${issuer})`;
                 break;
               case "Offer":
                 description = "DEX Offer";
@@ -212,7 +212,7 @@ function UserWalletDetails() {
                 break;
               case "DepositPreauth":
                 description = "Deposit Authorization";
-                details = `Authorized: ${obj.Authorize?.slice(0, 8)}...`;
+                details = `Authorized: ${obj.Authorize}`;
                 break;
               case "Escrow":
                 description = "Escrow";
@@ -220,11 +220,11 @@ function UserWalletDetails() {
                 break;
               case "PayChannel":
                 description = "Payment Channel";
-                details = `Channel to ${obj.Destination?.slice(0, 8)}...`;
+                details = `Channel to ${obj.Destination}`;
                 break;
               case "Check":
                 description = "Check";
-                details = `Check from ${obj.Account?.slice(0, 8)}...`;
+                details = `Check from ${obj.Account}`;
                 break;
               default:
                 description = type;

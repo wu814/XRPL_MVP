@@ -19,7 +19,7 @@ function LayoutContent({ children }) {
   
   // Don't show sidebar/topbar on splash page, register page, or when not authenticated
   const showNavigation = session && pathname !== "/" && pathname !== "/register";
-  const showSmartTradePanel = session && !pathname.startsWith("/trade/amm") && pathname !== "/trade/dex" && pathname !== "/settings";
+  const showSmartTradePanel = session && !pathname.startsWith("/trade/amm") && !pathname.startsWith("/user") && pathname !== "/trade/dex" && pathname !== "/settings";
   
   return (
     <div className="min-h-screen bg-color1 text-white">

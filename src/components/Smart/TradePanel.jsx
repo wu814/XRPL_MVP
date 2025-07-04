@@ -5,6 +5,7 @@ import { ArrowUpRight, ArrowDownLeft, Building2, Search, Star, X, ChevronDown, R
 import ConvertCurrencyDropDown from "@/components/Currency/ConvertCurrencyDropDown";
 import SendCurrencyDropDown from "@/components/Currency/SendCurrencyDropDown";
 import CurrencyDropDown from "@/components/Currency/CurrencyDropDown";
+import FavoritesList from "@/components/Smart/FavoritesList";
 import SlippagePanel from "@/components/SlippagePanel";
 import ErrorMdl from "@/components/ErrorMdl";
 import SuccessMdl from "@/components/SuccessMdl";
@@ -223,11 +224,7 @@ export default function TradePanel() {
     }
   };
 
-  // Mock favorites and recents for the modal
-  const favorites = [
-    { name: "Matthew Goodman", address: "rhkDbx...k9uhgG", lastSent: "3 wk. ago" }
-  ];
-
+  
   const recents = [
     { address: "rwnYLU...nqf63J", lastSent: "2 months ago" },
     { address: "0xf839...0369e4", lastSent: "11 months ago" },
@@ -250,9 +247,9 @@ export default function TradePanel() {
 
   const handleRecipientClick = (recipient) => {
     if (useUsername) {
-      setRecipientUsername(recipient.name || recipient.address);
+      setRecipientUsername(recipient);
     } else {
-      setRecipientAddress(recipient.address || recipient.name);
+      setRecipientAddress(recipient);
     }
   };
 
@@ -530,8 +527,8 @@ export default function TradePanel() {
                     <input
                       type="text"
                       placeholder="Recipient Username"
-                      value={recipientUsername}
-                      onChange={(e) => setRecipientUsername(e.target.value)}
+                      value={recipientUsername || ""}
+                      onChange={(e) => setRecipientUsername(e.target.value || "")}
                       className="w-full bg-color3 border border-gray-600 rounded-lg pl-12 pr-4 py-4 outline-none focus:border-blue-500 text-lg"
                       required
                     />
@@ -542,8 +539,8 @@ export default function TradePanel() {
                     <input
                       type="text"
                       placeholder="Recipient Address"
-                      value={recipientAddress}
-                      onChange={(e) => setRecipientAddress(e.target.value)}
+                      value={recipientAddress || ""}
+                      onChange={(e) => setRecipientAddress(e.target.value || "")}
                       className="w-full bg-color3 border border-gray-600 rounded-lg pl-12 pr-4 py-4 outline-none focus:border-blue-500 text-lg"
                       required
                     />
@@ -670,30 +667,7 @@ export default function TradePanel() {
               </form>
 
               {/* Favorites Section */}
-              {favorites.length > 0 && (
-                <div className="mt-8">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-medium text-lg">Favorites</h3>
-                    <button className="text-blue-400 text-sm">See all</button>
-                  </div>
-                  {favorites.map((fav, index) => (
-                    <div 
-                      key={index} 
-                      className="flex items-center space-x-4 p-3 hover:bg-color3 rounded-lg cursor-pointer"
-                      onClick={() => handleRecipientClick(fav)}
-                    >
-                      <div className="w-10 h-10 bg-gray-600 rounded-full flex items-center justify-center">
-                        <Star className="w-5 h-5 text-yellow-400" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-medium">{fav.name}</div>
-                        <div className="text-xs text-gray-400">{fav.address}</div>
-                      </div>
-                      <div className="text-xs text-gray-400">{fav.lastSent}</div>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <FavoritesList onRecipientClick={handleRecipientClick} />
 
               {/* Recents Section */}
               {recents.length > 0 && (

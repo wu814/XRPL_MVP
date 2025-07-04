@@ -4,7 +4,7 @@ import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
 import SlippagePanel from "../SlippagePanel";
-import { Settings } from "lucide-react";
+import { Settings, ArrowUpDown } from "lucide-react";
 import { useCurrentUserWallet } from "../Wallet/CurrentUserWalletProvider";
 import { useIssuerWallet } from "../Wallet/IssuerWalletProvider";
 
@@ -163,19 +163,7 @@ export default function SwapLiquidity({ ammInfo, onSwapped }) {
           className="hover:text-primary"
           disabled={!sellCurrency || !buyCurrency}
         >
-          <svg
-            className="h-8 w-8"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
-            />
-          </svg>
+          <ArrowUpDown className="h-8 w-8" />
         </button>
       </div>
 
