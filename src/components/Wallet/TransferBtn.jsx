@@ -148,7 +148,7 @@ export default function TransferBtn({
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/10">
           <div className="h-[77vh] w-[28vw] space-y-4 rounded-lg bg-color4 p-6">
             <div className="relative mb-6 flex justify-between">
-              <h2 className="text-start text-2xl font-semibold text-primary">
+              <h2 className="text-start text-2xl font-semibold">
                 Transfer
               </h2>
               {paymentType === "convertable" && (
@@ -171,13 +171,13 @@ export default function TransferBtn({
                 className={`flex space-x-1 rounded-lg bg-color5 p-1 ${!session?.user?.role === "ADMIN" ? "w-full" : ""}`}
               >
                 <button
-                  className={`flex-1 rounded-lg px-2 py-1 transition-colors ${paymentType === "direct" ? "bg-primary text-black" : "text-gray-300 hover:text-white"}`}
+                  className={`flex-1 rounded-lg px-3 py-2 transition-colors ${paymentType === "direct" ? "bg-primary text-black" : "text-gray-300 hover:text-white"}`}
                   onClick={() => handlePaymentTypeChange("direct")}
                 >
                   Direct
                 </button>
                 <button
-                  className={`flex-1 rounded-lg px-2 py-1 transition-colors ${paymentType === "convertable" ? "bg-primary text-black" : "text-gray-300 hover:text-white"}`}
+                  className={`flex-1 rounded-lg px-3 py-2 transition-colors ${paymentType === "convertable" ? "bg-primary text-black" : "text-gray-300 hover:text-white"}`}
                   onClick={() => handlePaymentTypeChange("convertable")}
                 >
                   Convertable

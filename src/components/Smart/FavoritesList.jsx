@@ -8,6 +8,7 @@ export default function FavoritesList({ onRecipientClick }) {
   const { data: sessionData } = useSession();
   const [favorites, setFavorites] = useState([]);
   const [loadingFavorites, setLoadingFavorites] = useState(false);
+  const [showAll, setShowAll] = useState(false);
 
   // Fetch favorites function
   const fetchFavorites = async () => {
@@ -38,11 +39,21 @@ export default function FavoritesList({ onRecipientClick }) {
     return null;
   }
 
+  // Determine which favorites to display
+  const displayedFavorites = showAll ? favorites : favorites.slice(0, 3);
+
   return (
     <div className="mt-8">
       <div className="mb-4 flex items-center justify-between">
         <h3 className="text-lg font-medium">Favorites</h3>
-        <button className="text-sm text-blue-400">See all</button>
+        {favorites.length > 3 && (
+          <button 
+            className="text-sm text-blue-400 hover:text-blue-300"
+            onClick={() => setShowAll(!showAll)}
+          >
+            {showAll ? 'Show less' : 'See all'}
+          </button>
+        )}
       </div>
 
       {loadingFavorites ? (
@@ -51,7 +62,7 @@ export default function FavoritesList({ onRecipientClick }) {
           <p className="mt-2 text-gray-400">Loading favorites...</p>
         </div>
       ) : (
-        favorites.map((fav) => (
+        displayedFavorites.map((fav) => (
           <div
             key={fav.id}
             className="flex cursor-pointer items-center space-x-4 rounded-lg p-3 hover:bg-color3"

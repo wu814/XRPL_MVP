@@ -25,7 +25,7 @@ export default function ViewIssuerDetailsMdl({
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/10">
       <div className="relative h-5/6 w-11/12 max-w-3xl overflow-y-auto rounded-lg bg-color4 p-6">
-        <h2 className="mb-4 text-center text-2xl text-primary font-bold">
+        <h2 className="mb-4 text-center text-2xl font-bold">
           Issuer Wallet Details
         </h2>
 

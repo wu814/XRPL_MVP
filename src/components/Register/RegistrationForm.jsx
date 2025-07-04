@@ -176,13 +176,13 @@ export default function RegistrationForm() {
     <>
       <div className="mx-auto max-w-md rounded-lg bg-color4 p-6">
         <div className="mb-6 text-center">
-          <h1 className="mb-2 text-2xl font-bold text-primary">Complete Your Registration</h1>
+          <h1 className="mb-2 text-2xl font-bold">Complete Your Registration</h1>
           <p className="text-mutedText">
             Welcome! Please complete your account setup to continue.
           </p>
           {session?.user?.email && (
             <p className="mt-2 text-sm text-mutedText">
-              Email: <span className="text-primary">{session.user.email}</span>
+              Email: <span>{session.user.email}</span>
             </p>
           )}
         </div>

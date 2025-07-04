@@ -160,10 +160,10 @@ export default function SwapLiquidity({ ammInfo, onSwapped }) {
       <div className="flex justify-center">
         <button
           onClick={handleCurrencySwap}
-          className="hover:text-primary"
+          className="hover:bg-color4 p-3 bg-color3 rounded-full"
           disabled={!sellCurrency || !buyCurrency}
         >
-          <ArrowUpDown className="h-8 w-8" />
+          <ArrowUpDown className="h-7 w-7 text-gray-400" />
         </button>
       </div>
 

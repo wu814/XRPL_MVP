@@ -11,8 +11,9 @@ import { useIssuerWallet } from "../Wallet/IssuerWalletProvider";
 
 export default function DisplayFriends() {
   const [friends, setFriends] = useState([]);
-  const [errorMessage, setErrorMessage] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [showErrorMdl, setShowErrorMdl] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
   // ✅ Pull from WalletContext instead of fetching manually
   const { currentUserWallets } = useCurrentUserWallet();
@@ -20,16 +21,17 @@ export default function DisplayFriends() {
 
   // Fetch all accepted friends
   const fetchFriends = async () => {
-    setLoading(true);
     try {
+      setIsLoading(true);
       const res = await fetch("/api/friends/getAllFriends");
       if (!res.ok) throw new Error("Failed to fetch friends");
       const result = await res.json();
       setFriends(result.data || []);
-    } catch (err) {
-      setErrorMessage(err.message || "Unknown error");
+    } catch (error) {
+      setShowErrorMdl(true);
+      setErrorMessage(error.message);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -37,25 +39,25 @@ export default function DisplayFriends() {
     fetchFriends();
   }, []);
 
-  return (
-    <div className="container mx-auto rounded-lg bg-color2 p-4">
-      <h2 className="mb-4 text-center text-xl font-semibold">Your Friends</h2>
-
-      {errorMessage && (
-        <ErrorMdl
-          errorMessage={errorMessage}
-          onClose={() => setErrorMessage(null)}
-        />
-      )}
-
-      {loading ? (
-        <div className="flex items-center justify-center py-8">
+  if (isLoading) {
+    return (
+      <div className="container mx-auto rounded-lg bg-color2 p-4">
+        <h2 className="mb-4 text-center text-xl font-semibold">Your Friends</h2>
+        <div className="flex justify-center items-center py-8">
           <Loader2 className="h-8 w-8 animate-spin text-mutedText" />
         </div>
-      ) : friends.length === 0 ? (
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto rounded-lg bg-color2 p-2">
+      <h2 className="mt-2 mb-4 text-center text-xl font-semibold">Your Friends</h2>
+
+      {friends.length === 0 ? (
         <p className="text-center text-mutedText">You have no friends yet.</p>
       ) : (
-        <ul className="space-y-4 px-2">
+        <ul className="space-y-2">
           {friends.map((friend) => (
             <li
               key={friend.id}
@@ -84,6 +86,12 @@ export default function DisplayFriends() {
             </li>
           ))}
         </ul>
+      )}
+      {showErrorMdl && (
+        <ErrorMdl
+          errorMessage={errorMessage}
+          onClose={() => setShowErrorMdl(false)}
+        />
       )}
     </div>
   );

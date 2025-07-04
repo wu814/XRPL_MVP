@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import CurrencyDropDown from "./CurrencyDropDown";
 import Button from "../Button";
+import { ArrowLeftRight } from "lucide-react";
 
 export default function CurrencyPairSelection({ onPairUpdate }) {
   const [baseCurrency, setBaseCurrency] = useState("USD");
@@ -68,7 +69,7 @@ export default function CurrencyPairSelection({ onPairUpdate }) {
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="w-auto max-w-lg rounded-lg bg-color2 p-6">
-            <h2 className="mb-4 text-2xl font-bold text-primary">
+            <h2 className="mb-4 text-2xl font-bold">
               Select Currency Pair
             </h2>
             <div className="flex flex-row items-center justify-between space-x-4 p-4">
@@ -86,25 +87,9 @@ export default function CurrencyPairSelection({ onPairUpdate }) {
 
               <button
                 onClick={handleSwap}
-                className="mt-6 rounded-full p-2 transition-colors duration-200 hover:text-primary"
+                className="mt-6 rounded-full bg-color3 p-2 transition-colors duration-200 hover:bg-color4"
               >
-                <svg
-                  className="h-7 w-7"
-                  aria-hidden="true"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="m16 10 3-3m0 0-3-3m3 3H5v3m3 4-3 3m0 0 3 3m-3-3h14v-3"
-                  />
-                </svg>
+                <ArrowLeftRight className="h-5 w-5 text-gray-400" />
               </button>
 
               <div>
@@ -124,7 +109,9 @@ export default function CurrencyPairSelection({ onPairUpdate }) {
               <Button onClick={closeModal} variant="cancel" className="flex-1">
                 Cancel
               </Button>
-              <Button onClick={handleConfirm} className="flex-1">Confirm</Button>
+              <Button onClick={handleConfirm} className="flex-1">
+                Confirm
+              </Button>
             </div>
           </div>
         </div>

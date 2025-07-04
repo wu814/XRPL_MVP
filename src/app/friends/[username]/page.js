@@ -28,10 +28,10 @@ export default function FriendsPage() {
   return (
     <CurrentUserWalletProvider>
       <IssuerWalletProvider>
-        <div className="min-h-screen bg-color1 p-4" style={{ maxWidth: 'calc(100vw - 16rem - 32rem)' }}>
+        <div className="min-h-screen bg-color1 p-2" style={{ maxWidth: 'calc(100vw - 16rem - 32rem)' }}>
 
           {/* Friends Sections */}
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 max-w-full">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-2 max-w-full">
             <DisplayFriends />
             <DisplayPendingFriendRequests />
           </div>

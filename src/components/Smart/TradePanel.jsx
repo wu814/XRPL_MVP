@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useContext, useEffect } from "react";
-import { ArrowUpRight, ArrowDownLeft, Building2, Search, Star, X, ChevronDown, RefreshCw, Settings } from "lucide-react";
+import { ArrowUpRight, ArrowDownLeft, ArrowUpDown, Building2, Search, Star, X, ChevronDown, Settings } from "lucide-react";
 import ConvertCurrencyDropDown from "@/components/Currency/ConvertCurrencyDropDown";
 import SendCurrencyDropDown from "@/components/Currency/SendCurrencyDropDown";
 import CurrencyDropDown from "@/components/Currency/CurrencyDropDown";
@@ -363,7 +363,7 @@ export default function TradePanel() {
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`flex-1 py-3 px-4 rounded-md font-semibold text-md transition-colors ${
+                className={`flex-1 py-2 px-3 rounded-md font-semibold text-md transition-colors ${
                   activeTab === tab
                     ? "bg-primary text-black"
                     : "text-gray-300 hover:text-white"
@@ -426,7 +426,7 @@ export default function TradePanel() {
                   className="p-3 bg-color3 rounded-full hover:bg-gray-600 transition-colors"
                   disabled={!sellCurrency || !buyCurrency}
                 >
-                  <RefreshCw className="w-5 h-5 text-gray-400" />
+                  <ArrowUpDown className="w-7 h-7 text-gray-400" />
                 </button>
               </div>
 
@@ -478,13 +478,13 @@ export default function TradePanel() {
               <div className={`flex ${sessionData?.user?.role === "ADMIN" ? "justify-between space-x-2" : "justify-center"} mb-6`}>
                 <div className={`flex space-x-1 rounded-lg bg-color3 p-1 ${!sessionData?.user?.role === "ADMIN" ? "w-full" : ""}`}>
                   <button
-                    className={`flex-1 rounded-lg px-2 py-1 text-md transition-colors ${paymentType === "direct" ? "bg-primary text-black" : "bg-color3 text-gray-300 hover:text-white"}`}
+                    className={`flex-1 rounded-lg px-3 py-2 text-md transition-colors ${paymentType === "direct" ? "bg-primary text-black" : "bg-color3 text-gray-300 hover:text-white"}`}
                     onClick={() => handlePaymentTypeChange("direct")}
                   >
                     Direct
                   </button>
                   <button
-                    className={`flex-1 rounded-lg px-2 py-1 text-md transition-colors ${paymentType === "convertable" ? "bg-primary text-black" : "bg-color3 text-gray-300 hover:text-white"}`}
+                    className={`flex-1 rounded-lg px-3 py-2 text-md transition-colors ${paymentType === "convertable" ? "bg-primary text-black" : "bg-color3 text-gray-300 hover:text-white"}`}
                     onClick={() => handlePaymentTypeChange("convertable")}
                   >
                     Convertable

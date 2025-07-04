@@ -63,14 +63,14 @@ export default function DisplayPendingFriendRequests() {
   }
 
   return (
-    <div className="container mx-auto rounded-lg bg-color2 p-4">
-      <h2 className="mb-4 text-center text-xl font-semibold">
+    <div className="container mx-auto rounded-lg bg-color2 p-2">
+      <h2 className="mt-2 mb-4 text-center text-xl font-semibold">
         Pending Friend Requests
       </h2>
       {pendingRequests.length === 0 ? (
         <p className="text-center text-mutedText">No pending requests.</p>
       ) : (
-        <ul className="space-y-4 px-2">
+        <ul className="space-y-2">
           {pendingRequests.map((req) => (
             <li
               key={req.id}

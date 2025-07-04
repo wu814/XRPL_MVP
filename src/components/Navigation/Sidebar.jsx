@@ -81,8 +81,9 @@ export default function Sidebar() {
   return (
     <div className="fixed left-0 top-0 flex h-full w-64 flex-col border-r border-gray-700 bg-color2 p-6">
       {/* Logo */}
-      <div className="p-2 pb-8">
-        <p className="text-4xl font-extrabold">Yona ツ</p>
+      <div className="p-2 pb-8 flex flex-row items-center">
+        <h1 className="text-5xl font-extrabold text-primary">ツ</h1>
+        <h1 className="ml-2 text-4xl font-extrabold">Yona</h1>
       </div>
       {/* Navigation */}
       <nav className="flex-1">
