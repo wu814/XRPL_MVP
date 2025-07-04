@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Star } from "lucide-react";
+import { Star, Loader2 } from "lucide-react";
 import ErrorMdl from "../ErrorMdl";
 
 export default function FavoriteBtn({ friendUsername, onFavoriteChange }) {
@@ -59,7 +59,7 @@ export default function FavoriteBtn({ friendUsername, onFavoriteChange }) {
   if (checkingStatus) {
     return (
       <div className="w-6 h-6 flex items-center justify-center">
-        <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+        <Loader2 size={16} className="animate-spin text-gray-400" />
       </div>
     );
   }

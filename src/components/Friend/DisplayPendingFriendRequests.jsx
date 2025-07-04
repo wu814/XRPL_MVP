@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Loader2 } from "lucide-react";
 import Button from "@/components/Button";
 import ErrorMdl from "@/components/ErrorMdl";
 
@@ -8,9 +9,11 @@ export default function DisplayPendingFriendRequests() {
   const [pendingRequests, setPendingRequests] = useState([]);
   const [showErrorMdl, setShowErrorMdl] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
   const fetchPendingFriendRequests = async () => {
     try {
+      setIsLoading(true);
       const res = await fetch("/api/friends/getPendingFriendRequests");
       if (!res.ok) throw new Error("Failed to fetch pending requests");
       const result = await res.json();
@@ -18,6 +21,8 @@ export default function DisplayPendingFriendRequests() {
     } catch (error) {
       setShowErrorMdl(true);
       setErrorMessage(error.message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -43,6 +48,19 @@ export default function DisplayPendingFriendRequests() {
   useEffect(() => {
     fetchPendingFriendRequests();
   }, []);
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto rounded-lg bg-color2 p-4">
+        <h2 className="mb-4 text-center text-xl font-semibold">
+          Pending Friend Requests
+        </h2>
+        <div className="flex justify-center items-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin text-mutedText" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto rounded-lg bg-color2 p-4">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Loader2 } from "lucide-react";
 import ErrorMdl from "../ErrorMdl";
 import RemoveFriendBtn from "./RemoveFriendBtn";
 import TransferBtn from "@/components/Wallet/TransferBtn";
@@ -11,14 +12,15 @@ import { useIssuerWallet } from "../Wallet/IssuerWalletProvider";
 export default function DisplayFriends() {
   const [friends, setFriends] = useState([]);
   const [errorMessage, setErrorMessage] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   // ✅ Pull from WalletContext instead of fetching manually
   const { currentUserWallets } = useCurrentUserWallet();
   const { issuerWallets } = useIssuerWallet();
-  
 
   // Fetch all accepted friends
   const fetchFriends = async () => {
+    setLoading(true);
     try {
       const res = await fetch("/api/friends/getAllFriends");
       if (!res.ok) throw new Error("Failed to fetch friends");
@@ -26,6 +28,8 @@ export default function DisplayFriends() {
       setFriends(result.data || []);
     } catch (err) {
       setErrorMessage(err.message || "Unknown error");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -44,7 +48,11 @@ export default function DisplayFriends() {
         />
       )}
 
-      {friends.length === 0 ? (
+      {loading ? (
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin text-mutedText" />
+        </div>
+      ) : friends.length === 0 ? (
         <p className="text-center text-mutedText">You have no friends yet.</p>
       ) : (
         <ul className="space-y-4 px-2">
@@ -53,9 +61,7 @@ export default function DisplayFriends() {
               key={friend.id}
               className="flex items-center justify-between rounded-lg bg-color3 p-4"
             >
-              <FavoriteBtn
-                  friendUsername={friend.username}
-                />
+              <FavoriteBtn friendUsername={friend.username} />
               <div>
                 <p className="font-semibold">{friend.username}</p>
                 <p className="text-sm text-mutedText">
@@ -74,7 +80,6 @@ export default function DisplayFriends() {
                   friendId={friend.id}
                   onRemoved={fetchFriends}
                 />
-                
               </div>
             </li>
           ))}
