@@ -60,7 +60,7 @@ export default function Sidebar() {
     {
       name: "Friends",
       icon: User,
-      path: `/profile/${session.user.username}`
+      path: `/friends/${session.user.username}`
     },
     {
       name: "Settings",

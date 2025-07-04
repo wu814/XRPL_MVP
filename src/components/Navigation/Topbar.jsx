@@ -36,7 +36,7 @@ export default function Topbar() {
     }
 
     // Handle profile/friends routes
-    if (pathname.startsWith("/profile")) return "Friends";
+    if (pathname.startsWith("/friends")) return "Friends";
 
     // Handle user routes
     if (pathname.startsWith("/user")) return "Profile";

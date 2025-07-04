@@ -12,7 +12,7 @@ import { IssuerWalletProvider } from "@/components/Wallet/IssuerWalletProvider";
 import { useSession } from "next-auth/react";
 import AddFriendBtn from "@/components/Friend/AddFriendBtn";
 
-export default function ProfilePage() {
+export default function FriendsPage() {
   const { data: session } = useSession();
   const [username, setUsername] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
