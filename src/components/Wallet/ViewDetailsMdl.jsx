@@ -10,7 +10,7 @@ export default function ViewDetailsMdl({
   onClose,
 }) {
   return (
-    <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/10">
+    <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/40">
       <div className="relative h-full w-1/2 max-w-3xl rounded-lg bg-color4 p-6 flex flex-col">
         <h2 className="mb-4 text-2xl text-center font-bold">Wallet Details</h2>
 

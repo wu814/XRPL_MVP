@@ -9,6 +9,7 @@ import ClawbackTokenBtn from "@/components/Wallet/ClawbackTokenBtn";
 import TransferBtn from "@/components/Wallet/TransferBtn";
 import CreateAdminWalletBtn from "@/components/Wallet/CreateAdminWalletBtn";
 import Button from "@/components/Button";
+import ManageOracleBtn from "@/components/Wallet/ManageOracleBtn";
 
 export default function DisplayAdminWallets() {
   const { currentUserWallets, fetchCurrentUserWallets } = useCurrentUserWallet();
@@ -478,10 +479,16 @@ export default function DisplayAdminWallets() {
 
                     {/* Treasury-specific options */}
                     {wallet.walletType === "STANDBY TREASURY" && (
-                      <AuthorizeDepositBtn
-                        treasuryWallet={wallet}
-                        onSuccess={fetchWalletBalances}
-                      />
+                      <>
+                        <AuthorizeDepositBtn
+                          treasuryWallet={wallet}
+                          onSuccess={fetchWalletBalances}
+                        />
+                        <ManageOracleBtn
+                          treasuryWallet={wallet}
+                          onSuccess={fetchWalletBalances}
+                        />
+                      </>
                     )}
 
                     {/* Trustline options for Treasury and Pathfind wallets */}

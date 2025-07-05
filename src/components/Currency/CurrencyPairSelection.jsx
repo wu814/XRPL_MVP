@@ -67,7 +67,7 @@ export default function CurrencyPairSelection({ onPairUpdate }) {
       </button>
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="w-auto max-w-lg rounded-lg bg-color2 p-6">
             <h2 className="mb-4 text-2xl font-bold">
               Select Currency Pair

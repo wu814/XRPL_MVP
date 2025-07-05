@@ -11,7 +11,7 @@ export default function PasswordConfirmMdl({
   setPasswordValue,
 }) {
   return (
-    <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/10">
+    <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/40">
       <div className="w-96 rounded-lg bg-color4 p-6">
         <h2 className="mb-4 text-2xl text-cancel font-bold">Confirm Deletion</h2>
         <p className="mb-4">

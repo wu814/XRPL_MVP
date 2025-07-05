@@ -145,7 +145,7 @@ export default function TransferBtn({
       </Button>
 
       {showMdl && (
-        <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/10">
+        <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/40">
           <div className="h-[77vh] w-[28vw] space-y-4 rounded-lg bg-color4 p-6">
             <div className="relative mb-6 flex justify-between">
               <h2 className="text-start text-2xl font-semibold">

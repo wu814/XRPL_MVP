@@ -20,7 +20,7 @@ export default function AddFundsBtn({ onFundsAdded }) {
       </Button>
 
       {showMdl && (
-        <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/10">
+        <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/40">
           <div className="w-96 rounded-lg bg-color4 p-6">
             <h2 className="mb-4 text-xl font-bold">Add Funds</h2>
             <p className="mb-4 text-sm text-mutedText">
