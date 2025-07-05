@@ -9,8 +9,10 @@ export default function TransactionsPage() {
   return (
     <div className="  min-h-screen bg-color1">
       <CurrentUserWalletProvider>
-        <IssuerWalletProvider>    
-          <TransactionHistory />
+        <IssuerWalletProvider> 
+          <div className="p-2">
+            <TransactionHistory />
+          </div>
           <TradePanel />
         </IssuerWalletProvider>
       </CurrentUserWalletProvider>

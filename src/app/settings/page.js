@@ -67,7 +67,7 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between p-4 rounded bg-color3">
                 <div>
                   <h3 className="font-medium">Change Password</h3>
-                  <p className="text-sm text-gray-300">Update your account password</p>
+                  <p className="text-sm text-gray-300">Update your trading password</p>
                 </div>
                 <ChangePasswordBtn />
               </div>

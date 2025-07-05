@@ -29,10 +29,10 @@ export default function Login() {
   return (
     <>
       <Head>
-        <title>Yona ツ - Control the Ledger</title>
+        <title>ツ YONA - Control the Ledger</title>
         <meta
           name="description"
-          content="ツYona - Shape the Future of Digital Assets"
+          content="ツ YONA - Shape the Future of Digital Assets"
         />
       </Head>
       <div
@@ -45,7 +45,7 @@ export default function Login() {
         <div className="mr-20 mt-20 flex flex-col content-end items-center">
           <div className="flex flex-row items-center mb-7">
             <h1 className="text-7xl text-primary font-extrabold">ツ</h1>
-            <h1 className="ml-2 text-6xl font-extrabold">Yona</h1>
+            <h1 className="ml-2 text-6xl font-extrabold">YONA</h1>
           </div>
           <h3 className="mb-7 text-6xl font-semibold">Control the Ledger</h3>
           <h3 className="mb-7 text-6xl font-semibold">Shape the Future.</h3>

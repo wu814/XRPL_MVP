@@ -83,7 +83,7 @@ export default function Sidebar() {
       {/* Logo */}
       <div className="p-2 pb-8 flex flex-row items-center">
         <h1 className="text-5xl font-extrabold text-primary">ツ</h1>
-        <h1 className="ml-2 text-4xl font-extrabold">Yona</h1>
+        <h1 className="ml-2 text-4xl font-extrabold">YONA</h1>
       </div>
       {/* Navigation */}
       <nav className="flex-1">
