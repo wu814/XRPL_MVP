@@ -24,12 +24,12 @@ export default function ViewDetailsBtn({ wallet }) {
         fetch("/api/wallets/getAccountInfo", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ address: wallet.classicAddress }),
+          body: JSON.stringify({ wallet }),
         }),
         fetch("/api/wallets/getAccountLines", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ address: wallet.classicAddress }),
+          body: JSON.stringify({ wallet }),
         }),
       ]);
 

@@ -3,6 +3,7 @@
 import { Star, Wallet, ArrowUpRight, ArrowDownLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import Image from "next/image";
+import Button from "../Button";
 
 export default function AssetTable({ assets = [] }) {
   const [watchlist, setWatchlist] = useState(new Set());
@@ -149,20 +150,10 @@ export default function AssetTable({ assets = [] }) {
                   
                   {/* Action Buttons */}
                   <div className="flex items-center space-x-2 mt-3">
-                    <button 
-                      className="bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded transition-colors flex items-center space-x-1"
-                      title="Send"
-                    >
+                    <Button variant="primary" className="flex flex-row items-center space-x-1">
                       <ArrowUpRight className="w-3 h-3" />
                       <span>Send</span>
-                    </button>
-                    <button 
-                      className="bg-green-600 hover:bg-green-700 px-2 py-1 rounded transition-colors flex items-center space-x-1"
-                      title="Receive"
-                    >
-                      <ArrowDownLeft className="w-3 h-3" />
-                      <span>Receive</span>
-                    </button>
+                    </Button>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -175,7 +166,7 @@ export default function AssetTable({ assets = [] }) {
                       }`}
                       title="Add to Watchlist"
                     >
-                      <Star className={`w-3 h-3 ${watchlist.has(assetKey) ? "fill-current" : ""}`} />
+                      <Star className={`w-4 h-4 ${watchlist.has(assetKey) ? "fill-current" : ""}`} />
                     </button>
                   </div>
                 </div>

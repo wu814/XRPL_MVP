@@ -1,7 +1,7 @@
 "use client";
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
-import AssetTable from "@/components/AssetTable";
+import AssetTable from "@/components/Wallet/AssetTable";
 import {
   CurrentUserWalletProvider,
   useCurrentUserWallet,

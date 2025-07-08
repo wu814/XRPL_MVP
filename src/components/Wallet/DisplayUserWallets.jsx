@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useCurrentUserWallet } from "@/components/Wallet/CurrentUserWalletProvider";
 import { useIssuerWallet } from "@/components/Wallet/IssuerWalletProvider";
-import AssetTable from "@/components/AssetTable";
+import AssetTable from "@/components/Wallet/AssetTable";
 import SetTrustlineBtn from "@/components/Wallet/SetTrustlineBtn";
 import ViewDetailsBtn from "@/components/Wallet/ViewDetailsBtn";
 import TransferBtn from "@/components/Wallet/TransferBtn";

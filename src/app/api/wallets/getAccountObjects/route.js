@@ -3,10 +3,10 @@ import { client, connectXrplClient } from "@/utils/xrpl/testnet";
 
 export async function POST(req) {
   try {
-    const { address, wallet } = await req.json();
+    const { wallet } = await req.json();
     
     // Support both wallet object and direct address for backward compatibility
-    const targetAddress = wallet?.classicAddress || address;
+    const targetAddress = wallet?.classic_address;
     
     if (!targetAddress) {
       return NextResponse.json({ error: "Missing address or wallet" }, { status: 400 });

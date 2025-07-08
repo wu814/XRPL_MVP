@@ -49,7 +49,7 @@ export default function Sidebar() {
     {
       name: session.user.role === "ADMIN" ? "My Wallets" : "My Assets",
       icon: Wallet,
-      path: session.user.role === "ADMIN" ? "/wallet" : "/assets",
+      path: session.user.role === "ADMIN" ? "/wallets" : "/assets",
     },
     {
       name: "Advanced Trading",
@@ -79,7 +79,7 @@ export default function Sidebar() {
   ];
 
   return (
-    <div className="fixed left-0 top-0 flex h-full w-64 flex-col border-r border-gray-700 bg-color2 p-6">
+    <div className="fixed left-0 top-0 flex h-full w-64 flex-col border-r border-gray-700 bg-color1 p-6">
       {/* Logo */}
       <div className="p-2 pb-8 flex flex-row items-center">
         <h1 className="text-5xl font-extrabold text-primary">ツ</h1>

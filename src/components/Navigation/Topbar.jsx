@@ -48,7 +48,7 @@ export default function Topbar() {
   if (!session) return null;
 
   return (
-    <div className="fixed justify-between left-64 right-0 top-0 z-20 flex h-24 items-center border-b border-gray-700 bg-color2 px-6">
+    <div className="fixed justify-between left-64 right-0 top-0 z-20 flex h-24 items-center border-b border-gray-700 bg-color1 px-6">
       {/* Page Title */}
       <div className="flex">
         <h1 className="ml-5 text-3xl font-bold text-white">{getPageTitle()}</h1>
