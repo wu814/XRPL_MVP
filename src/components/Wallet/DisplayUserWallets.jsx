@@ -8,6 +8,7 @@ import TransferBtn from "@/components/Wallet/TransferBtn";
 import CreateUserWalletBtn from "@/components/Wallet/CreateUserWalletBtn";
 import Button from "@/components/Button";
 import ViewWalletDetails from "@/components/Wallet/ViewWalletDetails";
+import AddFundsBtn from "./AddFunds";
 
 // AssetTableWrapper component to access wallet context
 function AssetTableWrapper() {
@@ -469,6 +470,7 @@ export default function DisplayUserWallets({ session, showAssetTable = false }) 
   return (
     <div className="space-y-4">
       <UserWalletDetails onViewDetails={handleViewDetails} />
+      <AddFundsBtn />
       <AdditionalWelcomeSection session={session} />
     </div>
   );

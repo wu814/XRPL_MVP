@@ -18,7 +18,7 @@ module.exports = {
         pulse: "#514E78", // Animate pulse
         border: "#BDB9C9", // Border color
         mutedText: "#A3A4A7",
-        primary: "#A4F2F5", // Primary button
+        primary: "#8EDFE2", // Primary button
         cancel: "#E1A5FA", // Cancel
       },
     },

@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useCurrentUserWallet } from "../Wallet/CurrentUserWalletProvider";
-import { ArrowUpRight, ArrowDownLeft, RefreshCw, ExternalLink, Clock, CheckCircle, XCircle } from "lucide-react";
+import { ArrowUpRight, ArrowDownLeft, RefreshCw, ExternalLink, Clock, CheckCircle, XCircle, ChevronDown } from "lucide-react";
+import Button from "../Button";
 
 const getTransactionIcon = (direction, type) => {
   switch (direction) {
@@ -123,16 +124,50 @@ export default function TransactionHistory() {
   const [error, setError] = useState(null);
   const [marker, setMarker] = useState(null);
   const [hasMore, setHasMore] = useState(true);
+  const [selectedWallet, setSelectedWallet] = useState(null);
+  const [showWalletDropdown, setShowWalletDropdown] = useState(false);
 
-  // Find the primary wallet - try USER first, then any wallet that has the balance
-  const primaryWallet = currentUserWallets?.find(
-    (wallet) => wallet.walletType === "USER"
-  ) || currentUserWallets?.find(
-    (wallet) => wallet.walletType === "STANDBY PATHFIND"
-  ) || currentUserWallets?.find(
-    (wallet) => wallet.walletType === "BUSINESS"
-  )
-  || currentUserWallets?.[0]; // Fallback to first wallet if none match
+  // Determine the best default wallet based on user type
+  const getDefaultWallet = (wallets) => {
+    if (!wallets || wallets.length === 0) return null;
+    
+    // For single wallet users, use the only wallet
+    if (wallets.length === 1) return wallets[0];
+    
+    // For admin users with multiple wallets, prioritize in this order:
+    
+    // 1. ISSUER (main admin wallet)
+    // 2. STANDBY PATHFIND (for pathfinding operations)
+    // 3. STANDBY TREASURY (for treasury operations)
+    // 4. USER (for regular user operations)
+    // 5. Any other wallet type
+    const walletTypePriority = [
+      "ISSUER",
+      "TREASURY",
+      "PATHFIND", 
+      "USER",
+      "BUSINESS"
+    ];
+    
+    for (const type of walletTypePriority) {
+      const wallet = wallets.find(w => w.walletType === type);
+      if (wallet) return wallet;
+    }
+    
+    // Fallback to first wallet if no priority matches
+    return wallets[0];
+  };
+
+  // Set default wallet when wallets are loaded
+  useEffect(() => {
+    if (currentUserWallets && currentUserWallets.length > 0 && !selectedWallet) {
+      const defaultWallet = getDefaultWallet(currentUserWallets);
+      setSelectedWallet(defaultWallet);
+    }
+  }, [currentUserWallets, selectedWallet]);
+
+  // Get the current wallet to use for transactions
+  const primaryWallet = selectedWallet || getDefaultWallet(currentUserWallets);
 
   const fetchTransactions = async (isLoadMore = false) => {
     if (!primaryWallet?.classicAddress) {
@@ -149,7 +184,7 @@ export default function TransactionHistory() {
     try {
       const requestBody = {
         wallet: primaryWallet,
-        limit: 50, // Fetch more transactions initially
+        limit: 50,
       };
 
       if (isLoadMore && marker) {
@@ -168,7 +203,6 @@ export default function TransactionHistory() {
         throw new Error(data.error || "Failed to fetch transactions");
       }
 
-      // Handle case where no transactions are returned
       if (!data.transactions) {
         console.warn("No transactions in response:", data);
         setTransactions([]);
@@ -193,14 +227,25 @@ export default function TransactionHistory() {
     }
   };
 
+  const handleWalletChange = (wallet) => {
+    setSelectedWallet(wallet);
+    setShowWalletDropdown(false);
+    setTransactions([]); // Clear existing transactions
+    setMarker(null);
+    setHasMore(true);
+  };
+
   const handleLoadMore = () => {
     if (!loading && hasMore) {
       fetchTransactions(true);
     }
   };
 
+  // Refetch transactions when the selected wallet changes
   useEffect(() => {
-    fetchTransactions();
+    if (primaryWallet) {
+      fetchTransactions();
+    }
   }, [primaryWallet]);
 
   if (!primaryWallet) {
@@ -220,20 +265,58 @@ export default function TransactionHistory() {
       {/* Header */}
       <div className="p-6 border-b border-gray-700">
         <div className="flex items-center justify-between">
-          <div>
+          <div className="flex-1">
             <h2 className="text-xl font-bold">Transaction History</h2>
-            <p className="text-sm text-gray-400 mt-1">
-              {formatAddress(primaryWallet.classicAddress)}
-            </p>
+            
+            {/* Wallet Selection - Show only if multiple wallets */}
+            {currentUserWallets && currentUserWallets.length > 1 && (
+              <div className="relative mt-2">
+                <button
+                  onClick={() => setShowWalletDropdown(!showWalletDropdown)}
+                  className="flex items-center justify-between w-full max-w-md px-3 py-2 bg-color3 rounded-lg text-sm hover:bg-color4 transition-colors"
+                >
+                  <div className="flex items-center space-x-2">
+                    <span className="text-blue-400 font-medium">
+                      {primaryWallet.walletType}
+                    </span>
+                  </div>
+                  <ChevronDown className={`w-4 h-4 transition-transform ${showWalletDropdown ? 'rotate-180' : ''}`} />
+                </button>
+                
+                {showWalletDropdown && (
+                  <div className="absolute top-full left-0 mt-1 w-full max-w-md bg-color4 border border-gray-600 rounded-lg shadow-lg z-10">
+                    {currentUserWallets.map((wallet) => (
+                      <button
+                        key={wallet.classicAddress}
+                        onClick={() => handleWalletChange(wallet)}
+                        className={`w-full px-3 py-2 text-left hover:bg-color5 transition-colors first:rounded-t-lg last:rounded-b-lg ${
+                          selectedWallet?.classicAddress === wallet.classicAddress 
+                            ? 'bg-color5 text-blue-400' 
+                            : 'text-gray-300'
+                        }`}
+                      >
+                        <div className="flex items-center">
+                          <span className="font-medium">{wallet.walletType}</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {/* Single wallet display */}
+            {(!currentUserWallets || currentUserWallets.length === 1) && (
+              <p className="text-sm text-gray-400 mt-1">
+                {formatAddress(primaryWallet.classicAddress)}
+              </p>
+            )}
           </div>
-          <button
-            onClick={() => fetchTransactions()}
-            disabled={loading}
-            className="flex items-center space-x-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 rounded-lg transition-colors"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            <span className="text-sm">Refresh</span>
-          </button>
+          
+          <Button onClick={() => fetchTransactions()} className="flex items-center space-x-2">
+            <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+            <span className="text-md">Refresh</span>
+          </Button>
         </div>
       </div>
 
@@ -241,7 +324,7 @@ export default function TransactionHistory() {
       <div className="h-screen overflow-y-auto">
         {loading && transactions.length === 0 ? (
           <div className="p-6 text-center">
-            <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-400" />
+            <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
             <p className="text-gray-400">Loading transactions...</p>
           </div>
         ) : error ? (
@@ -266,7 +349,7 @@ export default function TransactionHistory() {
             {/* Transaction List */}
             <div className="divide-y divide-gray-700">
               {transactions.map((tx, index) => (
-                                 <div key={`${tx.hash}-${index}`} className="p-6 hover:bg-color3 transition-colors">
+                <div key={`${tx.hash}-${index}`} className="p-6 hover:bg-color3 transition-colors">
                   <div className="flex items-center justify-between">
                     {/* Left Section - Icon, Type, and Details */}
                     <div className="flex items-center space-x-3 flex-1">
@@ -286,19 +369,19 @@ export default function TransactionHistory() {
                           )}
                         </div>
                         
-                                                 <div className="text-sm text-gray-400 mt-1">
-                           {tx.counterparty && (
-                             <span>
-                               {tx.direction === "sent" ? "To: " : "From: "}
-                               {formatAddress(tx.counterparty)}
-                             </span>
-                           )}
-                           {tx.date && (
-                             <span className="ml-2">
-                               {new Date(tx.date).toLocaleDateString()} {new Date(tx.date).toLocaleTimeString()}
-                             </span>
-                           )}
-                         </div>
+                        <div className="text-sm text-gray-400 mt-1">
+                          {tx.counterparty && (
+                            <span>
+                              {tx.direction === "sent" ? "To: " : "From: "}
+                              {formatAddress(tx.counterparty)}
+                            </span>
+                          )}
+                          {tx.date && (
+                            <span className="ml-2">
+                              {new Date(tx.date).toLocaleDateString()} {new Date(tx.date).toLocaleTimeString()}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
 
