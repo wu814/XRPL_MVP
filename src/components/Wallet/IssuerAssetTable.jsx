@@ -1,16 +1,13 @@
 "use client";
 
-import { Star, Wallet, ArrowUpRight, ArrowDownLeft, ChevronRight } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Star, Wallet, ArrowUpRight, ChevronRight, Loader2 } from "lucide-react";
+import { useState } from "react";
 import Image from "next/image";
 import Button from "../Button";
 
-export default function IssuerAssetTable({ wallet }) {
+export default function IssuerAssetTable({ assets = [], loading = false, wallet }) {
   const [watchlist, setWatchlist] = useState(new Set());
   const [expandedAssets, setExpandedAssets] = useState(new Set());
-  const [linesData, setLinesData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [groupedBalances, setGroupedBalances] = useState({});
 
   const toggleWatchlist = (assetId) => {
     const newWatchlist = new Set(watchlist);
@@ -43,64 +40,20 @@ export default function IssuerAssetTable({ wallet }) {
     return iconPaths[currency] || null;
   };
 
-  const handleAssetClick = (currency) => {
+  const getAssetKey = (asset, index) => {
+    return asset.id || `${asset.currency}-${asset.walletAddress || index}`;
+  };
+
+  const handleAssetClick = (asset, index) => {
+    const assetKey = getAssetKey(asset, index);
     const newExpandedAssets = new Set(expandedAssets);
-    if (newExpandedAssets.has(currency)) {
-      newExpandedAssets.delete(currency);
+    if (newExpandedAssets.has(assetKey)) {
+      newExpandedAssets.delete(assetKey);
     } else {
-      newExpandedAssets.add(currency);
+      newExpandedAssets.add(assetKey);
     }
     setExpandedAssets(newExpandedAssets);
   };
-
-  // Fetch account lines for the wallet
-  useEffect(() => {
-    const fetchIssuerData = async () => {
-      if (!wallet) return;
-
-      setLoading(true);
-      try {
-        const response = await fetch("/api/wallets/getAccountLines", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ wallet }),
-        });
-
-        const data = await response.json();
-        if (data.data?.lines) {
-          setLinesData(data.data.lines);
-          
-          // Group and sum balances by currency
-          const grouped = data.data.lines.reduce((acc, line) => {
-            const currency = line.currency;
-            const balance = parseFloat(line.balance);
-
-            if (!acc[currency]) {
-              acc[currency] = 0;
-            }
-            acc[currency] += balance;
-            return acc;
-          }, {});
-          
-          setGroupedBalances(grouped);
-        }
-      } catch (error) {
-        console.error("Error fetching issuer data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchIssuerData();
-  }, [wallet]);
-
-  // Convert grouped balances to array for rendering
-  const assets = Object.entries(groupedBalances).map(([currency, totalBalance]) => ({
-    currency,
-    balance: totalBalance.toFixed(6),
-    value: totalBalance * 1.0, // Mock USD value
-    change24h: 0, // Mock 24h change
-  }));
 
   return (
     <div className="w-full bg-color2 border border-gray-700 rounded-lg">
@@ -111,21 +64,26 @@ export default function IssuerAssetTable({ wallet }) {
         </div>
       </div>
 
-      {loading ? (
-        <div className="text-center py-8">
-          <p className="text-mutedText">Loading...</p>
+      {/* Loading State */}
+      {loading && (
+        <div className="flex justify-center items-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
         </div>
-      ) : (
+      )}
+
+      {/* Asset List */}
+      {!loading && (
         <div className="divide-y divide-gray-700">
-          {assets.map((asset) => {
-            const isExpanded = expandedAssets.has(asset.currency);
+          {assets.map((asset, index) => {
+            const assetKey = getAssetKey(asset, index);
+            const isExpanded = expandedAssets.has(assetKey);
             
             return (
-              <div key={asset.currency}>
+              <div key={assetKey}>
                 {/* Main Asset Row */}
                 <div 
                   className="p-3 hover:bg-color3 transition-colors cursor-pointer"
-                  onClick={() => handleAssetClick(asset.currency)}
+                  onClick={() => handleAssetClick(asset, index)}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
@@ -170,26 +128,26 @@ export default function IssuerAssetTable({ wallet }) {
 
                 {/* Expanded Details */}
                 {isExpanded && (
-                  <div className="px-3 pb-3 bg-color3">
-                    <div className="grid grid-cols-2 gap-3">
+                  <div className="p-4 bg-color3">
+                    <div className="flex flex-row justify-start gap-7">
                       <div>
-                        <span className="text-gray-400">Total Issued:</span>
-                        <div className="font-medium">{formatBalance(asset.balance)} {asset.currency}</div>
-                      </div>
-                      <div>
-                        <span className="text-gray-400">USD Value:</span>
-                        <div className="font-medium">${formatBalance(asset.value || 0)}</div>
-                      </div>
-                      <div className="col-span-2">
                         <span className="text-gray-400">Issuer Address:</span>
                         <div className="font-mono break-all">
                           {wallet?.classicAddress || wallet?.classic_address}
                         </div>
                       </div>
+                      {asset.walletAddress && (
+                        <div>
+                          <span className="text-gray-400">Wallet:</span>
+                          <div className="font-mono break-all">
+                            {asset.walletAddress}
+                          </div>
+                        </div>
+                      )}
                     </div>
                     
                     {/* Action Buttons */}
-                    <div className="flex items-center space-x-2 mt-3">
+                    <div className="flex justify-end items-center space-x-2">
                       <Button variant="primary" className="flex flex-row items-center space-x-1">
                         <ArrowUpRight className="w-3 h-3" />
                         <span>Manage</span>
@@ -197,16 +155,16 @@ export default function IssuerAssetTable({ wallet }) {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          toggleWatchlist(asset.currency);
+                          toggleWatchlist(assetKey);
                         }}
                         className={`p-1 rounded transition-colors ${
-                          watchlist.has(asset.currency)
+                          watchlist.has(assetKey)
                             ? "text-yellow-400 hover:text-yellow-300"
                             : "text-gray-400 hover:text-gray-300"
                         }`}
                         title="Add to Watchlist"
                       >
-                        <Star className={`w-4 h-4 ${watchlist.has(asset.currency) ? "fill-current" : ""}`} />
+                        <Star className={`w-4 h-4 ${watchlist.has(assetKey) ? "fill-current" : ""}`} />
                       </button>
                     </div>
                   </div>

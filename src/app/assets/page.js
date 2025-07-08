@@ -30,7 +30,32 @@ function AssetTableWrapper() {
 
     setLoading(true);
     try {
-      // Fetch account info and lines in parallel
+      // Step 1: Get treasury wallet (oracle account)
+      const treasuryResponse = await fetch("/api/wallets/getTreasuryWallet");
+      const treasuryData = await treasuryResponse.json();
+
+      let livePrices = [];
+      if (treasuryData.data && treasuryData.data.length > 0) {
+        const treasuryWallet = treasuryData.data[0];
+
+        // Step 2: Get live prices from oracle
+        const pricesResponse = await fetch("/api/oracle/getLivePrices", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            account: treasuryWallet.classic_address,
+            oracleDocumentId: 1, // Using default oracle document ID
+            ledgerIndex: "validated",
+          }),
+        });
+
+        const pricesData = await pricesResponse.json();
+        if (pricesData.success) {
+          livePrices = pricesData.livePrices;
+        }
+      }
+
+      // Step 3: Fetch account info and lines
       const [accountInfoResponse, accountLinesResponse] = await Promise.all([
         fetch("/api/wallets/getAccountInfo", {
           method: "POST",
@@ -51,13 +76,21 @@ function AssetTableWrapper() {
 
       // Add XRP balance
       if (accountInfo.data?.balance) {
-        const xrpBalance = parseFloat(accountInfo.data.balance); // Already converted from drops to XRP
+        const xrpBalance = parseFloat(accountInfo.data.balance);
+        
+        // Calculate USD value using live prices
+        let usdValue = 0;
+        const xrpPrice = livePrices.find(p => p.baseAsset === "XRP");
+        if (xrpPrice && xrpPrice.available) {
+          usdValue = xrpBalance * xrpPrice.price;
+        }
+
         newAssets.push({
           id: "xrp-native",
           currency: "XRP",
           balance: xrpBalance.toFixed(6),
-          value: (xrpBalance * 0.5).toFixed(2), // Mock USD value - you might want to get real prices
-          change24h: "2.3", // Mock change percentage
+          value: usdValue.toFixed(2),
+          change24h: "2.3", // You might want to get real change data too
           walletAddress: primaryWallet.classicAddress,
           issuer: null,
         });
@@ -68,12 +101,27 @@ function AssetTableWrapper() {
         accountLines.data.lines.forEach((line, index) => {
           if (parseFloat(line.balance) > 0) {
             const balance = parseFloat(line.balance);
+            const currency = line.currency;
+            console.log(currency);
+            
+            // Calculate USD value using live prices
+            let usdValue = 0;
+            if (currency === "USD") {
+              // USD is 1:1 ratio
+              usdValue = balance;
+            } else {
+              const priceInfo = livePrices.find(p => p.baseAsset === currency);
+              if (priceInfo && priceInfo.available) {
+                usdValue = balance * priceInfo.price;
+              }
+            }
+
             newAssets.push({
               id: `${line.currency}-${line.account}-${index}`,
               currency: line.currency,
               balance: balance.toFixed(6),
-              value: (balance * 1.0).toFixed(2), // Mock USD value
-              change24h: "1.5", // Mock change percentage
+              value: usdValue.toFixed(2),
+              change24h: "1.5", // You might want to get real change data too
               walletAddress: primaryWallet.classicAddress,
               issuer: line.account,
             });

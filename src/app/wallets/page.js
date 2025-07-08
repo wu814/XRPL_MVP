@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import AuthRedirect from "@/components/AuthRedirect";
 import AssetTable from "@/components/Wallet/AssetTable";
 import IssuerAssetTable from "@/components/Wallet/IssuerAssetTable";
-import { Wallet } from "lucide-react";
+import { Wallet, Loader2 } from "lucide-react";
 import {
   CurrentUserWalletProvider,
   useCurrentUserWallet,
@@ -16,88 +16,223 @@ import TradePanel from "@/components/Smart/TradePanel";
 // AssetTableWrapper component to handle wallet assets
 function AssetTableWrapper({ wallet }) {
   const [assets, setAssets] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+
+  const fetchAssets = async () => {
+    if (!wallet) return;
+
+    setLoading(true);
+    try {
+      // Step 1: Get treasury wallet (oracle account)
+      const treasuryResponse = await fetch("/api/wallets/getTreasuryWallet");
+      const treasuryData = await treasuryResponse.json();
+
+      let livePrices = [];
+      if (treasuryData.data && treasuryData.data.length > 0) {
+        const treasuryWallet = treasuryData.data[0];
+
+        // Step 2: Get live prices from oracle
+        const pricesResponse = await fetch("/api/oracle/getLivePrices", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            account: treasuryWallet.classic_address,
+            oracleDocumentId: 1, // Using default oracle document ID
+            ledgerIndex: "validated",
+          }),
+        });
+
+        const pricesData = await pricesResponse.json();
+        if (pricesData.success) {
+          livePrices = pricesData.livePrices;
+        }
+      }
+
+      // Step 3: Fetch account info and lines
+      const [accountInfoResponse, accountLinesResponse] = await Promise.all([
+        fetch("/api/wallets/getAccountInfo", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ wallet }),
+        }),
+        fetch("/api/wallets/getAccountLines", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ wallet }),
+        }),
+      ]);
+
+      const accountInfo = await accountInfoResponse.json();
+      const accountLines = await accountLinesResponse.json();
+
+      const newAssets = [];
+
+      // Add XRP balance
+      if (accountInfo.data?.balance) {
+        const xrpBalance = parseFloat(accountInfo.data.balance);
+        
+        // Calculate USD value using live prices
+        let usdValue = 0;
+        const xrpPrice = livePrices.find(p => p.baseAsset === "XRP");
+        if (xrpPrice && xrpPrice.available) {
+          usdValue = xrpBalance * xrpPrice.price;
+        }
+
+        newAssets.push({
+          id: "xrp-native",
+          currency: "XRP",
+          balance: xrpBalance.toFixed(6),
+          value: usdValue.toFixed(2),
+          change24h: "2.3", // You might want to get real change data too
+          walletAddress: wallet.classicAddress,
+          issuer: null,
+        });
+      }
+
+      // Add trustline balances
+      if (accountLines.data?.lines) {
+        accountLines.data.lines.forEach((line, index) => {
+          if (parseFloat(line.balance) > 0) {
+            const balance = parseFloat(line.balance);
+            const currency = line.currency;
+            console.log(currency);
+            
+            // Calculate USD value using live prices
+            let usdValue = 0;
+            if (currency === "USD") {
+              // USD is 1:1 ratio
+              usdValue = balance;
+            } else {
+              const priceInfo = livePrices.find(p => p.baseAsset === currency);
+              if (priceInfo && priceInfo.available) {
+                usdValue = balance * priceInfo.price;
+              }
+            }
+
+            newAssets.push({
+              id: `${line.currency}-${line.account}-${index}`,
+              currency: line.currency,
+              balance: balance.toFixed(6),
+              value: usdValue.toFixed(2),
+              change24h: "1.5", // You might want to get real change data too
+              walletAddress: wallet.classicAddress,
+              issuer: line.account,
+            });
+          }
+        });
+      }
+
+      setAssets(newAssets);
+    } catch (error) {
+      console.error("Error fetching assets:", error);
+      setAssets([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchWalletAssets = async () => {
-      if (!wallet) return;
-
-      setLoading(true);
-      try {
-        const [accountInfoResponse, accountLinesResponse] = await Promise.all([
-          fetch("/api/wallets/getAccountInfo", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ wallet }),
-          }),
-          fetch("/api/wallets/getAccountLines", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ wallet }),
-          }),
-        ]);
-
-        const accountInfo = await accountInfoResponse.json();
-        const accountLines = await accountLinesResponse.json();
-
-        const fetchedAssets = [];
-
-        // Add XRP balance
-        if (accountInfo.data?.balance) {
-          const xrpBalance = parseFloat(accountInfo.data.balance); // Already converted from drops to XRP
-          fetchedAssets.push({
-            currency: "XRP",
-            balance: xrpBalance.toFixed(6),
-            issuer: null,
-            value: xrpBalance * 0.5, // Mock USD value
-            change24h: 0,
-            walletAddress: wallet.classicAddress,
-          });
-        }
-
-        // Add trustline balances
-        if (accountLines.data?.lines) {
-          accountLines.data.lines.forEach((line) => {
-            fetchedAssets.push({
-              currency: line.currency,
-              balance: parseFloat(line.balance).toFixed(6),
-              issuer: line.account,
-              value: parseFloat(line.balance) * 1.0, // Mock USD value
-              change24h: 0,
-              walletAddress: wallet.classicAddress,
-            });
-          });
-        }
-
-        setAssets(fetchedAssets);
-      } catch (error) {
-        console.error("Error fetching wallet assets:", error);
-        setAssets([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchWalletAssets();
+    fetchAssets();
   }, [wallet]);
 
-  if (loading) {
-    return (
-      <div className="w-full bg-color2 border border-gray-700">
-        <div className="p-4 border-b border-gray-700">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold">Assets</h2>
-            <div className="text-xl font-bold">USD Values</div>
-          </div>
-        </div>
-        <div className="text-center py-8">
-          <p className="text-mutedText">Loading assets...</p>
-        </div>
-      </div>
-    );
-  }
+  return <AssetTable assets={assets} loading={loading} />;
+}
 
-  return <AssetTable assets={assets} />;
+// IssuerAssetTableWrapper component to handle issuer wallet assets
+function IssuerAssetTableWrapper({ wallet }) {
+  const [assets, setAssets] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchIssuerAssets = async () => {
+    if (!wallet) return;
+
+    setLoading(true);
+    try {
+      // Step 1: Get treasury wallet (oracle account)
+      const treasuryResponse = await fetch("/api/wallets/getTreasuryWallet");
+      const treasuryData = await treasuryResponse.json();
+
+      let livePrices = [];
+      if (treasuryData.data && treasuryData.data.length > 0) {
+        const treasuryWallet = treasuryData.data[0];
+
+        // Step 2: Get live prices from oracle
+        const pricesResponse = await fetch("/api/oracle/getLivePrices", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            account: treasuryWallet.classic_address,
+            oracleDocumentId: 1,
+            ledgerIndex: "validated",
+          }),
+        });
+
+        const pricesData = await pricesResponse.json();
+        if (pricesData.success) {
+          livePrices = pricesData.livePrices;
+        }
+      }
+
+      // Step 3: Fetch account lines for issuer
+      const response = await fetch("/api/wallets/getAccountLines", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ wallet }),
+      });
+
+      const data = await response.json();
+      if (data.data?.lines) {
+        // Group and sum balances by currency
+        const grouped = data.data.lines.reduce((acc, line) => {
+          const currency = line.currency;
+          const balance = parseFloat(line.balance);
+
+          if (!acc[currency]) {
+            acc[currency] = 0;
+          }
+          acc[currency] += balance;
+          return acc;
+        }, {});
+
+        // Convert grouped balances to assets array
+        const newAssets = Object.entries(grouped).map(([currency, totalBalance]) => {
+          // Calculate USD value using live prices
+          let usdValue = 0;
+          if (currency === "USD") {
+            usdValue = totalBalance;
+          } else {
+            const priceInfo = livePrices.find(p => p.baseAsset === currency);
+            if (priceInfo && priceInfo.available) {
+              usdValue = totalBalance * priceInfo.price;
+            }
+          }
+
+          return {
+            id: `issuer-${currency}`,
+            currency,
+            balance: totalBalance.toFixed(6),
+            value: usdValue.toFixed(2),
+            change24h: "0", // Mock 24h change
+            walletAddress: wallet.classicAddress,
+            issuer: wallet.classicAddress,
+          };
+        });
+
+        setAssets(newAssets);
+      }
+    } catch (error) {
+      console.error("Error fetching issuer assets:", error);
+      setAssets([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchIssuerAssets();
+  }, [wallet]);
+
+  return <IssuerAssetTable assets={assets} loading={loading} wallet={wallet} />;
 }
 
 // WalletsWrapper component to access wallet context
@@ -123,9 +258,8 @@ function WalletsWrapper() {
 
   if (loading) {
     return (
-      <div className="py-8 text-center">
-        <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-primary"></div>
-        <p className="text-mutedText">Loading wallets...</p>
+      <div className="flex justify-center items-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
       </div>
     );
   }
@@ -179,7 +313,7 @@ function WalletsWrapper() {
 
           {/* Render appropriate asset table based on wallet type */}
           {wallet.walletType === "ISSUER" ? (
-            <IssuerAssetTable wallet={wallet} />
+            <IssuerAssetTableWrapper wallet={wallet} />
           ) : (
             <AssetTableWrapper wallet={wallet} />
           )}
@@ -196,7 +330,7 @@ export default function WalletsPage() {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
-          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-primary"></div>
+          <Loader2 className="mx-auto mb-4 h-12 w-12 animate-spin text-gray-400" />
           <p className="text-mutedText">Loading...</p>
         </div>
       </div>
