@@ -6,7 +6,7 @@ export async function POST(req) {
     const { wallet } = await req.json();
     
     // Support both wallet object and direct address for backward compatibility
-    const targetAddress = wallet?.classic_address;
+    const targetAddress = wallet?.classicAddress;
     
     if (!targetAddress) {
       return NextResponse.json({ error: "Missing address or wallet" }, { status: 400 });

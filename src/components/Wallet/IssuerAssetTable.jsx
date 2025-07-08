@@ -103,7 +103,7 @@ export default function IssuerAssetTable({ wallet }) {
   }));
 
   return (
-    <div className="w-full bg-color2 border border-gray-700">
+    <div className="w-full bg-color2 border border-gray-700 rounded-lg">
       <div className="p-4 border-b border-gray-700">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold">Issued Assets</h2>

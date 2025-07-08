@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
 import PasswordConfirmMdl from "../PasswordConfirmMdl";
+import { Trash2 } from "lucide-react";
 
 export default function DeleteWalletBtn({ classicAddress, onWalletDeleted }) {
   const [loading, setLoading] = useState(false);
@@ -43,25 +44,9 @@ export default function DeleteWalletBtn({ classicAddress, onWalletDeleted }) {
       <button
         onClick={() => setShowConfirm(true)}
         disabled={loading}
-        className="absolute right-3 top-2 transition duration-200 ease-in-out hover:scale-110"
+        className="absolute right-2 top-2 transition duration-200 ease-in-out hover:scale-110"
       >
-        <svg
-          className="h-7 w-7 text-cancel"
-          aria-hidden="true"
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            d="M5 7h14m-9 3v8m4-8v8M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1ZM6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7Z"
-          />
-        </svg>
+        <Trash2 className="w-6 h-6 text-cancel" />
       </button>
 
       {showConfirm && (

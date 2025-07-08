@@ -50,8 +50,8 @@ function AssetTableWrapper() {
       const newAssets = [];
 
       // Add XRP balance
-      if (accountInfo.data?.Balance) {
-        const xrpBalance = parseFloat(accountInfo.data.Balance) / 1000000; // Convert drops to XRP
+      if (accountInfo.data?.balance) {
+        const xrpBalance = parseFloat(accountInfo.data.balance); // Already converted from drops to XRP
         newAssets.push({
           id: "xrp-native",
           currency: "XRP",

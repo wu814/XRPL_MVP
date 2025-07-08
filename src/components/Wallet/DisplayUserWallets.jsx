@@ -4,9 +4,10 @@ import { useCurrentUserWallet } from "@/components/Wallet/CurrentUserWalletProvi
 import { useIssuerWallet } from "@/components/Wallet/IssuerWalletProvider";
 import AssetTable from "@/components/Wallet/AssetTable";
 import SetTrustlineBtn from "@/components/Wallet/SetTrustlineBtn";
-import ViewDetailsBtn from "@/components/Wallet/ViewDetailsBtn";
 import TransferBtn from "@/components/Wallet/TransferBtn";
 import CreateUserWalletBtn from "@/components/Wallet/CreateUserWalletBtn";
+import Button from "@/components/Button";
+import ViewWalletDetails from "@/components/Wallet/ViewWalletDetails";
 
 // AssetTableWrapper component to access wallet context
 function AssetTableWrapper() {
@@ -18,7 +19,6 @@ function AssetTableWrapper() {
   const primaryWallet = currentUserWallets?.find(
     (wallet) =>
       wallet.walletType === "USER" ||
-      wallet.walletType === "STANDBY PATHFIND" ||
       wallet.walletType === "BUSINESS",
   );
 
@@ -91,6 +91,8 @@ function AssetTableWrapper() {
   };
 
   useEffect(() => {
+    console.log(primaryWallet);
+
     fetchAssets();
   }, [primaryWallet]);
 
@@ -117,7 +119,7 @@ function AssetTableWrapper() {
 }
 
 // User Wallet Details Component
-function UserWalletDetails() {
+function UserWalletDetails({ onViewDetails }) {
   const { currentUserWallets, fetchCurrentUserWallets } = useCurrentUserWallet();
   const { issuerWallets } = useIssuerWallet();
   const [walletBalance, setWalletBalance] = useState(null);
@@ -286,7 +288,7 @@ function UserWalletDetails() {
     <div className="rounded-lg bg-color2 p-8">
       <div className="mb-2 flex items-baseline justify-between">
         <div>
-          <h3 className="text-3xl font-bold">My Wallet</h3>
+          <h3 className="text-2xl font-bold">My Wallet</h3>
         </div>
 
         {/* Balance Information */}
@@ -321,89 +323,23 @@ function UserWalletDetails() {
           {userWallet.classicAddress}
         </p>
       </div>
-
-      {/* Reserve Breakdown */}
-      {reserveBreakdown.length > 0 && (
-        <div className="mb-8">
-          <h4 className="mb-5 text-2xl font-semibold">Reserve Breakdown</h4>
-          <div className="space-y-4">
-            {reserveBreakdown.map((reserve, index) => (
-              <div key={index} className="rounded-lg bg-color3 p-5">
-                <div className="mb-2 flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-600">
-                      <span className="text-sm font-bold text-white">R</span>
-                    </div>
-                    <div>
-                      <div className="text-lg font-medium">{reserve.type}</div>
-                      <div className="text-base text-gray-400">
-                        {reserve.description}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-lg font-medium">
-                      {reserve.xrpAmount.toFixed(1)} XRP
-                    </div>
-                    <div className="text-base text-gray-400">
-                      {reserve.count} item{reserve.count > 1 ? "s" : ""}
-                    </div>
-                  </div>
-                </div>
-                {reserve.items && reserve.items.length > 0 && (
-                  <div className="ml-11 border-t border-gray-600 pt-3">
-                    <div className="space-y-2 text-base text-gray-500">
-                      {expandedReserveItems.has(index) ? (
-                        // Show all items when expanded
-                        <>
-                          {reserve.items.map((item, itemIndex) => (
-                            <div key={itemIndex}>• {item}</div>
-                          ))}
-                          <button
-                            onClick={() => toggleReserveItemExpansion(index)}
-                            className="mt-2 text-sm text-blue-400 hover:text-blue-300 transition-colors"
-                          >
-                            Show less
-                          </button>
-                        </>
-                      ) : (
-                        // Show first 2 items with expand option
-                        <>
-                          {reserve.items.slice(0, 2).map((item, itemIndex) => (
-                            <div key={itemIndex}>• {item}</div>
-                          ))}
-                          {reserve.items.length > 2 && (
-                            <button
-                              onClick={() => toggleReserveItemExpansion(index)}
-                              className="mt-2 text-sm text-blue-400 hover:text-blue-300 transition-colors cursor-pointer"
-                            >
-                              ... and {reserve.items.length - 2} more (click to expand)
-                            </button>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+    
 
       {/* Wallet Management Actions */}
-      <div className="flex gap-2 border-t border-gray-600 pt-6">
-        <TransferBtn
-          senderWallet={userWallet}
-          issuerWallets={issuerWallets}
-          onSuccess={handleWalletAction}
-        />
-        <SetTrustlineBtn
-          setterWallet={userWallet}
-          issuerWallets={issuerWallets}
-          onSuccess={handleWalletAction}
-        />
-        <ViewDetailsBtn wallet={userWallet} />
+      <div className="flex justify-between border-t border-gray-600 pt-6">
+        <div className="flex gap-2">
+          <TransferBtn
+            senderWallet={userWallet}
+            issuerWallets={issuerWallets}
+            onSuccess={handleWalletAction}
+          />
+          <SetTrustlineBtn
+            setterWallet={userWallet}
+            issuerWallets={issuerWallets}
+            onSuccess={handleWalletAction}
+          />
+        </div>
+        <Button onClick={() => onViewDetails(userWallet)}>View Details</Button>
       </div>
     </div>
   );
@@ -458,14 +394,33 @@ function AdditionalWelcomeSection({ session }) {
 // Main DisplayUserWallets Component
 export default function DisplayUserWallets({ session, showAssetTable = false }) {
   const { currentUserWallets, fetchCurrentUserWallets } = useCurrentUserWallet();
+  const [selectedWallet, setSelectedWallet] = useState(null);
 
   const handleWalletCreated = async () => {
     await fetchCurrentUserWallets();
   };
 
+  const handleViewDetails = (wallet) => {
+    setSelectedWallet(wallet);
+  };
+
+  const handleCloseDetails = () => {
+    setSelectedWallet(null);
+  };
+
   // If component is used to show asset table only
   if (showAssetTable) {
     return <AssetTableWrapper />;
+  }
+
+  // If a wallet is selected, show the details view
+  if (selectedWallet) {
+    return (
+      <ViewWalletDetails
+        wallet={selectedWallet}
+        onBack={handleCloseDetails}
+      />
+    );
   }
 
   // If user has no wallets, show prominent create wallet section
@@ -513,7 +468,7 @@ export default function DisplayUserWallets({ session, showAssetTable = false }) 
   // If user has wallets, show wallet details and additional sections
   return (
     <div className="space-y-4">
-      <UserWalletDetails />
+      <UserWalletDetails onViewDetails={handleViewDetails} />
       <AdditionalWelcomeSection session={session} />
     </div>
   );
