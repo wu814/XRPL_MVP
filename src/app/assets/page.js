@@ -150,7 +150,7 @@ export default function AssetsPage() {
 
   if (status === "loading") {
     return (
-      <div className="  min-h-screen bg-color1 p-8">
+      <div className="min-h-screen bg-color1 p-8">
         <div className="animate-pulse">
           <div className="mb-8 h-8 w-48 rounded bg-gray-600"></div>
           <div className="h-64 rounded bg-gray-600"></div>
@@ -161,7 +161,7 @@ export default function AssetsPage() {
 
   if (!session) {
     return (
-      <div className="  min-h-screen bg-color1 p-8">
+      <div className="min-h-screen bg-color1 p-8">
         <div className="py-20 text-center">
           <h1 className="text-2xl font-bold text-gray-400">
             Please log in to view your assets
@@ -174,7 +174,7 @@ export default function AssetsPage() {
   return (
     <CurrentUserWalletProvider>
       <IssuerWalletProvider>
-        <div className=" min-h-screen bg-color1">
+        <div className="min-h-screen p-2">
           <AssetTableWrapper />
           <TradePanel />
         </div>

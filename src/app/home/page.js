@@ -20,7 +20,7 @@ function WelcomeSection({ session }) {
   // If user has no wallets, show prominent create wallet section
   if (currentUserWallets.length === 0) {
     return (
-      <div className="w-full rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white">
+      <div className="rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 p-6">
         <h2 className="mb-2 text-xl font-bold">
           Welcome to XRPL MVP, {session.user.username}!
         </h2>
@@ -85,7 +85,7 @@ export default function Home() {
 
   if (status === "loading") {
     return (
-      <div className=" mr-80 min-h-screen bg-color1 p-8">
+      <div className="min-h-screen bg-color1 p-8">
         <div className="animate-pulse">
           <div className="mb-8 h-8 w-48 rounded bg-gray-600"></div>
           <div className="mb-6 h-32 rounded bg-gray-600"></div>
@@ -97,7 +97,7 @@ export default function Home() {
 
   if (!session) {
     return (
-      <div className=" mr-80 min-h-screen bg-color1 p-8">
+      <div className="min-h-screen bg-color1 p-8">
         <div className="py-20 text-center">
           <h1 className="text-2xl font-bold text-gray-400">
             Please log in to access your dashboard
@@ -111,11 +111,11 @@ export default function Home() {
     <CurrentUserWalletProvider>
       <IssuerWalletProvider>
         <div
-          className=" min-h-screen w-full bg-color1 p-3"
-          style={{ maxWidth: "calc(100vw - 16rem - 32rem)" }}
+          className="min-h-screen w-full bg-color1 p-2"
+          style={{ maxWidth: "calc(100vw - 6rem - 32rem)" }}
         >
           {/* Content */}
-          <div className="max-w-full space-y-4">
+          <div className="space-y-4 h-full overflow-y-auto">
             {/* Dashboard Header with Balance */}
             <div className="w-full">
               <DashboardHeader />

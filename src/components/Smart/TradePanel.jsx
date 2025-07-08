@@ -333,7 +333,7 @@ export default function TradePanel() {
 
   return (
     <>
-      <div className="w-[32rem] fixed right-0 top-24 bottom-0 bg-color2 border-l border-gray-700 overflow-y-auto mt-2 rounded-lg">
+      <div className="w-[32rem] fixed right-0 top-24 bottom-0 bg-color2 overflow-y-auto mt-2 rounded-lg">
         {/* Smart Trade Header */}
         <div className="p-6 border-b border-gray-600">
           <div className="flex flex-row justify-between items-center relative">

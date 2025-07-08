@@ -24,14 +24,12 @@ export default function FriendsPage() {
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
 
-
   return (
     <CurrentUserWalletProvider>
       <IssuerWalletProvider>
-        <div className="min-h-screen bg-color1 p-2" style={{ maxWidth: 'calc(100vw - 16rem - 32rem)' }}>
-
+        <div className="p-2 min-h-screen bg-color1">
           {/* Friends Sections */}
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-2 max-w-full">
+          <div className="grid max-w-full grid-cols-1 gap-2 xl:grid-cols-2">
             <DisplayFriends />
             <DisplayPendingFriendRequests />
           </div>
@@ -42,10 +40,8 @@ export default function FriendsPage() {
               onClose={() => setErrorMessage("")}
             />
           )}
+          {session && <TradePanel />}
         </div>
-
-        {/* Trade Panel - Always visible for consistency */}
-        {session && <TradePanel />}
       </IssuerWalletProvider>
     </CurrentUserWalletProvider>
   );

@@ -12,7 +12,7 @@ export default function Trade() {
 
   if (status === "loading") {
     return (
-      <div className="mr-80 min-h-screen bg-color1 p-8">
+      <div className="min-h-screen bg-color1 p-8">
         <div className="animate-pulse">
           <div className="mb-8 h-8 w-48 rounded bg-gray-600"></div>
           <div className="mb-6 h-32 rounded bg-gray-600"></div>
@@ -24,7 +24,7 @@ export default function Trade() {
 
   if (!session) {
     return (
-      <div className="mr-80 min-h-screen bg-color1 p-8">
+      <div className="min-h-screen bg-color1 p-8">
         <div className="py-20 text-center">
           <h1 className="text-2xl font-bold text-gray-400">
             Please log in to access trading
@@ -38,11 +38,11 @@ export default function Trade() {
     <CurrentUserWalletProvider>
       <IssuerWalletProvider>
         <div
-          className="min-h-screen w-full bg-color1"
-          style={{ maxWidth: "calc(100vw - 16rem - 32rem)" }}
+          className="min-h-screen w-full p-2"
+          style={{ maxWidth: "calc(100vw - 6rem - 32rem)" }}
         >
           {/* Trading Options Content */}
-          <div className="max-w-ful">
+          <div className="space-y-2">
             {/* Liquidity Pool */}
             <div className="w-full rounded-lg bg-color2 p-12 border-b border-gray-700">
               <Link

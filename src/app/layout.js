@@ -25,7 +25,7 @@ function LayoutContent({ children }) {
     <div className="min-h-screen bg-color1 text-white">
       {showNavigation && <Topbar />}
       {showNavigation && <Sidebar />}
-      <div className={`${showNavigation ? "pt-24 pl-64" : ""} ${showSmartTradePanel ? "pr-[32rem]" : ""}`}>
+      <div className={`${showNavigation ? "mt-[6rem] ml-[16rem]" : ""} ${showSmartTradePanel ? "mr-[32rem]" : ""}`}>
         {children}
       </div>
     </div>
