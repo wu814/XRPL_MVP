@@ -450,7 +450,6 @@ export async function getAccountTransactions({ address, wallet, limit = 50, mark
       let finalType = transactionType;
       let finalDirection = direction;
       
-      console.log("Before override - direction:", direction, "amount:", amount);
 
       if (direction === "smart_trade") {
         finalType = "Smart Trade";
@@ -459,7 +458,6 @@ export async function getAccountTransactions({ address, wallet, limit = 50, mark
         currency = "";
       }
 
-      console.log("Final override values - type:", finalType, "direction:", finalDirection, "amount:", amount);
 
       return {
         hash: tx.hash || txData.hash || "unknown",

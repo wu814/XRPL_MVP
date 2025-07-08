@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, RefreshCw } from "lucide-react";
+import { ArrowRight, RefreshCw, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useCurrentUserWallet } from "@/components/Wallet/CurrentUserWalletProvider";
 
@@ -147,9 +147,9 @@ export default function DashboardHeader({
           <div className="flex items-center space-x-2">
             <div className="flex items-center space-x-2">
               {loading && (
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+                <Loader2 className="h-7 w-7 animate-spin text-primary" />
               )}
-              <span className="text-4xl font-bold text-primary">
+              <span className="text-5xl font-bold text-primary">
                 $
                 {displayBalance.toLocaleString("en-US", {
                   minimumFractionDigits: 2,

@@ -30,9 +30,9 @@ export default function AMM() {
   }
 
   return (
-    <div className="min-h-screen bg-color1 p-3 ">
+    <div className="min-h-screen bg-color1 p-2 ">
       {/* Breadcrumbs */}
-      <div className="mb-4">
+      <div className="m-4">
         <Breadcrumbs />
       </div>
 

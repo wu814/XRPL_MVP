@@ -39,7 +39,7 @@ export default function DEX() {
   return (
     <CurrentUserWalletProvider>
       <IssuerWalletProvider>
-        <div className="min-h-screen bg-color1 p-3 ">
+        <div className="min-h-screen bg-color1 p-2">
           {/* Currency Pair Selection */}
           <div className="mb-4">
             <CurrencyPairSelection
@@ -51,9 +51,9 @@ export default function DEX() {
           </div>
 
           {/* Main Trading Interface - Full Width */}
-          <div className="w-full space-y-4">
+          <div className="w-full space-y-2">
             {/* Top Row: Chart and Order Book */}
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-4 gap-2">
               <div className="col-span-1 rounded-lg bg-color2 p-4">
                 <CreateOffer 
                   baseCurrency={baseCurrency}

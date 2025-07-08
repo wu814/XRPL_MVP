@@ -140,13 +140,15 @@ export default function DisplayAmmDetails({ ammAccount }) {
 
   return (
     <div>
-      <div className="container mx-auto">
-        <Breadcrumbs customLabel={`${currency1}/${currency2}`} />
-        <div className="flex flex-row gap-2 py-6">
+      <div className="container mx-auto">   
+        <div className="m-2">
+          <Breadcrumbs customLabel={`${currency1}/${currency2}`} />
+        </div>
+        <div className="flex flex-row gap-2 py-4">
           <CurrencyIcon symbol={currency1} heightClass="h-8" widthClass="w-8" iconBg="bg-color3" />
           <CurrencyIcon symbol={currency2} heightClass="h-8" widthClass="w-8" iconBg="bg-color3" />
         </div>
-        <div className="grid grid-cols-6 gap-4 py-4">
+        <div className="grid grid-cols-6 gap-2 py-2">
           <div className="col-span-2 rounded-lg bg-color2 p-4">
             <h3 className="text-mutedText">Pool Composition</h3>
             <AmmCompositionBar
@@ -172,7 +174,7 @@ export default function DisplayAmmDetails({ ammAccount }) {
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-3 gap-2">
           {/* Swap/Add/Withdraw Panel */}
           <div className="col-span-1 rounded-lg bg-color2 p-4">
             <CurrentUserWalletProvider>

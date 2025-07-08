@@ -134,13 +134,7 @@ export default function TransactionHistory() {
     // For single wallet users, use the only wallet
     if (wallets.length === 1) return wallets[0];
     
-    // For admin users with multiple wallets, prioritize in this order:
-    
-    // 1. ISSUER (main admin wallet)
-    // 2. STANDBY PATHFIND (for pathfinding operations)
-    // 3. STANDBY TREASURY (for treasury operations)
-    // 4. USER (for regular user operations)
-    // 5. Any other wallet type
+    // For admin with multiple wallets, prioritize in this order:
     const walletTypePriority = [
       "ISSUER",
       "TREASURY",
@@ -416,11 +410,7 @@ export default function TransactionHistory() {
             {/* Load More Button */}
             {hasMore && (
               <div className="p-4 border-t border-gray-700">
-                <button
-                  onClick={handleLoadMore}
-                  disabled={loading}
-                  className="w-full py-2 px-4 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 rounded-lg transition-colors flex items-center justify-center space-x-2"
-                >
+                <Button onClick={handleLoadMore} disabled={loading} className="w-full flex flex-row items-center justify-center space-x-2">
                   {loading ? (
                     <>
                       <RefreshCw className="w-4 h-4 animate-spin" />
@@ -429,7 +419,7 @@ export default function TransactionHistory() {
                   ) : (
                     <span>Load More</span>
                   )}
-                </button>
+                </Button>
               </div>
             )}
           </>
