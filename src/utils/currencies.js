@@ -75,3 +75,18 @@ export function getUsdValue(currency, amount, livePrices) {
 
   return 0;
 }
+
+/**
+ * Format any currency value with consistent decimal places (min 2, max 6)
+ * @param {number} value - The value to format
+ * @returns {string} Formatted value string
+ */
+export function formatCurrencyValue(value) {
+  const num = parseFloat(value);
+  if (isNaN(num)) return "0.00";
+  
+  return num.toLocaleString("en-US", { 
+    minimumFractionDigits: 2, 
+    maximumFractionDigits: 6 
+  });
+}

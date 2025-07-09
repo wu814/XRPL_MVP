@@ -10,7 +10,7 @@ import {
 import { IssuerWalletProvider } from "@/components/Wallet/IssuerWalletProvider";
 import TradePanel from "@/components/Smart/TradePanel";
 import CreateUserWalletBtn from "@/components/Wallet/CreateUserWalletBtn";
-import { fetchUsdPrices, getUsdValue } from "@/utils/currencies";
+import { fetchUsdPrices, getUsdValue, formatCurrencyValue } from "@/utils/currencies";
 
 // AssetTableWrapper component to access wallet context
 function AssetTableWrapper() {
@@ -62,8 +62,8 @@ function AssetTableWrapper() {
         newAssets.push({
           id: "xrp-native",
           currency: "XRP",
-          balance: xrpBalance.toFixed(6),
-          value: usdValue.toFixed(2),
+          balance: formatCurrencyValue(xrpBalance),
+          value: formatCurrencyValue(usdValue),
           change24h: "2.3", // You might want to get real change data too
           walletAddress: primaryWallet.classicAddress,
           issuer: null,
@@ -83,8 +83,8 @@ function AssetTableWrapper() {
             newAssets.push({
               id: `${line.currency}-${line.account}-${index}`,
               currency: line.currency,
-              balance: balance.toFixed(6),
-              value: usdValue.toFixed(2),
+              balance: formatCurrencyValue(balance),
+              value: formatCurrencyValue(usdValue),
               change24h: "1.5", // You might want to get real change data too
               walletAddress: primaryWallet.classicAddress,
               issuer: line.account,

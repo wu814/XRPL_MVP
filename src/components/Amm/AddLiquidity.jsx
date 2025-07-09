@@ -7,7 +7,7 @@ import SuccessMdl from "../SuccessMdl";
 import SlippagePanel from "../SlippagePanel";
 import estimateDepositAmounts from "@/utils/xrpl/amm/estimateDepositAmount";
 import { useCurrentUserWallet } from "../Wallet/CurrentUserWalletProvider";
-import { Settings } from "lucide-react";
+import { Settings, Loader2 } from "lucide-react";
 
 export default function AddLiquidity({ ammInfo, onAdded }) {
   // Fetch current user wallets from wallet context
@@ -325,13 +325,23 @@ export default function AddLiquidity({ ammInfo, onAdded }) {
 
       {/* Display trustline message if applicable */}
       {loadingMessage && (
-        <div className="text-sm text-cancel">{loadingMessage}</div>
+        <div className="flex items-center gap-2 text-sm text-cancel">
+          <Loader2 className="w-4 h-4 animate-spin" />
+          {loadingMessage}
+        </div>
       )}
 
       {/* Submit button */}
       <div className="flex">
         <Button variant="primary" onClick={handleSubmit} disabled={loading || !isFormValid} className="w-full">
-          {loading ? "Adding Liquidity..." : "Add Liquidity"}
+          {loading ? (
+            <div className="flex items-center justify-center space-x-2">
+              <Loader2 className="w-5 h-5 animate-spin" />
+              <span>Adding Liquidity...</span>
+            </div>
+          ) : (
+            "Add Liquidity"
+          )}
         </Button>
       </div>
 

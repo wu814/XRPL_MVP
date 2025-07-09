@@ -69,10 +69,7 @@ export default function DisplayAmms() {
 
   return (
     <div className="container mx-auto">
-      <div className="mb-5 flex items-center justify-between">
-        <h1 className="py-6 text-3xl font-bold">
-          Liquidity Pools
-        </h1>
+      <div className="mb-5 flex items-center justify-end">
         {/* Only show the button if the user is an admin and there are issuer wallet and treasury wallet */}
         {session?.user?.role === "ADMIN" && (
           <CreateAmmBtn onAmmCreated={handleAmmCreated} />

@@ -9,6 +9,7 @@ import ManageAmmBalance from "./ManageAmmBalance";
 import Breadcrumbs from "../Navigation/Breadcrumbs";
 import { useRouter } from "next/navigation";
 import { CurrentUserWalletProvider } from "../Wallet/CurrentUserWalletProvider";
+import { fetchUsdPrices, getUsdValue, formatCurrencyValue } from "@/utils/currencies";
 
 // This class is used to parse the AMM data returned from the API
 class AmmInfo {
@@ -56,6 +57,9 @@ export default function DisplayAmmDetails({ ammAccount }) {
   const [errorMessage, setErrorMessage] = useState(null);
   const [currency1, setCurrency1] = useState("");
   const [currency2, setCurrency2] = useState("");
+  // Add new state for USD prices
+  const [livePrices, setLivePrices] = useState([]);
+  const [pricesLoading, setPricesLoading] = useState(true);
 
   const fetchAmmInfo = async () => {
     try {
@@ -86,6 +90,18 @@ export default function DisplayAmmDetails({ ammAccount }) {
     }
   };
 
+  // New function to fetch USD prices
+  const fetchPrices = async () => {
+    try {
+      const prices = await fetchUsdPrices();
+      setLivePrices(prices);
+    } catch (error) {
+      console.error("Error fetching prices:", error);
+    } finally {
+      setPricesLoading(false);
+    }
+  };
+
   useEffect(() => {
     // Retrieve cached AMM data from localStorage
     const cached = localStorage.getItem("selectedAMM");
@@ -102,6 +118,7 @@ export default function DisplayAmmDetails({ ammAccount }) {
       }
     }
     fetchAmmInfo();
+    fetchPrices(); // Fetch prices alongside AMM info
   }, [ammAccount]);
 
   // Delete later
@@ -116,27 +133,56 @@ export default function DisplayAmmDetails({ ammAccount }) {
 
     const s1 = currency1 || "Asset1";
     const s2 = currency2 || "Asset2";
-    const price1 = (a2 / a1).toFixed(6);
-    const price2 = (a1 / a2).toFixed(6);
+    const price1 = (a2 / a1).toFixed(4);
+    const price2 = (a1 / a2).toFixed(4);
 
     return (
       <div>
-        <h3 className="text-mutedText">Price Information</h3>
-        <p className="text-md px-4">
-          1 {s1} = {price1} {s2} / 1 {s2} = {price2} {s1}
-        </p>
+        <h3 className="mb-4 text-mutedText">Price Information</h3>
+        <div className="flex flex-col font-semibold">
+          <p>1 {s1} = {price1} {s2}</p>
+          <p>1 {s2} = {price2} {s1}</p>
+        </div>
       </div>
     );
   };
 
   const renderTradingFee = () => (
     <div>
-      <h3 className="mb-2 text-mutedText">Trading Fee</h3>
+      <h3 className="text-mutedText mb-4">Trading Fee</h3>
       <p className="text-lg font-semibold">
         {`${(ammInfo?.trading_fee / 1000).toFixed(3)}%`}
       </p>
     </div>
   );
+
+  // New function to calculate and render pool value
+  const renderPoolValue = () => {
+    if (!ammInfo || pricesLoading) {
+      return (
+        <div className="animate-pulse">
+          <div className="h-4 w-16 rounded bg-pulse" />
+        </div>
+      );
+    }
+
+    const usdValue1 = getUsdValue(ammInfo.amount.currency, ammInfo.amount.value, livePrices);
+    const usdValue2 = getUsdValue(ammInfo.amount2.currency, ammInfo.amount2.value, livePrices);
+    const totalUsdValue = usdValue1 + usdValue2;
+
+    if (totalUsdValue > 0) {
+      return (
+        <div>
+          <h3 className="mb-4 text-mutedText">Pool Value</h3>
+          <p className="text-lg font-semibold">
+            ${formatCurrencyValue(totalUsdValue)}
+          </p>
+        </div>
+      );
+    }
+
+    return <p className="text-lg font-semibold">Not Available</p>;
+  };
 
   return (
     <div>
@@ -154,19 +200,18 @@ export default function DisplayAmmDetails({ ammAccount }) {
             <AmmCompositionBar
               amount1={ammInfo?.amount}
               amount2={ammInfo?.amount2}
+              livePrices={livePrices}
+              pricesLoading={pricesLoading}
             />
+          </div>
+          <div className="col-span-1 rounded-lg bg-color2 p-4">
+            {renderPoolValue()}
+          </div>
+          <div className="col-span-1 rounded-lg bg-color2 p-4">
             {renderPriceInfo()}
           </div>
           <div className="col-span-1 rounded-lg bg-color2 p-4">
-            <h3 className="mb-2 text-mutedText">Pool Value</h3>
-            <p className="text-lg font-semibold">Not Available</p>
-          </div>
-          <div className="col-span-1 rounded-lg bg-color2 p-4">
-            <h3 className="mb-2 text-mutedText">Volume (24h)</h3>
-            <p className="text-lg font-semibold">Not Available</p>
-          </div>
-          <div className="col-span-1 rounded-lg bg-color2 p-4">
-            <h3 className="mb-2 text-mutedText">APR</h3>
+            <h3 className="mb-4 text-mutedText">Volume (24h)</h3>
             <p className="text-lg font-semibold">Not Available</p>
           </div>
           <div className="col-span-1 rounded-lg bg-color2 p-4">

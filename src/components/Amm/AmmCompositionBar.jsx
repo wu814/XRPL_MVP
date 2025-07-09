@@ -1,27 +1,8 @@
-import { useEffect, useState } from "react";
-import { fetchUsdPrices, getUsdValue } from "@/utils/currencies";
+import { formatCurrencyValue, getUsdValue } from "@/utils/currencies";
 
-export default function AmmCompositionBar({ amount1, amount2 }) {
-  const [livePrices, setLivePrices] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchPrices = async () => {
-      try {
-        const prices = await fetchUsdPrices();
-        setLivePrices(prices);
-      } catch (error) {
-        console.error("Error fetching prices:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPrices();
-  }, []);
-
+export default function AmmCompositionBar({ amount1, amount2, livePrices, pricesLoading }) {
   // When the component is loading, show a skeleton loader
-  if (!amount1 || !amount2 || loading) {
+  if (!amount1 || !amount2 || pricesLoading) {
     return (
       <div className="animate-pulse p-4">
         <div className="h-2 w-full rounded-full bg-pulse" />
@@ -40,33 +21,11 @@ export default function AmmCompositionBar({ amount1, amount2 }) {
   // Calculate USD values
   const usdValue1 = getUsdValue(amount1.currency, amount1.value, livePrices);
   const usdValue2 = getUsdValue(amount2.currency, amount2.value, livePrices);
-  const totalUsdValue = usdValue1 + usdValue2;
 
   // Calculate percentages for the bar
   const totalValue = Number(usdValue1) + Number(usdValue2);
   const amount1Percent = (usdValue1 / totalValue) * 100;
   const amount2Percent = 100 - amount1Percent;
-
-  // Format USD values
-  const formatUsd = (value) => {
-    if (value === 0) return "N/A";
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(value);
-  };
-
-  // Format currency amounts with min 2, max 6 decimal places
-  const formatCurrencyAmount = (value) => {
-    const num = parseFloat(value);
-    if (isNaN(num)) return "0.00";
-    return num.toLocaleString("en-US", { 
-      minimumFractionDigits: 2, 
-      maximumFractionDigits: 6 
-    });
-  };
 
   return (
     <div className="p-4">
@@ -79,31 +38,24 @@ export default function AmmCompositionBar({ amount1, amount2 }) {
       {/* Currency amounts */}
       <div className="mt-2 flex text-lg font-semibold justify-between">
         <span>
-          {formatCurrencyAmount(amount1.value)} {amount1.currency}
+          {formatCurrencyValue(amount1.value)} {amount1.currency}
         </span>
         <span>
-          {formatCurrencyAmount(amount2.value)} {amount2.currency}
+          {formatCurrencyValue(amount2.value)} {amount2.currency}
         </span>
       </div>
 
       {/* USD values */}
       <div className="mt-1 flex justify-between">
         <span className="text-sm text-gray-400">
-          {formatUsd(usdValue1)}
+          ${formatCurrencyValue(usdValue1)}
         </span>
         <span className="text-sm text-gray-400">
-          {formatUsd(usdValue2)}
+          ${formatCurrencyValue(usdValue2)}
         </span>
       </div>
 
-      {/* Total USD value */}
-      {totalUsdValue > 0 && (
-        <div className="mt-2 text-center">
-          <span className="text-sm text-mutedText">
-            Pool Value: {formatUsd(totalUsdValue)}
-          </span>
-        </div>
-      )}
+      {/* Removed the total USD value display from here */}
     </div>
   );
 }

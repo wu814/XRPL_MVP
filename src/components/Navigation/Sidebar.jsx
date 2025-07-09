@@ -103,7 +103,7 @@ export default function Sidebar() {
                   className={`flex w-full items-center space-x-3 rounded-lg px-3 py-2 transition-colors ${
                     isActive
                       ? "bg-color4 text-white"
-                      : "text-gray-300 hover:bg-color3 hover:text-white"
+                      : "text-gray-400 hover:bg-color3 hover:text-white"
                   }`}
                 >
                   <Icon className="h-5 w-5" />
@@ -115,7 +115,7 @@ export default function Sidebar() {
         </ul>
       </nav>
 
-      {/* User Info - Removed logout button */}
+      {/* User Info */}
       <div className="border-t border-gray-700 pt-4">
         <div className="flex items-center space-x-3">
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-600">

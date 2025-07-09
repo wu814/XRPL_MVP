@@ -12,7 +12,7 @@ import {
 } from "@/components/Wallet/CurrentUserWalletProvider";
 import { IssuerWalletProvider } from "@/components/Wallet/IssuerWalletProvider";
 import TradePanel from "@/components/Smart/TradePanel";
-import { fetchUsdPrices, getUsdValue } from "@/utils/currencies";
+import { fetchUsdPrices, getUsdValue, formatCurrencyValue } from "@/utils/currencies";
 
 // Custom hook for live prices
 function useLivePrices() {
@@ -74,8 +74,8 @@ function useWalletAssets(wallet, livePrices) {
           newAssets.push({
             id: "xrp-native",
             currency: "XRP",
-            balance: xrpBalance.toFixed(6),
-            value: usdValue.toFixed(2),
+            balance: formatCurrencyValue(xrpBalance),
+            value: formatCurrencyValue(usdValue),
             change24h: "2.3",
             walletAddress: wallet.classicAddress,
             issuer: null,
@@ -93,8 +93,8 @@ function useWalletAssets(wallet, livePrices) {
               newAssets.push({
                 id: `${line.currency}-${line.account}-${index}`,
                 currency: line.currency,
-                balance: balance.toFixed(6),
-                value: usdValue.toFixed(2),
+                balance: formatCurrencyValue(balance),
+                value: formatCurrencyValue(usdValue),
                 change24h: "1.5",
                 walletAddress: wallet.classicAddress,
                 issuer: line.account,
@@ -152,8 +152,8 @@ function useIssuerAssets(wallet, livePrices) {
             return {
               id: `issuer-${currency}`,
               currency,
-              balance: totalBalance.toFixed(6),
-              value: usdValue.toFixed(2),
+              balance: formatCurrencyValue(totalBalance),
+              value: formatCurrencyValue(usdValue),
               change24h: "0",
               walletAddress: wallet.classicAddress,
               issuer: wallet.classicAddress,

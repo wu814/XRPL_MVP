@@ -1,9 +1,9 @@
 "use client";
 
-import { ArrowRight, RefreshCw, Loader2 } from "lucide-react";
+import { RefreshCw, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useCurrentUserWallet } from "@/components/Wallet/CurrentUserWalletProvider";
-import { fetchUsdPrices, getUsdValue } from "@/utils/currencies";
+import { fetchUsdPrices, getUsdValue, formatCurrencyValue } from "@/utils/currencies";
 
 export default function DashboardHeader({
   totalBalance,
@@ -114,14 +114,9 @@ export default function DashboardHeader({
                 <Loader2 className="h-7 w-7 animate-spin text-primary" />
               )}
               <span className="text-5xl font-bold text-primary">
-                $
-                {displayBalance.toLocaleString("en-US", {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 4,
-                })}
+                ${formatCurrencyValue(displayBalance)}
               </span>
             </div>
-            <ArrowRight className="h-4 w-4 text-gray-400" />
           </div>
         </div>
 

@@ -163,7 +163,7 @@ export default function SwapLiquidity({ ammInfo, onSwapped }) {
           className="hover:bg-color4 p-3 bg-color3 rounded-full"
           disabled={!sellCurrency || !buyCurrency}
         >
-          <ArrowUpDown className="h-7 w-7 text-gray-400" />
+          <ArrowUpDown className="h-6 w-6 text-gray-400" />
         </button>
       </div>
 

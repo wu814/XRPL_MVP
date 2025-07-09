@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useContext, useEffect } from "react";
-import { ArrowUpRight, ArrowDownLeft, ArrowUpDown, Building2, Search, Star, X, ChevronDown, Settings } from "lucide-react";
+import { ArrowUpRight, ArrowDownLeft, ArrowUpDown, Building2, Search, Star, X, ChevronDown, Settings, Loader2 } from "lucide-react";
 import ConvertCurrencyDropDown from "@/components/Currency/ConvertCurrencyDropDown";
 import SendCurrencyDropDown from "@/components/Currency/SendCurrencyDropDown";
 import CurrencyDropDown from "@/components/Currency/CurrencyDropDown";
@@ -9,6 +9,7 @@ import FavoritesList from "@/components/Smart/FavoritesList";
 import SlippagePanel from "@/components/SlippagePanel";
 import ErrorMdl from "@/components/ErrorMdl";
 import SuccessMdl from "@/components/SuccessMdl";
+import Button from "../Button";
 import { useCurrentUserWallet } from "@/components/Wallet/CurrentUserWalletProvider";
 import { useIssuerWallet } from "@/components/Wallet/IssuerWalletProvider";
 import { availableCurrencies } from "@/utils/currencies";
@@ -389,7 +390,7 @@ export default function TradePanel() {
                       currencies={availableCurrencies.filter(c => c.id !== buyCurrency)}
                     />
                     {sellCurrency && (
-                        <div className="text-xs text-gray-400">
+                        <div className="text-sm text-gray-400">
                           Balance: {loadingBalance ? "Loading..." : (walletBalances[sellCurrency]?.toFixed(6) || "0.000000")} {sellCurrency}
                         </div>
                       )}
@@ -410,7 +411,7 @@ export default function TradePanel() {
                       <button 
                         onClick={handleMax}
                         disabled={loadingBalance || !sellCurrency || (walletBalances[sellCurrency] || 0) <= 0}
-                        className="bg-gray-600 hover:bg-gray-500 disabled:bg-gray-700 disabled:cursor-not-allowed px-4 py-2 rounded-lg text-xs font-medium"
+                        className="bg-color5 hover:bg-color6 disabled:bg-gray-700 disabled:cursor-not-allowed px-4 py-2 rounded-lg text-sm font-medium"
                       >
                         Max
                       </button>
@@ -423,10 +424,10 @@ export default function TradePanel() {
               <div className="flex justify-center my-4">
                 <button
                   onClick={handleCurrencySwap}
-                  className="p-3 bg-color3 rounded-full hover:bg-gray-600 transition-colors"
+                  className="p-3 bg-color3 rounded-full hover:bg-color4 transition-colors"
                   disabled={!sellCurrency || !buyCurrency}
                 >
-                  <ArrowUpDown className="w-7 h-7 text-gray-400" />
+                  <ArrowUpDown className="w-6 h-6 text-gray-400" />
                 </button>
               </div>
 
@@ -456,20 +457,20 @@ export default function TradePanel() {
               </div>
 
               {/* Execute Trade Button */}
-              <button 
+              <Button
                 onClick={handleSmartTrade}
                 disabled={!canTrade || loading}
-                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white py-4 rounded-lg font-medium transition-colors text-lg"
+                className="w-full text-xl"
               >
                 {loading ? (
                   <div className="flex items-center justify-center space-x-2">
-                    <div className="h-5 w-5 animate-spin rounded-full border-b-4 border-white"></div>
+                    <Loader2 className="h-5 w-5 animate-spin" />
                     <span>Trading...</span>
                   </div>
                 ) : (
                   "Execute Smart Trade"
                 )}
-              </button>
+              </Button>
             </>
           ) : (
             // Send Layout - Full TransferBtn functionality integration
@@ -529,7 +530,7 @@ export default function TradePanel() {
                       placeholder="Recipient Username"
                       value={recipientUsername || ""}
                       onChange={(e) => setRecipientUsername(e.target.value || "")}
-                      className="w-full bg-color3 border border-gray-600 rounded-lg pl-12 pr-4 py-4 outline-none focus:border-blue-500 text-lg"
+                      className="w-full bg-color3 border border-gray-600 rounded-lg pl-12 pr-4 py-4 outline-none focus:border-primary text-lg"
                       required
                     />
                   </div>
@@ -541,7 +542,7 @@ export default function TradePanel() {
                       placeholder="Recipient Address"
                       value={recipientAddress || ""}
                       onChange={(e) => setRecipientAddress(e.target.value || "")}
-                      className="w-full bg-color3 border border-gray-600 rounded-lg pl-12 pr-4 py-4 outline-none focus:border-blue-500 text-lg"
+                      className="w-full bg-color3 border border-gray-600 rounded-lg pl-12 pr-4 py-4 outline-none focus:border-primary text-lg"
                       required
                     />
                   </div>
@@ -585,7 +586,7 @@ export default function TradePanel() {
                           min="0"
                           value={sendAmount}
                           onChange={handleSendAmountChangeForPayment}
-                          className={`w-full bg-color3 border border-gray-600 rounded-lg px-4 py-3 outline-none focus:border-blue-500 ${convertInputType === "exact_output" ? "cursor-not-allowed opacity-60" : ""}`}
+                          className={`w-full bg-color3 border border-gray-600 rounded-lg px-4 py-3 outline-none focus:border-primary ${convertInputType === "exact_output" ? "cursor-not-allowed opacity-60" : ""}`}
                           placeholder="0.00"
                           disabled={convertInputType === "exact_output"}
                         />
@@ -598,7 +599,7 @@ export default function TradePanel() {
                           min="0"
                           value={receiveAmount}
                           onChange={handleReceiveAmountChangeForPayment}
-                          className={`w-full bg-color3 border border-gray-600 rounded-lg px-4 py-3 outline-none focus:border-blue-500 ${convertInputType === "exact_input" ? "cursor-not-allowed opacity-60" : ""}`}
+                          className={`w-full bg-color3 border border-gray-600 rounded-lg px-4 py-3 outline-none focus:border-primary ${convertInputType === "exact_input" ? "cursor-not-allowed opacity-60" : ""}`}
                           placeholder="0.00"
                           disabled={convertInputType === "exact_input"}
                         />
@@ -629,7 +630,7 @@ export default function TradePanel() {
                         min="0"
                         value={amount}
                         onChange={(e) => setAmount(e.target.value)}
-                        className="w-full bg-color3 border border-gray-600 rounded-lg px-4 py-3 outline-none focus:border-blue-500"
+                        className="w-full bg-color3 border border-gray-600 rounded-lg px-4 py-3 outline-none focus:border-primary"
                         placeholder="0.00"
                         required
                       />
@@ -645,11 +646,11 @@ export default function TradePanel() {
                     placeholder="Enter destination tag..."
                     value={destinationTag}
                     onChange={(e) => setDestinationTag(e.target.value)}
-                    className="w-full bg-color3 border border-gray-600 rounded-lg px-4 py-3 outline-none focus:border-blue-500"
+                    className="w-full bg-color3 border border-gray-600 rounded-lg px-4 py-3 outline-none focus:border-primary"
                   />
                 </div>
 
-                <button
+                <Button
                   type="submit"
                   disabled={
                     loading ||
@@ -660,10 +661,17 @@ export default function TradePanel() {
                         (!sendAmount && !receiveAmount)
                       : !amount || (paymentType === "direct" && !currency))
                   }
-                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white py-4 rounded-lg font-medium transition-colors text-lg"
+                  className="w-full text-xl py-2"
                 >
-                  {loading ? "Sending..." : "Send"}
-                </button>
+                  {loading ? (
+                    <div className="flex items-center justify-center space-x-2">
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      <span>Sending...</span>
+                    </div>
+                  ) : (
+                    "Send"
+                  )}
+                </Button>
               </form>
 
               {/* Favorites Section */}
