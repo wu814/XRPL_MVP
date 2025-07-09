@@ -285,3 +285,82 @@ export function getWalletDisplayName(walletType) {
   };
   return types[walletType] || walletType;
 }
+
+/**
+ * Check if an asset is an LP token
+ * @param {Object} asset - Asset object
+ * @returns {boolean} True if asset is an LP token
+ */
+export function isLpToken(asset) {
+  return asset.currency && asset.currency.length === 40;
+}
+
+/**
+ * Get AMM currency pair for an LP token
+ * @param {string} ammAccount - AMM account address (LP token issuer)
+ * @returns {Promise<Object|null>} Currency pair object or null if not found
+ */
+export async function getLpTokenCurrencyPair(ammAccount) {
+  try {
+    // Get AMM registry data
+    const response = await fetch("/api/amms/getAllAmms");
+    const ammData = await response.json();
+    
+    if (!ammData.data || !Array.isArray(ammData.data)) {
+      return null;
+    }
+    
+    // Find the AMM pool by account
+    const ammPool = ammData.data.find(pool => pool.amm_account === ammAccount);
+    
+    if (ammPool) {
+      return {
+        currencyA: ammPool.currency_a,
+        currencyB: ammPool.currency_b,
+        pair: `${ammPool.currency_a}/${ammPool.currency_b}`
+      };
+    }
+    
+    return null;
+  } catch (error) {
+    console.error("Error fetching AMM currency pair:", error);
+    return null;
+  }
+}
+
+/**
+ * Format LP token display name
+ * @param {Object} asset - Asset object
+ * @param {Object} currencyPair - Currency pair object
+ * @returns {string} Formatted display name
+ */
+export function formatLpTokenDisplay(asset, currencyPair) {
+  if (!currencyPair) {
+    return `LP Token (${asset.currency.substring(0, 8)}...)`;
+  }
+  
+  return `${currencyPair.currencyA}/${currencyPair.currencyB}`;
+}
+
+/**
+ * Enhanced asset processing with LP token support
+ * @param {Object} asset - Asset object
+ * @param {Object} currencyPair - Currency pair object (for LP tokens)
+ * @returns {Object} Enhanced asset object
+ */
+export function enhanceAssetWithLpInfo(asset, currencyPair = null) {
+  if (isLpToken(asset)) {
+    return {
+      ...asset,
+      isLpToken: true,
+      displayName: formatLpTokenDisplay(asset, currencyPair),
+      currencyPair: currencyPair
+    };
+  }
+  
+  return {
+    ...asset,
+    isLpToken: false,
+    displayName: asset.currency
+  };
+}

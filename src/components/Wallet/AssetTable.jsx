@@ -1,10 +1,67 @@
 "use client";
 
 import { Wallet, ArrowUpRight, ChevronRight, Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Button from "../Button";
-import { formatCurrencyValue, getCurrencyIcon, getAssetKey } from "@/utils/xrpl/assets";
+import { 
+  formatCurrencyValue, 
+  getCurrencyIcon, 
+  getAssetKey, 
+  isLpToken, 
+  getLpTokenCurrencyPair, 
+  formatLpTokenDisplay 
+} from "@/utils/xrpl/assets";
+
+// LP Token Icon Component - shows overlapping currency icons diagonally
+const LpTokenIcon = ({ currencyA, currencyB, size = 40 }) => {
+  const iconA = getCurrencyIcon(currencyA);
+  const iconB = getCurrencyIcon(currencyB);
+  
+  return (
+    <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
+      {/* First currency icon (top-left) */}
+      <div className="absolute top-0 left-0 z-10">
+        {iconA ? (
+          <Image
+            src={iconA}
+            alt={currencyA}
+            width={size * 0.6}
+            height={size * 0.6}
+            className="rounded-full"
+          />
+        ) : (
+          <div 
+            className="bg-gray-500 rounded-full flex items-center justify-center font-bold text-xs"
+            style={{ width: size * 0.6, height: size * 0.6 }}
+          >
+            <span>{currencyA.substring(0, 2)}</span>
+          </div>
+        )}
+      </div>
+      
+      {/* Second currency icon (bottom-right) */}
+      <div className="absolute bottom-0 right-0 z-20">
+        {iconB ? (
+          <Image
+            src={iconB}
+            alt={currencyB}
+            width={size * 0.6}
+            height={size * 0.6}
+            className="rounded-full"
+          />
+        ) : (
+          <div 
+            className="bg-gray-500 rounded-full flex items-center justify-center font-bold text-xs"
+            style={{ width: size * 0.6, height: size * 0.6 }}
+          >
+            <span>{currencyB.substring(0, 2)}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 
 export default function AssetTable({ 
   assets = [], 
@@ -13,6 +70,43 @@ export default function AssetTable({
   wallet = null 
 }) {
   const [expandedAssets, setExpandedAssets] = useState(new Set());
+  const [lpTokenPairs, setLpTokenPairs] = useState({});
+  const [loadingPairs, setLoadingPairs] = useState(false);
+
+  // Load LP token currency pairs when assets change
+  useEffect(() => {
+    const loadLpTokenPairs = async () => {
+      const lpTokens = assets.filter(asset => isLpToken(asset));
+      
+      if (lpTokens.length === 0) {
+        setLpTokenPairs({});
+        return;
+      }
+      
+      setLoadingPairs(true);
+      const pairs = {};
+      
+      try {
+        // Load currency pairs for all LP tokens
+        await Promise.all(
+          lpTokens.map(async (asset) => {
+            const currencyPair = await getLpTokenCurrencyPair(asset.issuer);
+            if (currencyPair) {
+              pairs[asset.issuer] = currencyPair;
+            }
+          })
+        );
+        
+        setLpTokenPairs(pairs);
+      } catch (error) {
+        console.error("Error loading LP token pairs:", error);
+      } finally {
+        setLoadingPairs(false);
+      }
+    };
+
+    loadLpTokenPairs();
+  }, [assets]);
 
   const handleAssetClick = (asset, index) => {
     const assetKey = getAssetKey(asset, index);
@@ -23,6 +117,32 @@ export default function AssetTable({
       newExpandedAssets.add(assetKey);
     }
     setExpandedAssets(newExpandedAssets);
+  };
+
+  const getAssetDisplayName = (asset) => {
+    if (isLpToken(asset)) {
+      const currencyPair = lpTokenPairs[asset.issuer];
+      return formatLpTokenDisplay(asset, currencyPair);
+    }
+    return asset.currency;
+  };
+
+  const getAssetIcon = (asset) => {
+    if (isLpToken(asset)) {
+      const currencyPair = lpTokenPairs[asset.issuer];
+      if (currencyPair) {
+        return (
+          <LpTokenIcon 
+            currencyA={currencyPair.currencyA} 
+            currencyB={currencyPair.currencyB} 
+            size={40} 
+          />
+        );
+      }
+      // Fallback while loading
+      return "/icons/liquidity-pool-swap.png";
+    }
+    return getCurrencyIcon(asset.currency);
   };
 
   const tableTitle = isIssuer ? "Issued Assets" : "Assets";
@@ -53,6 +173,10 @@ export default function AssetTable({
           {assets.map((asset, index) => {
             const assetKey = getAssetKey(asset, index);
             const isExpanded = expandedAssets.has(assetKey);
+            const displayName = getAssetDisplayName(asset);
+            const iconElement = getAssetIcon(asset);
+            const isLp = isLpToken(asset);
+            const currencyPair = isLp ? lpTokenPairs[asset.issuer] : null;
             
             return (
               <div key={assetKey}>
@@ -63,26 +187,36 @@ export default function AssetTable({
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <div className="w-7 h-7 flex items-center justify-center">
-                        {getCurrencyIcon(asset.currency) ? (
-                          <Image
-                            src={getCurrencyIcon(asset.currency)}
-                            alt={asset.currency}
-                            width={30}
-                            height={30}
-                            className="w-8 h-8"
-                          />
+                      <div className="w-8 h-8 flex items-center justify-center">
+                        {typeof iconElement === 'string' ? (
+                          iconElement ? (
+                            <Image
+                              src={iconElement}
+                              alt={displayName}
+                              width={40}
+                              height={40}
+                              className ="w-10 h-10"
+                            />
+                          ) : (
+                            <div className="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center font-bold text-xs">
+                              <span>{displayName.substring(0, 2)}</span>
+                            </div>
+                          )
                         ) : (
-                          <div className="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center font-bold">
-                            <span>{asset.currency.substring(0, 2)}</span>
-                          </div>
+                          // Render the LP token icon component
+                          iconElement
                         )}
                       </div>
                       <div>
-                        <div className="font-semibold">{asset.currency}</div>
-                        <div className="text-gray-400">
+                        <div className="font-semibold">{displayName}</div>
+                        <div className="text-gray-400 text-sm">
                           {formatCurrencyValue(asset.balance)}
                           {isIssuer && " issued"}
+                          {isLp && loadingPairs && (
+                            <span className="text-xs text-yellow-400 ml-2">
+                              Loading...
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -106,28 +240,50 @@ export default function AssetTable({
                 {/* Expanded Details */}
                 {isExpanded && (
                   <div className="p-4 bg-color3">
-                    <div className="flex flex-row justify-start gap-7">
+                    <div className="flex flex-col">
                       {isIssuer ? (
                         <div>
                           <span className="text-gray-400">Issuer Address:</span>
-                          <div className="font-mono break-all">
+                          <div className="font-mono break-all text-sm">
                             {wallet?.classicAddress || wallet?.classic_address}
                           </div>
                         </div>
                       ) : (
                         <>
-                          {asset.issuer && (
+                          {/* LP Token specific details */}
+                          {isLp && (
                             <div>
-                              <span className="text-gray-400">Issuer:</span>
-                              <div className="font-mono break-all">
+                              <div className="mt-2">
+                                <div className="flex flex-row">
+                                  <span className="text-gray-400 mr-2">AMM:</span>
+                                  <div className="text-sm">
+                                    {asset.issuer}
+                                  </div>
+                                </div>
+                                <div className="flex flex-row">
+                                  <span className="text-gray-400 mr-2">Token:</span>
+                                  <div className="text-sm">
+                                    {asset.currency}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Regular asset details */}
+                          {!isLp && asset.issuer && (
+                            <div className="flex flex-row">
+                              <span className="text-gray-400 mr-2">Issuer:</span>
+                              <div className="text-sm">
                                 {asset.issuer}
                               </div>
                             </div>
                           )}
+                          
                           {asset.walletAddress && (
-                            <div>
-                              <span className="text-gray-400">Wallet:</span>
-                              <div className="font-mono break-all">
+                            <div className="flex flex-row">
+                              <span className="text-gray-400 mr-2">Wallet:</span>
+                              <div className="text-sm">
                                 {asset.walletAddress}
                               </div>
                             </div>
