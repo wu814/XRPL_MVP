@@ -3,6 +3,7 @@
 import React from "react";
 import Button from "../Button";
 import CurrencyDropDown from "../Currency/CurrencyDropDown";
+import { Loader2 } from "lucide-react";
 
 export default function CreateAmmMdl({
   onClose,
@@ -91,7 +92,14 @@ export default function CreateAmmMdl({
               Cancel
             </Button>
             <Button type="submit" variant="primary" disabled={loading} className="flex-1">
-              {loading ? "Creating..." : "Create"}
+              {loading ? (
+                <div className="flex items-center justify-center space-x-2">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <span>Creating...</span>
+                </div>
+              ) : (
+                "Create"
+              )}
             </Button>
           </div>
         </form>

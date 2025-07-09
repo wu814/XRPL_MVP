@@ -1,6 +1,7 @@
 "use client";
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
+import { Plus } from "lucide-react";
 import AssetTable from "@/components/Wallet/AssetTable";
 import {
   CurrentUserWalletProvider,
@@ -9,6 +10,7 @@ import {
 import { IssuerWalletProvider } from "@/components/Wallet/IssuerWalletProvider";
 import TradePanel from "@/components/Smart/TradePanel";
 import CreateUserWalletBtn from "@/components/Wallet/CreateUserWalletBtn";
+import { fetchUsdPrices, getUsdValue } from "@/utils/currencies";
 
 // AssetTableWrapper component to access wallet context
 function AssetTableWrapper() {
@@ -30,32 +32,10 @@ function AssetTableWrapper() {
 
     setLoading(true);
     try {
-      // Step 1: Get treasury wallet (oracle account)
-      const treasuryResponse = await fetch("/api/wallets/getTreasuryWallet");
-      const treasuryData = await treasuryResponse.json();
+      // Step 1: Get live prices using the utility function
+      const livePrices = await fetchUsdPrices();
 
-      let livePrices = [];
-      if (treasuryData.data && treasuryData.data.length > 0) {
-        const treasuryWallet = treasuryData.data[0];
-
-        // Step 2: Get live prices from oracle
-        const pricesResponse = await fetch("/api/oracle/getLivePrices", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            account: treasuryWallet.classic_address,
-            oracleDocumentId: 1, // Using default oracle document ID
-            ledgerIndex: "validated",
-          }),
-        });
-
-        const pricesData = await pricesResponse.json();
-        if (pricesData.success) {
-          livePrices = pricesData.livePrices;
-        }
-      }
-
-      // Step 3: Fetch account info and lines
+      // Step 2: Fetch account info and lines
       const [accountInfoResponse, accountLinesResponse] = await Promise.all([
         fetch("/api/wallets/getAccountInfo", {
           method: "POST",
@@ -77,13 +57,7 @@ function AssetTableWrapper() {
       // Add XRP balance
       if (accountInfo.data?.balance) {
         const xrpBalance = parseFloat(accountInfo.data.balance);
-        
-        // Calculate USD value using live prices
-        let usdValue = 0;
-        const xrpPrice = livePrices.find(p => p.baseAsset === "XRP");
-        if (xrpPrice && xrpPrice.available) {
-          usdValue = xrpBalance * xrpPrice.price;
-        }
+        const usdValue = getUsdValue("XRP", xrpBalance, livePrices);
 
         newAssets.push({
           id: "xrp-native",
@@ -102,19 +76,9 @@ function AssetTableWrapper() {
           if (parseFloat(line.balance) > 0) {
             const balance = parseFloat(line.balance);
             const currency = line.currency;
-            console.log(currency);
             
-            // Calculate USD value using live prices
-            let usdValue = 0;
-            if (currency === "USD") {
-              // USD is 1:1 ratio
-              usdValue = balance;
-            } else {
-              const priceInfo = livePrices.find(p => p.baseAsset === currency);
-              if (priceInfo && priceInfo.available) {
-                usdValue = balance * priceInfo.price;
-              }
-            }
+            // Calculate USD value using the utility function
+            const usdValue = getUsdValue(currency, balance, livePrices);
 
             newAssets.push({
               id: `${line.currency}-${line.account}-${index}`,
@@ -158,19 +122,7 @@ function AssetTableWrapper() {
           <div className="rounded-lg border border-white/20 bg-white/10 p-4 backdrop-blur">
             <div className="flex items-center space-x-4">
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/20">
-                <svg
-                  className="h-6 w-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                  />
-                </svg>
+                <Plus className="h-6 w-6" />
               </div>
               <div className="flex-1">
                 <h3 className="mb-1 font-semibold">Create Your First Wallet</h3>

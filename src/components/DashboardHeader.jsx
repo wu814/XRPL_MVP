@@ -3,6 +3,7 @@
 import { ArrowRight, RefreshCw, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useCurrentUserWallet } from "@/components/Wallet/CurrentUserWalletProvider";
+import { fetchUsdPrices, getUsdValue } from "@/utils/currencies";
 
 export default function DashboardHeader({
   totalBalance,
@@ -25,31 +26,15 @@ export default function DashboardHeader({
 
     setLoading(true);
     try {
-      // Step 1: Get treasury wallet (oracle account)
-      const treasuryResponse = await fetch("/api/wallets/getTreasuryWallet");
-      const treasuryData = await treasuryResponse.json();
-
-      if (!treasuryData.data || treasuryData.data.length === 0) {
-        console.error("No treasury wallet found");
+      // Step 1: Get live prices using utility function
+      const livePrices = await fetchUsdPrices();
+      
+      if (!livePrices || livePrices.length === 0) {
+        console.error("No live prices available");
         return;
       }
 
-      const treasuryWallet = treasuryData.data[0];
-
-      // Step 2: Get live prices from oracle
-      const pricesResponse = await fetch("/api/oracle/getLivePrices", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          account: treasuryWallet.classic_address,
-          oracleDocumentId: 1, // Using default oracle document ID
-          ledgerIndex: "validated",
-        }),
-      });
-
-      const pricesData = await pricesResponse.json();
-
-      // Step 3: Get user's wallet assets
+      // Step 2: Get user's wallet assets
       const [accountInfoResponse, accountLinesResponse] = await Promise.all([
         fetch("/api/wallets/getAccountInfo", {
           method: "POST",
@@ -69,42 +54,21 @@ export default function DashboardHeader({
       console.log(accountInfo);
       console.log(accountLines);
 
-      // Step 4: Calculate total USD value
+      // Step 3: Calculate total USD value using utility function
       let totalUsdValue = 0;
 
       // Add XRP balance if not an issuer wallet
-      if (primaryWallet.walletType !== "ISSUER") {
-        if (accountInfo.data?.balance && pricesData.success) {
-          const xrpBalance = parseFloat(accountInfo.data.balance);
-          const xrpPrice = pricesData.livePrices.find(
-            (p) => p.baseAsset === "XRP",
-          );
-
-          if (xrpPrice && xrpPrice.available) {
-            totalUsdValue += xrpBalance * xrpPrice.price;
-          }
-        }
+      if (primaryWallet.walletType !== "ISSUER" && accountInfo.data?.balance) {
+        const xrpBalance = parseFloat(accountInfo.data.balance);
+        totalUsdValue += getUsdValue("XRP", xrpBalance, livePrices);
       }
 
       // Add trustline balances
-      if (accountLines.data?.lines && pricesData.success) {
+      if (accountLines.data?.lines) {
         accountLines.data.lines.forEach((line) => {
           const balance = parseFloat(line.balance);
           const currency = line.currency;
-
-          // Find corresponding price in live prices
-          if (currency === "USD") {
-            totalUsdValue += balance;
-          } else {
-            const priceInfo = pricesData.livePrices.find(
-              (p) => p.baseAsset === currency,
-            );
-
-            if (priceInfo && priceInfo.available) {
-              const usdValue = balance * priceInfo.price;
-              totalUsdValue += usdValue;
-            }
-          }
+          totalUsdValue += getUsdValue(currency, balance, livePrices);
         });
       }
 
