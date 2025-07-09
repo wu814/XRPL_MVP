@@ -2,6 +2,7 @@
 
 // This creates either a Business or User Wallet
 import React, { useState } from "react";
+import { Loader2 } from "lucide-react";
 import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
@@ -88,7 +89,14 @@ export default function CreateUserWalletBtn({ onWalletCreated }) {
                   disabled={loading || method !== "custodial"}
                   className="flex-1"
                 >
-                  {loading ? "Creating..." : "Add Wallet"}
+                  {loading ? (
+                    <div className="flex items-center justify-center space-x-2">
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      <span>Creating...</span>
+                    </div>
+                  ) : (
+                    "Add Wallet"
+                  )}
                 </Button>
               </div>
             </form>

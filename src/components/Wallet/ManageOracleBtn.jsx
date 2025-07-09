@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { Loader2 } from "lucide-react";
 import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
@@ -172,10 +173,14 @@ export default function ManageOracleBtn({ treasuryWallet, onSuccess }) {
                 disabled={loading || !oracleDocumentID}
                 className="flex-1"
               >
-                {loading ? 
-                  (activeTab === "Set" ? "Setting..." : "Deleting...") : 
-                  (activeTab === "Set" ? "Set Oracle" : "Delete Oracle")
-                }
+                {loading ? (
+                  <div className="flex items-center justify-center space-x-2">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span>{activeTab === "Set" ? "Setting..." : "Deleting..."}</span>
+                  </div>
+                ) : (
+                  activeTab === "Set" ? "Set Oracle" : "Delete Oracle"
+                )}
               </Button>
             </div>
           </div>

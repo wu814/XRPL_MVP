@@ -6,7 +6,7 @@ import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
 import CurrencyDropDown from "../Currency/CurrencyDropDown";
 import SlippagePanel from "../SlippagePanel";
-import { Settings } from "lucide-react";
+import { Settings, Loader2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 
 export default function TransferBtn({
@@ -354,8 +354,14 @@ export default function TransferBtn({
                     : !amount || (paymentType === "direct" && !currency))
                 }
               >
-                {loading ? "Sending..." : "Send"}
-                
+                {loading ? (
+                  <div className="flex items-center justify-center space-x-2">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span>Sending...</span>
+                  </div>
+                ) : (
+                  "Send"
+                )}
               </Button>
             </div>
           </div>

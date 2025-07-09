@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { Loader2 } from "lucide-react";
 import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
@@ -70,8 +71,8 @@ export default function CreateAdminWalletBtn({ onWalletCreated }) {
 
       {showMdl && (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/40">
-          <div className="w-96 rounded-lg bg-color4 p-6">
-            <h2 className="mb-4 text-xl font-bold">Create Wallet</h2>
+          <div className="w-96 rounded-lg bg-color4 p-6 text-left">
+            <h2 className="mb-4 text-2xl font-bold">Create Wallet</h2>
 
             <form onSubmit={handleSubmit}>
               <div className="mb-4">
@@ -97,7 +98,14 @@ export default function CreateAdminWalletBtn({ onWalletCreated }) {
                   Cancel
                 </Button>
                 <Button type="submit" variant="primary" disabled={loading} className="flex-1">
-                  {loading ? "Creating..." : "Add Wallet"}
+                  {loading ? (
+                    <div className="flex items-center justify-center space-x-2">
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      <span>Creating...</span>
+                    </div>
+                  ) : (
+                    "Add Wallet"
+                  )}
                 </Button>
               </div>
             </form>

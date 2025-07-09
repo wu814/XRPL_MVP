@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { Loader2 } from "lucide-react";
 import Button from "./Button";
 
 export default function PasswordConfirmMdl({
@@ -29,7 +30,14 @@ export default function PasswordConfirmMdl({
             Cancel
           </Button>
           <Button variant="primary" onClick={onConfirm} disabled={loading} className="flex-1">
-            {loading ? "Deleting..." : "Delete"}
+            {loading ? (
+              <div className="flex items-center justify-center space-x-2">
+                <Loader2 className="h-5 w-5 animate-spin" />
+                <span>Deleting...</span>
+              </div>
+            ) : (
+              "Delete"
+            )}
           </Button>
         </div>
       </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { Loader2 } from "lucide-react";
 import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
@@ -77,7 +78,14 @@ export default function AuthorizeDepositBtn({ treasuryWallet, onSuccess }) {
                 disabled={loading || !authorizedAddress}
                 className="flex-1"
               >
-                {loading ? "Authorizing..." : "Authorize"}
+                {loading ? (
+                  <div className="flex items-center justify-center space-x-2">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span>Authorizing...</span>
+                  </div>
+                ) : (
+                  "Authorize"
+                )}
               </Button>
             </div>
           </div>

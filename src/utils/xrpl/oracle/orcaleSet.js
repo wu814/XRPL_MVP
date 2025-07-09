@@ -192,14 +192,14 @@ export async function oracleSetMultiAsset(ownerWallet, oracleDocumentID, provide
       if (response.result.meta.TransactionResult === "tesSUCCESS") {
         console.log(`🎉 Multi-Asset Price Oracle ${oracleDocumentID} created/updated successfully!`);
         console.log(`📋 Transaction Hash: ${response.result.hash}`);
-        console.log(`💰 XRP Reserve: ${priceDataSeries.length <= 5 ? '1 XRP' : '2 XRP'} (${priceDataSeries.length} assets)`);
+        console.log(`💰 XRP Reserve: ${priceDataSeries.length <= 5 ? '0.2 XRP' : '0.4 XRP'} (${priceDataSeries.length} assets)`);
         
         return {
           success: true,
           transactionHash: response.result.hash,
           oracleDocumentID: oracleDocumentID,
           assetCount: priceDataSeries.length,
-          xrpReserve: priceDataSeries.length <= 5 ? 1 : 2,
+          xrpReserve: priceDataSeries.length <= 5 ? 0.2 : 0.4,
           ledgerIndex: response.result.ledger_index,
           fee: response.result.Fee,
           result: response.result

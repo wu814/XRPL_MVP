@@ -428,7 +428,7 @@ export default function DisplayUserWallets({ session, showAssetTable = false }) 
   if (currentUserWallets.length === 0) {
     return (
       <div className="space-y-4">
-        <div className="w-full rounded-lg bg-gradient-to-r from-[#A4F2F5] to-[#E1A5FA] p-6 text-white">
+        <div className="w-full rounded-lg bg-gradient-to-r from-[#30ccfe] to-[#b06cfd] p-6 text-white">
           <h2 className="mb-2 text-xl font-bold">
             Welcome to XRPL MVP, {session.user.username}!
           </h2>

@@ -3,6 +3,7 @@
 // Change this file when there are more than 1 issuer wallet
 
 import React, { useState } from "react";
+import { Loader2 } from "lucide-react";
 import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
@@ -57,7 +58,14 @@ export default function SetTrustlineBtn({ setterWallet, issuerWallets, onSuccess
   return (
     <>
       <Button variant="primary" onClick={handleClick} disabled={loading}>
-        {loading ? "Setting..." : "Set Trustline"}
+        {loading ? (
+          <div className="flex items-center justify-center space-x-2">
+            <Loader2 className="h-5 w-5 animate-spin" />
+            <span>Setting...</span>
+          </div>
+        ) : (
+          "Set Trustline"
+        )}
       </Button>
 
       {showCurrencyMdl && (
@@ -90,7 +98,14 @@ export default function SetTrustlineBtn({ setterWallet, issuerWallets, onSuccess
                 disabled={loading || !currency}
                 className="flex-1"
               >
-                {loading ? "Setting..." : "Set Trustline"}
+                {loading ? (
+                  <div className="flex items-center justify-center space-x-2">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span>Setting...</span>
+                  </div>
+                ) : (
+                  "Set Trustline"
+                )}
               </Button>
             </div>
           </div>
