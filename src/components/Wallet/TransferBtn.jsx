@@ -146,7 +146,7 @@ export default function TransferBtn({
 
       {showMdl && (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/40">
-          <div className="h-[77vh] w-[28vw] space-y-4 rounded-lg bg-color4 p-6">
+          <div className="h-[77vh] w-[28vw] space-y-4 rounded-lg bg-color3 p-6">
             <div className="relative mb-6 flex justify-between">
               <h2 className="text-start text-2xl font-semibold">
                 Transfer
@@ -168,7 +168,7 @@ export default function TransferBtn({
               className={`flex ${session?.user?.role === "ADMIN" ? "justify-between space-x-2" : "justify-center"}`}
             >
               <div
-                className={`flex space-x-1 rounded-lg bg-color5 p-1 ${!session?.user?.role === "ADMIN" ? "w-full" : ""}`}
+                className={`flex space-x-1 rounded-lg bg-color4 p-1 ${!session?.user?.role === "ADMIN" ? "w-full" : ""}`}
               >
                 <button
                   className={`flex-1 rounded-lg px-3 py-2 transition-colors ${paymentType === "direct" ? "bg-primary text-black" : "text-gray-300 hover:text-white"}`}
@@ -186,7 +186,7 @@ export default function TransferBtn({
 
               {/* Only show option to send with address for Admin */}
               {session?.user?.role === "ADMIN" && (
-                <div className="flex space-x-1 rounded-lg bg-color5 p-1">
+                <div className="flex space-x-1 rounded-lg bg-color4 p-1">
                   {[true, false].map((type) => (
                     <button
                       key={String(type)}
@@ -213,7 +213,7 @@ export default function TransferBtn({
                   type="text"
                   value={recipientUsername}
                   onChange={(e) => setRecipientUsername(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-transparent bg-color5 p-2 hover:border-primary focus:border-primary focus:outline-none"
+                  className="mt-1 w-full rounded-lg border border-transparent bg-color4 p-2 hover:border-gray-500 focus:border-primary focus:outline-none"
                   placeholder="Enter recipient username..."
                   readOnly={Boolean(presetRecipientUsername)}
                 />
@@ -227,7 +227,7 @@ export default function TransferBtn({
                   type="text"
                   value={recipientAddress}
                   onChange={(e) => setRecipientAddress(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-transparent bg-color5 p-2 hover:border-primary focus:border-primary focus:outline-none"
+                  className="mt-1 w-full rounded-lg border border-transparent bg-color4 p-2 hover:border-gray-500 focus:border-primary focus:outline-none"
                   placeholder="Enter recipient address..."
                 />
               </div>
@@ -243,7 +243,6 @@ export default function TransferBtn({
                     value={sendCurrency}
                     onChange={setSendCurrency}
                     disabledOptions={[]}
-                    dropdownBg="bg-color5"
                   />
                 </div>
                 <div>
@@ -254,7 +253,6 @@ export default function TransferBtn({
                     value={receiveCurrency}
                     onChange={setReceiveCurrency}
                     disabledOptions={[]}
-                    dropdownBg="bg-color5"
                   />
                 </div>
                 <div className="flex flex-row space-x-2">
@@ -268,7 +266,7 @@ export default function TransferBtn({
                       min="0"
                       value={sendAmount}
                       onChange={handleSendAmountChange}
-                      className={`mt-1 w-full rounded-lg border border-transparent bg-color5 p-2 hover:border-primary focus:border-primary focus:outline-none ${convertInputType === "exact_output" ? "cursor-not-allowed opacity-60" : ""}`}
+                      className={`mt-1 w-full rounded-lg border border-transparent bg-color4 p-2 hover:border-gray-500 focus:border-primary focus:outline-none ${convertInputType === "exact_output" ? "cursor-not-allowed opacity-60" : ""}`}
                       placeholder="0.00"
                       disabled={convertInputType === "exact_output"}
                     />
@@ -283,7 +281,7 @@ export default function TransferBtn({
                       min="0"
                       value={receiveAmount}
                       onChange={handleReceiveAmountChange}
-                      className={`mt-1 w-full rounded-lg border border-transparent bg-color5 p-2 hover:border-primary focus:border-primary focus:outline-none ${convertInputType === "exact_input" ? "cursor-not-allowed opacity-60" : ""}`}
+                      className={`mt-1 w-full rounded-lg border border-transparent bg-color4 p-2 hover:border-gray-500 focus:border-primary focus:outline-none ${convertInputType === "exact_input" ? "cursor-not-allowed opacity-60" : ""}`}
                       placeholder="0.00"
                       disabled={convertInputType === "exact_input"}
                     />
@@ -300,7 +298,6 @@ export default function TransferBtn({
                     value={currency}
                     onChange={setCurrency}
                     disabledOptions={[]}
-                    dropdownBg="bg-color5"
                   />
                 </div>
                 <div>
@@ -311,7 +308,7 @@ export default function TransferBtn({
                     min="0"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
-                    className="mt-1 w-full rounded-lg border border-transparent bg-color5 p-2 hover:border-primary focus:border-primary focus:outline-none"
+                    className="mt-1 w-full rounded-lg border border-transparent bg-color4 p-2 hover:border-gray-500 focus:border-primary focus:outline-none"
                     placeholder="0.00"
                   />
                 </div>
@@ -326,7 +323,7 @@ export default function TransferBtn({
                 type="text"
                 value={destinationTag}
                 onChange={(e) => setDestinationTag(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-transparent bg-color5 p-2 hover:border-primary focus:border-primary focus:outline-none"
+                className="mt-1 w-full rounded-lg border border-transparent bg-color4 p-2 hover:border-gray-500 focus:border-primary focus:outline-none"
                 placeholder="Enter destination tag..."
               />
             </div>
