@@ -101,7 +101,7 @@ export default function MintAndListNft() {
               value={uri}
               onChange={(e) => setUri(e.target.value)}
               placeholder="Enter your metadata URI"
-              className="w-full bg-color3 border border-transparent rounded-lg p-3 hover:border-primary focus:border-primary focus:outline-none"
+              className="w-full bg-color3 border border-transparent rounded-lg p-3 hover:border-gray-500 focus:border-primary focus:outline-none"
               required
             />
           </div>
@@ -118,7 +118,7 @@ export default function MintAndListNft() {
               value={priceUSD}
               onChange={(e) => setPriceUSD(e.target.value)}
               placeholder="0.00"
-              className="w-full bg-color3 border border-transparent rounded-lg p-3 hover:border-primary focus:border-primary focus:outline-none"
+              className="w-full bg-color3 border border-transparent rounded-lg p-3 hover:border-gray-500 focus:border-primary focus:outline-none"
               required
             />
             <p className="text-xs text-mutedText mt-1">
@@ -136,7 +136,7 @@ export default function MintAndListNft() {
               value={destination}
               onChange={(e) => setDestination(e.target.value)}
               placeholder="Enter destination address"
-              className="w-full bg-color3 border border-transparent rounded-lg p-3 hover:border-primary focus:border-primary focus:outline-none"
+              className="w-full bg-color3 border border-transparent rounded-lg p-3 hover:border-gray-500 focus:border-primary focus:outline-none"
             />
             <p className="text-xs text-mutedText mt-1">
               Lock the offer to a specific wallet address (leave empty for public listing)
@@ -154,7 +154,7 @@ export default function MintAndListNft() {
               value={taxon}
               onChange={(e) => setTaxon(e.target.value)}
               placeholder="1001"
-              className="w-full bg-color3 border border-transparent rounded-lg p-3 hover:border-primary focus:border-primary focus:outline-none"
+              className="w-full bg-color3 border border-transparent rounded-lg p-3 hover:border-gray-500 focus:border-primary focus:outline-none"
             />
             <p className="text-xs text-mutedText mt-1">
               NFT collection identifier (1001 = Receipt NFTs)

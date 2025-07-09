@@ -118,7 +118,7 @@ export default function CreateOffer({ baseCurrency, quoteCurrency }) {
             placeholder="0.00"
             value={limitPrice}
             onChange={(e) => setLimitPrice(e.target.value)}
-            className="w-full rounded-lg border border-transparent bg-color3 p-2 text-right hover:border-primary focus:border-primary focus:outline-none"
+            className="w-full rounded-lg border border-transparent bg-color3 p-2 text-right hover:border-gray-500 focus:border-primary focus:outline-none"
           />
         </div>
 
@@ -133,7 +133,7 @@ export default function CreateOffer({ baseCurrency, quoteCurrency }) {
             placeholder="0.00"
             value={quantity}
             onChange={(e) => setQuantity(e.target.value)}
-            className="w-full rounded-lg border border-transparent bg-color3 p-2 text-right hover:border-primary focus:border-primary focus:outline-none"
+            className="w-full rounded-lg border border-transparent bg-color3 p-2 text-right hover:border-gray-500 focus:border-primary focus:outline-none"
           />
         </div>
 
@@ -156,7 +156,7 @@ export default function CreateOffer({ baseCurrency, quoteCurrency }) {
             Offer Type
           </label>
           <select
-            className="w-full rounded-lg border border-transparent bg-color3 p-2 hover:border-primary focus:border-primary focus:outline-none"
+            className="w-full rounded-lg border border-transparent bg-color3 p-2 hover:border-gray-500 focus:border-primary focus:outline-none"
             value={offerType}
             onChange={(e) => setOfferType(e.target.value)}
           >

@@ -10,7 +10,7 @@ export default function AuthRedirect() {
 
   useEffect(() => {
     if (status === "authenticated") {
-      router.push("/wallet");
+      router.push("/home");
     }
   }, [status, router]);
 

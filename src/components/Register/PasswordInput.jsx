@@ -34,7 +34,7 @@ export default function PasswordInput({ value, onChange, error }) {
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder="Enter your password"
-          className={`bg-color6 w-full rounded-lg border p-2 pr-10 hover:border-primary focus:border-primary focus:outline-none ${
+          className={`bg-color4 w-full rounded-lg border p-2 pr-10 hover:border-gray-500 focus:border-primary focus:outline-none ${
             error ? "border-red-500" : "border-transparent"
           }`}
         />

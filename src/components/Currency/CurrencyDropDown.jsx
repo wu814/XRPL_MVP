@@ -24,7 +24,7 @@ export default function CurrencyDropDown({
     <Listbox value={value} onChange={onChange}>
       <div className={`relative ${className || "w-full"}`}>
         <ListboxButton
-          className={`mt-1 flex w-full gap-7 items-center justify-between rounded-lg border border-transparent px-2 py-2 focus:border-primary hover:border-gray-500 ${dropdownBg}`}
+          className={`mt-1 flex w-full gap-7 items-center justify-between rounded-lg border border-transparent px-2 py-2 focus:border-primary hover:border-gray-500 outline-none ${dropdownBg}`}
         >
           <div className="flex items-center space-x-2">
             {selectedCurrency ? (

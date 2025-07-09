@@ -92,13 +92,13 @@ export default function ManageOracleBtn({ treasuryWallet, onSuccess }) {
 
       {showMdl && (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/40">
-          <div className="w-96 rounded-lg bg-color4 p-6">
+          <div className="w-96 rounded-lg bg-color3 p-6">
             <h2 className="mb-4 text-2xl font-semibold">
               Manage Oracle
             </h2>
 
             {/* Toggle between Set and Delete */}
-            <div className="flex bg-color3 rounded-lg p-1 mb-6">
+            <div className="flex bg-color4 rounded-lg p-1 mb-6">
               {["Set", "Delete"].map((tab) => (
                 <button
                   key={tab}
@@ -123,7 +123,7 @@ export default function ManageOracleBtn({ treasuryWallet, onSuccess }) {
                 type="number"
                 value={oracleDocumentID}
                 onChange={(e) => setOracleDocumentID(e.target.value)}
-                className="bg-color5 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
+                className="bg-color4 w-full rounded-lg border border-transparent p-2 hover:border-gray-500 focus:border-primary focus:outline-none"
                 placeholder="Enter Oracle Document ID"
               />
             </div>
@@ -139,7 +139,7 @@ export default function ManageOracleBtn({ treasuryWallet, onSuccess }) {
                     type="text"
                     value={coinGeckoIDs}
                     disabled
-                    className="bg-color5 w-full rounded-lg border border-transparent p-2 opacity-60 cursor-not-allowed"
+                    className="bg-color4 w-full rounded-lg border border-transparent p-2 opacity-60 cursor-not-allowed"
                   />
                 </div>
 
@@ -151,7 +151,7 @@ export default function ManageOracleBtn({ treasuryWallet, onSuccess }) {
                     type="text"
                     value={vsCurrency}
                     disabled
-                    className="bg-color5 w-full rounded-lg border border-transparent p-2 opacity-60 cursor-not-allowed"
+                    className="bg-color4 w-full rounded-lg border border-transparent p-2 opacity-60 cursor-not-allowed"
                   />
                 </div>
               </>

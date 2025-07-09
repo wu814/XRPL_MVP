@@ -49,7 +49,7 @@ export default function AuthorizeDepositBtn({ treasuryWallet, onSuccess }) {
 
       {showMdl && (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/40">
-          <div className="w-96 rounded-lg bg-color4 p-6">
+          <div className="w-96 rounded-lg bg-color3 p-6">
             <h2 className="mb-4 text-2xl font-semibold">
               Authorize Deposit
             </h2>
@@ -60,7 +60,7 @@ export default function AuthorizeDepositBtn({ treasuryWallet, onSuccess }) {
               type="text"
               value={authorizedAddress}
               onChange={(e) => setAuthorizedAddress(e.target.value)}
-              className="bg-color6 mt-1 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
+              className="bg-color4 mt-1 w-full rounded-lg border border-transparent p-2 hover:border-gray-500 focus:border-primary focus:outline-none"
               placeholder="Enter wallet address to authorize"
             />
             <div className="mt-4 flex space-x-2">

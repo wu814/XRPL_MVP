@@ -57,7 +57,7 @@ export default function UsernameInput({ value, onChange, error, setError }) {
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder="Enter your username (no spaces)"
-          className={`bg-color6 w-full rounded-lg border p-2 pr-10 hover:border-primary focus:border-primary focus:outline-none ${
+          className={`bg-color4 w-full rounded-lg border p-2 pr-10 hover:border-gray-500 focus:border-primary focus:outline-none ${
             error ? "border-red-500" : isAvailable === false ? "border-red-500" : isAvailable === true ? "border-green-500" : "border-transparent"
           }`}
         />

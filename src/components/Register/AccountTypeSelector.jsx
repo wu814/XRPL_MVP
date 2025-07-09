@@ -31,7 +31,7 @@ export default function AccountTypeSelector({ value, onChange }) {
             className={`cursor-pointer rounded-lg border-2 p-4 transition-all duration-200 hover:border-primary ${
               value === type.value
                 ? "border-primary bg-primary/10"
-                : "border-color6 bg-color6"
+                : "border-color6 bg-color4"
             }`}
           >
             <div className="flex items-start space-x-3">

@@ -107,7 +107,7 @@ export default function BuyNft() {
               value={offerID}
               onChange={(e) => setOfferID(e.target.value)}
               placeholder="Enter NFT Offer ID..."
-              className="w-full bg-color3 border border-transparent rounded-lg p-3 hover:border-primary focus:border-primary focus:outline-none"
+              className="w-full bg-color3 border border-transparent rounded-lg p-3 hover:border-gray-500 focus:border-primary focus:outline-none"
               required
             />
             <p className="text-xs text-mutedText mt-1">

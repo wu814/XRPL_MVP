@@ -156,13 +156,13 @@ export default function RegistrationForm() {
       
       // Force session refresh by signing in again
       await signIn("google", { 
-        callbackUrl: "/wallet",
+        callbackUrl: "/home",
         redirect: false 
       });
       
       // Small delay then redirect
       setTimeout(() => {
-        router.push("/wallet");
+        router.push("/home");
       }, 1000);
 
     } catch (error) {
@@ -174,7 +174,7 @@ export default function RegistrationForm() {
 
   return (
     <>
-      <div className="mx-auto max-w-md rounded-lg bg-color4 p-6">
+      <div className="mx-auto max-w-md rounded-lg bg-color3 p-6">
         <div className="mb-6 text-center">
           <h1 className="mb-2 text-2xl font-bold">Complete Your Registration</h1>
           <p className="text-mutedText">
@@ -219,7 +219,7 @@ export default function RegistrationForm() {
                 clearError("confirmPassword");
               }}
               placeholder="Confirm your password"
-              className={`bg-color6 w-full rounded-lg border p-2 hover:border-primary focus:border-primary focus:outline-none ${
+              className={`bg-color4 w-full rounded-lg border p-2 hover:border-gray-500 focus:border-primary focus:outline-none ${
                 errors.confirmPassword ? "border-red-500" : "border-transparent"
               }`}
             />

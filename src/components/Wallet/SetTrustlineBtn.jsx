@@ -70,7 +70,7 @@ export default function SetTrustlineBtn({ setterWallet, issuerWallets, onSuccess
 
       {showCurrencyMdl && (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/40">
-          <div className="w-96 space-y-4 rounded-lg bg-color4 p-6">
+          <div className="w-96 space-y-4 rounded-lg bg-color3 p-6">
             <h2 className="text-2xl font-semibold">
               Set Trustline
             </h2>
@@ -80,7 +80,6 @@ export default function SetTrustlineBtn({ setterWallet, issuerWallets, onSuccess
                 value={currency}
                 onChange={setCurrency}
                 disabledOptions={["XRP"]}
-                dropdownBg="bg-color5"
               />
             </div>
             <div className="flex space-x-2">
