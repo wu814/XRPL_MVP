@@ -71,11 +71,12 @@ function useWalletAssets(wallet, livePrices) {
           const xrpBalance = parseFloat(accountInfo.data.balance);
           const usdValue = getUsdValue("XRP", xrpBalance, livePrices);
 
+          // Store raw numeric values
           newAssets.push({
             id: "xrp-native",
             currency: "XRP",
-            balance: formatCurrencyValue(xrpBalance),
-            value: formatCurrencyValue(usdValue),
+            balance: xrpBalance, // Raw number
+            value: usdValue, // Raw number
             change24h: "2.3",
             walletAddress: wallet.classicAddress,
             issuer: null,
@@ -93,8 +94,8 @@ function useWalletAssets(wallet, livePrices) {
               newAssets.push({
                 id: `${line.currency}-${line.account}-${index}`,
                 currency: line.currency,
-                balance: formatCurrencyValue(balance),
-                value: formatCurrencyValue(usdValue),
+                balance: balance, // Raw number
+                value: usdValue, // Raw number
                 change24h: "1.5",
                 walletAddress: wallet.classicAddress,
                 issuer: line.account,
@@ -152,8 +153,8 @@ function useIssuerAssets(wallet, livePrices) {
             return {
               id: `issuer-${currency}`,
               currency,
-              balance: formatCurrencyValue(totalBalance),
-              value: formatCurrencyValue(usdValue),
+              balance: totalBalance, // Raw number
+              value: usdValue, // Raw number
               change24h: "0",
               walletAddress: wallet.classicAddress,
               issuer: wallet.classicAddress,

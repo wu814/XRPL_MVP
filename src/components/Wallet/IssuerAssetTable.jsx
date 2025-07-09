@@ -4,6 +4,7 @@ import { Star, Wallet, ArrowUpRight, ChevronRight, Loader2 } from "lucide-react"
 import { useState } from "react";
 import Image from "next/image";
 import Button from "../Button";
+import { formatCurrencyValue } from "@/utils/currencies";
 
 export default function IssuerAssetTable({ assets = [], loading = false, wallet }) {
   const [watchlist, setWatchlist] = useState(new Set());
@@ -17,15 +18,6 @@ export default function IssuerAssetTable({ assets = [], loading = false, wallet 
       newWatchlist.add(assetId);
     }
     setWatchlist(newWatchlist);
-  };
-
-  const formatBalance = (balance) => {
-    const num = parseFloat(balance);
-    if (isNaN(num)) return "0.00";
-    return num.toLocaleString("en-US", { 
-      minimumFractionDigits: 2, 
-      maximumFractionDigits: 6 
-    });
   };
 
   const getCurrencyIcon = (currency) => {
@@ -105,13 +97,13 @@ export default function IssuerAssetTable({ assets = [], loading = false, wallet 
                       <div>
                         <div className="font-semibold">{asset.currency}</div>
                         <div className="text-gray-400">
-                          {formatBalance(asset.balance)} issued
+                          {formatCurrencyValue(asset.balance)} issued
                         </div>
                       </div>
                     </div>
                     <div className="flex items-center space-x-3">
                       <div className="text-right">
-                        <div className="font-semibold text-xl">${formatBalance(asset.value || 0)}</div>
+                        <div className="font-semibold text-xl">${formatCurrencyValue(asset.value || 0)}</div>
                         <div className={`${
                           (parseFloat(asset.change24h) || 0) >= 0 ? "text-green-400" : "text-red-400"
                         }`}>

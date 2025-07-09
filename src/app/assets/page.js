@@ -63,7 +63,7 @@ function AssetTableWrapper() {
           id: "xrp-native",
           currency: "XRP",
           balance: formatCurrencyValue(xrpBalance),
-          value: formatCurrencyValue(usdValue),
+          value: usdValue, // Store raw number, not formatted string
           change24h: "2.3", // You might want to get real change data too
           walletAddress: primaryWallet.classicAddress,
           issuer: null,
@@ -84,7 +84,7 @@ function AssetTableWrapper() {
               id: `${line.currency}-${line.account}-${index}`,
               currency: line.currency,
               balance: formatCurrencyValue(balance),
-              value: formatCurrencyValue(usdValue),
+              value: usdValue, // Store raw number, not formatted string
               change24h: "1.5", // You might want to get real change data too
               walletAddress: primaryWallet.classicAddress,
               issuer: line.account,
