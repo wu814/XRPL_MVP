@@ -28,15 +28,15 @@ export default function AmmCompositionBar({ amount1, amount2, livePrices, prices
   const amount2Percent = 100 - amount1Percent;
 
   return (
-    <div className="p-2">
+    <div>
       {/* Bar */}
-      <div className="flex h-2 w-full overflow-hidden rounded-full">
+      <div className="mt-2 flex h-2 w-full overflow-hidden rounded-full">
         <div className="bg-primary" style={{ width: `${amount1Percent}%` }} />
         <div className="bg-cancel" style={{ width: `${amount2Percent}%` }} />
       </div>
 
       {/* Currency amounts */}
-      <div className="mt-2 flex text-lg font-semibold justify-between">
+      <div className="mt-2 flex text-xl font-medium justify-between px-2">
         <span>
           {formatCurrencyValue(amount1.value)} {amount1.currency}
         </span>
@@ -46,7 +46,7 @@ export default function AmmCompositionBar({ amount1, amount2, livePrices, prices
       </div>
 
       {/* USD values */}
-      <div className="mt-1 flex justify-between">
+      <div className="mt-1 flex justify-between px-2">
         <span className="text-sm text-gray-400">
           ${formatCurrencyValue(usdValue1)}
         </span>

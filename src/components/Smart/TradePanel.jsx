@@ -460,7 +460,7 @@ export default function TradePanel() {
               <Button
                 onClick={handleSmartTrade}
                 disabled={!canTrade || loading}
-                className="w-full text-xl"
+                className="w-full text-lg"
               >
                 {loading ? (
                   <div className="flex items-center justify-center space-x-2">
@@ -513,7 +513,7 @@ export default function TradePanel() {
               </div>
 
               {/* Payment type info */}
-              <div className="text-xs text-gray-400 mb-6">
+              <div className="text-xs text-gray-400 mb-4">
                 {paymentType === "direct" 
                   ? "Trustline-to-trustline payment" 
                   : "Cross-currency XRPL send"}
@@ -661,7 +661,7 @@ export default function TradePanel() {
                         (!sendAmount && !receiveAmount)
                       : !amount || (paymentType === "direct" && !currency))
                   }
-                  className="w-full text-xl py-2"
+                  className="w-full text-lg py-2"
                 >
                   {loading ? (
                     <div className="flex items-center justify-center space-x-2">

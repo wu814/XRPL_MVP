@@ -139,7 +139,7 @@ export default function DisplayAmmDetails({ ammAccount }) {
     return (
       <div>
         <h3 className="mb-4 text-mutedText">Price Information</h3>
-        <div className="flex flex-col font-semibold">
+        <div className="flex flex-col font-medium text-lg">
           <p>1 {s1} = {price1} {s2}</p>
           <p>1 {s2} = {price2} {s1}</p>
         </div>
@@ -150,7 +150,7 @@ export default function DisplayAmmDetails({ ammAccount }) {
   const renderTradingFee = () => (
     <div>
       <h3 className="text-mutedText mb-4">Trading Fee</h3>
-      <p className="text-lg font-semibold">
+      <p className="font-medium text-lg">
         {`${(ammInfo?.trading_fee / 1000).toFixed(3)}%`}
       </p>
     </div>
@@ -174,7 +174,7 @@ export default function DisplayAmmDetails({ ammAccount }) {
       return (
         <div>
           <h3 className="mb-4 text-mutedText">Pool Value</h3>
-          <p className="text-lg font-semibold">
+          <p className=" font-medium text-lg">
             ${formatCurrencyValue(totalUsdValue)}
           </p>
         </div>
@@ -212,7 +212,7 @@ export default function DisplayAmmDetails({ ammAccount }) {
           </div>
           <div className="col-span-1 rounded-lg bg-color2 p-4">
             <h3 className="mb-4 text-mutedText">Volume (24h)</h3>
-            <p className="text-lg font-semibold">Not Available</p>
+            <p className=" font-medium text-lg">Not Available</p>
           </div>
           <div className="col-span-1 rounded-lg bg-color2 p-4">
             {renderTradingFee()}

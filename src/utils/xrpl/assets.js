@@ -89,7 +89,7 @@ export function formatCurrencyValue(value) {
   
   return num.toLocaleString("en-US", { 
     minimumFractionDigits: 2, 
-    maximumFractionDigits: 6 
+    maximumFractionDigits: 2
   });
 }
 
