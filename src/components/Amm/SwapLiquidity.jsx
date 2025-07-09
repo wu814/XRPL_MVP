@@ -136,7 +136,7 @@ export default function SwapLiquidity({ ammInfo, onSwapped }) {
 
       {/* Amount Inputs */}
       <div>
-        <div className="flex items-center justify-between rounded-lg border border-transparent bg-color3 p-4 focus-within:border-primary hover:border-primary">
+        <div className="flex items-center justify-between rounded-lg border border-transparent bg-color3 p-4 hover:border-gray-500 focus-within:!border-primary">
           <div className="flex flex-col space-y-2">
             <label className="text-sm font-medium text-mutedText">Sell</label>
             {sellCurrency && (
@@ -167,7 +167,7 @@ export default function SwapLiquidity({ ammInfo, onSwapped }) {
         </button>
       </div>
 
-      <div className="flex items-center justify-between rounded-lg border border-transparent bg-color3 p-4 focus-within:border-primary hover:border-primary">
+      <div className="flex items-center justify-between rounded-lg border border-transparent bg-color3 p-4 hover:border-gray-500 focus-within:!border-primary">
         <div className="flex flex-col space-y-2">
           <label className="text-sm font-medium text-mutedText">Buy</label>
           {buyCurrency && (

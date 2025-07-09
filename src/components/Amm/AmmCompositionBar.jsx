@@ -1,4 +1,4 @@
-import { formatCurrencyValue, getUsdValue } from "@/utils/currencies";
+import { formatCurrencyValue, getUsdValue } from "@/utils/xrpl/assets";
 
 export default function AmmCompositionBar({ amount1, amount2, livePrices, pricesLoading }) {
   // When the component is loading, show a skeleton loader
@@ -28,7 +28,7 @@ export default function AmmCompositionBar({ amount1, amount2, livePrices, prices
   const amount2Percent = 100 - amount1Percent;
 
   return (
-    <div className="p-4">
+    <div className="p-2">
       {/* Bar */}
       <div className="flex h-2 w-full overflow-hidden rounded-full">
         <div className="bg-primary" style={{ width: `${amount1Percent}%` }} />

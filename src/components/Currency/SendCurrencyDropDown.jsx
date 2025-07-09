@@ -9,7 +9,7 @@ export default function SendCurrencyDropDown({ value, onChange, currencies, clas
       <button
         type="button"
         onClick={() => onToggle(dropdownId)}
-        className="w-full bg-color3 border border-gray-600 rounded-lg px-4 py-3 flex items-center justify-between hover:border-gray-500 focus:border-blue-500 outline-none"
+        className="w-full bg-color3 border border-transparent rounded-lg px-4 py-3 flex items-center justify-between hover:border-gray-500 focus:border-primary outline-none"
       >
         <div className="flex items-center space-x-3">
           <img

@@ -3,7 +3,7 @@
 import { RefreshCw, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useCurrentUserWallet } from "@/components/Wallet/CurrentUserWalletProvider";
-import { fetchUsdPrices, getUsdValue, formatCurrencyValue } from "@/utils/currencies";
+import { fetchUsdPrices, getUsdValue, formatCurrencyValue } from "@/utils/xrpl/assets";
 
 export default function DashboardHeader({
   totalBalance,

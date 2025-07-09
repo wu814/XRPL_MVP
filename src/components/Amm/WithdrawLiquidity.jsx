@@ -144,7 +144,7 @@ export default function WithdrawLiquidity({ ammInfo, onWithdrawn }) {
         <select
           value={mode}
           onChange={(e) => setMode(e.target.value)}
-          className="mt-1 rounded-lg border border-transparent bg-color3 p-2 focus:border-primary focus:outline-none hover:border-primary"
+          className="mt-1 rounded-lg border border-transparent bg-color3 p-2 hover:border-gray-500 focus:border-primary focus:outline-none"
         >
           <option value="twoAsset">Two Asset Withdraw</option>
           <option value="lpToken">LP Token Withdraw</option>
@@ -162,7 +162,7 @@ export default function WithdrawLiquidity({ ammInfo, onWithdrawn }) {
               value={amountA}
               onChange={(e) => setAmountA(e.target.value)}
               placeholder={`Desire ${token1?.currency || "Token A"} amount`}
-              className="bg-color3 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
+              className="bg-color3 w-full rounded-lg border border-transparent p-2 hover:border-gray-500 focus:border-primary focus:outline-none"
             />
             <input
               type="number"
@@ -170,7 +170,7 @@ export default function WithdrawLiquidity({ ammInfo, onWithdrawn }) {
               value={amountB}
               onChange={(e) => setAmountB(e.target.value)}
               placeholder={`Desire ${token2?.currency || "Token B"} amount`}
-              className="bg-color3 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
+              className="bg-color3 w-full rounded-lg border border-transparent p-2 hover:border-gray-500 focus:border-primary focus:outline-none"
             />
           </>
         )}
@@ -180,7 +180,7 @@ export default function WithdrawLiquidity({ ammInfo, onWithdrawn }) {
             <select
               value={assetType}
               onChange={(e) => setAssetType(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-transparent bg-color3 p-2 focus:border-primary focus:outline-none hover:border-primary"
+              className="mt-1 w-full rounded-lg border border-transparent bg-color3 p-2 hover:border-gray-500 focus:border-primary focus:outline-none"
             >
               <option value={token1?.currency}>{token1?.currency}</option>
               <option value={token2?.currency}>{token2?.currency}</option>
@@ -190,7 +190,7 @@ export default function WithdrawLiquidity({ ammInfo, onWithdrawn }) {
                 value={withdrawAmount}
                 onChange={(e) => setWithdrawAmount(e.target.value)}
                 placeholder="Withdraw Amount"
-                className="bg-color3 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
+                className="bg-color3 w-full rounded-lg border border-transparent p-2 hover:border-gray-500 focus:border-primary focus:outline-none"
               />
             )}
           </>
@@ -203,7 +203,7 @@ export default function WithdrawLiquidity({ ammInfo, onWithdrawn }) {
             value={lpTokenAmount}
             onChange={(e) => setLpTokenAmount(e.target.value)}
             placeholder="LP Token Amount"
-            className="bg-color3 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
+            className="bg-color3 w-full rounded-lg border border-transparent p-2 hover:border-gray-500 focus:border-primary focus:outline-none"
           />
         )}
 

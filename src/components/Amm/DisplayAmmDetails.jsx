@@ -9,7 +9,7 @@ import ManageAmmBalance from "./ManageAmmBalance";
 import Breadcrumbs from "../Navigation/Breadcrumbs";
 import { useRouter } from "next/navigation";
 import { CurrentUserWalletProvider } from "../Wallet/CurrentUserWalletProvider";
-import { fetchUsdPrices, getUsdValue, formatCurrencyValue } from "@/utils/currencies";
+import { fetchUsdPrices, getUsdValue, formatCurrencyValue } from "@/utils/xrpl/assets";
 
 // This class is used to parse the AMM data returned from the API
 class AmmInfo {

@@ -199,7 +199,7 @@ export default function AddLiquidity({ ammInfo, onAdded }) {
       ].map(({ value, setValue, token }, idx) => (
         <div
           key={idx}
-          className="flex items-center justify-between rounded-lg bg-color3 p-4 border border-transparent hover:border-primary focus-within:border-primary"
+          className="flex items-center justify-between rounded-lg bg-color3 p-4 border border-transparent hover:border-gray-500 focus-within:!border-primary"
         >
           <div className="flex items-center gap-2">
             <CurrencyIcon symbol={token?.currency} iconBg="bg-color4" />
@@ -221,7 +221,7 @@ export default function AddLiquidity({ ammInfo, onAdded }) {
   const renderLPInputs = () => (
     <>
       {/* LP Token amount input */}
-      <div className="rounded-lg bg-color3 p-4 border border-transparent hover:border-primary focus-within:border-primary">
+      <div className="rounded-lg bg-color3 p-4 border border-transparent hover:border-gray-500 focus-within:!border-primary">
         <label className="mb-2 block text-sm text-mutedText">Desired LP Token Amount</label>
         <input
           type="number"
@@ -259,7 +259,7 @@ export default function AddLiquidity({ ammInfo, onAdded }) {
       )}
 
       {/* Asset selection for one-asset LP mode */}
-      <div className="space-y-2 rounded-lg bg-color3 p-4 border border-transparent hover:border-primary focus-within:border-primary">
+      <div className="space-y-2 rounded-lg bg-color3 p-4 border border-transparent hover:border-gray-500 focus-within:!border-primary">
         <label className="mb-2 block text-sm text-mutedText ">Pay with</label>
         <div className="space-x-4">
           {["both", token1?.currency, token2?.currency].map((option, index) => (

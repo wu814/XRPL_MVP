@@ -12,7 +12,7 @@ import SuccessMdl from "@/components/SuccessMdl";
 import Button from "../Button";
 import { useCurrentUserWallet } from "@/components/Wallet/CurrentUserWalletProvider";
 import { useIssuerWallet } from "@/components/Wallet/IssuerWalletProvider";
-import { availableCurrencies } from "@/utils/currencies";
+import { availableCurrencies } from "@/utils/xrpl/assets";
 import { useSession } from "next-auth/react";
 
 export default function TradePanel() {
@@ -379,8 +379,8 @@ export default function TradePanel() {
             // Convert Layout - Integrated SmartTradeMenu functionality
             <>
               {/* Sell Section */}
-              <div className="mb-4 bg-color3 rounded-lg p-6">
-                <div className="flex items-center justify-between mb-4">
+              <div className="mb-4 bg-color3 rounded-lg p-6  border border-transparent hover:border-gray-500 focus-within:!border-primary">
+                <div className="flex items-center rounded-lg justify-between mb-4">
                   <div className="flex flex-1 flex-col space-y-2">
                     <label className="text-sm font-medium text-gray-400">Sell</label>
                     <ConvertCurrencyDropDown
@@ -432,7 +432,7 @@ export default function TradePanel() {
               </div>
 
               {/* Buy Section */}
-              <div className="mb-8 bg-color3 rounded-lg p-6">
+              <div className="mb-8 bg-color3 rounded-lg p-6 border border-transparent hover:border-gray-500 focus-within:!border-primary">
                 <div className="flex items-center justify-between">
                   <div className="flex flex-1 flex-col space-y-2">
                     <label className="text-sm font-medium text-gray-400">Buy</label>
@@ -530,7 +530,7 @@ export default function TradePanel() {
                       placeholder="Recipient Username"
                       value={recipientUsername || ""}
                       onChange={(e) => setRecipientUsername(e.target.value || "")}
-                      className="w-full bg-color3 border border-gray-600 rounded-lg pl-12 pr-4 py-4 outline-none focus:border-primary text-lg"
+                      className="w-full bg-color3 border border-transparent rounded-lg pl-12 pr-4 py-4 outline-none hover:border-gray-500 focus:border-primary text-lg"
                       required
                     />
                   </div>
@@ -542,7 +542,7 @@ export default function TradePanel() {
                       placeholder="Recipient Address"
                       value={recipientAddress || ""}
                       onChange={(e) => setRecipientAddress(e.target.value || "")}
-                      className="w-full bg-color3 border border-gray-600 rounded-lg pl-12 pr-4 py-4 outline-none focus:border-primary text-lg"
+                      className="w-full bg-color3 border border-transparent rounded-lg pl-12 pr-4 py-4 outline-none hover:border-gray-500 focus:border-primary text-lg"
                       required
                     />
                   </div>
@@ -586,7 +586,7 @@ export default function TradePanel() {
                           min="0"
                           value={sendAmount}
                           onChange={handleSendAmountChangeForPayment}
-                          className={`w-full bg-color3 border border-gray-600 rounded-lg px-4 py-3 outline-none focus:border-primary ${convertInputType === "exact_output" ? "cursor-not-allowed opacity-60" : ""}`}
+                          className={`w-full bg-color3 border border-transparent rounded-lg px-4 py-3 outline-none hover:border-gray-500 focus:border-primary ${convertInputType === "exact_output" ? "cursor-not-allowed opacity-60" : ""}`}
                           placeholder="0.00"
                           disabled={convertInputType === "exact_output"}
                         />
@@ -599,7 +599,7 @@ export default function TradePanel() {
                           min="0"
                           value={receiveAmount}
                           onChange={handleReceiveAmountChangeForPayment}
-                          className={`w-full bg-color3 border border-gray-600 rounded-lg px-4 py-3 outline-none focus:border-primary ${convertInputType === "exact_input" ? "cursor-not-allowed opacity-60" : ""}`}
+                          className={`w-full bg-color3 border border-transparent rounded-lg px-4 py-3 outline-none  hover:border-gray-500 focus:border-primary ${convertInputType === "exact_input" ? "cursor-not-allowed opacity-60" : ""}`}
                           placeholder="0.00"
                           disabled={convertInputType === "exact_input"}
                         />
@@ -630,7 +630,7 @@ export default function TradePanel() {
                         min="0"
                         value={amount}
                         onChange={(e) => setAmount(e.target.value)}
-                        className="w-full bg-color3 border border-gray-600 rounded-lg px-4 py-3 outline-none focus:border-primary"
+                        className="w-full bg-color3 border border-transparent rounded-lg px-4 py-3 outline-none hover:border-gray-500 focus:border-primary"
                         placeholder="0.00"
                         required
                       />
@@ -646,7 +646,7 @@ export default function TradePanel() {
                     placeholder="Enter destination tag..."
                     value={destinationTag}
                     onChange={(e) => setDestinationTag(e.target.value)}
-                    className="w-full bg-color3 border border-gray-600 rounded-lg px-4 py-3 outline-none focus:border-primary"
+                    className="w-full bg-color3 border border-transparent rounded-lg px-4 py-3 outline-none hover:border-gray-500 focus:border-primary"
                   />
                 </div>
 

@@ -8,7 +8,7 @@ import {
   Transition,
 } from "@headlessui/react";
 import { Fragment } from "react";
-import { availableCurrencies } from "@/utils/currencies";
+import { availableCurrencies } from "@/utils/xrpl/assets";
 
 
 export default function CurrencyDropDown({
