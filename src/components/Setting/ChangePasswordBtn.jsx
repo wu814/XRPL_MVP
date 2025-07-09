@@ -109,7 +109,7 @@ export default function ChangePasswordBtn() {
 
       {isOpen && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-color2 rounded-lg p-6 w-full max-w-md mx-4">
+          <div className="bg-color3 rounded-lg p-6 w-full max-w-md mx-4">
             <h2 className="text-2xl font-semibold mb-4">Change Password</h2>
             
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -122,7 +122,7 @@ export default function ChangePasswordBtn() {
                     type={showCurrentPassword ? "text" : "password"}
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
-                    className="w-full px-3 py-2 pr-10 bg-color3 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 pr-10 bg-color4 border border-transparent hover:border-gray-500 rounded-lg focus:outline-none focus:border-primary"
                     placeholder="Enter current password"
                     required
                   />
@@ -149,7 +149,7 @@ export default function ChangePasswordBtn() {
                     type={showNewPassword ? "text" : "password"}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full px-3 py-2 pr-10 bg-color3 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 pr-10 bg-color4 border border-transparent hover:border-gray-500 rounded-lg focus:outline-none focus:border-primary"
                     placeholder="Enter new password (min 5 characters)"
                     required
                   />
@@ -176,7 +176,7 @@ export default function ChangePasswordBtn() {
                     type={showConfirmPassword ? "text" : "password"}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full px-3 py-2 pr-10 bg-color3 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 pr-10 bg-color4 border border-transparent hover:border-gray-500 rounded-lg focus:outline-none focus:border-primary"
                     placeholder="Confirm new password"
                     required
                   />
