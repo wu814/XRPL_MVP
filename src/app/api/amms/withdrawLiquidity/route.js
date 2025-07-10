@@ -98,7 +98,7 @@ export async function POST(req) {
       // ✅ Check if the AMM still exists on ledger
       const ammStillExists = await getAmmInfo(ammAccount);
 
-      if (!ammStillExists) {
+      if (!ammStillExists || !ammStillExists.success) {
         // 🧹 Delete from Supabase if AMM no longer exists
         const supabase = await createSupabaseAnonClient();
         const { error: deleteError } = await supabase
