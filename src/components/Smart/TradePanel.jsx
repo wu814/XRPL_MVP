@@ -12,8 +12,10 @@ import SuccessMdl from "@/components/SuccessMdl";
 import Button from "../Button";
 import { useCurrentUserWallet } from "@/components/Wallet/CurrentUserWalletProvider";
 import { useIssuerWallet } from "@/components/Wallet/IssuerWalletProvider";
-import { availableCurrencies } from "@/utils/xrpl/assets";
+import { availableCurrencies, formatCurrencyValue } from "@/utils/xrpl/assets";
 import { useSession } from "next-auth/react";
+// Import from the new client-safe calculation file
+import { calculateExactAMMInput, calculateEstimateOutput } from "@/utils/xrpl/amm/calculations";
 
 export default function TradePanel() {
   const { data: sessionData, status } = useSession();
@@ -26,6 +28,15 @@ export default function TradePanel() {
   const [buyAmount, setBuyAmount] = useState("");
   const [activeInput, setActiveInput] = useState("sell");
   const [tradeInputType, setTradeInputType] = useState("exact_input");
+  
+  // Add calculation states
+  const [calculatingAmounts, setCalculatingAmounts] = useState(false);
+  const [calculationError, setCalculationError] = useState(null);
+  
+  // AMM data states - fetch once when currencies change
+  const [ammData, setAmmData] = useState(null);
+  const [loadingAmmData, setLoadingAmmData] = useState(false);
+  const [ammDataError, setAmmDataError] = useState(null);
   
   // Send form states (Enhanced from TransferBtn)
   const [recipientUsername, setRecipientUsername] = useState("");
@@ -65,14 +76,14 @@ export default function TradePanel() {
   const handleSellAmountChange = (e) => {
     setActiveInput("sell");
     setSellAmount(e.target.value);
-    setBuyAmount(""); // Clear the other field
+    setBuyAmount(""); // Clear the other field initially
     setTradeInputType("exact_input");
   };
 
   const handleBuyAmountChange = (e) => {
     setActiveInput("buy");
     setBuyAmount(e.target.value);
-    setSellAmount(""); // Clear the other field
+    setSellAmount(""); // Clear the other field initially
     setTradeInputType("exact_output");
   };
 
@@ -83,6 +94,149 @@ export default function TradePanel() {
     setSellAmount(buyAmount);
     setBuyAmount(sellAmount);
     setActiveInput("sell");
+  };
+
+  // Fetch AMM data when currencies change
+  useEffect(() => {
+    if (sellCurrency && buyCurrency && sellCurrency !== buyCurrency) {
+      fetchAmmData();
+    } else {
+      setAmmData(null);
+      setAmmDataError(null);
+    }
+  }, [sellCurrency, buyCurrency]);
+
+  const fetchAmmData = async () => {
+    setLoadingAmmData(true);
+    setAmmDataError(null);
+    setAmmData(null);
+
+    try {
+      console.log(`🔍 Fetching AMM data for ${sellCurrency}/${buyCurrency}`);
+      
+      const response = await fetch("/api/amms/getAmmInfoByCurrencies", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sellCurrency,
+          buyCurrency,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to get AMM data");
+      }
+
+      setAmmData(result.data);
+      console.log(`✅ AMM data loaded for ${sellCurrency}/${buyCurrency}`);
+    } catch (error) {
+      console.error(`❌ AMM data fetch error: ${error.message}`);
+      setAmmDataError(error.message);
+    } finally {
+      setLoadingAmmData(false);
+    }
+  };
+
+  // Calculate output when sell amount changes
+  useEffect(() => {
+    if (sellAmount && parseFloat(sellAmount) > 0 && sellCurrency && buyCurrency && sellCurrency !== buyCurrency && activeInput === "sell" && ammData) {
+      calculateOutput();
+    }
+  }, [sellAmount, sellCurrency, buyCurrency, activeInput, ammData]);
+
+  // Calculate input when buy amount changes
+  useEffect(() => {
+    if (buyAmount && parseFloat(buyAmount) > 0 && sellCurrency && buyCurrency && sellCurrency !== buyCurrency && activeInput === "buy" && ammData) {
+      calculateInput();
+    }
+  }, [buyAmount, sellCurrency, buyCurrency, activeInput, slippage, ammData]);
+
+  const calculateOutput = async () => {
+    if (!ammData) {
+      console.log("⚠️ No AMM data available for output calculation");
+      return;
+    }
+
+    setCalculatingAmounts(true);
+    setCalculationError(null);
+
+    try {
+      console.log(`🧮 Calculating output for ${sellAmount} ${sellCurrency} → ${buyCurrency}`);
+      
+      // Determine pool balances from cached AMM data
+      let poolSell, poolBuy;
+      if (ammData.asset1.currency === sellCurrency) {
+        poolSell = parseFloat(ammData.asset1.value);
+        poolBuy = parseFloat(ammData.asset2.value);
+      } else {
+        poolSell = parseFloat(ammData.asset2.value);
+        poolBuy = parseFloat(ammData.asset1.value);
+      }
+
+      // Calculate estimated output using the imported function
+      const calculation = calculateEstimateOutput(poolSell, poolBuy, sellAmount, ammData.trading_fee || 0);
+      
+      if (calculation.success) {
+        setBuyAmount(calculation.estimatedOutput.toFixed(6));
+        console.log(`✅ Calculated output: ${calculation.estimatedOutput.toFixed(6)} ${buyCurrency}`);
+      } else {
+        throw new Error(calculation.error);
+      }
+    } catch (error) {
+      console.error(`❌ Output calculation error: ${error.message}`);
+      setCalculationError(error.message);
+      setBuyAmount("");
+    } finally {
+      setCalculatingAmounts(false);
+    }
+  };
+
+  const calculateInput = async () => {
+    if (!ammData) {
+      console.log("⚠️ No AMM data available for input calculation");
+      return;
+    }
+
+    setCalculatingAmounts(true);
+    setCalculationError(null);
+
+    try {
+      console.log(`🧮 Calculating input for ${buyAmount} ${buyCurrency} from ${sellCurrency}`);
+      
+      // Determine pool balances from cached AMM data
+      let poolSell, poolBuy;
+      if (ammData.asset1.currency === sellCurrency) {
+        poolSell = parseFloat(ammData.asset1.value);
+        poolBuy = parseFloat(ammData.asset2.value);
+      } else {
+        poolSell = parseFloat(ammData.asset2.value);
+        poolBuy = parseFloat(ammData.asset1.value);
+      }
+
+      // Calculate required input using the imported function
+      const calculation = calculateExactAMMInput(
+        poolSell, 
+        poolBuy, 
+        parseFloat(buyAmount), 
+        parseFloat(slippage) / 100, 
+        ammData.trading_fee || 0
+      );
+      
+      if (calculation.success) {
+        setSellAmount(calculation.inputWithSlippage.toFixed(6));
+        console.log(`✅ Calculated input: ${calculation.inputWithSlippage.toFixed(6)} ${sellCurrency}`);
+      } else {
+        throw new Error(calculation.error);
+      }
+    } catch (error) {
+      console.error(`❌ Input calculation error: ${error.message}`);
+      setCalculationError(error.message);
+      setSellAmount("");
+    } finally {
+      setCalculatingAmounts(false);
+    }
   };
 
   const handleSmartTrade = async () => {
@@ -235,7 +389,7 @@ export default function TradePanel() {
   const handleMax = () => {
     if (activeTab === "Convert" && sellCurrency) {
       const maxBalance = walletBalances[sellCurrency] || 0;
-      setSellAmount(maxBalance.toString());
+      setSellAmount(maxBalance.toFixed(2)); // Keep as plain number string for input
       setBuyAmount("");
       setActiveInput("sell");
       setTradeInputType("exact_input");
@@ -259,7 +413,8 @@ export default function TradePanel() {
   };
 
   const canTrade = sellCurrency && buyCurrency && sellCurrency !== buyCurrency && 
-    ((sellAmount && parseFloat(sellAmount) > 0) || (buyAmount && parseFloat(buyAmount) > 0));
+    ((sellAmount && parseFloat(sellAmount) > 0) || (buyAmount && parseFloat(buyAmount) > 0)) &&
+    ammData && !loadingAmmData; // Only allow trading when AMM data is loaded
 
   // Add function to fetch wallet balances
   const fetchWalletBalances = async () => {
@@ -325,11 +480,15 @@ export default function TradePanel() {
   // Reset amounts when sell currency changes
   useEffect(() => {
     setSellAmount("");
+    setBuyAmount("");
+    setCalculationError(null);
   }, [sellCurrency]);
 
   // Reset amounts when buy currency changes  
   useEffect(() => {
+    setSellAmount("");
     setBuyAmount("");
+    setCalculationError(null);
   }, [buyCurrency]);
 
   return (
@@ -375,6 +534,40 @@ export default function TradePanel() {
             ))}
           </div>
 
+          {/* Show AMM loading or error state */}
+          {loadingAmmData && (
+            <div className="mb-4 p-3 bg-blue-900/20 border border-blue-500 rounded-lg">
+              <div className="flex items-center space-x-2">
+                <Loader2 className="h-4 w-4 animate-spin text-blue-400" />
+                <p className="text-blue-400 text-sm">Loading AMM pool data...</p>
+              </div>
+            </div>
+          )}
+
+          {/* Show AMM data error */}
+          {ammDataError && (
+            <div className="mb-4 p-3 bg-red-900/20 border border-red-500 rounded-lg">
+              <p className="text-red-400 text-sm">AMM Pool Error: {ammDataError}</p>
+            </div>
+          )}
+
+          {/* Show calculation error if any */}
+          {calculationError && (
+            <div className="mb-4 p-3 bg-red-900/20 border border-red-500 rounded-lg">
+              <p className="text-red-400 text-sm">Calculation Error: {calculationError}</p>
+            </div>
+          )}
+
+          {/* Show AMM pool info when loaded */}
+          {ammData && !loadingAmmData && (
+            <div className="mb-4 p-3 bg-green-900/20 border border-green-500 rounded-lg">
+              <p className="text-green-400 text-sm">
+                ✅ AMM Pool: {ammData.asset1.currency}/{ammData.asset2.currency} 
+                {ammData.trading_fee > 0 && ` (${ammData.trading_fee/1000}% fee)`}
+              </p>
+            </div>
+          )}
+
           {activeTab === "Convert" ? (
             // Convert Layout - Integrated SmartTradeMenu functionality
             <>
@@ -391,26 +584,29 @@ export default function TradePanel() {
                     />
                     {sellCurrency && (
                         <div className="text-sm text-gray-400">
-                          Balance: {loadingBalance ? "Loading..." : (walletBalances[sellCurrency]?.toFixed(6) || "0.000000")} {sellCurrency}
+                          Balance: {loadingBalance ? "Loading..." : `${formatCurrencyValue(walletBalances[sellCurrency] || 0)} ${sellCurrency}`}
                         </div>
                       )}
                   </div>
                   <div className="flex flex-col items-end">
-                    <input
-                      type="number"
-                      step="0.000001"
-                      value={sellAmount}
-                      onChange={handleSellAmountChange}
-                      placeholder="0.00"
-                      className={`bg-transparent text-right text-4xl font-light outline-none text-white w-48 ${!!buyAmount ? "cursor-not-allowed opacity-60" : ""}`}
-                      min="0"
-                      disabled={!!buyAmount}
-                    />
+                    <div className="relative">
+                      <input
+                        type="number"
+                        step="0.000001"
+                        value={sellAmount}
+                        onChange={handleSellAmountChange}
+                        placeholder="0.00"
+                        className={`bg-transparent text-right text-4xl font-light outline-none text-white w-48 ${
+                          (!!buyAmount && activeInput === "buy") || calculatingAmounts || loadingAmmData ? "cursor-not-allowed opacity-60" : ""
+                        }`}
+                        min="0"
+                        disabled={(!!buyAmount && activeInput === "buy") || calculatingAmounts || loadingAmmData}
+                      />
+                    </div>
                     <div className="flex items-center space-x-2 mt-2">
-                      
                       <button 
                         onClick={handleMax}
-                        disabled={loadingBalance || !sellCurrency || (walletBalances[sellCurrency] || 0) <= 0}
+                        disabled={loadingBalance || !sellCurrency || (walletBalances[sellCurrency] || 0) <= 0 || calculatingAmounts || loadingAmmData}
                         className="bg-color5 hover:bg-color6 disabled:bg-gray-700 disabled:cursor-not-allowed px-4 py-2 rounded-lg text-sm font-medium"
                       >
                         Max
@@ -425,7 +621,7 @@ export default function TradePanel() {
                 <button
                   onClick={handleCurrencySwap}
                   className="p-3 bg-color3 rounded-full hover:bg-color4 transition-colors"
-                  disabled={!sellCurrency || !buyCurrency}
+                  disabled={!sellCurrency || !buyCurrency || calculatingAmounts || loadingAmmData}
                 >
                   <ArrowUpDown className="w-6 h-6 text-gray-400" />
                 </button>
@@ -443,23 +639,27 @@ export default function TradePanel() {
                       currencies={availableCurrencies.filter(c => c.id !== sellCurrency)}
                     />
                   </div>
-                  <input
-                    type="number"
-                    step="0.000001"
-                    value={buyAmount}
-                    onChange={handleBuyAmountChange}
-                    placeholder="0.00"
-                    className={`bg-transparent text-right text-4xl font-light outline-none text-white w-48 ${!!sellAmount ? "cursor-not-allowed opacity-60" : ""}`}
-                    min="0"
-                    disabled={!!sellAmount}
-                  />
+                  <div className="relative">
+                    <input
+                      type="number"
+                      step="0.000001"
+                      value={buyAmount}
+                      onChange={handleBuyAmountChange}
+                      placeholder="0.00"
+                      className={`bg-transparent text-right text-4xl font-light outline-none text-white w-48 ${
+                        (!!sellAmount && activeInput === "sell") || calculatingAmounts || loadingAmmData ? "cursor-not-allowed opacity-60" : ""
+                      }`}
+                      min="0"
+                      disabled={(!!sellAmount && activeInput === "sell") || calculatingAmounts || loadingAmmData}
+                    />
+                  </div>
                 </div>
               </div>
 
               {/* Execute Trade Button */}
               <Button
                 onClick={handleSmartTrade}
-                disabled={!canTrade || loading}
+                disabled={!canTrade || loading || calculatingAmounts || loadingAmmData}
                 className="w-full text-lg"
               >
                 {loading ? (
@@ -467,13 +667,23 @@ export default function TradePanel() {
                     <Loader2 className="h-5 w-5 animate-spin" />
                     <span>Trading...</span>
                   </div>
+                ) : loadingAmmData ? (
+                  <div className="flex items-center justify-center space-x-2">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span>Loading Pool...</span>
+                  </div>
+                ) : calculatingAmounts ? (
+                  <div className="flex items-center justify-center space-x-2">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span>Calculating...</span>
+                  </div>
                 ) : (
                   "Execute Smart Trade"
                 )}
               </Button>
             </>
           ) : (
-            // Send Layout - Full TransferBtn functionality integration
+            // Send Layout - Rest of the existing send functionality
             <>
               {/* Payment Type and Username/Address Toggle */}
               <div className={`flex ${sessionData?.user?.role === "ADMIN" ? "justify-between space-x-2" : "justify-center"} mb-6`}>
