@@ -58,7 +58,7 @@ export function calculateExactAMMInput(poolX, poolY, desiredOutput, slippageTole
     
     console.log(`   After withdrawal: ${newPoolX.toFixed(6)} / ${newPoolY.toFixed(6)}`);
     console.log(`   Exact input needed: ${exactInputNeeded.toFixed(6)}`);
-    console.log(`   With ${slippageTolerance}% slippage: ${inputWithSlippage.toFixed(6)}`);
+    console.log(`   With ${slippageTolerance * 100}% slippage: ${inputWithSlippage.toFixed(6)}`);
     console.log(`   Price per unit: ${(exactInputNeeded / desiredOutput).toFixed(6)}`);
     
     return {

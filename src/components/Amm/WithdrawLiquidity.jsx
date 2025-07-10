@@ -1,4 +1,5 @@
 import { use, useState, useEffect } from "react";
+import { Loader2 } from "lucide-react";
 import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
@@ -214,7 +215,14 @@ export default function WithdrawLiquidity({ ammInfo, onWithdrawn }) {
             disabled={loading || !isFormValid()} 
             className="w-full"
           >
-            {loading ? "Withdrawing Liquidity..." : "Withdraw Liquidity"}
+            {loading ? (
+              <>
+                <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                Withdrawing Liquidity...
+              </>
+            ) : (
+              "Withdraw Liquidity"
+            )}
           </Button>
         </div>
       </div>

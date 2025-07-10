@@ -633,17 +633,13 @@ export function analyzeMultiHopAMMRoutes(ammData, fromCurrency, toCurrency, from
       // Find pools for fromCurrency → intermediateCurrency
     const fromPools = ammPools.filter(amm => 
         (amm.currency_a?.currency === fromCurrency && amm.currency_b?.currency === intermediateCurrency) ||
-        (amm.currency_b?.currency === fromCurrency && amm.currency_a?.currency === intermediateCurrency) ||
-        (fromCurrency === 'XRP' && (amm.currency_a?.currency === intermediateCurrency || amm.currency_b?.currency === intermediateCurrency)) ||
-        (intermediateCurrency === 'XRP' && (amm.currency_a?.currency === fromCurrency || amm.currency_b?.currency === fromCurrency))
+        (amm.currency_b?.currency === fromCurrency && amm.currency_a?.currency === intermediateCurrency)
       );
       
       // Find pools for intermediateCurrency → toCurrency
     const toPools = ammPools.filter(amm => 
         (amm.currency_a?.currency === intermediateCurrency && amm.currency_b?.currency === toCurrency) ||
-        (amm.currency_b?.currency === intermediateCurrency && amm.currency_a?.currency === toCurrency) ||
-        (intermediateCurrency === 'XRP' && (amm.currency_a?.currency === toCurrency || amm.currency_b?.currency === toCurrency)) ||
-        (toCurrency === 'XRP' && (amm.currency_a?.currency === intermediateCurrency || amm.currency_b?.currency === intermediateCurrency))
+        (amm.currency_b?.currency === intermediateCurrency && amm.currency_a?.currency === toCurrency)
       );
       
       console.log(`💱 ${fromCurrency} → ${intermediateCurrency}: ${fromPools.length} pools, ${intermediateCurrency} → ${toCurrency}: ${toPools.length} pools`);
