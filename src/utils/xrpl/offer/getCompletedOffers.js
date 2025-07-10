@@ -1,6 +1,41 @@
 import { connectXrplClient, client } from "../testnet";
 import * as xrpl from "xrpl";
 
+// Helper function to check if a transaction resulted in actual asset exchanges
+const hasAssetExchange = (txData, walletAddress) => {
+  const meta = txData.meta;
+  if (!meta || !meta.AffectedNodes) return false;
+
+  // Check for balance changes in affected nodes
+  const affectedNodes = meta.AffectedNodes;
+  let hasBalanceChange = false;
+
+  for (const node of affectedNodes) {
+    const nodeData = node.ModifiedNode || node.DeletedNode || node.CreatedNode;
+    if (!nodeData) continue;
+
+    // Look for RippleState (trustline) or AccountRoot changes that indicate balance changes
+    if (nodeData.LedgerEntryType === "RippleState" || nodeData.LedgerEntryType === "AccountRoot") {
+      const finalFields = nodeData.FinalFields || {};
+      const previousFields = nodeData.PreviousFields || {};
+      
+      // Check if balance changed
+      if (previousFields.Balance !== undefined && finalFields.Balance !== previousFields.Balance) {
+        hasBalanceChange = true;
+        break;
+      }
+    }
+  }
+
+  // Also check for DeliveredAmount which indicates successful payment/exchange
+  const deliveredAmount = meta.DeliveredAmount;
+  if (deliveredAmount && deliveredAmount !== "0") {
+    hasBalanceChange = true;
+  }
+
+  return hasBalanceChange;
+};
+
 /**
  * Get completed offers (filled or cancelled) for a specific wallet
  * 
@@ -83,6 +118,16 @@ export default async function getCompletedOffers(wallet) {
           }
 
           if (wasImmediatelyFilled || wasKilled) {
+            // For killed offers, check if assets were actually exchanged
+            let finalStatus = "cancelled";
+            if (wasImmediatelyFilled) {
+              finalStatus = "filled";
+            } else if (wasKilled) {
+              // Check if the transaction resulted in actual asset exchanges
+              const hadAssetExchange = hasAssetExchange(txData, wallet.classicAddress);
+              finalStatus = hadAssetExchange ? "filled" : "cancelled";
+            }
+
             // Add to completed offers immediately
             completedOffers.push({
               sequence: tx.Sequence,
@@ -92,7 +137,7 @@ export default async function getCompletedOffers(wallet) {
               completedAt: timestamp, // Same time as creation for immediate fill/kill
               formattedCreatedDate: timestamp ? timestamp.toLocaleString() : "Unknown",
               formattedCompletedDate: timestamp ? timestamp.toLocaleString() : "Unknown",
-              status: wasImmediatelyFilled ? "filled" : "cancelled",
+              status: finalStatus,
               createHash: hash,
               completeHash: hash
             });

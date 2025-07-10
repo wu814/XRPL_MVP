@@ -152,14 +152,14 @@ export default function DisplayUserOffers() {
               )}
 
             {!loading && offers.length > 0 && (
-              <div className="space-y-1">
-                <div className="mx-4 grid grid-cols-4 gap-4 px-2 font-semibold text-mutedText">
+              <div className="space-y-1 divide-y divide-gray-700">
+                <div className="mb-2 mx-4 grid grid-cols-5 gap-4 px-2 font-semibold text-mutedText">
+                  <span>Cancel Offer</span>
                   <span>You Want</span>
                   <span>You Pay</span>
                   <span>Created At</span>
                   <span>Explorer</span>
                 </div>
-                <div className="my-2 border-b border-border"></div>
                 {offers.map((offer, i) => {
                   const pays = parseAsset(offer.taker_pays);
                   const gets = parseAsset(offer.taker_gets);
@@ -167,13 +167,15 @@ export default function DisplayUserOffers() {
                   return (
                     <div
                       key={i}
-                      className="mx-4 grid grid-cols-4 gap-4 items-center rounded-lg px-2 py-1 text-sm transition duration-100 ease-in-out hover:bg-color4 relative"
+                      className="mx-4 grid grid-cols-5 gap-4 items-center rounded-lg px-2 py-1 text-sm transition duration-100 ease-in-out hover:bg-color4"
                     >
+                      <div className="">
                       <CancelOfferBtn
                         wallet={sourceWallet}
                         offerSequence={offer.seq}
                         onOfferCanceled={fetchUserOffers}
                       />
+                      </div>
                       <div className="">
                         {pays.value} {pays.currency}
                       </div>
@@ -216,15 +218,14 @@ export default function DisplayUserOffers() {
               )}
 
             {!loading && completedOffers.length > 0 && (
-              <div className="space-y-1">
-                <div className="mx-4 grid grid-cols-5 gap-4 px-2 font-semibold text-mutedText">
+              <div className="space-y-1 divide-y divide-gray-700">
+                <div className="mb-2 mx-4 grid grid-cols-5 gap-4 px-2 font-semibold text-mutedText">
                   <span>Status</span>
                   <span>You Wanted</span>
                   <span>You Paid</span>
                   <span>Completed At</span>
                   <span>Explorer</span>
                 </div>
-                <div className="my-2 border-b border-border"></div>
                 {completedOffers.map((offer, i) => {
                   const pays = parseAsset(offer.taker_pays);
                   const gets = parseAsset(offer.taker_gets);
@@ -264,7 +265,7 @@ export default function DisplayUserOffers() {
                           title="View creation transaction"
                         >
                           <ExternalLink className="h-3 w-3" />
-                          <span className="text-xs">Create</span>
+                          <span className="text-xs">View</span>
                         </a>
                         {offer.completeHash && offer.completeHash !== offer.createHash && (
                           <a

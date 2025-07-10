@@ -45,7 +45,7 @@ export default function CancelOfferBtn({
   };
 
   return (
-    <div className="absolute left-0">
+    <div className="">
       <button
         disabled={loading}
         onClick={() => setShowConfirm(true)}

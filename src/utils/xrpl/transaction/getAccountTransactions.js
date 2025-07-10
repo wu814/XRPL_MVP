@@ -316,15 +316,11 @@ export async function getAccountTransactions({ address, wallet, limit = 50, mark
             // and received amount from DeliverMax or delivered_amount (what was received)
             const sentAmount = tx.SendMax || tx.Amount;
             const receivedAmount = tx.DeliverMax || meta?.delivered_amount;
-            
-            console.log("sentAmount:", JSON.stringify(sentAmount));
-            console.log("receivedAmount:", JSON.stringify(receivedAmount));
+
             
             const sentStr = formatAmount(sentAmount);
             const receivedStr = formatAmount(receivedAmount);
-            
-            console.log("sentStr:", sentStr);
-            console.log("receivedStr:", receivedStr);
+ 
             
             if (sentStr && receivedStr) {
               amount = `${sentStr} → ${receivedStr}`;
@@ -336,7 +332,6 @@ export async function getAccountTransactions({ address, wallet, limit = 50, mark
               amount = "Smart trade (no amounts found)";
             }
             
-            console.log("Final smart trade amount:", amount);
             currency = "";
           } else {
             direction = tx.Account === targetAddress ? "sent" : "received";
@@ -454,7 +449,6 @@ export async function getAccountTransactions({ address, wallet, limit = 50, mark
       if (direction === "smart_trade") {
         finalType = "Smart Trade";
         finalDirection = "smart_trade";
-        console.log("Smart trade override - setting finalDirection to:", finalDirection);
         currency = "";
       }
 
