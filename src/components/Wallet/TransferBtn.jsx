@@ -8,6 +8,8 @@ import CurrencyDropDown from "../Currency/CurrencyDropDown";
 import SlippagePanel from "../SlippagePanel";
 import { Settings, Loader2 } from "lucide-react";
 import { useSession } from "next-auth/react";
+// Import calculation functions
+import { calculateExactAMMInput, calculateEstimateOutput } from "@/utils/xrpl/amm/calculations";
 
 export default function TransferBtn({
   senderWallet,
@@ -40,11 +42,149 @@ export default function TransferBtn({
   const [sendAmount, setSendAmount] = useState("");
   const [receiveAmount, setReceiveAmount] = useState("");
 
+  // Add calculation states
+  const [calculatingAmounts, setCalculatingAmounts] = useState(false);
+  const [calculationError, setCalculationError] = useState(null);
+  
+  // AMM data states for convertable payments
+  const [ammData, setAmmData] = useState(null);
+  const [loadingAmmData, setLoadingAmmData] = useState(false);
+  const [ammDataError, setAmmDataError] = useState(null);
+
   useEffect(() => {
     if (presetRecipientUsername) {
       setRecipientUsername(presetRecipientUsername);
     }
   }, [presetRecipientUsername]);
+
+  // Fetch AMM data when currencies change (for convertable payments)
+  useEffect(() => {
+    if (paymentType === "convertable" && sendCurrency && receiveCurrency && sendCurrency !== receiveCurrency) {
+      fetchAmmData();
+    } else {
+      setAmmData(null);
+      setAmmDataError(null);
+    }
+  }, [sendCurrency, receiveCurrency, paymentType]);
+
+  // Calculate output when send amount changes
+  useEffect(() => {
+    if (paymentType === "convertable" && sendAmount && parseFloat(sendAmount) > 0 && 
+        sendCurrency && receiveCurrency && sendCurrency !== receiveCurrency && 
+        convertInputType === "exact_input" && ammData) {
+      calculateOutput();
+    }
+  }, [sendAmount, sendCurrency, receiveCurrency, convertInputType, ammData, paymentType]);
+
+  // Calculate input when receive amount changes
+  useEffect(() => {
+    if (paymentType === "convertable" && receiveAmount && parseFloat(receiveAmount) > 0 && 
+        sendCurrency && receiveCurrency && sendCurrency !== receiveCurrency && 
+        convertInputType === "exact_output" && ammData) {
+      calculateInput();
+    }
+  }, [receiveAmount, sendCurrency, receiveCurrency, convertInputType, slippage, ammData, paymentType]);
+
+  const fetchAmmData = async () => {
+    setLoadingAmmData(true);
+    setAmmDataError(null);
+    setAmmData(null);
+
+    try {
+      const response = await fetch("/api/amms/getAmmInfoByCurrencies", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sellCurrency: sendCurrency,
+          buyCurrency: receiveCurrency,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to get AMM data");
+      }
+
+      setAmmData(result.data);
+    } catch (error) {
+      setAmmDataError(error.message);
+    } finally {
+      setLoadingAmmData(false);
+    }
+  };
+
+  const calculateOutput = async () => {
+    if (!ammData) return;
+
+    setCalculatingAmounts(true);
+    setCalculationError(null);
+
+    try {      
+      // Determine pool balances from cached AMM data
+      let poolSend, poolReceive;
+      if (ammData.asset1.currency === sendCurrency) {
+        poolSend = parseFloat(ammData.asset1.value);
+        poolReceive = parseFloat(ammData.asset2.value);
+      } else {
+        poolSend = parseFloat(ammData.asset2.value);
+        poolReceive = parseFloat(ammData.asset1.value);
+      }
+
+      // Calculate estimated output
+      const calculation = calculateEstimateOutput(poolSend, poolReceive, sendAmount, ammData.trading_fee || 0);
+      
+      if (calculation.success) {
+        setReceiveAmount(calculation.estimatedOutput.toFixed(6));
+      } else {
+        throw new Error(calculation.error);
+      }
+    } catch (error) {
+      setCalculationError(error.message);
+      setReceiveAmount("");
+    } finally {
+      setCalculatingAmounts(false);
+    }
+  };
+
+  const calculateInput = async () => {
+    if (!ammData) return;
+
+    setCalculatingAmounts(true);
+    setCalculationError(null);
+
+    try {
+      // Determine pool balances from cached AMM data
+      let poolSend, poolReceive;
+      if (ammData.asset1.currency === sendCurrency) {
+        poolSend = parseFloat(ammData.asset1.value);
+        poolReceive = parseFloat(ammData.asset2.value);
+      } else {
+        poolSend = parseFloat(ammData.asset2.value);
+        poolReceive = parseFloat(ammData.asset1.value);
+      }
+
+      // Calculate required input
+      const calculation = calculateExactAMMInput(
+        poolSend, 
+        poolReceive, 
+        parseFloat(receiveAmount), 
+        parseFloat(slippage) / 100, 
+        ammData.trading_fee || 0
+      );
+      
+      if (calculation.success) {
+        setSendAmount(calculation.inputWithSlippage.toFixed(6));
+      } else {
+        throw new Error(calculation.error);
+      }
+    } catch (error) {
+      setCalculationError(error.message);
+      setSendAmount("");
+    } finally {
+      setCalculatingAmounts(false);
+    }
+  };
 
   // When toggling paymentType, reset convertable fields
   const handlePaymentTypeChange = (type) => {
@@ -54,6 +194,7 @@ export default function TransferBtn({
     setReceiveAmount("");
     setAmount("");
     setCurrency("");
+    setCalculationError(null);
   };
 
   const handleSendAmountChange = (e) => {
@@ -69,6 +210,24 @@ export default function TransferBtn({
     setSendAmount("");
     setConvertInputType(value ? "exact_output" : null);
   };
+
+  // Reset amounts when send currency changes
+  useEffect(() => {
+    if (paymentType === "convertable") {
+      setSendAmount("");
+      setReceiveAmount("");
+      setCalculationError(null);
+    }
+  }, [sendCurrency, paymentType]);
+
+  // Reset amounts when receive currency changes  
+  useEffect(() => {
+    if (paymentType === "convertable") {
+      setSendAmount("");
+      setReceiveAmount("");
+      setCalculationError(null);
+    }
+  }, [receiveCurrency, paymentType]);
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -204,6 +363,40 @@ export default function TransferBtn({
               )}
             </div>
 
+            {/* Show AMM loading state for convertable payments */}
+            {paymentType === "convertable" && loadingAmmData && (
+              <div className="mb-4 p-3 bg-blue-900/20 border border-blue-500 rounded-lg">
+                <div className="flex items-center space-x-2">
+                  <Loader2 className="h-4 w-4 animate-spin text-blue-400" />
+                  <p className="text-blue-400 text-sm">Loading AMM pool data...</p>
+                </div>
+              </div>
+            )}
+
+            {/* Show AMM data error for convertable payments */}
+            {paymentType === "convertable" && ammDataError && (
+              <div className="mb-4 p-3 bg-red-900/20 border border-red-500 rounded-lg">
+                <p className="text-red-400 text-sm">AMM Pool Error: {ammDataError}</p>
+              </div>
+            )}
+
+            {/* Show calculation error if any */}
+            {paymentType === "convertable" && calculationError && (
+              <div className="mb-4 p-3 bg-red-900/20 border border-red-500 rounded-lg">
+                <p className="text-red-400 text-sm">Calculation Error: {calculationError}</p>
+              </div>
+            )}
+
+            {/* Show AMM pool info when loaded for convertable payments */}
+            {paymentType === "convertable" && ammData && !loadingAmmData && (
+              <div className="mb-4 p-3 bg-green-900/20 border border-green-500 rounded-lg">
+                <p className="text-green-400 text-sm">
+                  ✅ AMM Pool: {ammData.asset1.currency}/{ammData.asset2.currency} 
+                  {ammData.trading_fee > 0 && ` (${ammData.trading_fee/1000}% fee)`}
+                </p>
+              </div>
+            )}
+
             {useUsername ? (
               <div>
                 <label className="block text-sm text-mutedText">
@@ -268,9 +461,11 @@ export default function TransferBtn({
                       min="0"
                       value={sendAmount}
                       onChange={handleSendAmountChange}
-                      className={`mt-1 w-full rounded-lg border border-transparent bg-color4 p-2 hover:border-gray-500 focus:border-primary focus:outline-none ${convertInputType === "exact_output" ? "cursor-not-allowed opacity-60" : ""}`}
+                      className={`mt-1 w-full rounded-lg border border-transparent bg-color4 p-2 hover:border-gray-500 focus:border-primary focus:outline-none ${
+                        convertInputType === "exact_output" || calculatingAmounts || loadingAmmData ? "cursor-not-allowed opacity-60" : ""
+                      }`}
                       placeholder="0.00"
-                      disabled={convertInputType === "exact_output"}
+                      disabled={convertInputType === "exact_output" || calculatingAmounts || loadingAmmData}
                     />
                   </div>
                   <div>
@@ -283,9 +478,11 @@ export default function TransferBtn({
                       min="0"
                       value={receiveAmount}
                       onChange={handleReceiveAmountChange}
-                      className={`mt-1 w-full rounded-lg border border-transparent bg-color4 p-2 hover:border-gray-500 focus:border-primary focus:outline-none ${convertInputType === "exact_input" ? "cursor-not-allowed opacity-60" : ""}`}
+                      className={`mt-1 w-full rounded-lg border border-transparent bg-color4 p-2 hover:border-gray-500 focus:border-primary focus:outline-none ${
+                        convertInputType === "exact_input" || calculatingAmounts || loadingAmmData ? "cursor-not-allowed opacity-60" : ""
+                      }`}
                       placeholder="0.00"
-                      disabled={convertInputType === "exact_input"}
+                      disabled={convertInputType === "exact_input" || calculatingAmounts || loadingAmmData}
                     />
                   </div>
                 </div>
@@ -345,11 +542,14 @@ export default function TransferBtn({
                 onClick={handleSubmit}
                 disabled={
                   loading ||
+                  calculatingAmounts ||
+                  loadingAmmData ||
                   !(useUsername ? recipientUsername : recipientAddress) ||
                   (paymentType === "convertable"
                     ? !sendCurrency ||
                       !receiveCurrency ||
-                      (!sendAmount && !receiveAmount)
+                      (!sendAmount && !receiveAmount) ||
+                      !ammData
                     : !amount || (paymentType === "direct" && !currency))
                 }
               >
@@ -357,6 +557,16 @@ export default function TransferBtn({
                   <div className="flex items-center justify-center space-x-2">
                     <Loader2 className="h-5 w-5 animate-spin" />
                     <span>Sending...</span>
+                  </div>
+                ) : loadingAmmData ? (
+                  <div className="flex items-center justify-center space-x-2">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span>Loading Pool...</span>
+                  </div>
+                ) : calculatingAmounts ? (
+                  <div className="flex items-center justify-center space-x-2">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span>Calculating...</span>
                   </div>
                 ) : (
                   "Send"

@@ -23,7 +23,7 @@ export default function SendCurrencyDropDown({ value, onChange, currencies, clas
       </button>
 
       {isOpen && (
-        <div className="absolute z-50 mt-1 w-full bg-color2 border border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+        <div className="absolute z-50 mt-1 w-full bg-color2 border border-gray-600 rounded-lg shadow-lg overflow-y-auto">
           {currencies.map((currency) => (
             <button
               key={currency.id}

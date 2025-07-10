@@ -112,8 +112,6 @@ export default function TradePanel() {
     setAmmData(null);
 
     try {
-      console.log(`🔍 Fetching AMM data for ${sellCurrency}/${buyCurrency}`);
-      
       const response = await fetch("/api/amms/getAmmInfoByCurrencies", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -130,9 +128,7 @@ export default function TradePanel() {
       }
 
       setAmmData(result.data);
-      console.log(`✅ AMM data loaded for ${sellCurrency}/${buyCurrency}`);
     } catch (error) {
-      console.error(`❌ AMM data fetch error: ${error.message}`);
       setAmmDataError(error.message);
     } finally {
       setLoadingAmmData(false);
@@ -162,9 +158,7 @@ export default function TradePanel() {
     setCalculatingAmounts(true);
     setCalculationError(null);
 
-    try {
-      console.log(`🧮 Calculating output for ${sellAmount} ${sellCurrency} → ${buyCurrency}`);
-      
+    try {      
       // Determine pool balances from cached AMM data
       let poolSell, poolBuy;
       if (ammData.asset1.currency === sellCurrency) {
@@ -180,12 +174,10 @@ export default function TradePanel() {
       
       if (calculation.success) {
         setBuyAmount(calculation.estimatedOutput.toFixed(6));
-        console.log(`✅ Calculated output: ${calculation.estimatedOutput.toFixed(6)} ${buyCurrency}`);
       } else {
         throw new Error(calculation.error);
       }
     } catch (error) {
-      console.error(`❌ Output calculation error: ${error.message}`);
       setCalculationError(error.message);
       setBuyAmount("");
     } finally {
@@ -203,7 +195,6 @@ export default function TradePanel() {
     setCalculationError(null);
 
     try {
-      console.log(`🧮 Calculating input for ${buyAmount} ${buyCurrency} from ${sellCurrency}`);
       
       // Determine pool balances from cached AMM data
       let poolSell, poolBuy;
@@ -226,12 +217,10 @@ export default function TradePanel() {
       
       if (calculation.success) {
         setSellAmount(calculation.inputWithSlippage.toFixed(6));
-        console.log(`✅ Calculated input: ${calculation.inputWithSlippage.toFixed(6)} ${sellCurrency}`);
       } else {
         throw new Error(calculation.error);
       }
     } catch (error) {
-      console.error(`❌ Input calculation error: ${error.message}`);
       setCalculationError(error.message);
       setSellAmount("");
     } finally {

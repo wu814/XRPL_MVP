@@ -7,6 +7,8 @@ import SlippagePanel from "../SlippagePanel";
 import { Settings, ArrowUpDown, Loader2 } from "lucide-react";
 import { useCurrentUserWallet } from "../Wallet/CurrentUserWalletProvider";
 import { useIssuerWallet } from "../Wallet/IssuerWalletProvider";
+// Import calculation functions
+import { calculateExactAMMInput, calculateEstimateOutput } from "@/utils/xrpl/amm/calculations";
 
 export default function SwapLiquidity({ ammInfo, onSwapped }) {
   // Fetch current user wallets from wallet context
@@ -32,11 +34,103 @@ export default function SwapLiquidity({ ammInfo, onSwapped }) {
   // Whether user want to sell a fixed amount or receive a fixed amount
   const [swapInputType, setSwapInputType] = useState("exact_input"); // default to exact_input
 
+  // Add calculation states
+  const [calculatingAmounts, setCalculatingAmounts] = useState(false);
+  const [calculationError, setCalculationError] = useState(null);
+
   // Auto-select currencies when component mounts
   useEffect(() => {
     setSellCurrency(ammInfo?.amount?.currency);
     setBuyCurrency(ammInfo?.amount2?.currency);
   }, [ammInfo]);
+
+  // Calculate output when sell amount changes
+  useEffect(() => {
+    if (sellAmount && parseFloat(sellAmount) > 0 && sellCurrency && buyCurrency && 
+        sellCurrency !== buyCurrency && activeInput === "sell" && ammInfo) {
+      calculateOutput();
+    }
+  }, [sellAmount, sellCurrency, buyCurrency, activeInput, ammInfo]);
+
+  // Calculate input when buy amount changes
+  useEffect(() => {
+    if (buyAmount && parseFloat(buyAmount) > 0 && sellCurrency && buyCurrency && 
+        sellCurrency !== buyCurrency && activeInput === "buy" && ammInfo) {
+      calculateInput();
+    }
+  }, [buyAmount, sellCurrency, buyCurrency, activeInput, slippage, ammInfo]);
+
+  const calculateOutput = async () => {
+    if (!ammInfo) return;
+
+    setCalculatingAmounts(true);
+    setCalculationError(null);
+
+    try {      
+      // Determine pool balances from passed ammInfo
+      let poolSell, poolBuy;
+      if (ammInfo.amount?.currency === sellCurrency) {
+        poolSell = parseFloat(ammInfo.amount.value);
+        poolBuy = parseFloat(ammInfo.amount2.value);
+      } else {
+        poolSell = parseFloat(ammInfo.amount2.value);
+        poolBuy = parseFloat(ammInfo.amount.value);
+      }
+
+      // Calculate estimated output
+      const calculation = calculateEstimateOutput(poolSell, poolBuy, sellAmount, ammInfo.trading_fee || 0);
+      
+      if (calculation.success) {
+        setBuyAmount(calculation.estimatedOutput.toFixed(6));
+      } else {
+        throw new Error(calculation.error);
+      }
+    } catch (error) {
+      setCalculationError(error.message);
+      setBuyAmount("");
+    } finally {
+      setCalculatingAmounts(false);
+    }
+  };
+
+  const calculateInput = async () => {
+    if (!ammInfo) return;
+
+    setCalculatingAmounts(true);
+    setCalculationError(null);
+
+    try {
+      // Determine pool balances from passed ammInfo
+      let poolSell, poolBuy;
+      if (ammInfo.amount?.currency === sellCurrency) {
+        poolSell = parseFloat(ammInfo.amount.value);
+        poolBuy = parseFloat(ammInfo.amount2.value);
+      } else {
+        poolSell = parseFloat(ammInfo.amount2.value);
+        poolBuy = parseFloat(ammInfo.amount.value);
+      }
+
+      // Calculate required input
+      const calculation = calculateExactAMMInput(
+        poolSell, 
+        poolBuy, 
+        parseFloat(buyAmount), 
+        parseFloat(slippage) / 100, 
+        ammInfo.trading_fee || 0
+      );
+      
+      if (calculation.success) {
+        setSellAmount(calculation.inputWithSlippage.toFixed(6));
+      } else {
+        throw new Error(calculation.error);
+      }
+    } catch (error) {
+      setCalculationError(error.message);
+      setSellAmount("");
+    } finally {
+      setCalculatingAmounts(false);
+    }
+  };
 
   // Update handlers to set the type
   const handleSellAmountChange = (e) => {
@@ -52,6 +146,20 @@ export default function SwapLiquidity({ ammInfo, onSwapped }) {
     setSellAmount(""); // Clear the other field
     setSwapInputType("exact_output");
   };
+
+  // Reset amounts when sell currency changes
+  useEffect(() => {
+    setSellAmount("");
+    setBuyAmount("");
+    setCalculationError(null);
+  }, [sellCurrency]);
+
+  // Reset amounts when buy currency changes  
+  useEffect(() => {
+    setSellAmount("");
+    setBuyAmount("");
+    setCalculationError(null);
+  }, [buyCurrency]);
 
   const handleSwap = async () => {
     setLoading(true);
@@ -113,11 +221,9 @@ export default function SwapLiquidity({ ammInfo, onSwapped }) {
     setActiveInput("sell");
   };
 
-  const canSwap =
-    sellCurrency &&
-    buyCurrency &&
-    ((sellAmount && parseFloat(sellAmount) > 0) ||
-      (buyAmount && parseFloat(buyAmount) > 0));
+  const canSwap = sellCurrency && buyCurrency && 
+    ((sellAmount && parseFloat(sellAmount) > 0) || (buyAmount && parseFloat(buyAmount) > 0)) &&
+    ammInfo;
 
   return (
     <div className="space-y-4">
@@ -134,6 +240,23 @@ export default function SwapLiquidity({ ammInfo, onSwapped }) {
         )}
       </div>
 
+      {/* Show calculation error if any */}
+      {calculationError && (
+        <div className="mb-4 p-3 bg-red-900/20 border border-red-500 rounded-lg">
+          <p className="text-red-400 text-sm">Calculation Error: {calculationError}</p>
+        </div>
+      )}
+
+      {/* Show AMM pool info */}
+      {ammInfo && (
+        <div className="mb-4 p-3 bg-green-900/20 border border-green-500 rounded-lg">
+          <p className="text-green-400 text-sm">
+            ✅ AMM Pool: {ammInfo.amount?.currency}/{ammInfo.amount2?.currency} 
+            {ammInfo.trading_fee > 0 && ` (${ammInfo.trading_fee/1000}% fee)`}
+          </p>
+        </div>
+      )}
+
       {/* Amount Inputs */}
       <div>
         <div className="flex items-center justify-between rounded-lg border border-transparent bg-color3 p-4 hover:border-gray-500 focus-within:!border-primary">
@@ -149,9 +272,11 @@ export default function SwapLiquidity({ ammInfo, onSwapped }) {
             value={sellAmount}
             onChange={handleSellAmountChange}
             placeholder="0.00"
-            className={`bg-transparent text-right text-xl focus:outline-none ${!!buyAmount ? "cursor-not-allowed opacity-60" : ""}`}
+            className={`bg-transparent text-right text-xl focus:outline-none ${
+              (!!buyAmount && activeInput === "buy") || calculatingAmounts ? "cursor-not-allowed opacity-60" : ""
+            }`}
             min="0"
-            disabled={!!buyAmount}
+            disabled={(!!buyAmount && activeInput === "buy") || calculatingAmounts}
           />
         </div>
       </div>
@@ -160,8 +285,8 @@ export default function SwapLiquidity({ ammInfo, onSwapped }) {
       <div className="flex justify-center">
         <button
           onClick={handleCurrencySwap}
-          className="hover:bg-color4 p-3 bg-color3 rounded-full"
-          disabled={!sellCurrency || !buyCurrency}
+          className="hover:bg-color4 p-3 bg-color3 rounded-full transition-colors"
+          disabled={!sellCurrency || !buyCurrency || calculatingAmounts}
         >
           <ArrowUpDown className="h-6 w-6 text-gray-400" />
         </button>
@@ -180,22 +305,29 @@ export default function SwapLiquidity({ ammInfo, onSwapped }) {
           value={buyAmount}
           onChange={handleBuyAmountChange}
           placeholder="0.00"
-          className={`bg-transparent text-right text-xl focus:outline-none ${!!sellAmount ? "cursor-not-allowed opacity-60" : ""}`}
+          className={`bg-transparent text-right text-xl focus:outline-none ${
+            (!!sellAmount && activeInput === "sell") || calculatingAmounts ? "cursor-not-allowed opacity-60" : ""
+          }`}
           min="0"
-          disabled={!!sellAmount}
+          disabled={(!!sellAmount && activeInput === "sell") || calculatingAmounts}
         />
       </div>
 
       {/* Swap Button */}
       <Button
         onClick={handleSwap}
-        disabled={!canSwap || loading}
+        disabled={!canSwap || loading || calculatingAmounts}
         className="w-full"
       >
         {loading ? (
           <div className="flex items-center justify-center space-x-2">
             <Loader2 className="h-5 w-5 animate-spin" />
-            <span>{"Swapping..."}</span>
+            <span>Swapping...</span>
+          </div>
+        ) : calculatingAmounts ? (
+          <div className="flex items-center justify-center space-x-2">
+            <Loader2 className="h-5 w-5 animate-spin" />
+            <span>Calculating...</span>
           </div>
         ) : (
           "Swap"
