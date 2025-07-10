@@ -1,8 +1,14 @@
 // Change this file when there are more than 1 issuer wallet
 import { client, connectXrplClient } from "../testnet";
 import { Wallet } from "xrpl";
+import sendIOU from "../transaction/sendIOU";
 
-export async function setTrustline(wallet, issuerWalletAddress, currency) {
+export async function setTrustline(
+  wallet,
+  issuerWalletAddress,
+  currency,
+  issuerWallets = null,
+) {
   await connectXrplClient();
   const MAX_TRUST_LIMIT = "1000000000000000";
 
@@ -29,15 +35,65 @@ export async function setTrustline(wallet, issuerWalletAddress, currency) {
       `Setting trustline failed: ${response.result.meta.TransactionResult} [setTrustline.js]`,
     );
   }
-  const msg = `Trustline set from 
+
+  const trustlineMsg = `Trustline set from 
 ${setterWallet.classicAddress}
 to 
 ${issuerWalletAddress} 
 for ${currency}.`;
 
+  // ***********************************************************
+  // ONLY FOR DEMO PURPOSES
+
+  console.log(
+    "✅ Trustline set successfully, now sending welcome IOU tokens...",
+  );
+
+  // Fixed amounts to send for each currency
+  const WELCOME_BONUS_AMOUNTS = {
+    USD: "10000",
+    ETH: "4",
+    EUR: "8500",
+    SOL: "65",
+    BTC: "0.1",
+  };
+
+  // Send welcome IOU tokens based on fixed amounts table
+  let bonusMsg = "";
+  try {
+    if (issuerWallets && issuerWallets.length > 0) {
+      // Get the fixed amount for this currency
+      const welcomeAmount = WELCOME_BONUS_AMOUNTS[currency.toUpperCase()];
+
+      if (welcomeAmount) {
+        // Send IOU tokens based on fixed amount
+        const iouResult = await sendIOU(
+          issuerWallets[0], // issuer wallet is the sender
+          setterWallet.classicAddress, // setter wallet is the recipient
+          welcomeAmount,
+          currency,
+          issuerWallets,
+          null, // no destination tag
+        );
+
+        console.log("✅ Welcome IOU tokens sent successfully!");
+
+        bonusMsg = `\n\n🎉 Welcome bonus: ${welcomeAmount} ${currency} has been sent to your wallet!`;
+      } else {
+        console.log(`⚠️ No welcome bonus amount configured for ${currency}`);
+        bonusMsg = `\n\n⚠️ Note: No welcome bonus configured for ${currency}`;
+      }
+    } else {
+      console.log("⚠️ No issuer wallets provided, skipping welcome bonus");
+    }
+  } catch (iouError) {
+    console.error("❌ Failed to send welcome IOU tokens:", iouError.message);
+    bonusMsg = `\n\n⚠️ Note: Trustline was set successfully, but welcome bonus could not be sent: ${iouError.message}`;
+  }
+  // ***********************************************************
   return {
     success: true,
-    message: msg,
+    message: trustlineMsg + bonusMsg,
   };
 }
 

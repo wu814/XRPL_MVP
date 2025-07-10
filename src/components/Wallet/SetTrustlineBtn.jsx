@@ -30,6 +30,7 @@ export default function SetTrustlineBtn({ setterWallet, issuerWallets, onSuccess
           setterWallet,
           issuerWallets,
           currency: selectedCurrency,
+          
         }),
       });
 

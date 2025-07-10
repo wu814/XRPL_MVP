@@ -27,6 +27,7 @@ export async function POST(req) {
       setterWallet,
       issuerWallets[0].classicAddress,
       currency,
+      issuerWallets,
     );
 
     return NextResponse.json({ message: result.message }, { status: 200 });
