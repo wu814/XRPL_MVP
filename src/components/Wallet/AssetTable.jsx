@@ -17,6 +17,7 @@ import {
 const LpTokenIcon = ({ currencyA, currencyB, size = 40 }) => {
   const iconA = getCurrencyIcon(currencyA);
   const iconB = getCurrencyIcon(currencyB);
+  const iconSize = Math.round(size * 0.7); // Calculate icon size once
   
   return (
     <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
@@ -26,14 +27,14 @@ const LpTokenIcon = ({ currencyA, currencyB, size = 40 }) => {
           <Image
             src={iconA}
             alt={currencyA}
-            width={size * 0.6}
-            height={size * 0.6}
+            width={iconSize}
+            height={iconSize}
             className="rounded-full"
           />
         ) : (
           <div 
             className="bg-gray-500 rounded-full flex items-center justify-center font-bold text-xs"
-            style={{ width: size * 0.6, height: size * 0.6 }}
+            style={{ width: iconSize, height: iconSize }}
           >
             <span>{currencyA.substring(0, 2)}</span>
           </div>
@@ -46,14 +47,14 @@ const LpTokenIcon = ({ currencyA, currencyB, size = 40 }) => {
           <Image
             src={iconB}
             alt={currencyB}
-            width={size * 0.6}
-            height={size * 0.6}
+            width={iconSize}
+            height={iconSize}
             className="rounded-full"
           />
         ) : (
           <div 
             className="bg-gray-500 rounded-full flex items-center justify-center font-bold text-xs"
-            style={{ width: size * 0.6, height: size * 0.6 }}
+            style={{ width: iconSize, height: iconSize }}
           >
             <span>{currencyB.substring(0, 2)}</span>
           </div>
@@ -187,7 +188,7 @@ export default function AssetTable({
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 flex items-center justify-center">
+                      <div className="w-10 h-10 flex items-center justify-center">
                         {typeof iconElement === 'string' ? (
                           iconElement ? (
                             <Image
@@ -195,10 +196,10 @@ export default function AssetTable({
                               alt={displayName}
                               width={40}
                               height={40}
-                              className ="w-10 h-10"
+                              className="rounded-full"
                             />
                           ) : (
-                            <div className="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center font-bold text-xs">
+                            <div className="w-10 h-10 bg-gray-500 rounded-full flex items-center justify-center font-bold text-xs">
                               <span>{displayName.substring(0, 2)}</span>
                             </div>
                           )

@@ -1,6 +1,6 @@
 "use strict";
 
-import xrpl from "xrpl";
+import * as xrpl from "xrpl";
 import { connectXrplClient, client } from "../testnet";
 import { analyzeMarket } from "../pathfind/corePathfindingEngine";
 import { calculateExactAMMInput, calculateEstimateOutput } from "../amm/calculations.js";
