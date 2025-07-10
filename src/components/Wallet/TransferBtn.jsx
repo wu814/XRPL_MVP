@@ -235,6 +235,7 @@ export default function TransferBtn({
 
             {paymentType === "convertable" ? (
               <>
+              <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="block text-sm text-mutedText">
                     Send Currency
@@ -255,7 +256,8 @@ export default function TransferBtn({
                     disabledOptions={[]}
                   />
                 </div>
-                <div className="flex flex-row space-x-2">
+              </div>
+                <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="block text-sm text-mutedText">
                       Send Amount

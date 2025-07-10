@@ -760,6 +760,7 @@ export default function TradePanel() {
 
                 {paymentType === "convertable" ? (
                   <>
+                  <div className="grid grid-cols-2 gap-4">    
                     {/* Send Currency */}
                     <div>
                       <label className="block text-sm text-gray-400 mb-2">Send Currency</label>
@@ -785,6 +786,7 @@ export default function TradePanel() {
                         dropdownId="receiveCurrency"
                       />
                     </div>
+                  </div>
                     
                     {/* Send and Receive Amounts */}
                     <div className="grid grid-cols-2 gap-4">
