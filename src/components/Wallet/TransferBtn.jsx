@@ -548,8 +548,7 @@ export default function TransferBtn({
                   (paymentType === "convertable"
                     ? !sendCurrency ||
                       !receiveCurrency ||
-                      (!sendAmount && !receiveAmount) ||
-                      !ammData
+                      (!sendAmount && !receiveAmount)
                     : !amount || (paymentType === "direct" && !currency))
                 }
               >

@@ -402,8 +402,8 @@ export default function TradePanel() {
   };
 
   const canTrade = sellCurrency && buyCurrency && sellCurrency !== buyCurrency && 
-    ((sellAmount && parseFloat(sellAmount) > 0) || (buyAmount && parseFloat(buyAmount) > 0)) &&
-    ammData && !loadingAmmData; // Only allow trading when AMM data is loaded
+    ((sellAmount && parseFloat(sellAmount) > 0) || (buyAmount && parseFloat(buyAmount) > 0)) 
+    // && ammData && !loadingAmmData; // Only allow trading when AMM data is loaded
 
   // Add function to fetch wallet balances
   const fetchWalletBalances = async () => {

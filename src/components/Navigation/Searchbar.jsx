@@ -2,17 +2,19 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Search } from "lucide-react";
+import { Search, Loader2 } from "lucide-react";
 
 const Searchbar = () => {
   const [searchText, setSearchText] = useState("");
   const [allUsers, setAllUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [fetched, setFetched] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   // Fetch users only once when input is focused
   const handleFocus = async () => {
     if (fetched) return;
+    setLoading(true);
     try {
       const res = await fetch("/api/users/getAllUsernames");
       if (!res.ok) throw new Error("Failed to fetch users");
@@ -22,6 +24,8 @@ const Searchbar = () => {
       setFetched(true);
     } catch (err) {
       console.error(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -43,13 +47,20 @@ const Searchbar = () => {
         <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
           <Search className="w-6 h-6 text-gray-400" />
         </div>
+        {loading && (
+          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+            <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
+          </div>
+        )}
         <input
           type="text"
           placeholder="Search users..."
           onFocus={handleFocus}
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
-          className="w-full pl-12 pr-4 py-3 rounded-lg text-xl border border-border bg-color1 focus:border-primary focus:outline-none hover:border-primary"
+          className={`w-full pl-12 py-3 rounded-lg text-xl border border-border bg-color1 focus:border-primary focus:outline-none hover:border-primary ${
+            loading ? "pr-12" : "pr-4"
+          }`}
         />
       </div>
       {filteredUsers.length > 0 && (

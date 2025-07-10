@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Loader2 } from "lucide-react";
 import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
@@ -175,9 +176,14 @@ export default function CreateOffer({ baseCurrency, quoteCurrency }) {
             disabled={loading || !limitPrice || !quantity}
             className="w-full"
           >
-            {loading
-              ? "Submitting..."
-              : `${orderType === "buy" ? "Buy" : "Sell"} ${baseCurrency}`}
+            {loading ? (
+              <div className="flex items-center justify-center space-x-2">
+                <Loader2 className="h-5 w-5 animate-spin" />
+                <span>Submitting...</span>
+              </div>
+            ) : (
+              `${orderType === "buy" ? "Buy" : "Sell"} ${baseCurrency}`
+            )}
           </Button>
         </div>
 
