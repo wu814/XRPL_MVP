@@ -18,11 +18,11 @@ export function calculateExactAMMInput(poolX, poolY, desiredOutput, slippageTole
     console.log(`🧮 AMM Constant Product Calculation:`);
     console.log(`   Initial Pool: ${poolX} (input) / ${poolY} (output)`);
     console.log(`   Desired Output: ${desiredOutput}`);
-    console.log(`   Trading Fee: ${tradingFeeBasisPoints} basis points (${tradingFeeBasisPoints/100}%)`);
+    console.log(`   Trading Fee: ${tradingFeeBasisPoints} basis points (${tradingFeeBasisPoints/1000}%)`);
     console.log(`   Constant k = ${poolX * poolY}`);
     
     // Convert trading fee from basis points to decimal (100 basis points = 1%)
-    const tradingFeeDecimal = tradingFeeBasisPoints / 10000;
+    const tradingFeeDecimal = tradingFeeBasisPoints / 100000;
     
     // If there's a trading fee, we need to account for it in our calculation
     // The AMM will deduct the fee from the output, so we need to request more

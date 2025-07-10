@@ -27,7 +27,7 @@ export default function CreateAmmMdl({
 
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/40">
-      <div className="w-96 rounded-lg bg-color4 p-6">
+      <div className="w-96 rounded-lg bg-color3 p-6">
         <h2 className="mb-4 text-2xl font-bold">Create AMM</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -37,7 +37,6 @@ export default function CreateAmmMdl({
               value={assetA}
               onChange={setAssetA}
               disabledOptions={[assetB]}
-              dropdownBg="bg-color5"
             />
           </div>
 
@@ -46,7 +45,7 @@ export default function CreateAmmMdl({
             <input
               type="number"
               step="0.000001"
-              className="bg-color5 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
+              className="bg-color4 w-full rounded-lg border border-transparent p-2 hover:border-gray-500 focus:border-primary focus:outline-none"
               value={amountA}
               placeholder="0.00"
               onChange={(e) => setAmountA(e.target.value)}
@@ -59,7 +58,6 @@ export default function CreateAmmMdl({
               value={assetB}
               onChange={setAssetB}
               disabledOptions={[assetA]}
-              dropdownBg="bg-color5"
             />
           </div>
 
@@ -68,7 +66,7 @@ export default function CreateAmmMdl({
             <input
               type="number"
               step="0.000001"
-              className="bg-color5 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
+              className="bg-color4 w-full rounded-lg border border-transparent p-2 hover:border-gray-500 focus:border-primary focus:outline-none"
               value={amountB}
               placeholder="0.00"
               onChange={(e) => setAmountB(e.target.value)}
@@ -76,13 +74,13 @@ export default function CreateAmmMdl({
           </div>
 
           <div>
-            <label className="mb-1 block text-mutedText text-sm">Fee (0-1000, integer only)</label>
+            <label className="mb-1 block text-mutedText text-sm">Fee (0-1000, 1000 = 1%)</label>
             <input
               type="number"
               step="0.000001"
-              className="bg-color5 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
+              className="bg-color4 w-full rounded-lg border border-transparent p-2 hover:border-gray-500 focus:border-primary focus:outline-none"
               value={fee}
-              placeholder="1000 = 1%"
+              placeholder="0"
               onChange={(e) => setFee(e.target.value)}
             />
           </div>

@@ -4,7 +4,7 @@ import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
 import SlippagePanel from "../SlippagePanel";
-import { Settings, ArrowUpDown } from "lucide-react";
+import { Settings, ArrowUpDown, Loader2 } from "lucide-react";
 import { useCurrentUserWallet } from "../Wallet/CurrentUserWalletProvider";
 import { useIssuerWallet } from "../Wallet/IssuerWalletProvider";
 
@@ -194,7 +194,7 @@ export default function SwapLiquidity({ ammInfo, onSwapped }) {
       >
         {loading ? (
           <div className="flex items-center justify-center space-x-2">
-            <div className="h-5 w-5 animate-spin rounded-full border-b-4 border-primary"></div>
+            <Loader2 className="h-5 w-5 animate-spin" />
             <span>{"Swapping..."}</span>
           </div>
         ) : (

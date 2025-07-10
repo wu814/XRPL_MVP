@@ -24,7 +24,7 @@ export default function ConvertCurrencyDropDown({ asset, onSelect, label, availa
           </div>
           <div>
             <div className="font-medium text-lg">{label}</div>
-            <div className="">{asset.name}</div>
+            <div className="">{asset.id}</div>
           </div>
         </div>
         {availableAmount && (
