@@ -4,6 +4,7 @@ import { useState } from "react";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
 import PasswordConfirmMdl from "../PasswordConfirmMdl";
+import { Trash2 } from "lucide-react";
 
 export default function CancelOfferBtn({
   wallet,
@@ -44,27 +45,13 @@ export default function CancelOfferBtn({
   };
 
   return (
-    <div className="absolute right-2">
+    <div className="absolute left-0">
       <button
         disabled={loading}
         onClick={() => setShowConfirm(true)}
         className="transition hover:scale-110"
       >
-        <svg
-          className="h-5 w-5 text-cancel"
-          aria-hidden="true"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            d="M5 7h14m-9 3v8m4-8v8M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1ZM6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7Z"
-          />
-        </svg>
+        <Trash2 className="h-5 w-5 text-cancel" />
       </button>
 
       {showConfirm && (
