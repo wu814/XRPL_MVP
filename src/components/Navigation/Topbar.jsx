@@ -48,29 +48,31 @@ export default function Topbar() {
   if (!session) return null;
 
   return (
-    <div className="fixed justify-between left-56 right-0 top-0 z-20 flex h-24 items-center border-b border-gray-700 bg-color1 px-6">
+    <div className="fixed left-56 right-0 top-0 z-20 grid grid-cols-2 h-24 items-center border-b border-gray-700 bg-color1 px-6">
       {/* Page Title */}
-      <div className="flex">
+      <div className="col-span-1">  
         <h1 className="ml-5 text-3xl font-bold text-white">{getPageTitle()}</h1>
       </div>
-      <div className="flex flex-row items-center">
+      <div className="col-span-1 flex flex-row items-center">
         {/* Search Bar */}
+        <div className="flex flex-1 items-center space-x-4">
           <Searchbar />
-        {/* Right side items */}
+        </div>
         <div className="flex items-center space-x-4">
-          {/* Notification Bell */}
-          <button className="rounded-lg p-2 text-gray-300 transition-colors hover:bg-color3 hover:text-white">
-            <Bell className="h-7 w-7" />
-          </button>
+          {/* Right side items */}
+            {/* Notification Bell */}
+            <button className="rounded-lg p-2 text-gray-300 transition-colors hover:bg-color3 hover:text-white">
+              <Bell className="h-7 w-7" />
+            </button>
 
-          {/* Logout Button */}
-          <button
-            onClick={handleLogout}
-            className="flex items-center space-x-2 rounded-lg px-3 py-2 text-gray-300 transition-colors hover:bg-red-600 hover:text-white"
-          >
-            <LogOut className="h-7 w-7" />
-            <span>Log Out</span>
-          </button>
+            {/* Logout Button */}
+            <button
+              onClick={handleLogout}
+              className="flex items-center space-x-2 rounded-lg px-3 py-2 text-gray-300 transition-colors hover:bg-red-600 hover:text-white"
+            >
+              <LogOut className="h-7 w-7" />
+              <span>Log Out</span>
+            </button>
         </div>
       </div>
     </div>
