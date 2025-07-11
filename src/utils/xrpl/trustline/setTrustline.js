@@ -15,6 +15,17 @@ export async function setTrustline(
   // Recreate the setter wallet from the seed.
   const setterWallet = Wallet.fromSeed(wallet.seed);
 
+  // Check if trustline already exists before creating a new one
+  const existingTrustline = await checkTrustline(setterWallet, issuerWalletAddress, currency);
+  
+  if (existingTrustline) {
+    console.log("ℹ️ Trustline already exists, skipping creation.");
+    return {
+      success: true,
+      message: `Trustline already exists between ${setterWallet.classicAddress} and ${issuerWalletAddress} for ${currency}. No action needed.`,
+    };
+  }
+
   // Build the TrustSet transaction with the determined currency.
   const trustSetTx = {
     TransactionType: "TrustSet",
