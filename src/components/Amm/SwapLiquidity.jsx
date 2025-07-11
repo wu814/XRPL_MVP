@@ -190,7 +190,7 @@ export default function SwapLiquidity({ ammInfo, onSwapped }) {
           issuerAddress: issuerWallets[0].classicAddress,
           slippagePercent: parseFloat(slippage),
           paymentType: swapInputType,
-          exactOutputAmount: buyAmount,
+          exactOutputAmount: swapInputType === "exact_output" ? buyAmount : undefined,
         }),
       });
 

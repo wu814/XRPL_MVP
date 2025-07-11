@@ -253,7 +253,7 @@ export default function TradePanel() {
           issuerAddress: issuerWallets[0].classicAddress,
           slippagePercent: parseFloat(slippage),
           paymentType: tradeInputType,
-          exactOutputAmount: buyAmount,
+          exactOutputAmount: tradeInputType === "exact_output" ? buyAmount : undefined,
         }),
       });
 

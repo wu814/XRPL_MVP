@@ -62,7 +62,7 @@ const mapPoolCurrencies = (pool, sendCurrency, receiveCurrency) => {
   throw new Error(`Pool currency mismatch: expected ${sendCurrency}/${receiveCurrency}, got ${pool.currency_a?.currency}/${pool.currency_b?.currency}`);
 };
 
-const calculatePreciseAmount = async (recommendation, sendCurrency, receiveCurrency, sendAmount, issuerAddress, slippagePercent) => {
+const calculatePreciseAmount = async (recommendation, sendCurrency, receiveCurrency, sendAmount, issuerAddress, slippagePercent, paymentType = "exact_input") => {
   if (recommendation.type === 'DEX') {
     return parseFloat(sendAmount);
   }
@@ -80,12 +80,18 @@ const calculatePreciseAmount = async (recommendation, sendCurrency, receiveCurre
     const liveAmmData = await getAmmPoolData(sendCurrency, receiveCurrency, issuerAddress);
     if (liveAmmData) {
       const { poolSend, poolReceive } = mapPoolCurrencies(liveAmmData, sendCurrency, receiveCurrency);
-      const targetOutput = parseFloat(recommendation.estimatedOutput);
       const tradingFeeBasisPoints = liveAmmData.trading_fee || 0;
       
-      const calculation = calculateExactAMMInput(poolSend, poolReceive, targetOutput, slippagePercent / 100, tradingFeeBasisPoints);
-      if (calculation.success) {
-        return calculation.exactInput;
+      if (paymentType === "exact_output") {
+        // For exact_output: Calculate how much input is needed for exact output
+        const targetOutput = parseFloat(recommendation.estimatedOutput);
+        const calculation = calculateExactAMMInput(poolSend, poolReceive, targetOutput, slippagePercent / 100, tradingFeeBasisPoints);
+        if (calculation.success) {
+          return calculation.exactInput;
+        }
+      } else {
+        // For exact_input: Use the exact amount specified (with slippage buffer)
+        return parseFloat(sendAmount) * (1 + slippagePercent / 100);
       }
     }
   } catch (error) {
@@ -223,6 +229,14 @@ export async function sendCrossCurrency(
   exactOutputAmount = null
 ) {
   try {
+    console.log("send currency", sendCurrency);
+    console.log("send amount", sendAmount);
+    console.log("receive currency", receiveCurrency);
+    console.log("issuer address", issuerAddress);
+    console.log("slippage percent", slippagePercent);
+    console.log("destination tag", destinationTag);
+    console.log("payment type", paymentType);
+    console.log("exact output amount", exactOutputAmount);
     await connectXrplClient();
     
     console.log(`🎯 Smart Cross-Currency Payment: ${senderWallet.classicAddress} → ${destinationAddress}`);
@@ -291,7 +305,7 @@ export async function sendCrossCurrency(
     
     // Step 4: Calculate precise amounts
     const preciseInputNeeded = await calculatePreciseAmount(
-      recommendation, sendCurrency, receiveCurrency, sendAmount, issuerAddress, slippagePercent
+      recommendation, sendCurrency, receiveCurrency, sendAmount, issuerAddress, slippagePercent, paymentType
     );
     
     const sendMax = formatCurrency(preciseInputNeeded, sendCurrency, issuerAddress);

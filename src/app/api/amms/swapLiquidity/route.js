@@ -36,8 +36,6 @@ export async function POST(req) {
 
     const senderXrplWallet = Wallet.fromSeed(senderWallet.seed);
 
-    console.log(sendCurrency, sendAmount, receiveCurrency, issuerAddress, slippagePercent, paymentType, exactOutputAmount);
-
     const result = await sendCrossCurrency(
       senderXrplWallet,
       recipientAddress,
