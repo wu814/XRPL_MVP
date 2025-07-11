@@ -141,7 +141,7 @@ export default function DisplayAmmDetails({ ammAccount }) {
   const renderPriceInfo = () => {
     return (
       <div>
-        <h3 className="mb-4 text-mutedText">Price Information</h3>
+        <h3 className="mb-2 text-mutedText">Price Information</h3>
         {loading || !ammInfo ? (
           <div className="animate-pulse">
             <div className="h-5 w-20 rounded-full bg-pulse" />
@@ -173,7 +173,7 @@ export default function DisplayAmmDetails({ ammAccount }) {
 
   const renderTradingFee = () => (
     <div>
-      <h3 className="text-mutedText mb-4">Trading Fee</h3>
+      <h3 className="text-mutedText mb-2">Trading Fee</h3>
       {loading || !ammInfo ? (
         <div className="animate-pulse">
           <div className="h-5 w-20 rounded-full bg-pulse" />
@@ -189,7 +189,7 @@ export default function DisplayAmmDetails({ ammAccount }) {
   const renderPoolValue = () => {
     return (
       <div>
-        <h3 className="mb-4 text-mutedText">Pool Value</h3>
+        <h3 className="mb-2 text-mutedText">Pool Value</h3>
         {loading || !ammInfo || pricesLoading ? (
           <div className="animate-pulse">
             <div className="h-5 w-20 rounded-full bg-pulse" />
@@ -242,7 +242,7 @@ export default function DisplayAmmDetails({ ammAccount }) {
             {renderPriceInfo()}
           </div>
           <div className="col-span-1 rounded-lg bg-color2 p-4">
-            <h3 className="mb-4 text-mutedText">Volume (24h)</h3>
+            <h3 className="mb-2 text-mutedText">Volume (24h)</h3>
             <p className=" font-medium text-lg ml-2">Not Available</p>
           </div>
           <div className="col-span-1 rounded-lg bg-color2 p-4">
