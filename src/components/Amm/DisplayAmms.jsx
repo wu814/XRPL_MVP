@@ -7,6 +7,45 @@ import { useSession } from "next-auth/react";
 import ErrorMdl from "../ErrorMdl";
 import CurrencyIcon from "../Currency/CurrencyIcon";
 import CreateAmmBtn from "./CreateAmmBtn";
+import { fetchUsdPrices, getUsdValue, formatCurrencyValue } from "@/utils/xrpl/assets";
+
+// This class is used to parse the AMM data returned from the API
+class AmmInfo {
+  constructor(data) {
+    this.account = data.amm_account;
+    this.trading_fee = data.trading_fee;
+
+    // LP Token (always IOU format)
+    this.lp_token = {
+      currency: data.lp_token.currency,
+      issuer: data.lp_token.issuer,
+      value: parseFloat(data.lp_token.value),
+    };
+
+    // Asset 1 and 2 (XRP or IOU)
+    this.amount = this.parseAmount(data.amount);
+    this.amount2 = this.parseAmount(data.amount2);
+  }
+
+  // Converts XRP from drops or parses IOU
+  parseAmount(amount) {
+    if (typeof amount === "string") {
+      // XRP is a string of drops
+      return {
+        currency: "XRP",
+        issuer: null,
+        value: parseFloat(amount) / 1_000_000, // Convert drops to XRP
+      };
+    } else {
+      // IOU is an object
+      return {
+        currency: amount.currency,
+        issuer: amount.issuer,
+        value: parseFloat(amount.value),
+      };
+    }
+  }
+}
 
 export default function DisplayAmms() {
   const router = useRouter(); // Redirect user to the AMM page when they click on an AMM
@@ -14,11 +53,62 @@ export default function DisplayAmms() {
   const [amms, setAmms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState(null);
+  const [livePrices, setLivePrices] = useState([]);
+  const [pricesLoading, setPricesLoading] = useState(true);
+  const [ammDetails, setAmmDetails] = useState({});
 
   // Helper function to format fee display
   const formatFee = (fee) => {
-    if (!fee) return "N/A"; // Default fallback
+    if (fee === null || fee === undefined) return "N/A"; // Only return N/A for null/undefined
     return `${(fee / 1000).toFixed(3)}%`; // Convert basis points to percentage
+  };
+
+  // Function to fetch USD prices
+  const fetchPrices = async () => {
+    try {
+      const prices = await fetchUsdPrices();
+      setLivePrices(prices);
+    } catch (error) {
+      console.error("Error fetching prices:", error);
+    } finally {
+      setPricesLoading(false);
+    }
+  };
+
+  // Function to fetch detailed AMM info for pool value calculation
+  const fetchAmmDetails = async (ammAccount) => {
+    try {
+      const res = await fetch("/api/amms/getAmmInfo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ asset1: ammAccount }),
+      });
+
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || "Failed to fetch AMM info");
+      
+      const ammInfo = new AmmInfo(result.data);
+      setAmmDetails(prev => ({
+        ...prev,
+        [ammAccount]: ammInfo
+      }));
+    } catch (error) {
+      console.error(`Error fetching AMM details for ${ammAccount}:`, error);
+    }
+  };
+
+  // Function to calculate pool value
+  const calculatePoolValue = (ammAccount) => {
+    const ammInfo = ammDetails[ammAccount];
+    if (!ammInfo || pricesLoading) {
+      return null;
+    }
+
+    const usdValue1 = getUsdValue(ammInfo.amount.currency, ammInfo.amount.value, livePrices);
+    const usdValue2 = getUsdValue(ammInfo.amount2.currency, ammInfo.amount2.value, livePrices);
+    const totalUsdValue = usdValue1 + usdValue2;
+
+    return totalUsdValue > 0 ? totalUsdValue : null;
   };
 
   const fetchAmms = async () => {
@@ -40,6 +130,11 @@ export default function DisplayAmms() {
             return pair1.localeCompare(pair2);
           });
         setAmms(ammsData);
+        
+        // Fetch detailed info for each AMM
+        ammsData.forEach(amm => {
+          fetchAmmDetails(amm.ammAccount);
+        });
       }
     } catch (error) {
       setErrorMessage(error.message);
@@ -61,10 +156,13 @@ export default function DisplayAmms() {
         return pair1.localeCompare(pair2);
       }),
     );
+    // Fetch details for the new AMM
+    fetchAmmDetails(newAmmData.ammAccount);
   };
 
   useEffect(() => {
     fetchAmms();
+    fetchPrices();
   }, []);
 
   return (
@@ -82,7 +180,7 @@ export default function DisplayAmms() {
           <div className="grid grid-cols-[2fr_1fr_1fr_1fr] border-b border-border px-4 py-4 text-lg font-semibold text-white">
             <h3 className="pl-7 text-left">Pair</h3>
             <h3 className="text-center">Address</h3>
-            <h3 className="text-center">Volume (24hr)</h3>
+            <h3 className="text-center">Pool Value</h3>
             <h3 className="text-center">Fee</h3>
           </div>
 
@@ -106,7 +204,7 @@ export default function DisplayAmms() {
                 </div>
                 {/* Address */}
                 <div className="mx-auto h-4 w-48 rounded-lg bg-pulse" />
-                {/* Volume */}
+                {/* Pool Total */}
                 <div className="mx-auto h-4 w-24 rounded-lg bg-pulse" />
                 {/* Fee */}
                 <div className="mx-auto h-4 w-12 rounded-lg bg-pulse" />
@@ -122,29 +220,42 @@ export default function DisplayAmms() {
           <div className="grid grid-cols-[2fr_1fr_1fr_1fr] border-b border-border px-4 py-4 text-lg font-semibold">
             <h3 className="pl-7 text-left">Pair</h3>
             <h3 className="text-center">Address</h3>
-            <h3 className="text-center">Volume (24hr)</h3>
+            <h3 className="text-center">Pool Value</h3>
             <h3 className="text-center">Fee</h3>
           </div>
 
           {/* Data rows */}
-          {amms.map((amm, index) => (
-            <div
-              key={index}
-              className="grid cursor-pointer grid-cols-[2fr_1fr_1fr_1fr] items-center px-4 py-6 hover:bg-color3"
-              onClick={() => {
-                localStorage.setItem("selectedAMM", JSON.stringify(amm));
-                router.push(`/trade/amm/${amm.ammAccount}`);
-              }}
-            >
-              <div className="flex gap-1 pl-2">
-                <CurrencyIcon symbol={amm.currency_a} iconBg="bg-color4" />
-                <CurrencyIcon symbol={amm.currency_b} iconBg="bg-color4" />
+          {amms.map((amm, index) => {
+            const poolValue = calculatePoolValue(amm.ammAccount);
+            
+            return (
+              <div
+                key={index}
+                className="grid cursor-pointer grid-cols-[2fr_1fr_1fr_1fr] items-center px-4 py-6 hover:bg-color3"
+                onClick={() => {
+                  localStorage.setItem("selectedAMM", JSON.stringify(amm));
+                  router.push(`/trade/amm/${amm.ammAccount}`);
+                }}
+              >
+                <div className="flex gap-1 pl-2">
+                  <CurrencyIcon symbol={amm.currency_a} iconBg="bg-color4" />
+                  <CurrencyIcon symbol={amm.currency_b} iconBg="bg-color4" />
+                </div>
+                <p className="text-center">{amm.ammAccount}</p>
+                <p className="text-center">
+                  {poolValue !== null ? `$${formatCurrencyValue(poolValue)}` : 
+                   pricesLoading || !ammDetails[amm.ammAccount] ? (
+                     <span className="mx-auto h-4 w-16 animate-pulse rounded-lg bg-pulse inline-block" />
+                   ) : "Not Available"}
+                </p>
+                <p className="text-center">
+                  {!ammDetails[amm.ammAccount] ? (
+                    <span className="mx-auto h-4 w-12 animate-pulse rounded-lg bg-pulse inline-block" />
+                  ) : formatFee(ammDetails[amm.ammAccount]?.trading_fee)}
+                </p>
               </div>
-              <p className="text-center">{amm.ammAccount}</p>
-              <p className="text-center">Not Available</p>
-              <p className="text-center">{formatFee(amm.fee)}</p>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

@@ -57,7 +57,6 @@ export default function DisplayAmmDetails({ ammAccount }) {
   const [errorMessage, setErrorMessage] = useState(null);
   const [currency1, setCurrency1] = useState("");
   const [currency2, setCurrency2] = useState("");
-  // Add new state for USD prices
   const [livePrices, setLivePrices] = useState([]);
   const [pricesLoading, setPricesLoading] = useState(true);
 
@@ -90,7 +89,6 @@ export default function DisplayAmmDetails({ ammAccount }) {
     }
   };
 
-  // New function to fetch USD prices
   const fetchPrices = async () => {
     try {
       const prices = await fetchUsdPrices();
@@ -103,22 +101,36 @@ export default function DisplayAmmDetails({ ammAccount }) {
   };
 
   useEffect(() => {
-    // Retrieve cached AMM data from localStorage
+    // Check for cached data from DisplayAmms
     const cached = localStorage.getItem("selectedAMM");
     if (cached) {
       try {
         const parsed = JSON.parse(cached);
         if (parsed?.ammAccount === ammAccount) {
-          // Use the new currency1 and currency2 fields
           setCurrency1(parsed.currency_a || "Unknown");
           setCurrency2(parsed.currency_b || "Unknown");
+          
+          // Check if we have cached AMM details and prices (and they're recent)
+          const cacheAge = Date.now() - (parsed.timestamp || 0);
+          const cacheValid = cacheAge < 5 * 60 * 1000; // 5 minutes
+          
+          if (parsed.ammDetails && parsed.livePrices && cacheValid) {
+            // Use cached data
+            setAmmInfo(parsed.ammDetails);
+            setLivePrices(parsed.livePrices);
+            setPricesLoading(parsed.pricesLoading || false);
+            setLoading(false);
+            return; // Skip API calls
+          }
         }
       } catch (e) {
         console.error("Failed to parse cached AMM", e);
       }
     }
+    
+    // Fallback to API calls if no valid cached data
     fetchAmmInfo();
-    fetchPrices(); // Fetch prices alongside AMM info
+    fetchPrices();
   }, [ammAccount]);
 
   // Delete later
@@ -127,22 +139,34 @@ export default function DisplayAmmDetails({ ammAccount }) {
   }, [ammInfo]);
 
   const renderPriceInfo = () => {
-    const a1 = parseFloat(ammInfo?.amount?.value);
-    const a2 = parseFloat(ammInfo?.amount2?.value);
-    if (isNaN(a1) || isNaN(a2) || a1 <= 0 || a2 <= 0) return null;
-
-    const s1 = currency1 || "Asset1";
-    const s2 = currency2 || "Asset2";
-    const price1 = (a2 / a1).toFixed(4);
-    const price2 = (a1 / a2).toFixed(4);
-
     return (
       <div>
         <h3 className="mb-4 text-mutedText">Price Information</h3>
-        <div className="flex flex-col font-medium text-lg">
-          <p>1 {s1} = {price1} {s2}</p>
-          <p>1 {s2} = {price2} {s1}</p>
-        </div>
+        {loading || !ammInfo ? (
+          <div className="animate-pulse">
+            <div className="h-5 w-20 rounded bg-pulse" />
+          </div>
+        ) : (
+          (() => {
+            const a1 = parseFloat(ammInfo?.amount?.value);
+            const a2 = parseFloat(ammInfo?.amount2?.value);
+            if (isNaN(a1) || isNaN(a2) || a1 <= 0 || a2 <= 0) {
+              return <p className="font-medium text-lg">Not Available</p>;
+            }
+
+            const s1 = currency1 || "Asset1";
+            const s2 = currency2 || "Asset2";
+            const price1 = (a2 / a1).toFixed(4);
+            const price2 = (a1 / a2).toFixed(4);
+
+            return (
+              <div className="flex flex-col font-medium text-lg">
+                <p>1 {s1} = {price1} {s2}</p>
+                <p>1 {s2} = {price2} {s1}</p>
+              </div>
+            );
+          })()
+        )}
       </div>
     );
   };
@@ -150,38 +174,45 @@ export default function DisplayAmmDetails({ ammAccount }) {
   const renderTradingFee = () => (
     <div>
       <h3 className="text-mutedText mb-4">Trading Fee</h3>
-      <p className="font-medium text-lg">
-        {`${(ammInfo?.trading_fee / 1000).toFixed(3)}%`}
-      </p>
+      {loading || !ammInfo ? (
+        <div className="animate-pulse">
+          <div className="h-5 w-20 rounded bg-pulse" />
+        </div>
+      ) : (
+        <p className="font-medium text-lg">
+          {`${(ammInfo?.trading_fee / 1000).toFixed(3)}%`}
+        </p>
+      )}
     </div>
   );
 
-  // New function to calculate and render pool value
   const renderPoolValue = () => {
-    if (!ammInfo || pricesLoading) {
-      return (
-        <div className="animate-pulse">
-          <div className="h-4 w-16 rounded bg-pulse" />
-        </div>
-      );
-    }
+    return (
+      <div>
+        <h3 className="mb-4 text-mutedText">Pool Value</h3>
+        {loading || !ammInfo || pricesLoading ? (
+          <div className="animate-pulse">
+            <div className="h-5 w-20 rounded bg-pulse" />
+          </div>
+        ) : (
+          (() => {
+            const usdValue1 = getUsdValue(ammInfo.amount.currency, ammInfo.amount.value, livePrices);
+            const usdValue2 = getUsdValue(ammInfo.amount2.currency, ammInfo.amount2.value, livePrices);
+            const totalUsdValue = usdValue1 + usdValue2;
 
-    const usdValue1 = getUsdValue(ammInfo.amount.currency, ammInfo.amount.value, livePrices);
-    const usdValue2 = getUsdValue(ammInfo.amount2.currency, ammInfo.amount2.value, livePrices);
-    const totalUsdValue = usdValue1 + usdValue2;
+            if (totalUsdValue > 0) {
+              return (
+                <p className="font-medium text-lg">
+                  ${formatCurrencyValue(totalUsdValue)}
+                </p>
+              );
+            }
 
-    if (totalUsdValue > 0) {
-      return (
-        <div>
-          <h3 className="mb-4 text-mutedText">Pool Value</h3>
-          <p className=" font-medium text-lg">
-            ${formatCurrencyValue(totalUsdValue)}
-          </p>
-        </div>
-      );
-    }
-
-    return <p className="text-lg font-semibold">Not Available</p>;
+            return <p className="font-medium text-lg">Not Available</p>;
+          })()
+        )}
+      </div>
+    );
   };
 
   return (
