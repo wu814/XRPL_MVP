@@ -161,12 +161,12 @@ export default function TradePanel() {
     try {      
       // Determine pool balances from cached AMM data
       let poolSell, poolBuy;
-      if (ammData.asset1.currency === sellCurrency) {
-        poolSell = parseFloat(ammData.asset1.value);
-        poolBuy = parseFloat(ammData.asset2.value);
+      if (ammData.amount.currency === sellCurrency) {
+        poolSell = parseFloat(ammData.amount.value);
+        poolBuy = parseFloat(ammData.amount2.value);
       } else {
-        poolSell = parseFloat(ammData.asset2.value);
-        poolBuy = parseFloat(ammData.asset1.value);
+        poolSell = parseFloat(ammData.amount2.value);
+        poolBuy = parseFloat(ammData.amount.value);
       }
 
       // Calculate estimated output using the imported function
@@ -198,12 +198,12 @@ export default function TradePanel() {
       
       // Determine pool balances from cached AMM data
       let poolSell, poolBuy;
-      if (ammData.asset1.currency === sellCurrency) {
-        poolSell = parseFloat(ammData.asset1.value);
-        poolBuy = parseFloat(ammData.asset2.value);
+      if (ammData.amount.currency === sellCurrency) {
+        poolSell = parseFloat(ammData.amount.value);
+        poolBuy = parseFloat(ammData.amount2.value);
       } else {
-        poolSell = parseFloat(ammData.asset2.value);
-        poolBuy = parseFloat(ammData.asset1.value);
+        poolSell = parseFloat(ammData.amount2.value);
+        poolBuy = parseFloat(ammData.amount.value);
       }
 
       // Calculate required input using the imported function
@@ -551,7 +551,7 @@ export default function TradePanel() {
           {ammData && !loadingAmmData && (
             <div className="mb-4 p-3 bg-green-900/20 border border-green-500 rounded-lg">
               <p className="text-green-400 text-sm">
-                ✅ AMM Pool: {ammData.asset1.currency}/{ammData.asset2.currency} 
+                ✅ AMM Pool: {ammData.amount.currency}/{ammData.amount2.currency} 
                 {ammData.trading_fee > 0 && ` (${ammData.trading_fee/1000}% fee)`}
               </p>
             </div>

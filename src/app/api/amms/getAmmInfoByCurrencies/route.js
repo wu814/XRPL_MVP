@@ -31,7 +31,7 @@ export async function POST(request) {
     }
     
     console.log(`✅ Found AMM pool: ${ammData.amm_account}`);
-    console.log(`📊 Pool balances: ${ammData.asset1.currency}=${ammData.asset1.value}, ${ammData.asset2.currency}=${ammData.asset2.value}`);
+    console.log(`📊 Pool balances: ${ammData.amount.currency}=${ammData.amount.value}, ${ammData.amount2.currency}=${ammData.amount2.value}`);
     
     return NextResponse.json({
       success: true,

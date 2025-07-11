@@ -188,14 +188,14 @@ export async function analyzeAMMRoutes(fromCurrency, toCurrency, fromAmount, iss
           ammData[pairKey] = {
             amm_account: liveInfo.amm_account,
             currency_a: {
-              currency: liveInfo.asset1.currency,
-              issuer: liveInfo.asset1.issuer,
-              value: liveInfo.asset1.value
+              currency: liveInfo.amount.currency,
+              issuer: liveInfo.amount.issuer,
+              value: liveInfo.amount.value
             },
             currency_b: {
-              currency: liveInfo.asset2.currency,
-              issuer: liveInfo.asset2.issuer,
-              value: liveInfo.asset2.value
+              currency: liveInfo.amount2.currency,
+              issuer: liveInfo.amount2.issuer,
+              value: liveInfo.amount2.value
             },
             trading_fee: liveInfo.trading_fee
           };
@@ -337,14 +337,14 @@ export async function analyzeHybridRoutes(fromCurrency, toCurrency, fromAmount, 
           ammData[pairKey] = {
             amm_account: liveInfo.amm_account,
             currency_a: {
-              currency: liveInfo.asset1.currency,
-              issuer: liveInfo.asset1.issuer,
-              value: liveInfo.asset1.value
+              currency: liveInfo.amount.currency,
+              issuer: liveInfo.amount.issuer,
+              value: liveInfo.amount.value
             },
             currency_b: {
-              currency: liveInfo.asset2.currency,
-              issuer: liveInfo.asset2.issuer,
-              value: liveInfo.asset2.value
+              currency: liveInfo.amount2.currency,
+              issuer: liveInfo.amount2.issuer,
+              value: liveInfo.amount2.value
             },
             trading_fee: liveInfo.trading_fee
           };

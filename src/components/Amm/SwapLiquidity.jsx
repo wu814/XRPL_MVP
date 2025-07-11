@@ -42,6 +42,7 @@ export default function SwapLiquidity({ ammInfo, onSwapped }) {
   useEffect(() => {
     setSellCurrency(ammInfo?.amount?.currency);
     setBuyCurrency(ammInfo?.amount2?.currency);
+    console.log(ammInfo);
   }, [ammInfo]);
 
   // Calculate output when sell amount changes

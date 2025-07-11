@@ -137,14 +137,14 @@ export async function getAllAmmInfo() {
         result[pairKey] = {
           amm_account: liveData.amm_account,
           currency_a: {
-            currency: liveData.asset1.currency,
-            issuer: liveData.asset1.issuer,
-            value: liveData.asset1.value
+            currency: liveData.amount.currency,
+            issuer: liveData.amount.issuer,
+            value: liveData.amount.value
           },
           currency_b: {
-            currency: liveData.asset2.currency,
-            issuer: liveData.asset2.issuer,
-            value: liveData.asset2.value
+            currency: liveData.amount2.currency,
+            issuer: liveData.amount2.issuer,
+            value: liveData.amount2.value
           },
           lp_token: liveData.lp_token,
           trading_fee: liveData.trading_fee,

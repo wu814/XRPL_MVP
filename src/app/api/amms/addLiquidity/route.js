@@ -7,7 +7,7 @@ import {
   addLiquiditySingleAsset,
   addLiquidityOneAssetLPToken,
 } from "@/utils/xrpl/amm/addLiquidity";
-import getAmmInfo from "@/utils/xrpl/amm/getAmmInfo";
+import getAmmInfo from "@/utils/xrpl/amm/ammUtils";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
 
 export async function POST(req) {

@@ -123,12 +123,12 @@ export default function TransferBtn({
     try {      
       // Determine pool balances from cached AMM data
       let poolSend, poolReceive;
-      if (ammData.asset1.currency === sendCurrency) {
-        poolSend = parseFloat(ammData.asset1.value);
-        poolReceive = parseFloat(ammData.asset2.value);
+      if (ammData.amount.currency === sendCurrency) {
+        poolSend = parseFloat(ammData.amount.value);
+        poolReceive = parseFloat(ammData.amount2.value);
       } else {
-        poolSend = parseFloat(ammData.asset2.value);
-        poolReceive = parseFloat(ammData.asset1.value);
+        poolSend = parseFloat(ammData.amount2.value);
+        poolReceive = parseFloat(ammData.amount.value);
       }
 
       // Calculate estimated output
@@ -156,12 +156,12 @@ export default function TransferBtn({
     try {
       // Determine pool balances from cached AMM data
       let poolSend, poolReceive;
-      if (ammData.asset1.currency === sendCurrency) {
-        poolSend = parseFloat(ammData.asset1.value);
-        poolReceive = parseFloat(ammData.asset2.value);
+      if (ammData.amount.currency === sendCurrency) {
+        poolSend = parseFloat(ammData.amount.value);
+        poolReceive = parseFloat(ammData.amount2.value);
       } else {
-        poolSend = parseFloat(ammData.asset2.value);
-        poolReceive = parseFloat(ammData.asset1.value);
+        poolSend = parseFloat(ammData.amount2.value);
+        poolReceive = parseFloat(ammData.amount.value);
       }
 
       // Calculate required input
@@ -391,7 +391,7 @@ export default function TransferBtn({
             {paymentType === "convertable" && ammData && !loadingAmmData && (
               <div className="mb-4 p-3 bg-green-900/20 border border-green-500 rounded-lg">
                 <p className="text-green-400 text-sm">
-                  ✅ AMM Pool: {ammData.asset1.currency}/{ammData.asset2.currency} 
+                  ✅ AMM Pool: {ammData.amount.currency}/{ammData.amount2.currency} 
                   {ammData.trading_fee > 0 && ` (${ammData.trading_fee/1000}% fee)`}
                 </p>
               </div>

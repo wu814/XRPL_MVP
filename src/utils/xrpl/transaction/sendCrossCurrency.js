@@ -32,14 +32,14 @@ const getAmmPoolData = async (sendCurrency, receiveCurrency, issuerAddress) => {
   return {
     amm_account: liveAmmInfo.amm_account,
     currency_a: {
-      currency: liveAmmInfo.asset1.currency,
-      issuer: liveAmmInfo.asset1.issuer,
-      value: liveAmmInfo.asset1.value
+      currency: liveAmmInfo.amount.currency,
+      issuer: liveAmmInfo.amount.issuer,
+      value: liveAmmInfo.amount.value
     },
     currency_b: {
-      currency: liveAmmInfo.asset2.currency,
-      issuer: liveAmmInfo.asset2.issuer,
-      value: liveAmmInfo.asset2.value
+      currency: liveAmmInfo.amount2.currency,
+      issuer: liveAmmInfo.amount2.issuer,
+      value: liveAmmInfo.amount2.value
     },
     trading_fee: liveAmmInfo.trading_fee
   };
