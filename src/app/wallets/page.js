@@ -80,7 +80,7 @@ function WalletsWrapper() {
         <Wallet className="mx-auto mb-4 h-16 w-16 text-gray-400" />
         <h3 className="mb-2 text-xl font-semibold">No Wallets Found</h3>
         <p className="text-mutedText">
-          You haven't created any wallets yet. Create your first wallet to get started.
+          You haven&apos;t created any wallets yet. Create your first wallet to get started.
         </p>
       </div>
     );
