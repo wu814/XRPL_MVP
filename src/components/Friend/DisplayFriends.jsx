@@ -61,7 +61,7 @@ export default function DisplayFriends() {
           {friends.map((friend) => (
             <li
               key={friend.id}
-              className="flex items-center justify-between rounded-lg bg-color3 p-4"
+              className="flex flex-row items-center justify-between rounded-lg bg-color3 p-2"
             >
               <FavoriteBtn friendUsername={friend.username} />
               <div>

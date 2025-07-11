@@ -308,8 +308,8 @@ export default function AddLiquidity({ ammInfo, onAdded }) {
             </button>
           ))}
         </div>
-        <button onClick={() => setShowSlippagePanel((prev) => !prev)}>
-          <Settings className="w-5 h-5 text-gray-400 hover:text-white" /> 
+        <button onClick={() => setShowSlippagePanel((prev) => !prev)} className="p-2 hover:bg-color3 rounded-lg transition-colors hover:text-white text-gray-400">
+          <Settings className="w-5 h-5" /> 
         </button>
         {showSlippagePanel && (
           <SlippagePanel

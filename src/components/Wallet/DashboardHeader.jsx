@@ -3,11 +3,13 @@
 import { RefreshCw, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useCurrentUserWallet } from "@/components/Wallet/CurrentUserWalletProvider";
-import { fetchUsdPrices, getUsdValue, formatCurrencyValue } from "@/utils/xrpl/assets";
+import {
+  fetchUsdPrices,
+  getUsdValue,
+  formatCurrencyValue,
+} from "@/utils/xrpl/assets";
 
-export default function DashboardHeader({
-  totalBalance,
-}) {
+export default function DashboardHeader({ totalBalance }) {
   const { currentUserWallets } = useCurrentUserWallet();
   const [calculatedBalance, setCalculatedBalance] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -28,7 +30,7 @@ export default function DashboardHeader({
     try {
       // Step 1: Get live prices using utility function
       const livePrices = await fetchUsdPrices();
-      
+
       if (!livePrices || livePrices.length === 0) {
         console.error("No live prices available");
         return;
@@ -124,12 +126,10 @@ export default function DashboardHeader({
           <button
             onClick={fetchTotalBalance}
             disabled={loading || !primaryWallet}
-            className="rounded-lg bg-color2 p-2 transition-colors hover:bg-color3 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-lg bg-color1 p-2 text-gray-400 transition-colors hover:bg-color3 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
             title="Refresh balance"
           >
-            <RefreshCw
-              className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
-            />
+            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
           </button>
 
           <span className="text-xs text-gray-400">

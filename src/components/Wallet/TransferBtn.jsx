@@ -300,19 +300,19 @@ export default function TransferBtn({
   return (
     <>
       <Button variant="primary" onClick={() => setShowMdl(true)}>
-        Transfer/Pay
+        Send
       </Button>
 
       {showMdl && (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/40">
-          <div className="h-[77vh] w-[28vw] space-y-4 rounded-lg bg-color3 p-6">
+          <div className="h-[62vh] w-[28vw] space-y-4 rounded-lg bg-color3 p-6">
             <div className="relative mb-6 flex justify-between">
               <h2 className="text-start text-2xl font-semibold">
-                Transfer
+                Transfer / Pay
               </h2>
               {paymentType === "convertable" && (
-                <button onClick={() => setShowSlippagePanel((prev) => !prev)}>
-                  <Settings className="h-5 w-5 text-gray-400 hover:text-white" />
+                <button onClick={() => setShowSlippagePanel((prev) => !prev)} className="p-2 hover:bg-color4 rounded-lg transition-colors hover:text-white text-gray-400">
+                  <Settings className="h-5 w-5" />
                 </button>
               )}
               {showSlippagePanel && (
@@ -330,13 +330,13 @@ export default function TransferBtn({
                 className={`flex space-x-1 rounded-lg bg-color4 p-1 ${!session?.user?.role === "ADMIN" ? "w-full" : ""}`}
               >
                 <button
-                  className={`flex-1 rounded-lg px-3 py-2 transition-colors ${paymentType === "direct" ? "bg-primary text-black" : "text-gray-300 hover:text-white"}`}
+                  className={`flex-1 rounded-lg px-3 py-1 transition-colors ${paymentType === "direct" ? "bg-primary text-black" : "text-gray-300 hover:text-white"}`}
                   onClick={() => handlePaymentTypeChange("direct")}
                 >
                   Direct
                 </button>
                 <button
-                  className={`flex-1 rounded-lg px-3 py-2 transition-colors ${paymentType === "convertable" ? "bg-primary text-black" : "text-gray-300 hover:text-white"}`}
+                  className={`flex-1 rounded-lg px-3 py-1 transition-colors ${paymentType === "convertable" ? "bg-primary text-black" : "text-gray-300 hover:text-white"}`}
                   onClick={() => handlePaymentTypeChange("convertable")}
                 >
                   Convertable

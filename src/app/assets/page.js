@@ -70,7 +70,7 @@ export default function AssetsPage() {
   const { data: session, status } = useSession();
   
   // Set page title
-  usePageTitle("Assets - YONA");
+  usePageTitle("My Assets - YONA");
 
   if (status === "loading") {
     return (
