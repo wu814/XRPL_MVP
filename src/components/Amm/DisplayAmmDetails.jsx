@@ -65,7 +65,7 @@ export default function DisplayAmmDetails({ ammAccount }) {
       const res = await fetch("/api/amms/getAmmInfo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ asset1: ammAccount }),
+        body: JSON.stringify({ ammAccount }),
       });
 
       const result = await res.json();

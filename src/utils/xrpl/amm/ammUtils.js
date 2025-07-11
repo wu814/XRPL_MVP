@@ -7,9 +7,10 @@ import { createSupabaseAnonClient } from "@/utils/supabase/server";
  * SIMPLIFIED AMM DATA ARCHITECTURE - SUPABASE FLAT TABLE
  * ============================================================================
  * 
- * Two functions only:
+ * Functions:
  * 1. getAmmInfo(ammAccount) - Live data from ledger via amm_info command
  * 2. getAmmData() - Registry data from Supabase (flat table: amm_account, currency_a, currency_b, created_at)
+ * 3. getAllAmmInfo() - Get all AMM pools with live data
  * 
  * No more redundant functions, caching, or complex abstractions.
  * ============================================================================
@@ -34,7 +35,14 @@ export async function getAmmInfo(ammAccount) {
     
     if (!response.result || !response.result.amm) {
       console.warn(`⚠️ No AMM data found for account: ${ammAccount}`);
-      return null;
+      return {
+        success: false,
+        amm_account: ammAccount,
+        amount: null,
+        amount2: null,
+        lp_token: null,
+        trading_fee: null,
+      };
     }
     
     const amm = response.result.amm;
@@ -63,9 +71,10 @@ export async function getAmmInfo(ammAccount) {
 
     
     const ammInfo = {
+      success: true,
       amm_account: ammAccount,
-      asset1: asset1,
-      asset2: asset2,
+      amount: asset1,
+      amount2: asset2,
       lp_token: amm.lp_token,
       trading_fee: amm.trading_fee || 0,
       auction_slot: amm.auction_slot || null,
@@ -106,6 +115,49 @@ export async function getAmmData() {
     console.error(`❌ Error reading AMM registry from Supabase: ${error.message}`);
     return [];
   }
+}
+
+/**
+ * Get all AMM pools with live data
+ * @returns {Promise<object>} - Object with currency pairs as keys and AMM data as values
+ */
+export async function getAllAmmInfo() {
+  console.log(`📊 Getting all AMM pools...`);
+  
+  const registry = await getAmmData();
+  const result = {};
+  
+  for (const poolInfo of registry) {
+    try {
+      const liveData = await getAmmInfo(poolInfo.amm_account);
+      if (liveData) {
+        // Sort currency codes alphabetically for the key
+        const currencies = [poolInfo.currency_a, poolInfo.currency_b].sort();
+        const pairKey = `${currencies[0]}/${currencies[1]}`;
+        result[pairKey] = {
+          amm_account: liveData.amm_account,
+          currency_a: {
+            currency: liveData.asset1.currency,
+            issuer: liveData.asset1.issuer,
+            value: liveData.asset1.value
+          },
+          currency_b: {
+            currency: liveData.asset2.currency,
+            issuer: liveData.asset2.issuer,
+            value: liveData.asset2.value
+          },
+          lp_token: liveData.lp_token,
+          trading_fee: liveData.trading_fee,
+          created_at: poolInfo.created_at
+        };
+      }
+    } catch (error) {
+      console.warn(`⚠️ Failed to get live data for ${poolInfo.amm_account}: ${error.message}`);
+    }
+  }
+  
+  console.log(`✅ Retrieved ${Object.keys(result).length} AMM pools`);
+  return result;
 }
 
 /**

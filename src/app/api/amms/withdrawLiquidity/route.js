@@ -7,7 +7,7 @@ import {
   withdrawAllSingleAsset,
   withdrawSingleAssetWithLPToken,
 } from "@/utils/xrpl/amm/withdrawLiquidity";
-import { getAmmInfo } from "@/utils/xrpl/amm/getAmmInfo";
+import { getAmmInfo } from "@/utils/xrpl/amm/ammUtils";
 import { Wallet } from "xrpl";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
 import { get } from "http";

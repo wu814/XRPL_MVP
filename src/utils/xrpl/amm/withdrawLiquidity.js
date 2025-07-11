@@ -1,7 +1,7 @@
 import * as xrpl from "xrpl";
 import BigNumber from "bignumber.js";
 
-import { getAmmInfo } from "./getAmmInfo";
+import { getAmmInfo } from "./ammUtils";
 import { client, connectXrplClient } from "../testnet"; // or adjust to "../../client" if needed
 import { checkTrustline } from "@/utils/xrpl/trustline/setTrustline";
 import { type } from "os";
