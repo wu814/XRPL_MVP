@@ -144,14 +144,14 @@ export default function DisplayAmmDetails({ ammAccount }) {
         <h3 className="mb-4 text-mutedText">Price Information</h3>
         {loading || !ammInfo ? (
           <div className="animate-pulse">
-            <div className="h-5 w-20 rounded bg-pulse" />
+            <div className="h-5 w-20 rounded-full bg-pulse" />
           </div>
         ) : (
           (() => {
             const a1 = parseFloat(ammInfo?.amount?.value);
             const a2 = parseFloat(ammInfo?.amount2?.value);
             if (isNaN(a1) || isNaN(a2) || a1 <= 0 || a2 <= 0) {
-              return <p className="font-medium text-lg">Not Available</p>;
+              return <p className="font-medium text-lg ml-2">Not Available</p>;
             }
 
             const s1 = currency1 || "Asset1";
@@ -160,9 +160,9 @@ export default function DisplayAmmDetails({ ammAccount }) {
             const price2 = (a1 / a2).toFixed(4);
 
             return (
-              <div className="flex flex-col font-medium text-lg">
-                <p>1 {s1} = {price1} {s2}</p>
-                <p>1 {s2} = {price2} {s1}</p>
+              <div className="flex flex-col font-medium text-lg ml-2">
+                <p>{s1}/{s2}: {price1}</p>
+                <p>{s2}/{s1}: {price2}</p>
               </div>
             );
           })()
@@ -176,10 +176,10 @@ export default function DisplayAmmDetails({ ammAccount }) {
       <h3 className="text-mutedText mb-4">Trading Fee</h3>
       {loading || !ammInfo ? (
         <div className="animate-pulse">
-          <div className="h-5 w-20 rounded bg-pulse" />
+          <div className="h-5 w-20 rounded-full bg-pulse" />
         </div>
       ) : (
-        <p className="font-medium text-lg">
+        <p className="font-medium text-lg ml-2">
           {`${(ammInfo?.trading_fee / 1000).toFixed(3)}%`}
         </p>
       )}
@@ -192,7 +192,7 @@ export default function DisplayAmmDetails({ ammAccount }) {
         <h3 className="mb-4 text-mutedText">Pool Value</h3>
         {loading || !ammInfo || pricesLoading ? (
           <div className="animate-pulse">
-            <div className="h-5 w-20 rounded bg-pulse" />
+            <div className="h-5 w-20 rounded-full bg-pulse" />
           </div>
         ) : (
           (() => {
@@ -202,13 +202,13 @@ export default function DisplayAmmDetails({ ammAccount }) {
 
             if (totalUsdValue > 0) {
               return (
-                <p className="font-medium text-lg">
+                <p className="font-medium text-lg ml-2">
                   ${formatCurrencyValue(totalUsdValue)}
                 </p>
               );
             }
 
-            return <p className="font-medium text-lg">Not Available</p>;
+            return <p className="font-medium text-lg ml-2">Not Available</p>;
           })()
         )}
       </div>
@@ -243,7 +243,7 @@ export default function DisplayAmmDetails({ ammAccount }) {
           </div>
           <div className="col-span-1 rounded-lg bg-color2 p-4">
             <h3 className="mb-4 text-mutedText">Volume (24h)</h3>
-            <p className=" font-medium text-lg">Not Available</p>
+            <p className=" font-medium text-lg ml-2">Not Available</p>
           </div>
           <div className="col-span-1 rounded-lg bg-color2 p-4">
             {renderTradingFee()}
