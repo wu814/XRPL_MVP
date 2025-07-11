@@ -1,9 +1,10 @@
 "use client";
 import { useSession } from "next-auth/react";
+import usePageTitle from "@/utils/usePageTitle";
 import { Plus } from "lucide-react";
 import DisplayAdminWallets from "@/components/Wallet/DisplayAdminWallets";
 import DisplayUserWallets from "@/components/Wallet/DisplayUserWallets";
-import DashboardHeader from "@/components/DashboardHeader";
+import DashboardHeader from "@/components/Wallet/DashboardHeader";
 import TradePanel from "@/components/Smart/TradePanel";
 import { IssuerWalletProvider } from "@/components/Wallet/IssuerWalletProvider";
 import { CurrentUserWalletProvider } from "@/components/Wallet/CurrentUserWalletProvider";
@@ -95,6 +96,9 @@ function WelcomeSection({ session }) {
 
 export default function Home() {
   const { data: session, status } = useSession();
+  
+  // Set dynamic page title
+  usePageTitle("Home - YONA");
 
   if (status === "loading") {
     return (

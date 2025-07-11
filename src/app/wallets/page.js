@@ -15,6 +15,7 @@ import {
   useWalletAssets, 
   getWalletDisplayName 
 } from "@/utils/xrpl/assets";
+import usePageTitle from "@/utils/usePageTitle";
 
 // Wallet component that displays individual wallet and its assets
 function WalletComponent({ wallet, livePrices }) {
@@ -100,6 +101,9 @@ function WalletsWrapper() {
 
 export default function WalletsPage() {
   const { data: session, status } = useSession();
+  
+  // Set page title
+  usePageTitle("My Wallets - YONA");
 
   if (status === "loading") {
     return (

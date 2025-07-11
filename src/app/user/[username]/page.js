@@ -7,6 +7,7 @@ import ErrorMdl from "@/components/ErrorMdl";
 import { useCurrentUserWallet } from "@/components/Wallet/CurrentUserWalletProvider";
 import { useIssuerWallet } from "@/components/Wallet/IssuerWalletProvider";
 import { useState , useEffect } from "react";
+import usePageTitle from "@/utils/usePageTitle";
 
 export default function UserPage() {
   const { username } = useParams(); // this will always reflect the URL param
@@ -18,6 +19,10 @@ export default function UserPage() {
     userWalletsErrorMessage || issuerWalletsErrorMessage;
 
   const [errorMessage, setErrorMessage] = useState(loadWalletErrorMessage);
+  
+  // Set page title with username
+  usePageTitle(`${username} - Profile - YONA`);
+  
   useEffect(() => {
     if (loadWalletErrorMessage) {
       setErrorMessage(loadWalletErrorMessage);

@@ -11,6 +11,7 @@ import { CurrentUserWalletProvider } from "@/components/Wallet/CurrentUserWallet
 import { IssuerWalletProvider } from "@/components/Wallet/IssuerWalletProvider";
 import { useSession } from "next-auth/react";
 import AddFriendBtn from "@/components/Friend/AddFriendBtn";
+import usePageTitle from "@/utils/usePageTitle";
 
 export default function FriendsPage() {
   const { data: session } = useSession();
@@ -23,6 +24,9 @@ export default function FriendsPage() {
   const [errorMessage, setErrorMessage] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
+  
+  // Set page title
+  usePageTitle("Friends - YONA");
 
   return (
     <CurrentUserWalletProvider>

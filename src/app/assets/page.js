@@ -10,6 +10,7 @@ import { IssuerWalletProvider } from "@/components/Wallet/IssuerWalletProvider";
 import TradePanel from "@/components/Smart/TradePanel";
 import CreateUserWalletBtn from "@/components/Wallet/CreateUserWalletBtn";
 import { useLivePrices, useWalletAssets } from "@/utils/xrpl/assets";
+import usePageTitle from "@/utils/usePageTitle";
 
 // AssetTableWrapper component to access wallet context
 function AssetTableWrapper() {
@@ -67,6 +68,9 @@ function AssetTableWrapper() {
 
 export default function AssetsPage() {
   const { data: session, status } = useSession();
+  
+  // Set page title
+  usePageTitle("Assets - YONA");
 
   if (status === "loading") {
     return (

@@ -6,9 +6,13 @@ import { useSession } from "next-auth/react";
 import TradePanel from "@/components/Smart/TradePanel";
 import { CurrentUserWalletProvider } from "@/components/Wallet/CurrentUserWalletProvider";
 import { IssuerWalletProvider } from "@/components/Wallet/IssuerWalletProvider";
+import usePageTitle from "@/utils/usePageTitle";
 
 export default function Trade() {
   const { data: session, status } = useSession();
+  
+  // Set dynamic page title
+  usePageTitle("Trade - YONA");
 
   if (status === "loading") {
     return (

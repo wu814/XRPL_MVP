@@ -4,10 +4,14 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import Button from "@/components/Button";
 import ChangePasswordBtn from "@/components/Setting/ChangePasswordBtn";
+import usePageTitle from "@/utils/usePageTitle";
 
 export default function SettingsPage() {
   const { data: session, status } = useSession();
   const [username, setUsername] = useState("");
+  
+  // Set page title
+  usePageTitle("Settings - YONA");
 
   useEffect(() => {
     if (status === "authenticated") {

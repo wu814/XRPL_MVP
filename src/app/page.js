@@ -5,11 +5,14 @@ import { useRouter } from "next/navigation";
 import { signIn, signOut, useSession } from "next-auth/react";
 import Button from "@/components/Button";
 import AuthRedirect from "@/components/AuthRedirect";
-import Head from "next/head";
+import usePageTitle from "@/utils/usePageTitle";
 
 export default function Login() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  
+  // Set page title
+  usePageTitle("ツYONA - Your DeFi Platform");
 
   useEffect(() => {
     if (session) {
@@ -28,13 +31,6 @@ export default function Login() {
 
   return (
     <>
-      <Head>
-        <title>ツ YONA - Control the Ledger</title>
-        <meta
-          name="description"
-          content="ツ YONA - Shape the Future of Digital Assets"
-        />
-      </Head>
       <div
         className="flex min-h-screen flex-row items-center justify-between bg-cover bg-center"
         style={{

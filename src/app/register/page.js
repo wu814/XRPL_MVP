@@ -5,10 +5,14 @@ import { useSession, update } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import RegistrationForm from "@/components/Register/RegistrationForm";
+import usePageTitle from "@/utils/usePageTitle";
 
 export default function RegisterPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  
+  // Set page title
+  usePageTitle("Register - YONA");
 
   useEffect(() => {
     if (status === "loading") return; // Still loading

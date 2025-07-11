@@ -8,11 +8,15 @@ import { useEffect, useState } from "react";
 import { CurrentUserWalletProvider } from "@/components/Wallet/CurrentUserWalletProvider";
 import { IssuerWalletProvider } from "@/components/Wallet/IssuerWalletProvider";
 import CurrencyPairSelection from "@/components/Currency/CurrencyPairSelection";
+import usePageTitle from "@/utils/usePageTitle";
 
 export default function DEX() {
   const { data: session, status } = useSession();
   const [baseCurrency, setBaseCurrency] = useState("USD");
   const [quoteCurrency, setQuoteCurrency] = useState("XRP");
+  
+  // Set page title
+  usePageTitle("Order Book - YONA");
 
   if (status === "loading") {
     return (

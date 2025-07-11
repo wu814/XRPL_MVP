@@ -3,9 +3,13 @@ import DisplayAmms from "@/components/Amm/DisplayAmms";
 import Breadcrumbs from "@/components/Navigation/Breadcrumbs";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
+import usePageTitle from "@/utils/usePageTitle";
 
 export default function AMM() {
   const { data: session, status } = useSession();
+  
+  // Set page title
+  usePageTitle("Liquidity Pools - YONA");
 
   if (status === "loading") {
     return (

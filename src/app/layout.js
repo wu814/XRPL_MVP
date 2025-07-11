@@ -1,43 +1,34 @@
 // layout.js
-"use client";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import SessionWrapper from "@/components/SessionWrapper";
-import Sidebar from "@/components/Navigation/Sidebar";
-import Topbar from "@/components/Navigation/Topbar";
-import { useSession } from "next-auth/react";
-import { usePathname } from "next/navigation";
+import ClientLayoutContent from "@/components/ClientLayoutContent";
 
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
 });
 
-function LayoutContent({ children }) {
-  const { data: session, status } = useSession();
-  const pathname = usePathname();
-  
-  // Don't show sidebar/topbar on splash page, register page, or when not authenticated
-  const showNavigation = session && pathname !== "/" && pathname !== "/register";
-  const showSmartTradePanel = session && pathname !== "/" && pathname !== "/register" && !pathname.startsWith("/trade/amm") && !pathname.startsWith("/user") && pathname !== "/trade/dex" && pathname !== "/settings";
-  
-  return (
-    <div className="min-h-screen bg-color1 text-white">
-      {showNavigation && <Topbar />}
-      {showNavigation && <Sidebar />}
-      <div className={`${showNavigation ? "mt-[6rem] ml-[16rem]" : ""} ${showSmartTradePanel ? "mr-[32rem]" : ""}`}>
-        {children}
-      </div>
-    </div>
-  );
-}
+// Default metadata for SEO, social sharing, and fallback
+export const metadata = {
+  description: "Trade, manage assets, and interact with the XRPL network",
+  keywords: "XRPL, DeFi, trading, cryptocurrency, liquidity pools, AMM, DEX",
+  icons: {
+    icon: "/favicon.ico",
+  },
+  openGraph: {
+    title: "YONA - Your DeFi Platform",
+    description: "Trade, manage assets, and interact with the XRPL network",
+    type: "website",
+  },
+};
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`${inter.variable} antialiased`}>
         <SessionWrapper>
-          <LayoutContent>{children}</LayoutContent>
+          <ClientLayoutContent>{children}</ClientLayoutContent>
         </SessionWrapper>
       </body>
     </html>

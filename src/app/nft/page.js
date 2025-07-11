@@ -8,10 +8,14 @@ import MintAndListNft from "@/components/Nft/MintAndListNft";
 import TradePanel from "@/components/Smart/TradePanel";
 import { CurrentUserWalletProvider } from "@/components/Wallet/CurrentUserWalletProvider";
 import { IssuerWalletProvider } from "@/components/Wallet/IssuerWalletProvider";
+import usePageTitle from "@/utils/usePageTitle";
 
 export default function NftPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  
+  // Set page title
+  usePageTitle("NFT Marketplace - YONA");
 
   useEffect(() => {
     if (status === "loading") return; // Still loading
