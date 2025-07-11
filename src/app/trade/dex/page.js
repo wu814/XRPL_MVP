@@ -8,12 +8,13 @@ import { useEffect, useState } from "react";
 import { CurrentUserWalletProvider } from "@/components/Wallet/CurrentUserWalletProvider";
 import { IssuerWalletProvider } from "@/components/Wallet/IssuerWalletProvider";
 import CurrencyPairSelection from "@/components/Currency/CurrencyPairSelection";
+import Breadcrumbs from "@/components/Navigation/Breadcrumbs";
 import usePageTitle from "@/utils/usePageTitle";
 
 export default function DEX() {
   const { data: session, status } = useSession();
-  const [baseCurrency, setBaseCurrency] = useState("USD");
-  const [quoteCurrency, setQuoteCurrency] = useState("XRP");
+  const [baseCurrency, setBaseCurrency] = useState("XRP");
+  const [quoteCurrency, setQuoteCurrency] = useState("USD");
   
   // Set page title
   usePageTitle("Order Book - YONA");
@@ -44,6 +45,11 @@ export default function DEX() {
     <CurrentUserWalletProvider>
       <IssuerWalletProvider>
         <div className="min-h-screen bg-color1 p-2">
+          {/* Breadcrumbs */}
+          <div className="m-2">
+            <Breadcrumbs />
+          </div>
+
           {/* Currency Pair Selection */}
           <div className="mb-4">
             <CurrencyPairSelection

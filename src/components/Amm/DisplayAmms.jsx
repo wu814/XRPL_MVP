@@ -205,7 +205,7 @@ export default function DisplayAmms() {
                 {/* Address */}
                 <div className="mx-auto h-4 w-48 rounded-lg bg-pulse" />
                 {/* Pool Total */}
-                <div className="mx-auto h-4 w-24 rounded-lg bg-pulse" />
+                <div className="mx-auto h-4 w-20 rounded-lg bg-pulse" />
                 {/* Fee */}
                 <div className="mx-auto h-4 w-12 rounded-lg bg-pulse" />
               </div>

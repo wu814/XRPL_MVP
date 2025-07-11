@@ -6,8 +6,8 @@ import Button from "../Button";
 import { ArrowLeftRight } from "lucide-react";
 
 export default function CurrencyPairSelection({ onPairUpdate }) {
-  const [baseCurrency, setBaseCurrency] = useState("USD");
-  const [quoteCurrency, setQuoteCurrency] = useState("XRP");
+  const [baseCurrency, setBaseCurrency] = useState("XRP");
+  const [quoteCurrency, setQuoteCurrency] = useState("USD");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Temporary state for modal
