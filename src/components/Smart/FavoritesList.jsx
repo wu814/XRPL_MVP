@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Star } from "lucide-react";
+import { Star, Loader2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 
 export default function FavoritesList({ onRecipientClick }) {
@@ -58,7 +58,7 @@ export default function FavoritesList({ onRecipientClick }) {
 
       {loadingFavorites ? (
         <div className="py-4 text-center">
-          <div className="mx-auto h-5 w-5 animate-spin rounded-full border-b-2 border-blue-500"></div>
+          <Loader2 className="h-8 w-8 animate-spin text-gray-400 mx-auto" />
           <p className="mt-2 text-gray-400">Loading favorites...</p>
         </div>
       ) : (

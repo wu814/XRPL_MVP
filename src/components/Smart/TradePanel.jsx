@@ -719,7 +719,7 @@ export default function TradePanel() {
               </div>
 
               {/* Send Form */}
-              <form onSubmit={handleSendSubmit} className="space-y-5">
+              <form onSubmit={handleSendSubmit} className="space-y-3">
                 {/* Recipient Input */}
                 {useUsername ? (
                   <div className="relative">
@@ -850,7 +850,7 @@ export default function TradePanel() {
                     className="w-full bg-color3 border border-transparent rounded-lg px-4 py-3 outline-none hover:border-gray-500 focus:border-primary"
                   />
                 </div>
-
+                <div className="mt-4">  </div>
                 <Button
                   type="submit"
                   disabled={
