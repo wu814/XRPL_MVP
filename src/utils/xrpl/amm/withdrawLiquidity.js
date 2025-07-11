@@ -206,16 +206,8 @@ export async function withdrawLiquidityTwoAsset(
         // Log updated pool balances
         message += "\n===== Updated AMM Pool State =====\n";
         message += `LP tokens balance: ${Number(updatedAmmData.lp_token.value).toFixed(2)}\n`;
-        if (assetA.isXRP) {
-          message += `Token balance: ${xrpl.dropsToXrp(Number(updatedAmmData.amount)).toFixed(8)} ${assetA.currency}\n`;
-          message += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${assetB.currency}\n`;
-        } else if (assetB.isXRP) {
-          message += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${assetA.currency}\n`;
-          message += `Token balance: ${xrpl.dropsToXrp(Number(updatedAmmData.amount2)).toFixed(8)} ${assetB.currency}\n`;
-        } else {
-          message += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${assetA.currency}\n`;
-          message += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${assetB.currency}\n`;
-        }
+        message += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${updatedAmmData.amount.currency}\n`;
+        message += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${updatedAmmData.amount2.currency}\n`;
       } else {
         message += "⚠️ Could not retrieve updated AMM data\n";
       }
@@ -383,16 +375,8 @@ export async function withdrawLiquidityWithLPToken(
         // Log updated pool balances
         message += "\n===== Updated AMM Pool State =====\n";
         message += `LP tokens balance: ${Number(updatedAmmData.lp_token.value).toFixed(2)}\n`;
-        if (assetA.isXRP) {
-          message += `Token balance: ${xrpl.dropsToXrp(Number(updatedAmmData.amount)).toFixed(8)} ${assetA.currency}\n`;
-          message += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${assetB.currency}\n`;
-        } else if (assetB.isXRP) {
-          message += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${assetA.currency}\n`;
-          message += `Token balance: ${xrpl.dropsToXrp(Number(updatedAmmData.amount2)).toFixed(8)} ${assetB.currency}\n`;
-        } else {
-          message += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${assetA.currency}\n`;
-          message += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${assetB.currency}\n`;
-        }
+        message += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${updatedAmmData.amount.currency}\n`;
+        message += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${updatedAmmData.amount2.currency}\n`;
       } else {
         message += "⚠️ Could not retrieve updated AMM data\n";
       }
@@ -551,16 +535,8 @@ export async function withdrawAllLiquidity(standbyWallet, ammAccount) {
       if (updatedAmmData) {
         message += "\n===== Updated AMM Pool State =====\n";
         message += `LP tokens balance: ${Number(updatedAmmData.lp_token.value).toFixed(2)}\n`;
-        if (assetA.isXRP) {
-          message += `Token balance: ${xrpl.dropsToXrp(Number(updatedAmmData.amount)).toFixed(8)} ${assetA.currency}\n`;
-          message += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${assetB.currency}\n`;
-        } else if (assetB.isXRP) {
-          message += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${assetA.currency}\n`;
-          message += `Token balance: ${xrpl.dropsToXrp(Number(updatedAmmData.amount2)).toFixed(8)} ${assetB.currency}\n`;
-        } else {
-          message += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${assetA.currency}\n`;
-          message += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${assetB.currency}\n`;
-        }
+        message += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${updatedAmmData.amount.currency}\n`;
+        message += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${updatedAmmData.amount2.currency}\n`;
       } else {
         message += "⚠️ Could not retrieve updated AMM data\n";
       }
@@ -824,16 +800,8 @@ export async function withdrawSingleAsset(
         // Log updated pool balances
         message += "\n===== Updated AMM Pool State =====\n";
         message += `LP tokens balance: ${Number(updatedAmmData.lp_token.value).toFixed(2)}\n`;
-        if (assetA.isXRP) {
-          message += `Token balance: ${xrpl.dropsToXrp(Number(updatedAmmData.amount)).toFixed(8)} ${assetA.currency}\n`;
-          message += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${assetB.currency}\n`;
-        } else if (assetB.isXRP) {
-          message += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${assetA.currency}\n`;
-          message += `Token balance: ${xrpl.dropsToXrp(Number(updatedAmmData.amount2)).toFixed(8)} ${assetB.currency}\n`;
-        } else {
-          message += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${assetA.currency}\n`;
-          message += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${assetB.currency}\n`;
-        }
+        message += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${updatedAmmData.amount.currency}\n`;
+        message += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${updatedAmmData.amount2.currency}\n`;
       } else {
         message += "⚠️ Could not retrieve updated AMM data\n";
       }
@@ -1035,16 +1003,8 @@ export async function withdrawAllSingleAsset(
         // Log updated pool balances
         message += "\n===== Updated AMM Pool State =====\n";
         message += `LP tokens balance: ${Number(updatedAmmData.lp_token.value).toFixed(2)}\n`;
-        if (assetA.isXRP) {
-          message += `Token balance: ${xrpl.dropsToXrp(Number(updatedAmmData.amount)).toFixed(8)} ${assetA.currency}\n`;
-          message += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${assetB.currency}\n`;
-        } else if (assetB.isXRP) {
-          message += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${assetA.currency}\n`;
-          message += `Token balance: ${xrpl.dropsToXrp(Number(updatedAmmData.amount2)).toFixed(8)} ${assetB.currency}\n`;
-        } else {
-          message += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${assetA.currency}\n`;
-          message += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${assetB.currency}\n`;
-        }
+        message += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${updatedAmmData.amount.currency}\n`;
+        message += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${updatedAmmData.amount2.currency}\n`;
       } else {
         message += "⚠️ Could not retrieve updated AMM data\n";
       }
@@ -1241,16 +1201,8 @@ export async function withdrawSingleAssetWithLPToken(
         // Log updated pool balances
         message += "\n===== Updated AMM Pool State =====\n";
         message += `LP tokens balance: ${Number(updatedAmmData.lp_token.value).toFixed(2)}\n`;
-        if (assetA.isXRP) {
-          message += `Token balance: ${xrpl.dropsToXrp(Number(updatedAmmData.amount)).toFixed(8)} ${assetA.currency}\n`;
-          message += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${assetB.currency}\n`;
-        } else if (assetB.isXRP) {
-          message += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${assetA.currency}\n`;
-          message += `Token balance: ${xrpl.dropsToXrp(Number(updatedAmmData.amount2)).toFixed(8)} ${assetB.currency}\n`;
-        } else {
-          message += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${assetA.currency}\n`;
-          message += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${assetB.currency}\n`;
-        }
+        message += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${updatedAmmData.amount.currency}\n`;
+        message += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${updatedAmmData.amount2.currency}\n`;
       } else {
         message += "⚠️ Could not retrieve updated AMM data\n";
       }
