@@ -16,7 +16,7 @@ export default function ClientLayoutContent({ children }) {
     <div className="min-h-screen bg-color1 text-white">
       {showNavigation && <Topbar />}
       {showNavigation && <Sidebar />}
-      <div className={`${showNavigation ? "mt-24 ml-56" : ""} ${showSmartTradePanel ? "mr-[32rem]" : ""}`}>
+      <div className={`${showNavigation ? "mt-24 ml-56" : ""} ${showSmartTradePanel ? "mr-[30rem]" : ""}`}>
         {children}
       </div>
     </div>

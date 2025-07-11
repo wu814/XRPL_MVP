@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Loader2 } from "lucide-react";
 import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
@@ -167,7 +168,14 @@ export default function MintAndListNft() {
             disabled={loading}
             className="w-full"
           >
-            {loading ? "Processing..." : "Mint & List NFT"}
+            {loading ? (
+              <div className="flex items-center justify-center space-x-2">
+                <Loader2 className="h-5 w-5 animate-spin" />
+                <span>Processing...</span>
+              </div>
+            ) : (
+              "Mint & List NFT"
+            )}
           </Button>
 
           {/* Info Text */}

@@ -227,12 +227,12 @@ export default async function getCompletedOffers(wallet) {
       return b.sequence - a.sequence;
     });
 
-    console.log("Completed offers with hashes:", completedOffers.map(o => ({
-      seq: o.sequence,
-      createHash: o.createHash,
-      completeHash: o.completeHash,
-      status: o.status
-    })));
+    // console.log("Completed offers with hashes:", completedOffers.map(o => ({
+    //   seq: o.sequence,
+    //   createHash: o.createHash,
+    //   completeHash: o.completeHash,
+    //   status: o.status
+    // })));
 
     return completedOffers;
   } catch (error) {

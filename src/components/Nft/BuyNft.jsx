@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Loader2 } from "lucide-react";
 import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
@@ -136,7 +137,14 @@ export default function BuyNft() {
             disabled={loading || !userWallet || !issuerWallet || !offerID}
             className="w-full"
           >
-            {loading ? "Processing Purchase..." : "Buy NFT"}
+            {loading ? (
+              <div className="flex items-center justify-center">
+                <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                Processing Purchase...
+              </div>
+            ) : (
+              "Buy NFT"
+            )}
           </Button>
 
           {/* Info Text */}

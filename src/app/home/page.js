@@ -129,7 +129,6 @@ export default function Home() {
       <IssuerWalletProvider>
         <div
           className="min-h-screen w-full bg-color1 p-2"
-          style={{ maxWidth: "calc(100vw - 6rem - 32rem)" }}
         >
           {/* Content */}
           <div className="space-y-4 h-full overflow-y-auto">

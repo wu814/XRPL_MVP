@@ -140,13 +140,15 @@ export default function CreateOffer({ baseCurrency, quoteCurrency }) {
 
         {/* Total Value Display */}
         {limitPrice && quantity && (
-          <div className="rounded-lg bg-color3 p-4">
+          <div>
             <label className="mb-1 block text-sm text-mutedText">
               Total Value
             </label>
-            <div className="text-right text-lg font-semibold">
-              {(parseFloat(limitPrice) * parseFloat(quantity)).toFixed(2)}{" "}
-              {quoteCurrency}
+            <div className="rounded-lg bg-color3 p-2">
+              <div className="text-right text-lg font-semibold">
+                {(parseFloat(limitPrice) * parseFloat(quantity)).toFixed(2)}{" "}
+                {quoteCurrency}
+              </div>
             </div>
           </div>
         )}

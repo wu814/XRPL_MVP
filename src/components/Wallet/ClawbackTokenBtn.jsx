@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { Loader2 } from "lucide-react";
 import CurrencyDropDown from "../Currency/CurrencyDropDown";
 import Button from "../Button";
 import SuccessMdl from "../SuccessMdl";
@@ -120,7 +121,14 @@ export default function ClawbackTokenBtn({ issuerWallet }) {
                 }
                 className="flex-1"
               >
-                {loading ? "Processing..." : "Clawback"}
+                {loading ? (
+                  <div className="flex items-center justify-center">
+                    <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                    Processing...
+                  </div>
+                ) : (
+                  "Clawback"
+                )}
               </Button>
             </div>
           </div>

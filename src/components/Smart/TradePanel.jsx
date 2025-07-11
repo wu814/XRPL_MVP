@@ -482,7 +482,7 @@ export default function TradePanel() {
 
   return (
     <>
-      <div className="w-[32rem] fixed right-0 top-24 bottom-0 bg-color2 overflow-y-auto mt-2 rounded-lg">
+      <div className="w-[30rem] fixed right-0 top-24 bottom-0 bg-color2 overflow-y-auto mt-2 rounded-lg">
         {/* Smart Trade Header */}
         <div className="p-6 border-b border-gray-600">
           <div className="flex flex-row justify-between items-center relative">
@@ -505,7 +505,7 @@ export default function TradePanel() {
         </div>
         
         {/* Trade Section */}
-        <div className="mb-8 p-8">
+        <div className="mb-8 p-6">
           {/* Tab Buttons */}
           <div className="flex bg-color3 rounded-lg p-1 mb-6">
             {["Convert", "Send"].map((tab) => (

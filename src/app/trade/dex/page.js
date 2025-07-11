@@ -85,7 +85,7 @@ export default function DEX() {
             </div>
 
             {/* Bottom Row: User Orders - Full Width and Height */}
-            <div className="rounded-lg bg-color2 p-4 h-96">
+            <div className="rounded-lg bg-color2 p-4 h-[26rem]">
               <DisplayUserOffers />
             </div>
           </div>

@@ -43,7 +43,6 @@ export default function Trade() {
       <IssuerWalletProvider>
         <div
           className="min-h-screen w-full p-2"
-          style={{ maxWidth: "calc(100vw - 6rem - 32rem)" }}
         >
           {/* Trading Options Content */}
           <div className="space-y-2">
