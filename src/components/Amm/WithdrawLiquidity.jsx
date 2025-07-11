@@ -216,10 +216,10 @@ export default function WithdrawLiquidity({ ammInfo, onWithdrawn }) {
             className="w-full"
           >
             {loading ? (
-              <>
+              <div className="flex items-center justify-center space-x-2">
                 <Loader2 className="h-5 w-5 animate-spin mr-2" />
                 Withdrawing Liquidity...
-              </>
+              </div>
             ) : (
               "Withdraw Liquidity"
             )}

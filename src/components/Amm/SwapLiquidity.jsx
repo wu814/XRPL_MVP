@@ -247,16 +247,6 @@ export default function SwapLiquidity({ ammInfo, onSwapped }) {
         </div>
       )}
 
-      {/* Show AMM pool info */}
-      {ammInfo && (
-        <div className="mb-4 p-3 bg-green-900/20 border border-green-500 rounded-lg">
-          <p className="text-green-400 text-sm">
-            ✅ AMM Pool: {ammInfo.amount?.currency}/{ammInfo.amount2?.currency} 
-            {ammInfo.trading_fee > 0 && ` (${ammInfo.trading_fee/1000}% fee)`}
-          </p>
-        </div>
-      )}
-
       {/* Amount Inputs */}
       <div>
         <div className="flex items-center justify-between rounded-lg border border-transparent bg-color3 p-4 hover:border-gray-500 focus-within:!border-primary">
