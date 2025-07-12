@@ -305,7 +305,7 @@ export default function TransferBtn({
 
       {showMdl && (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/40">
-          <div className="w-98 space-y-4 rounded-lg bg-color3 p-6">
+          <div className="w-auto min-w-96 space-y-4 rounded-lg bg-color3 p-6">
             <div className="relative mb-6 flex justify-between">
               <h2 className="text-start text-2xl font-semibold">
                 Transfer / Pay
