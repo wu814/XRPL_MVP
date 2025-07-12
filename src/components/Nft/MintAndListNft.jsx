@@ -158,7 +158,7 @@ export default function MintAndListNft() {
               className="w-full bg-color3 border border-transparent rounded-lg p-3 hover:border-gray-500 focus:border-primary focus:outline-none"
             />
             <p className="text-xs text-mutedText mt-1">
-              NFT collection identifier (1001 = Receipt NFTs)
+              NFT collection identifier
             </p>
           </div>
 
