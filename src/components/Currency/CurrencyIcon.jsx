@@ -12,7 +12,7 @@ export default function CurrencyIcon({
       </div>
     );
   }
-  const logoSrc = `/icons/${symbol}.svg`;
+  const logoSrc = `/icons/${symbol}.png`;
   return (
     <div className={`text-md flex items-center gap-2 rounded-lg px-3 py-2 font-medium ${iconBg}`}>
       <img

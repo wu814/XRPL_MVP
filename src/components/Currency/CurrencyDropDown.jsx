@@ -8,8 +8,8 @@ import {
   Transition,
 } from "@headlessui/react";
 import { Fragment } from "react";
+import { ChevronDown } from "lucide-react";
 import { availableCurrencies } from "@/utils/xrpl/assets";
-
 
 export default function CurrencyDropDown({
   value,
@@ -40,19 +40,7 @@ export default function CurrencyDropDown({
               <span className="text-mutedText">Select</span>
             )}
           </div>
-          <svg
-            className="h-4 w-4 text-mutedText"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M19 9l-7 7-7-7"
-            />
-          </svg>
+          <ChevronDown className="h-4 w-4 text-mutedText" />
         </ListboxButton>
 
         <Transition

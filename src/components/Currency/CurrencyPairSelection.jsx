@@ -40,8 +40,8 @@ export default function CurrencyPairSelection({ onPairUpdate }) {
     closeModal();
   };
 
-  const baseLogoSrc = `/icons/${baseCurrency}.svg`;
-  const quoteLogoSrc = `/icons/${quoteCurrency}.svg`;
+  const baseLogoSrc = `/icons/${baseCurrency}.png`;
+  const quoteLogoSrc = `/icons/${quoteCurrency}.png`;
 
   return (
     <>

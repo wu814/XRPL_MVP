@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { Plus } from "lucide-react";
 import { useCurrentUserWallet } from "@/components/Wallet/CurrentUserWalletProvider";
 import { useIssuerWallet } from "@/components/Wallet/IssuerWalletProvider";
 import AssetTable from "@/components/Wallet/AssetTable";
@@ -61,7 +62,7 @@ function AssetTableWrapper() {
           usdValue: (xrpBalance * 0.5).toFixed(2), // Mock USD value
           change24h: "+2.3%",
           changeValue: "+$0.12",
-          icon: "/icons/XRP.svg",
+          icon: "/icons/XRP.png",
         });
       }
 
@@ -77,7 +78,7 @@ function AssetTableWrapper() {
               usdValue: (balance * 1.0).toFixed(2), // Mock USD value
               change24h: "+1.5%",
               changeValue: "+$0.08",
-              icon: `/icons/${line.currency.toLowerCase()}.svg`,
+              icon: `/icons/${line.currency.toUpperCase()}.png`,
             });
           }
         });
@@ -438,19 +439,7 @@ export default function DisplayUserWallets({ session, showAssetTable = false }) 
           <div className="rounded-lg border border-white/20 bg-white/10 p-4 backdrop-blur">
             <div className="flex items-center space-x-4">
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/20">
-                <svg
-                  className="h-6 w-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                  />
-                </svg>
+                <Plus className="h-6 w-6" />
               </div>
               <div className="flex-1">
                 <h3 className="mb-1 font-semibold">Create Your First Wallet</h3>
