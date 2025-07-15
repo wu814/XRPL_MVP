@@ -62,40 +62,43 @@ const mapPoolCurrencies = (pool, sendCurrency, receiveCurrency) => {
   throw new Error(`Pool currency mismatch: expected ${sendCurrency}/${receiveCurrency}, got ${pool.currency_a?.currency}/${pool.currency_b?.currency}`);
 };
 
-const calculatePreciseAmount = async (recommendation, sendCurrency, receiveCurrency, sendAmount, issuerAddress, slippagePercent, paymentType = "exact_input") => {
-  if (recommendation.type === 'DEX') {
-    return parseFloat(sendAmount);
-  }
-  
-  if (recommendation.type === 'AMM' && recommendation.path?.hops) {
-    let cumulativeSlippage = 1.0;
-    recommendation.path.hops.forEach((hop, i) => {
-      cumulativeSlippage *= 1.003; // 0.3% per hop
-    });
-    return parseFloat(sendAmount) * cumulativeSlippage;
-  }
-  
-  // Direct AMM calculation
-  try {
-    const liveAmmData = await getAmmPoolData(sendCurrency, receiveCurrency, issuerAddress);
-    if (liveAmmData) {
-      const { poolSend, poolReceive } = mapPoolCurrencies(liveAmmData, sendCurrency, receiveCurrency);
-      const tradingFeeBasisPoints = liveAmmData.trading_fee || 0;
-      
-      if (paymentType === "exact_output") {
-        // For exact_output: Calculate how much input is needed for exact output
-        const targetOutput = parseFloat(recommendation.estimatedOutput);
-        const calculation = calculateExactAMMInput(poolSend, poolReceive, targetOutput, slippagePercent / 100, tradingFeeBasisPoints);
-        if (calculation.success) {
-          return calculation.exactInput;
-        }
-      } else {
-        // For exact_input: Use the exact amount specified (with slippage buffer)
-        return parseFloat(sendAmount) * (1 + slippagePercent / 100);
-      }
+const calculatePreciseAmount = async (recommendation, sendCurrency, receiveCurrency, sendAmount, issuerAddress, slippagePercent, paymentType) => {
+  if (paymentType === "exact_output") {
+
+    if (recommendation.type === 'DEX') {
+      return parseFloat(sendAmount);
     }
-  } catch (error) {
-    console.log(`⚠️ Error calculating precise amount: ${error.message}`);
+    
+    if (recommendation.type === 'AMM' && recommendation.path?.hops) {
+      let cumulativeSlippage = 1.0;
+      recommendation.path.hops.forEach((hop, i) => {
+        cumulativeSlippage *= 1.003; // 0.3% per hop
+      });
+      return parseFloat(sendAmount) * cumulativeSlippage;
+    }
+    
+    // Direct AMM calculation
+    try {
+      const liveAmmData = await getAmmPoolData(sendCurrency, receiveCurrency, issuerAddress);
+      if (liveAmmData) {
+        const { poolSend, poolReceive } = mapPoolCurrencies(liveAmmData, sendCurrency, receiveCurrency);
+        const tradingFeeBasisPoints = liveAmmData.trading_fee || 0;
+        
+        if (paymentType === "exact_output") {
+          // For exact_output: Calculate how much input is needed for exact output
+          const targetOutput = parseFloat(recommendation.estimatedOutput);
+          const calculation = calculateExactAMMInput(poolSend, poolReceive, targetOutput, slippagePercent / 100, tradingFeeBasisPoints);
+          if (calculation.success) {
+            return calculation.exactInput;
+          }
+        } else {
+          // For exact_input: Use the exact amount specified (with slippage buffer)
+          return parseFloat(sendAmount) * (1 + slippagePercent / 100);
+        }
+      }
+    } catch (error) {
+      console.log(`⚠️ Error calculating precise amount: ${error.message}`);
+    }
   }
   
   return parseFloat(sendAmount);
@@ -229,14 +232,6 @@ export async function sendCrossCurrency(
   exactOutputAmount = null
 ) {
   try {
-    console.log("send currency", sendCurrency);
-    console.log("send amount", sendAmount);
-    console.log("receive currency", receiveCurrency);
-    console.log("issuer address", issuerAddress);
-    console.log("slippage percent", slippagePercent);
-    console.log("destination tag", destinationTag);
-    console.log("payment type", paymentType);
-    console.log("exact output amount", exactOutputAmount);
     await connectXrplClient();
     
     console.log(`🎯 Smart Cross-Currency Payment: ${senderWallet.classicAddress} → ${destinationAddress}`);

@@ -27,6 +27,11 @@ export default function MintAndListNft() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!businessWallet) {
+      setErrorMessage("No business wallet found. Please create a wallet first.");
+      return;
+    }
+
     if (!uri.trim()) {
       setErrorMessage("Please enter a valid URI for the NFT metadata.");
       return;
