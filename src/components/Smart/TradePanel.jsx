@@ -98,15 +98,29 @@ export default function TradePanel() {
 
   // Fetch AMM data when currencies change
   useEffect(() => {
-    if (sellCurrency && buyCurrency && sellCurrency !== buyCurrency) {
-      fetchAmmData();
+    if (activeTab === "Convert") {
+      // For Convert tab - use sellCurrency and buyCurrency
+      if (sellCurrency && buyCurrency && sellCurrency !== buyCurrency) {
+        fetchAmmData(sellCurrency, buyCurrency);
+      } else {
+        setAmmData(null);
+        setAmmDataError(null);
+      }
+    } else if (activeTab === "Send" && paymentType === "convertable") {
+      // For Send tab with convertable payment - use sendCurrency and receiveCurrency
+      if (sendCurrency && receiveCurrency && sendCurrency !== receiveCurrency) {
+        fetchAmmData(sendCurrency, receiveCurrency);
+      } else {
+        setAmmData(null);
+        setAmmDataError(null);
+      }
     } else {
       setAmmData(null);
       setAmmDataError(null);
     }
-  }, [sellCurrency, buyCurrency]);
+  }, [activeTab, sellCurrency, buyCurrency, sendCurrency, receiveCurrency, paymentType]);
 
-  const fetchAmmData = async () => {
+  const fetchAmmData = async (currency1, currency2) => {
     setLoadingAmmData(true);
     setAmmDataError(null);
     setAmmData(null);
@@ -116,8 +130,8 @@ export default function TradePanel() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          sellCurrency,
-          buyCurrency,
+          sellCurrency: currency1,
+          buyCurrency: currency2,
         }),
       });
 
@@ -135,21 +149,8 @@ export default function TradePanel() {
     }
   };
 
-  // Calculate output when sell amount changes
-  useEffect(() => {
-    if (sellAmount && parseFloat(sellAmount) > 0 && sellCurrency && buyCurrency && sellCurrency !== buyCurrency && activeInput === "sell" && ammData) {
-      calculateOutput();
-    }
-  }, [sellAmount, sellCurrency, buyCurrency, activeInput, ammData]);
-
-  // Calculate input when buy amount changes
-  useEffect(() => {
-    if (buyAmount && parseFloat(buyAmount) > 0 && sellCurrency && buyCurrency && sellCurrency !== buyCurrency && activeInput === "buy" && ammData) {
-      calculateInput();
-    }
-  }, [buyAmount, sellCurrency, buyCurrency, activeInput, slippage, ammData]);
-
-  const calculateOutput = async () => {
+  // Generic calculation function for output (replaces calculateOutput)
+  const calculateOutputAmount = async (inputAmount, inputCurrency, outputCurrency, setOutputAmount) => {
     if (!ammData) {
       console.log("⚠️ No AMM data available for output calculation");
       return;
@@ -160,32 +161,33 @@ export default function TradePanel() {
 
     try {      
       // Determine pool balances from cached AMM data
-      let poolSell, poolBuy;
-      if (ammData.amount.currency === sellCurrency) {
-        poolSell = parseFloat(ammData.amount.value);
-        poolBuy = parseFloat(ammData.amount2.value);
+      let poolInput, poolOutput;
+      if (ammData.amount.currency === inputCurrency) {
+        poolInput = parseFloat(ammData.amount.value);
+        poolOutput = parseFloat(ammData.amount2.value);
       } else {
-        poolSell = parseFloat(ammData.amount2.value);
-        poolBuy = parseFloat(ammData.amount.value);
+        poolInput = parseFloat(ammData.amount2.value);
+        poolOutput = parseFloat(ammData.amount.value);
       }
 
       // Calculate estimated output using the imported function
-      const calculation = calculateEstimateOutput(poolSell, poolBuy, sellAmount, ammData.trading_fee || 0);
+      const calculation = calculateEstimateOutput(poolInput, poolOutput, inputAmount, ammData.trading_fee || 0);
       
       if (calculation.success) {
-        setBuyAmount(calculation.estimatedOutput.toFixed(6));
+        setOutputAmount(calculation.estimatedOutput.toFixed(6));
       } else {
         throw new Error(calculation.error);
       }
     } catch (error) {
       setCalculationError(error.message);
-      setBuyAmount("");
+      setOutputAmount("");
     } finally {
       setCalculatingAmounts(false);
     }
   };
 
-  const calculateInput = async () => {
+  // Generic calculation function for input (replaces calculateInput)
+  const calculateInputAmount = async (outputAmount, inputCurrency, outputCurrency, setInputAmount) => {
     if (!ammData) {
       console.log("⚠️ No AMM data available for input calculation");
       return;
@@ -195,38 +197,74 @@ export default function TradePanel() {
     setCalculationError(null);
 
     try {
-      
       // Determine pool balances from cached AMM data
-      let poolSell, poolBuy;
-      if (ammData.amount.currency === sellCurrency) {
-        poolSell = parseFloat(ammData.amount.value);
-        poolBuy = parseFloat(ammData.amount2.value);
+      let poolInput, poolOutput;
+      if (ammData.amount.currency === inputCurrency) {
+        poolInput = parseFloat(ammData.amount.value);
+        poolOutput = parseFloat(ammData.amount2.value);
       } else {
-        poolSell = parseFloat(ammData.amount2.value);
-        poolBuy = parseFloat(ammData.amount.value);
+        poolInput = parseFloat(ammData.amount2.value);
+        poolOutput = parseFloat(ammData.amount.value);
       }
 
       // Calculate required input using the imported function
       const calculation = calculateExactAMMInput(
-        poolSell, 
-        poolBuy, 
-        parseFloat(buyAmount), 
+        poolInput, 
+        poolOutput, 
+        parseFloat(outputAmount), 
         parseFloat(slippage) / 100, 
         ammData.trading_fee || 0
       );
       
       if (calculation.success) {
-        setSellAmount(calculation.inputWithSlippage.toFixed(6));
+        setInputAmount(calculation.inputWithSlippage.toFixed(6));
       } else {
         throw new Error(calculation.error);
       }
     } catch (error) {
       setCalculationError(error.message);
-      setSellAmount("");
+      setInputAmount("");
     } finally {
       setCalculatingAmounts(false);
     }
   };
+
+  // Updated useEffects using the generic functions
+  // Calculate output when sell amount changes (Convert form)
+  useEffect(() => {
+    if (sellAmount && parseFloat(sellAmount) > 0 && sellCurrency && buyCurrency && sellCurrency !== buyCurrency && activeInput === "sell" && ammData) {
+      calculateOutputAmount(sellAmount, sellCurrency, buyCurrency, setBuyAmount);
+    } else if (activeInput === "sell" && (!sellAmount || parseFloat(sellAmount) <= 0)) {
+      setBuyAmount("");
+    }
+  }, [sellAmount, sellCurrency, buyCurrency, activeInput, ammData]);
+
+  // Calculate input when buy amount changes (Convert form)
+  useEffect(() => {
+    if (buyAmount && parseFloat(buyAmount) > 0 && sellCurrency && buyCurrency && sellCurrency !== buyCurrency && activeInput === "buy" && ammData) {
+      calculateInputAmount(buyAmount, sellCurrency, buyCurrency, setSellAmount);
+    } else if (activeInput === "buy" && (!buyAmount || parseFloat(buyAmount) <= 0)) {
+      setSellAmount("");
+    }
+  }, [buyAmount, sellCurrency, buyCurrency, activeInput, slippage, ammData]);
+
+  // Calculate receive amount when send amount changes (Send form)
+  useEffect(() => {
+    if (sendAmount && parseFloat(sendAmount) > 0 && sendCurrency && receiveCurrency && sendCurrency !== receiveCurrency && convertInputType === "exact_input" && ammData) {
+      calculateOutputAmount(sendAmount, sendCurrency, receiveCurrency, setReceiveAmount);
+    } else if (convertInputType === "exact_input" && (!sendAmount || parseFloat(sendAmount) <= 0)) {
+      setReceiveAmount("");
+    }
+  }, [sendAmount, sendCurrency, receiveCurrency, convertInputType, ammData]);
+
+  // Calculate send amount when receive amount changes (Send form)
+  useEffect(() => {
+    if (receiveAmount && parseFloat(receiveAmount) > 0 && sendCurrency && receiveCurrency && sendCurrency !== receiveCurrency && convertInputType === "exact_output" && ammData) {
+      calculateInputAmount(receiveAmount, sendCurrency, receiveCurrency, setSendAmount);
+    } else if (convertInputType === "exact_output" && (!receiveAmount || parseFloat(receiveAmount) <= 0)) {
+      setSendAmount("");
+    }
+  }, [receiveAmount, sendCurrency, receiveCurrency, convertInputType, slippage, ammData]);
 
   const handleSmartTrade = async () => {
     setLoading(true);
