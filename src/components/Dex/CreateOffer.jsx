@@ -25,7 +25,7 @@ export default function CreateOffer({ baseCurrency, quoteCurrency }) {
     (wallet) =>
       wallet.walletType === "USER" ||
       wallet.walletType === "BUSINESS" ||
-      wallet.walletType === "STANDBY PATHFIND",
+      wallet.walletType === "PATHFIND",
   );
 
   const [orderType, setOrderType] = useState("buy"); // "buy" or "sell"

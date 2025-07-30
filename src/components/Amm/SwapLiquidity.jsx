@@ -172,7 +172,7 @@ export default function SwapLiquidity({ ammInfo, onSwapped }) {
         (wallet) =>
           wallet.walletType === "USER" ||
           wallet.walletType === "BUSINESS" ||
-          wallet.walletType === "STANDBY TREASURY",
+          wallet.walletType === "TREASURY",
       );
 
       if (!wallet) {

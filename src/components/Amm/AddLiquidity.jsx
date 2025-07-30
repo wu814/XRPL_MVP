@@ -54,12 +54,12 @@ export default function AddLiquidity({ ammInfo, onAdded }) {
    * - Deposit type (oneAsset, twoAsset, oneAssetLPToken, twoAssetLPToken)
    */
   const buildPayload = () => {
-    // Assume only User and Standby Treasury are going to deposit into AMM
+    // Assume only User and Treasury are going to deposit into AMM
     const wallet = currentUserWallets.find(
       (wallet) =>
         wallet.walletType === "USER" ||
         wallet.walletType === "BUSINESS" ||
-        wallet.walletType === "STANDBY TREASURY",
+        wallet.walletType === "TREASURY",
     );
 
     const walletSeed = wallet.seed;

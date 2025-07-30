@@ -8,7 +8,7 @@ export async function GET() {
     const { data, error } = await supabase
       .from("wallets")
       .select("classic_address, wallet_type, seed")
-      .eq("wallet_type", "STANDBY TREASURY");
+      .eq("wallet_type", "TREASURY");
 
     if (error) throw error;
 

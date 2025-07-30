@@ -18,7 +18,7 @@ export default function BuyNft() {
     (wallet) =>
       wallet.walletType === "USER" ||
       wallet.walletType === "BUSINESS" ||
-      wallet.walletType === "STANDBY PATHFIND"
+      wallet.walletType === "PATHFIND"
   );
 
   // Get issuer wallet address
