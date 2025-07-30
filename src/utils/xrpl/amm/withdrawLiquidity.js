@@ -33,7 +33,6 @@ export async function withdrawLiquidityTwoAsset(
   ammAccount,
   minWithdrawalA,
   minWithdrawalB,
-  operationalWalletInfo = null,
 ) {
   try {
     await connectXrplClient();
@@ -238,7 +237,6 @@ export async function withdrawLiquidityWithLPToken(
   standbyWallet,
   ammAccount,
   lpTokenAmount,
-  operationalWalletInfo = null,
 ) {
   try {
     await connectXrplClient();
@@ -299,9 +297,6 @@ export async function withdrawLiquidityWithLPToken(
       },
       Flags: 65536,
       AMMAccount: ammAccount,
-      ...(operationalWalletInfo?.destTag && {
-        DestinationTag: operationalWalletInfo.destTag,
-      }),
     };
 
     const preparedTx = await client.autofill(ammWithdrawTx);
@@ -569,7 +564,6 @@ export async function withdrawSingleAsset(
   ammAccount,
   assetType,
   withdrawAmount,
-  operationalWalletInfo = null,
 ) {
   try {
     await connectXrplClient();
@@ -830,7 +824,6 @@ export async function withdrawAllSingleAsset(
   ammAccount,
   assetType,
   desiredAmount,
-  operationalWalletInfo = null,
 ) {
   try {
     await connectXrplClient();
@@ -1036,7 +1029,6 @@ export async function withdrawSingleAssetWithLPToken(
   ammAccount,
   assetType,
   lpTokenAmount,
-  operationalWalletInfo = null,
 ) {
   try {
     await connectXrplClient();
