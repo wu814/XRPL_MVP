@@ -33,7 +33,7 @@ export default function WithdrawLiquidity({ ammInfo, onWithdrawn }) {
       (wallet) =>
         wallet.walletType === "USER" ||
         wallet.walletType === "BUSINESS" ||
-        wallet.walletType === "STANDBY TREASURY",
+        wallet.walletType === "TREASURY",
     );
     
     if (!hasValidWallet) return false;
@@ -62,7 +62,7 @@ export default function WithdrawLiquidity({ ammInfo, onWithdrawn }) {
       (wallet) =>
         wallet.walletType === "USER" ||
         wallet.walletType === "BUSINESS" ||
-        wallet.walletType === "STANDBY TREASURY",
+        wallet.walletType === "TREASURY",
     )?.seed;
     if (!currentWalletSeed) {
       throw new Error("No valid wallet found for the current user");

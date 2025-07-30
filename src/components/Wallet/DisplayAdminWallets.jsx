@@ -173,7 +173,7 @@ export default function DisplayAdminWallets() {
                     />
 
                     {/* Treasury-specific options */}
-                    {wallet.walletType === "STANDBY TREASURY" && (
+                    {wallet.walletType === "TREASURY" && (
                       <>
                         <AuthorizeDepositBtn
                           treasuryWallet={wallet}
@@ -187,8 +187,8 @@ export default function DisplayAdminWallets() {
                     )}
 
                     {/* Trustline options for Treasury and Pathfind wallets */}
-                    {(wallet.walletType === "STANDBY TREASURY" ||
-                      wallet.walletType === "STANDBY PATHFIND") && (
+                    {(wallet.walletType === "TREASURY" ||
+                      wallet.walletType === "PATHFIND") && (
                       <SetTrustlineBtn
                         setterWallet={wallet}
                         issuerWallets={issuerWallets}
@@ -223,7 +223,7 @@ export default function DisplayAdminWallets() {
         <div className="text-center">
           <h3 className="mb-2 font-semibold">Create New Wallet</h3>
           <p className="mb-4 text-sm text-gray-400">
-            Add a new ISSUER, STANDBY TREASURY, or STANDBY PATHFIND wallet
+            Add a new ISSUER, TREASURY, or PATHFIND wallet
           </p>
           <CreateAdminWalletBtn onWalletCreated={handleWalletCreated} />
         </div>

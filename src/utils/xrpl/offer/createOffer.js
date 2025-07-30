@@ -3,7 +3,7 @@ import * as xrpl from "xrpl";
 
 /**
  * Create an OfferCreate transaction.
- * @param {Wallet} wallet - The wallet creating the offer (standby or user).
+ * @param {Wallet} wallet - The wallet creating the offer (pathfind or user).
  * @param {string|object} takerPays - The amount the offer creator is willing to pay.
  *    For XRP, use a string representing drops. For issued currencies, use an object:
  *    { currency: "USD", issuer: "rEXAMPLE...", value: "100" }.

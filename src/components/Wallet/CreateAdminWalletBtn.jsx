@@ -83,8 +83,8 @@ export default function CreateAdminWalletBtn({ onWalletCreated }) {
                   className="mt-1 w-full rounded-lg border border-transparent bg-color4 p-2 focus:border-primary focus:outline-none hover:border-gray-500"
                 >
                   <option value="ISSUER">Issuer</option>
-                  <option value="STANDBY TREASURY">Standby Treasury</option>
-                  <option value="STANDBY PATHFIND">Standby Pathfind</option>
+                  <option value="TREASURY">Treasury</option>
+                  <option value="PATHFIND">Pathfind</option>
                 </select>
               </div>
 

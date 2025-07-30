@@ -21,7 +21,7 @@ function AssetTableWrapper() {
   const primaryWallet = currentUserWallets?.find(
     (wallet) =>
       wallet.walletType === "USER" ||
-      wallet.walletType === "STANDBY PATHFIND" ||
+      wallet.walletType === "PATHFIND" ||
       wallet.walletType === "BUSINESS",
   );
 

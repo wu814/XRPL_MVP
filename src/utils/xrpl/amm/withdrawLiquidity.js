@@ -29,7 +29,7 @@ function normalizeAsset(asset, defaultIssuer = null) {
 // Refactored withdrawLiquidityTwoAsset with accurate LP token calculation and minimal object duplication
 
 export async function withdrawLiquidityTwoAsset(
-  standbyWallet,
+  withdrawerWallet,
   ammAccount,
   minWithdrawalA,
   minWithdrawalB,
@@ -73,7 +73,7 @@ export async function withdrawLiquidityTwoAsset(
 
     const tx = {
       TransactionType: "AMMWithdraw",
-      Account: standbyWallet.classicAddress,
+      Account: withdrawerWallet.classicAddress,
       Asset: assetA.isXRP
         ? { currency: "XRP" }
         : { currency: assetA.currency, issuer: assetA.issuer },
@@ -103,7 +103,7 @@ export async function withdrawLiquidityTwoAsset(
       .result.ledger_current_index;
     preparedTx.LastLedgerSequence = currentLedger + 50;
 
-    const signed = standbyWallet.sign(preparedTx);
+    const signed = withdrawerWallet.sign(preparedTx);
     console.log("🚀 Submitting liquidity withdrawal...");
     const response = await client.submitAndWait(signed.tx_blob);
     const fee = new BigNumber(response.result.tx_json?.Fee);
@@ -234,7 +234,7 @@ export async function withdrawLiquidityTwoAsset(
 
 // Two-asset withdraw with LP token - withdraw both assets using LP tokens
 export async function withdrawLiquidityWithLPToken(
-  standbyWallet,
+  withdrawerWallet,
   ammAccount,
   lpTokenAmount,
 ) {
@@ -287,7 +287,7 @@ export async function withdrawLiquidityWithLPToken(
 
     const ammWithdrawTx = {
       TransactionType: "AMMWithdraw",
-      Account: standbyWallet.classicAddress,
+      Account: withdrawerWallet.classicAddress,
       Asset: assetObjA === "XRP" ? { currency: "XRP" } : assetObjA,
       Asset2: assetObjB === "XRP" ? { currency: "XRP" } : assetObjB,
       LPTokenIn: {
@@ -304,7 +304,7 @@ export async function withdrawLiquidityWithLPToken(
       .result.ledger_current_index;
     preparedTx.LastLedgerSequence = currentLedger + 50;
 
-    const signedTx = standbyWallet.sign(preparedTx);
+    const signedTx = withdrawerWallet.sign(preparedTx);
     const response = await client.submitAndWait(signedTx.tx_blob);
 
     const fee = new BigNumber(response.result.tx_json?.Fee);
@@ -397,7 +397,7 @@ export async function withdrawLiquidityWithLPToken(
 }
 
 // Withdraw all liquidity from the AMM
-export async function withdrawAllLiquidity(standbyWallet, ammAccount) {
+export async function withdrawAllLiquidity(withdrawerWallet, ammAccount) {
   try {
     await connectXrplClient();
     // Fetch current AMM state
@@ -414,10 +414,10 @@ export async function withdrawAllLiquidity(standbyWallet, ammAccount) {
 
     console.log(`✅ Withdrawing ALL liquidity from AMM at ${ammAccount}`);
 
-    // Fetch LP token balance for standby wallet
+    // Fetch LP token balance for withdrawer wallet
     const accountLinesResponse = await client.request({
       command: "account_lines",
-      account: standbyWallet.classicAddress,
+      account: withdrawerWallet.classicAddress,
       peer: lpToken.issuer,
     });
 
@@ -449,7 +449,7 @@ export async function withdrawAllLiquidity(standbyWallet, ammAccount) {
     // Create AMMWithdraw transaction with tfWithdrawAll flag
     const ammWithdrawTx = {
       TransactionType: "AMMWithdraw",
-      Account: standbyWallet.classicAddress,
+      Account: withdrawerWallet.classicAddress,
       Asset: assetObjA,
       Asset2: assetObjB,
       Flags: 131072,
@@ -463,7 +463,7 @@ export async function withdrawAllLiquidity(standbyWallet, ammAccount) {
     preparedTx.LastLedgerSequence = currentLedger + 50;
 
     // Sign and submit the transaction
-    const signedTx = standbyWallet.sign(preparedTx);
+    const signedTx = withdrawerWallet.sign(preparedTx);
     const response = await client.submitAndWait(signedTx.tx_blob);
 
     const fee = new BigNumber(response.result.tx_json?.Fee);
@@ -560,7 +560,7 @@ export async function withdrawAllLiquidity(standbyWallet, ammAccount) {
 
 // Single asset withdrawal - withdraw just one asset
 export async function withdrawSingleAsset(
-  standbyWallet,
+  withdrawerWallet,
   ammAccount,
   assetType,
   withdrawAmount,
@@ -592,12 +592,12 @@ export async function withdrawSingleAsset(
       `✅ Withdrawing ${withdrawAmount} ${asset.currency} from AMM at ${ammAccount}`,
     );
 
-    // Fetch standby wallet LP token balance
+    // Fetch withdrawer wallet LP token balance
     const {
       result: { lines: trustlines },
     } = await client.request({
       command: "account_lines",
-      account: standbyWallet.classicAddress,
+      account: withdrawerWallet.classicAddress,
       peer: lpToken.issuer,
     });
 
@@ -651,7 +651,7 @@ export async function withdrawSingleAsset(
     // Build and submit transaction
     const ammWithdrawTx = {
       TransactionType: "AMMWithdraw",
-      Account: standbyWallet.classicAddress,
+      Account: withdrawerWallet.classicAddress,
       Asset: assetObj,
       Asset2: otherAssetObj,
       Amount: amountObj,
@@ -667,7 +667,7 @@ export async function withdrawSingleAsset(
       .result.ledger_current_index;
     preparedTx.LastLedgerSequence = currentLedger + 50;
 
-    const signedTx = standbyWallet.sign(preparedTx);
+    const signedTx = withdrawerWallet.sign(preparedTx);
     console.log("🚀 Submitting single asset withdrawal...");
     const response = await client.submitAndWait(signedTx.tx_blob);
 
@@ -820,7 +820,7 @@ export async function withdrawSingleAsset(
 
 // Updated withdrawAllSingleAsset using normalizeAsset and improved LP token tracking
 export async function withdrawAllSingleAsset(
-  standbyWallet,
+  withdrawerWallet,
   ammAccount,
   assetType,
   desiredAmount,
@@ -871,7 +871,7 @@ export async function withdrawAllSingleAsset(
 
     const ammWithdrawTx = {
       TransactionType: "AMMWithdraw",
-      Account: standbyWallet.classicAddress,
+      Account: withdrawerWallet.classicAddress,
       Asset: assetObj,
       Asset2: otherAssetObj,
       Amount: withdrawObj,
@@ -883,7 +883,7 @@ export async function withdrawAllSingleAsset(
     const currentLedger = (await client.request({ command: "ledger_current" }))
       .result.ledger_current_index;
     preparedTx.LastLedgerSequence = currentLedger + 50;
-    const signedTx = standbyWallet.sign(preparedTx);
+    const signedTx = withdrawerWallet.sign(preparedTx);
     const response = await client.submitAndWait(signedTx.tx_blob);
 
     if (response.result.meta.TransactionResult !== "tesSUCCESS") {
@@ -1025,7 +1025,7 @@ export async function withdrawAllSingleAsset(
 
 // Updated withdrawSingleAssetWithLPToken using normalizeAsset and improved LP token usage tracking
 export async function withdrawSingleAssetWithLPToken(
-  standbyWallet,
+  withdrawerWallet,
   ammAccount,
   assetType,
   lpTokenAmount,
@@ -1072,7 +1072,7 @@ export async function withdrawSingleAssetWithLPToken(
 
     const ammWithdrawTx = {
       TransactionType: "AMMWithdraw",
-      Account: standbyWallet.classicAddress,
+      Account: withdrawerWallet.classicAddress,
       Asset: assetObj,
       Asset2: otherAssetObj,
       Amount: amountObj,
@@ -1089,7 +1089,7 @@ export async function withdrawSingleAssetWithLPToken(
     const currentLedger = (await client.request({ command: "ledger_current" }))
       .result.ledger_current_index;
     preparedTx.LastLedgerSequence = currentLedger + 50;
-    const signedTx = standbyWallet.sign(preparedTx);
+    const signedTx = withdrawerWallet.sign(preparedTx);
     const response = await client.submitAndWait(signedTx.tx_blob);
 
     if (response.result.meta.TransactionResult !== "tesSUCCESS") {

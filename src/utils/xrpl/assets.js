@@ -278,8 +278,8 @@ export function useWalletAssets(wallet, livePrices, isIssuer = false) {
 export function getWalletDisplayName(walletType) {
   const types = {
     "ISSUER": "Issuer Wallet",
-    "STANDBY TREASURY": "Treasury Wallet",
-    "STANDBY PATHFIND": "Pathfind Wallet",
+    "TREASURY": "Treasury Wallet",
+    "PATHFIND": "Pathfind Wallet",
     "USER": "User Wallet",
     "BUSINESS": "Business Wallet",
   };

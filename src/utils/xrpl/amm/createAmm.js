@@ -3,7 +3,7 @@ import * as xrpl from "xrpl";
 
 /**
  * Creates an AMM on the XRPL
- * @param {Object} treasuryWallet - Wallet object with .seed
+ * @param {Object} creatorWallet - Treasury Wallet object with .seed
  * @param {Array} issuerWallets - Array of issuer wallet(s)
  * @param {string} assetAType - Asset A (e.g., XRP or token code)
  * @param {string | number} amountA - Amount for asset A
@@ -13,7 +13,7 @@ import * as xrpl from "xrpl";
  * @returns {Object} AMM metadata
  */
 export default async function createAmm(
-  treasuryWallet,
+  creatorWallet,
   issuerWallets,
   assetAType,
   amountA,
@@ -24,8 +24,8 @@ export default async function createAmm(
   await connectXrplClient();
   console.log("✅ Preparing AMM creation...");
 
-  // Recreate the standby wallet from the treasury wallet seed
-  const standbyWallet = xrpl.Wallet.fromSeed(treasuryWallet.seed);
+  // Recreate the treasury wallet from the treasury wallet seed
+  const treasuryWallet = xrpl.Wallet.fromSeed(creatorWallet.seed);
   const issuerWallet = issuerWallets?.[0];
   if (!issuerWallet) throw new Error("Missing issuer wallet.");
 
@@ -67,7 +67,7 @@ export default async function createAmm(
   // change the fee (in drops) to create AMM
   const tx = {
     TransactionType: "AMMCreate",
-    Account: standbyWallet.classicAddress,
+    Account: treasuryWallet.classicAddress,
     TradingFee: tradingFee,
     Amount: assetA,
     Amount2: assetB,
@@ -82,7 +82,7 @@ export default async function createAmm(
   preparedTx.LastLedgerSequence += 50;
 
   // Submit the transaction
-  const signedTx = standbyWallet.sign(preparedTx);
+  const signedTx = treasuryWallet.sign(preparedTx);
   const submission = await client.submitAndWait(signedTx.tx_blob);
 
   const resultCode = submission.result.meta.TransactionResult;

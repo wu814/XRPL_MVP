@@ -29,20 +29,20 @@ export async function POST(req) {
       return NextResponse.json(
         {
           error:
-            "Missing required parameters: mode, standbyWallet, or ammAccount",
+            "Missing required parameters: mode, withdrawerWallet, or ammAccount",
         },
         { status: 400 },
       );
     }
     // Initialize data
     const ammAccount = ammInfo.account;
-    const standbyWallet = Wallet.fromSeed(currentWalletSeed);
+    const withdrawerWallet = Wallet.fromSeed(currentWalletSeed);
     let result;
 
     switch (mode) {
       case "twoAsset":
         result = await withdrawLiquidityTwoAsset(
-          standbyWallet,
+          withdrawerWallet,
           ammAccount,
           minA,
           minB,
@@ -51,19 +51,19 @@ export async function POST(req) {
 
       case "lpToken":
         result = await withdrawLiquidityWithLPToken(
-          standbyWallet,
+          withdrawerWallet,
           ammAccount,
           lpTokenAmount,
         );
         break;
 
       case "all":
-        result = await withdrawAllLiquidity(standbyWallet, ammAccount);
+        result = await withdrawAllLiquidity(withdrawerWallet, ammAccount);
         break;
 
       case "singleAsset":
         result = await withdrawSingleAsset(
-          standbyWallet,
+          withdrawerWallet,
           ammAccount,
           assetType,
           withdrawAmount,
@@ -72,7 +72,7 @@ export async function POST(req) {
 
       case "singleAssetAll":
         result = await withdrawAllSingleAsset(
-          standbyWallet,
+          withdrawerWallet,
           ammAccount,
           assetType,
           withdrawAmount,
@@ -81,7 +81,7 @@ export async function POST(req) {
 
       case "singleAssetLp":
         result = await withdrawSingleAssetWithLPToken(
-          standbyWallet,
+          withdrawerWallet,
           ammAccount,
           assetType,
           lpTokenAmount,

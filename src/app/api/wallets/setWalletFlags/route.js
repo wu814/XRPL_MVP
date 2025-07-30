@@ -23,10 +23,10 @@ export async function POST(req) {
       case "ISSUER":
         await setIssuerWalletFlags(walletInstance);
         break;
-      case "STANDBY TREASURY":
+      case "TREASURY":
         await setTreasuryWalletFlags(walletInstance);
         break;
-      case "STANDBY PATHFIND":
+      case "PATHFIND":
         await setPathfindWalletFlags(walletInstance);
         break;
       default:
