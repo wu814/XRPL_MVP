@@ -23,7 +23,6 @@ export const CurrentUserWalletProvider = ({ children }) => {
         .map((wallet) => ({
           classicAddress: wallet.classic_address,
           walletType: wallet.wallet_type,
-          seed: wallet.seed,
         }))
         .sort((a, b) => typeOrder[a.walletType] - typeOrder[b.walletType]);
 

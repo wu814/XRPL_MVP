@@ -62,8 +62,6 @@ export default function AddLiquidity({ ammInfo, onAdded }) {
         wallet.walletType === "TREASURY",
     );
 
-    const walletSeed = wallet.seed;
-
     const assetA = {
       currency: token1.currency,
       issuer: token1.issuer,
@@ -75,7 +73,7 @@ export default function AddLiquidity({ ammInfo, onAdded }) {
       value: amount2,
     };
 
-    const basePayload = { walletSeed, ammInfo };
+    const basePayload = { wallet, ammInfo };
 
     if (mode === "quantity") {
       const val1 = parseFloat(amount1 || "0");
@@ -140,7 +138,7 @@ export default function AddLiquidity({ ammInfo, onAdded }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          walletSeed: payload.walletSeed,
+          wallet: payload.wallet,
           destination: ammInfo.account,
           currency: ammInfo.lp_token.currency,
         }),
@@ -155,7 +153,7 @@ export default function AddLiquidity({ ammInfo, onAdded }) {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            walletSeed: payload.walletSeed,
+            setterWallet: payload.wallet,
             ammInfo: payload.ammInfo,
           }),
         });

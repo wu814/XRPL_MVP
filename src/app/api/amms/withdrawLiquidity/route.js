@@ -16,7 +16,7 @@ export async function POST(req) {
   try {
     const {
       mode,
-      currentWalletSeed,
+      withdrawerWallet,
       ammInfo,
       minA,
       minB,
@@ -25,7 +25,7 @@ export async function POST(req) {
       lpTokenAmount,
     } = await req.json();
 
-    if (!mode || !currentWalletSeed || !ammInfo) {
+    if (!mode || !withdrawerWallet || !ammInfo) {
       return NextResponse.json(
         {
           error:
@@ -34,15 +34,30 @@ export async function POST(req) {
         { status: 400 },
       );
     }
+
+    // Get seed from Supabase using classicAddress
+    const supabase = await createSupabaseAnonClient();
+    const { data: walletData, error: walletError } = await supabase
+      .from("wallets")
+      .select("seed")
+      .eq("classic_address", withdrawerWallet.classicAddress)
+      .single();
+
+    if (walletError || !walletData) {
+      return NextResponse.json(
+        { error: "Wallet not found for the provided classicAddress" },
+        { status: 404 },
+      );
+    }
     // Initialize data
     const ammAccount = ammInfo.account;
-    const withdrawerWallet = Wallet.fromSeed(currentWalletSeed);
+    const withdrawerXrplWallet = Wallet.fromSeed(walletData.seed);
     let result;
 
     switch (mode) {
       case "twoAsset":
         result = await withdrawLiquidityTwoAsset(
-          withdrawerWallet,
+          withdrawerXrplWallet,
           ammAccount,
           minA,
           minB,
@@ -51,19 +66,19 @@ export async function POST(req) {
 
       case "lpToken":
         result = await withdrawLiquidityWithLPToken(
-          withdrawerWallet,
+          withdrawerXrplWallet,
           ammAccount,
           lpTokenAmount,
         );
         break;
 
       case "all":
-        result = await withdrawAllLiquidity(withdrawerWallet, ammAccount);
+        result = await withdrawAllLiquidity(withdrawerXrplWallet, ammAccount);
         break;
 
       case "singleAsset":
         result = await withdrawSingleAsset(
-          withdrawerWallet,
+          withdrawerXrplWallet,
           ammAccount,
           assetType,
           withdrawAmount,
@@ -72,7 +87,7 @@ export async function POST(req) {
 
       case "singleAssetAll":
         result = await withdrawAllSingleAsset(
-          withdrawerWallet,
+          withdrawerXrplWallet,
           ammAccount,
           assetType,
           withdrawAmount,
@@ -81,7 +96,7 @@ export async function POST(req) {
 
       case "singleAssetLp":
         result = await withdrawSingleAssetWithLPToken(
-          withdrawerWallet,
+          withdrawerXrplWallet,
           ammAccount,
           assetType,
           lpTokenAmount,

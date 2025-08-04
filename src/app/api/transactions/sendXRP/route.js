@@ -1,17 +1,22 @@
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
 import { NextResponse } from "next/server";
 import sendXRP from "@/utils/xrpl/transaction/sendXRP";
+import { Wallet } from "xrpl";
 
 export async function POST(req) {
   try {
     const { senderWallet, recipientUsername, recipientAddress, recipient, amount, destinationTag, useUsername } =
       await req.json();
 
-    if (!senderWallet || !amount) {
+    if (!senderWallet) {
       return NextResponse.json(
-        { error: "Missing required parameters: senderWallet and amount are required" },
+        { error: "Missing sender wallet" },
         { status: 400 },
       );
+    }
+
+    if (!amount) {
+      return NextResponse.json({ error: "Missing amount" }, { status: 400 });
     }
 
     let recipientAddressFinal;
@@ -61,14 +66,25 @@ export async function POST(req) {
       }
     }
 
-    console.log("🚀 Sending XRP transfer:", {
-      from: senderWallet.classicAddress || "unknown",
-      to: recipientAddressFinal,
-      amount: amount
-    });
+    // Get seed from Supabase using classicAddress
+    const supabase = await createSupabaseAnonClient();
+    const { data: walletData, error: walletError } = await supabase
+      .from("wallets")
+      .select("seed")
+      .eq("classic_address", senderWallet.classicAddress)
+      .single();
+
+    if (walletError || !walletData) {
+      return NextResponse.json(
+        { error: "Wallet not found for the provided classicAddress" },
+        { status: 404 },
+      );
+    }
+
+    const senderXrplWallet = Wallet.fromSeed(walletData.seed);
 
     const result = await sendXRP(
-      senderWallet,
+      senderXrplWallet,
       recipientAddressFinal,
       amount,
       destinationTag,

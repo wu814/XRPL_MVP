@@ -1,5 +1,4 @@
 import { client, connectXrplClient } from "../testnet";
-import { Wallet } from "xrpl";
 import BigNumber from "bignumber.js";
 
 // Change this file when there are more than 1 issuer wallet
@@ -96,7 +95,7 @@ const checkDestinationTrustline = async (
 
 
 const sendIOU = async (
-  wallet,
+  senderWallet,
   destination,
   amount,
   currency,
@@ -104,7 +103,6 @@ const sendIOU = async (
   destinationTag = null,
 ) => {
   await connectXrplClient();
-  const senderWallet = Wallet.fromSeed(wallet.seed);
   const issuerAddress = issuerWallets[0].classicAddress;
 
   if (!senderWallet || !destination || !amount || !currency || !issuerAddress) {
@@ -124,7 +122,7 @@ const sendIOU = async (
 
   if (senderIsIssuer) {
     // Case 1: Issuer sending IOU
-    await checkDestinationTrustline(destination, issuerAddress, currency); // ✅ moved here
+    await checkDestinationTrustline(destination, issuerAddress, currency); 
     payment = {
       TransactionType: "Payment",
       Account: senderAddress,
@@ -144,7 +142,7 @@ const sendIOU = async (
         currency,
         amountString,
       );
-      await checkDestinationTrustline(destination, issuerAddress, currency); // ✅ moved here
+      await checkDestinationTrustline(destination, issuerAddress, currency); 
       payment = {
         TransactionType: "Payment",
         Account: senderAddress,

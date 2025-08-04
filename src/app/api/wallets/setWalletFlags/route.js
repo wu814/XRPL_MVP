@@ -5,29 +5,42 @@ import {
   setPathfindWalletFlags,
 } from "@/utils/xrpl/wallet/setWalletFlags";
 import { Wallet } from "xrpl";
+import { createSupabaseAnonClient } from "@/utils/supabase/server";
 
 export async function POST(req) {
   try {
     const { wallet } = await req.json();
 
     if (!wallet) {
+      return NextResponse.json({ error: "Missing wallet" }, { status: 400 });
+    }
+
+    // Get seed from Supabase using classicAddress
+    const supabase = await createSupabaseAnonClient();
+    const { data: walletData, error: walletError } = await supabase
+      .from("wallets")
+      .select("seed")
+      .eq("classic_address", wallet.classicAddress)
+      .single();
+
+    if (walletError || !walletData) {
       return NextResponse.json(
-        { error: "Missing wallet information." },
-        { status: 400 },
+        { error: "Wallet not found for the provided classicAddress" },
+        { status: 404 },
       );
     }
 
-    const walletInstance = Wallet.fromSeed(wallet.seed);
+    const xrplWallet = Wallet.fromSeed(walletData.seed);
 
     switch (wallet.walletType) {
       case "ISSUER":
-        await setIssuerWalletFlags(walletInstance);
+        await setIssuerWalletFlags(xrplWallet);
         break;
       case "TREASURY":
-        await setTreasuryWalletFlags(walletInstance);
+        await setTreasuryWalletFlags(xrplWallet);
         break;
       case "PATHFIND":
-        await setPathfindWalletFlags(walletInstance);
+        await setPathfindWalletFlags(xrplWallet);
         break;
       default:
         return NextResponse.json(

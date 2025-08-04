@@ -7,6 +7,7 @@ import createImmediateOrCancelOffer from "@/utils/xrpl/offer/createImmediateOrCa
 import createPassiveOffer from "@/utils/xrpl/offer/createPassiveOffer";
 import createSellOffer from "@/utils/xrpl/offer/createSellOffer";
 import { Wallet, xrpToDrops } from "xrpl";
+import { createSupabaseAnonClient } from "@/utils/supabase/server";
 
 export async function POST(req) {
   try {
@@ -22,15 +23,70 @@ export async function POST(req) {
     } = await req.json();
 
     // Validate required fields
-    if (!orderType || !baseCurrency || !quoteCurrency || !limitPrice || !quantity || !issuerAddress) {
+    if (!offerType) {
       return NextResponse.json(
-        { error: "Missing required input fields." },
+        { error: "Missing offer type" },
+        { status: 400 },
+      );
+    }
+
+    if (!orderType) {
+      return NextResponse.json(
+        { error: "Missing order type" },
+        { status: 400 },
+      );
+    }
+
+    if (!baseCurrency) {
+      return NextResponse.json(
+        { error: "Missing base currency" },
+        { status: 400 },
+      );
+    }
+
+    if (!quoteCurrency) {
+      return NextResponse.json(
+        { error: "Missing quote currency" },
+        { status: 400 },
+      );
+    }
+
+    if (!limitPrice) {
+      return NextResponse.json(
+        { error: "Missing limit price" },
+        { status: 400 },
+      );
+    }
+
+    if (!quantity) {
+      return NextResponse.json(
+        { error: "Missing quantity" },
+        { status: 400 },
+      );
+    }
+
+    if (!issuerAddress) {
+      return NextResponse.json(
+        { error: "Missing issuer address" },
+        { status: 400 },
+      );
+    }
+
+    // Validate wallet exists
+    if (!offerCreatorWallet) {
+      return NextResponse.json(
+        { error: "No valid wallet found for creating offer." },
         { status: 400 },
       );
     }
 
     // Validate numeric values
-    if (isNaN(limitPrice) || isNaN(quantity) || limitPrice <= 0 || quantity <= 0) {
+    if (
+      isNaN(limitPrice) ||
+      isNaN(quantity) ||
+      limitPrice <= 0 ||
+      quantity <= 0
+    ) {
       return NextResponse.json(
         { error: "Limit price and quantity must be positive numbers." },
         { status: 400 },
@@ -47,40 +103,44 @@ export async function POST(req) {
       // Buying base currency with quote currency
       // Taker pays: base currency (what we want to buy)
       // Taker gets: quote currency (what we're paying with)
-      takerPays = baseCurrency === "XRP" 
-        ? xrpToDrops(quantity)
-        : {
-            currency: baseCurrency,
-            issuer: issuerAddress,
-            value: quantity.toString(),
-          };
+      takerPays =
+        baseCurrency === "XRP"
+          ? xrpToDrops(quantity)
+          : {
+              currency: baseCurrency,
+              issuer: issuerAddress,
+              value: quantity.toString(),
+            };
 
-      takerGets = quoteCurrency === "XRP"
-        ? xrpToDrops(totalValue)
-        : {
-            currency: quoteCurrency,
-            issuer: issuerAddress,
-            value: totalValue.toString(),
-          };
+      takerGets =
+        quoteCurrency === "XRP"
+          ? xrpToDrops(totalValue)
+          : {
+              currency: quoteCurrency,
+              issuer: issuerAddress,
+              value: totalValue.toString(),
+            };
     } else if (orderType === "sell") {
       // Selling base currency for quote currency
       // Taker pays: quote currency (what we want to receive)
       // Taker gets: base currency (what we're selling)
-      takerPays = quoteCurrency === "XRP"
-        ? xrpToDrops(totalValue)
-        : {
-            currency: quoteCurrency,
-            issuer: issuerAddress,
-            value: totalValue.toString(),
-          };
+      takerPays =
+        quoteCurrency === "XRP"
+          ? xrpToDrops(totalValue)
+          : {
+              currency: quoteCurrency,
+              issuer: issuerAddress,
+              value: totalValue.toString(),
+            };
 
-      takerGets = baseCurrency === "XRP"
-        ? xrpToDrops(quantity)
-        : {
-            currency: baseCurrency,
-            issuer: issuerAddress,
-            value: quantity.toString(),
-          };
+      takerGets =
+        baseCurrency === "XRP"
+          ? xrpToDrops(quantity)
+          : {
+              currency: baseCurrency,
+              issuer: issuerAddress,
+              value: quantity.toString(),
+            };
     } else {
       return NextResponse.json(
         { error: "Invalid order type. Must be 'buy' or 'sell'." },
@@ -88,16 +148,23 @@ export async function POST(req) {
       );
     }
 
-    // Validate wallet exists
-    if (!offerCreatorWallet) {
+    // Get seed from Supabase using classicAddress
+    const supabase = await createSupabaseAnonClient();
+    const { data: walletData, error: walletError } = await supabase
+      .from("wallets")
+      .select("seed")
+      .eq("classic_address", offerCreatorWallet.classicAddress)
+      .single();
+
+    if (walletError || !walletData) {
       return NextResponse.json(
-        { error: "No valid wallet found for creating offer." },
-        { status: 400 },
+        { error: "Wallet not found for the provided classicAddress" },
+        { status: 404 },
       );
     }
 
     // Create wallet instance
-    const wallet = Wallet.fromSeed(offerCreatorWallet.seed);
+    const wallet = Wallet.fromSeed(walletData.seed);
 
     // Create offer based on type
     let result;
@@ -106,7 +173,11 @@ export async function POST(req) {
         result = await createFillOrKillOffer(wallet, takerPays, takerGets);
         break;
       case "ImmediateOrCancel":
-        result = await createImmediateOrCancelOffer(wallet, takerPays, takerGets);
+        result = await createImmediateOrCancelOffer(
+          wallet,
+          takerPays,
+          takerGets,
+        );
         break;
       case "Passive":
         result = await createPassiveOffer(wallet, takerPays, takerGets);
@@ -138,8 +209,8 @@ export async function POST(req) {
   } catch (error) {
     console.error("Error creating offer:", error);
     return NextResponse.json(
-      { error: error.message || "Internal server error" }, 
-      { status: 500 }
+      { error: error.message || "Internal server error" },
+      { status: 500 },
     );
   }
 }

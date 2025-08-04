@@ -1,21 +1,44 @@
 import { NextResponse } from "next/server";
 import { oracleDelete } from "@/utils/xrpl/oracle/oracleDelete";
 import { Wallet } from "xrpl";
+import { createSupabaseAnonClient } from "@/utils/supabase/server";
 
 export async function POST(request) {
   try {
     const { treasuryWallet, oracleDocumentID } = await request.json();
 
     // Validate required fields
-    if (!treasuryWallet || !oracleDocumentID) {
+    if (!treasuryWallet) {
       return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
+        { error: "Missing treasury wallet" },
+        { status: 400 },
+      );
+    }
+
+    if (!oracleDocumentID) {
+      return NextResponse.json(
+        { error: "Missing oracle document ID" },
+        { status: 400 },
+      );
+    }
+
+    // Get seed from Supabase using classicAddress
+    const supabase = await createSupabaseAnonClient();
+    const { data: walletData, error: walletError } = await supabase
+      .from("wallets")
+      .select("seed")
+      .eq("classic_address", treasuryWallet.classicAddress)
+      .single();
+
+    if (walletError || !walletData) {
+      return NextResponse.json(
+        { error: "Wallet not found for the provided classicAddress" },
+        { status: 404 },
       );
     }
 
     // Create XRPL wallet object
-    const wallet = Wallet.fromSeed(treasuryWallet.seed);
+    const wallet = Wallet.fromSeed(walletData.seed);
 
     // Delete oracle
     const result = await oracleDelete(wallet, oracleDocumentID);

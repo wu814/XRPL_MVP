@@ -13,7 +13,7 @@ export async function GET() {
 
     const { data, error } = await supabase
       .from("wallets")
-      .select("classic_address, wallet_type, seed")
+      .select("classic_address, wallet_type")
       .eq("user_id", session.user.user_id);
 
     if (error) throw error;

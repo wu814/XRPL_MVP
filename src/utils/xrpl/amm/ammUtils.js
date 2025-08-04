@@ -2,19 +2,6 @@ import xrpl from "xrpl";
 import { connectXrplClient, client } from "../testnet";
 import { createSupabaseAnonClient } from "@/utils/supabase/server"; 
 
-/**
- * ============================================================================
- * SIMPLIFIED AMM DATA ARCHITECTURE - SUPABASE FLAT TABLE
- * ============================================================================
- * 
- * Functions:
- * 1. getAmmInfo(ammAccount) - Live data from ledger via amm_info command
- * 2. getAmmData() - Registry data from Supabase (flat table: amm_account, currency_a, currency_b, created_at)
- * 3. getAllAmmInfo() - Get all AMM pools with live data
- * 
- * No more redundant functions, caching, or complex abstractions.
- * ============================================================================
- */
 
 /**
  * Get live AMM information directly from the XRPL ledger

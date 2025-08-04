@@ -8,10 +8,9 @@ import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
 
 class Wallet {
-  constructor(classicAddress, walletType, seed) {
+  constructor(classicAddress, walletType) {
     this.classicAddress = classicAddress;
     this.walletType = walletType;
-    this.seed = seed;
   }
 }
 
@@ -38,7 +37,7 @@ export default function CreateAmmBtn({ onAmmCreated }) {
       if (Array.isArray(result.data) && result.data.length > 0) {
         const issuerWalletsData = result.data.map(
           (wallet) =>
-            new Wallet(wallet.classic_address, wallet.wallet_type, wallet.seed),
+            new Wallet(wallet.classic_address, wallet.wallet_type),
         );
         setIssuerWallets(issuerWalletsData);
       }
@@ -56,7 +55,6 @@ export default function CreateAmmBtn({ onAmmCreated }) {
         const treasuryWalletData = new Wallet(
           wallet.classic_address,
           wallet.wallet_type,
-          wallet.seed,
         );
         setTreasuryWallet(treasuryWalletData);
       }

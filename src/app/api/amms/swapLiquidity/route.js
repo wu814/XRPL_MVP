@@ -34,7 +34,22 @@ export async function POST(req) {
 
     let recipientAddress = senderWallet.classicAddress;
 
-    const senderXrplWallet = Wallet.fromSeed(senderWallet.seed);
+    // Get seed from Supabase using classicAddress
+    const supabase = await createSupabaseAnonClient();
+    const { data: walletData, error: walletError } = await supabase
+      .from("wallets")
+      .select("seed")
+      .eq("classic_address", senderWallet.classicAddress)
+      .single();
+
+    if (walletError || !walletData) {
+      return NextResponse.json(
+        { error: "Wallet not found for the provided classicAddress" },
+        { status: 404 },
+      );
+    }
+
+    const senderXrplWallet = Wallet.fromSeed(walletData.seed);
 
     const result = await sendCrossCurrency(
       senderXrplWallet,

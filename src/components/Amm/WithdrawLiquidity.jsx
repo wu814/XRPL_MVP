@@ -58,18 +58,18 @@ export default function WithdrawLiquidity({ ammInfo, onWithdrawn }) {
   };
 
   const buildPayload = () => {
-    const currentWalletSeed = currentUserWallets.find(
+    const withdrawerWallet = currentUserWallets.find(
       (wallet) =>
         wallet.walletType === "USER" ||
         wallet.walletType === "BUSINESS" ||
         wallet.walletType === "TREASURY",
-    )?.seed;
-    if (!currentWalletSeed) {
+    );
+    if (!withdrawerWallet) {
       throw new Error("No valid wallet found for the current user");
     }
     const payload = {
       mode,
-      currentWalletSeed,
+      withdrawerWallet,
       ammInfo,
     };
 

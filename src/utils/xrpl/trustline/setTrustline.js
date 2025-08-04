@@ -2,9 +2,10 @@
 import { client, connectXrplClient } from "../testnet";
 import { Wallet } from "xrpl";
 import sendIOU from "../transaction/sendIOU";
+import { createSupabaseAnonClient } from "@/utils/supabase/server";
 
 export async function setTrustline(
-  wallet,
+  setterXrplWallet,
   issuerWalletAddress,
   currency,
   issuerWallets = null,
@@ -12,24 +13,25 @@ export async function setTrustline(
   await connectXrplClient();
   const MAX_TRUST_LIMIT = "1000000000000000";
 
-  // Recreate the setter wallet from the seed.
-  const setterWallet = Wallet.fromSeed(wallet.seed);
-
   // Check if trustline already exists before creating a new one
-  const existingTrustline = await checkTrustline(setterWallet, issuerWalletAddress, currency);
-  
+  const existingTrustline = await checkTrustline(
+    setterXrplWallet,
+    issuerWalletAddress,
+    currency,
+  );
+
   if (existingTrustline) {
     console.log("ℹ️ Trustline already exists, skipping creation.");
     return {
       success: true,
-      message: `Trustline already exists between ${setterWallet.classicAddress} and ${issuerWalletAddress} for ${currency}. No action needed.`,
+      message: `Trustline already exists between ${setterXrplWallet.classicAddress} and ${issuerWalletAddress} for ${currency}. No action needed.`,
     };
   }
 
   // Build the TrustSet transaction with the determined currency.
   const trustSetTx = {
     TransactionType: "TrustSet",
-    Account: setterWallet.classicAddress,
+    Account: setterXrplWallet.classicAddress,
     LimitAmount: {
       currency: currency,
       issuer: issuerWalletAddress,
@@ -38,7 +40,7 @@ export async function setTrustline(
   };
 
   const preparedTx = await client.autofill(trustSetTx);
-  const signedTx = setterWallet.sign(preparedTx);
+  const signedTx = setterXrplWallet.sign(preparedTx);
   const response = await client.submitAndWait(signedTx.tx_blob);
 
   if (response.result.meta.TransactionResult !== "tesSUCCESS") {
@@ -48,60 +50,71 @@ export async function setTrustline(
   }
 
   const trustlineMsg = `Trustline set from 
-${setterWallet.classicAddress}
+${setterXrplWallet.classicAddress}
 to 
 ${issuerWalletAddress} 
 for ${currency}.`;
 
   // ***********************************************************
   // ONLY FOR DEMO PURPOSES
-
-  console.log(
-    "✅ Trustline set successfully, now sending welcome IOU tokens...",
-  );
-
-  // Fixed amounts to send for each currency
-  const WELCOME_BONUS_AMOUNTS = {
-    USD: "10000",
-    ETH: "4",
-    EUR: "8500",
-    SOL: "65",
-    BTC: "0.1",
-  };
-
   // Send welcome IOU tokens based on fixed amounts table
   let bonusMsg = "";
-  try {
-    if (issuerWallets && issuerWallets.length > 0) {
-      // Get the fixed amount for this currency
-      const welcomeAmount = WELCOME_BONUS_AMOUNTS[currency.toUpperCase()];
+  if (currency.length < 10) { // Only send welcome IOU tokens expect LP tokens
+    const supabase = await createSupabaseAnonClient();
+    const { data: walletData, error: walletError } = await supabase
+      .from("wallets")
+      .select("seed")
+      .eq("classic_address", issuerWalletAddress)
+      .single();
 
-      if (welcomeAmount) {
-        // Send IOU tokens based on fixed amount
-        const iouResult = await sendIOU(
-          issuerWallets[0], // issuer wallet is the sender
-          setterWallet.classicAddress, // setter wallet is the recipient
-          welcomeAmount,
-          currency,
-          issuerWallets,
-          null, // no destination tag
-        );
+    const issuerXrplWallet = Wallet.fromSeed(walletData.seed);
 
-        console.log("✅ Welcome IOU tokens sent successfully!");
+    console.log(
+      "✅ Trustline set successfully, now sending welcome IOU tokens...",
+    );
 
-        bonusMsg = `\n\n🎉 Welcome bonus: ${welcomeAmount} ${currency} has been sent to your wallet!`;
+    // Fixed amounts to send for each currency
+    const WELCOME_BONUS_AMOUNTS = {
+      USD: "10000",
+      ETH: "4",
+      EUR: "8500",
+      SOL: "65",
+      BTC: "0.1",
+    };
+
+    
+    try {
+      if (issuerWallets && issuerWallets.length > 0) {
+        // Get the fixed amount for this currency
+        const welcomeAmount = WELCOME_BONUS_AMOUNTS[currency.toUpperCase()];
+
+        if (welcomeAmount) {
+          // Send IOU tokens based on fixed amount
+          const iouResult = await sendIOU(
+            issuerXrplWallet, // issuer wallet is the sender
+            setterXrplWallet.classicAddress, // setter wallet is the recipient
+            welcomeAmount,
+            currency,
+            issuerWallets,
+            null, // no destination tag
+          );
+
+          console.log("✅ Welcome IOU tokens sent successfully!");
+
+          bonusMsg = `\n\n🎉 Welcome bonus: ${welcomeAmount} ${currency} has been sent to your wallet!`;
+        } else {
+          console.log(`⚠️ No welcome bonus amount configured for ${currency}`);
+          bonusMsg = `\n\n⚠️ Note: No welcome bonus configured for ${currency}`;
+        }
       } else {
-        console.log(`⚠️ No welcome bonus amount configured for ${currency}`);
-        bonusMsg = `\n\n⚠️ Note: No welcome bonus configured for ${currency}`;
+        console.log("⚠️ No issuer wallets provided, skipping welcome bonus");
       }
-    } else {
-      console.log("⚠️ No issuer wallets provided, skipping welcome bonus");
+    } catch (iouError) {
+      console.error("❌ Failed to send welcome IOU tokens:", iouError.message);
+      bonusMsg = `\n\n⚠️ Note: Trustline was set successfully, but welcome bonus could not be sent: ${iouError.message}`;
     }
-  } catch (iouError) {
-    console.error("❌ Failed to send welcome IOU tokens:", iouError.message);
-    bonusMsg = `\n\n⚠️ Note: Trustline was set successfully, but welcome bonus could not be sent: ${iouError.message}`;
+    // ***********************************************************
   }
-  // ***********************************************************
   return {
     success: true,
     message: trustlineMsg + bonusMsg,

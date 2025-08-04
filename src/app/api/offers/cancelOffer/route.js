@@ -13,12 +13,26 @@ export async function POST(req) {
   }
 
   try {
-    const { walletSeed, offerSequence, enteredPassword } = await req.json();
+    const { userWallet, offerSequence, enteredPassword } = await req.json();
 
-    if (!walletSeed || !offerSequence || !enteredPassword) {
+    if (!userWallet) {
       return NextResponse.json(
-        { error: "Missing required fields." },
-        { status: 400 }
+        { error: "Missing user wallet" },
+        { status: 400 },
+      );
+    }
+
+    if (!offerSequence) {
+      return NextResponse.json(
+        { error: "Missing offer sequence" },
+        { status: 400 },
+      );
+    }
+
+    if (!enteredPassword) {
+      return NextResponse.json(
+        { error: "Missing entered password" },
+        { status: 400 },
       );
     }
 
@@ -37,32 +51,43 @@ export async function POST(req) {
 
     const isMatch = await bcrypt.compare(
       enteredPassword,
-      passwordData.password
+      passwordData.password,
     );
 
     if (!isMatch) {
+      return NextResponse.json({ error: "Invalid password." }, { status: 403 });
+    }
+
+    // Get seed from Supabase using classicAddress
+    const { data: walletData, error: walletError } = await supabase
+      .from("wallets")
+      .select("seed")
+      .eq("classic_address", userWallet.classicAddress)
+      .single();
+
+    if (walletError || !walletData) {
       return NextResponse.json(
-        { error: "Invalid password." },
-        { status: 403 }
+        { error: "Wallet not found for the provided classicAddress" },
+        { status: 404 },
       );
     }
 
-    // Reconstruct wallet and cancel the offer
-    const wallet = Wallet.fromSeed(walletSeed);
-    const result = await cancelOffer(wallet, offerSequence);
+    const cancelerWallet = Wallet.fromSeed(walletData.seed);
+
+    const result = await cancelOffer(cancelerWallet, offerSequence);
 
     return NextResponse.json(
       {
         success: result.success,
         message: result.message,
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (err) {
     console.error("CancelOffer API error:", err);
     return NextResponse.json(
       { error: err.message || "Unexpected error." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
