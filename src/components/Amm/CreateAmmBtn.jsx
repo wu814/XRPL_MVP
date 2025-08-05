@@ -6,6 +6,7 @@ import Button from "../Button";
 import CreateAmmMdl from "./CreateAmmMdl";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
+import { useIssuerWallet } from "@/components/Wallet/IssuerWalletProvider";
 
 class Wallet {
   constructor(classicAddress, walletType) {
@@ -20,9 +21,8 @@ export default function CreateAmmBtn({ onAmmCreated }) {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
-  const [issuerWallets, setIssuerWallets] = useState([]);
   const [treasuryWallet, setTreasuryWallet] = useState(null);
-
+  const { issuerWallets } = useIssuerWallet();
   // Persisted form state
   const [assetA, setAssetA] = useState("");
   const [assetB, setAssetB] = useState("");
@@ -30,22 +30,7 @@ export default function CreateAmmBtn({ onAmmCreated }) {
   const [amountB, setAmountB] = useState("");
   const [fee, setFee] = useState("0");
 
-  const fetchIssuerWallets = async () => {
-    try {
-      const res = await fetch("/api/wallets/getIssuerWallets");
-      const result = await res.json();
-      if (Array.isArray(result.data) && result.data.length > 0) {
-        const issuerWalletsData = result.data.map(
-          (wallet) =>
-            new Wallet(wallet.classic_address, wallet.wallet_type),
-        );
-        setIssuerWallets(issuerWalletsData);
-      }
-    } catch (error) {
-      setErrorMessage(error.message);
-    }
-  };
-
+  
   const fetchTreasuryWallet = async () => {
     try {
       const res = await fetch("/api/wallets/getTreasuryWallet");
@@ -65,7 +50,6 @@ export default function CreateAmmBtn({ onAmmCreated }) {
 
   useEffect(() => {
     if (status === "authenticated" && session?.user?.role === "ADMIN") {
-      fetchIssuerWallets();
       fetchTreasuryWallet();
     }
   }, [status, session]);
