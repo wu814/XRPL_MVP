@@ -574,7 +574,7 @@ export default function TradePanel() {
           {/* Show AMM data error */}
           {ammDataError && (
             <div className="mb-4 p-3 bg-red-900/20 border border-red-500 rounded-lg">
-              <p className="text-red-400 text-sm">AMM Pool Error: {ammDataError}</p>
+              <p className="text-red-400 text-sm">{ammDataError}</p>
             </div>
           )}
 
@@ -589,7 +589,7 @@ export default function TradePanel() {
           {ammData && !loadingAmmData && (
             <div className="mb-4 p-3 bg-green-900/20 border border-green-500 rounded-lg">
               <p className="text-green-400 text-sm">
-                ✅ AMM Pool: {ammData.amount.currency}/{ammData.amount2.currency} 
+                AMM Pool: {ammData.amount.currency}/{ammData.amount2.currency} 
                 {ammData.trading_fee > 0 && ` (${ammData.trading_fee/1000}% fee)`}
               </p>
             </div>

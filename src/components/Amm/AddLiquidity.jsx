@@ -132,6 +132,7 @@ export default function AddLiquidity({ ammInfo, onAdded }) {
 
     try {
       const payload = buildPayload();
+      console.log("payload", payload);
 
       // Step 1: Check if trustline exists
       const checkRes = await fetch("/api/trustlines/checkTrustline", {

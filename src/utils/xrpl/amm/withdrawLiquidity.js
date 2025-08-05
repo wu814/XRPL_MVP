@@ -6,6 +6,7 @@ import { client, connectXrplClient } from "../testnet"; // or adjust to "../../c
 import { checkTrustline } from "@/utils/xrpl/trustline/setTrustline";
 import { type } from "os";
 import { stringify } from "querystring";
+import { handleAMMWithdrawResult } from '../errorHandler.js';
 
 function normalizeAsset(asset, defaultIssuer = null) {
   if (typeof asset === "string") {
@@ -108,11 +109,14 @@ export async function withdrawLiquidityTwoAsset(
     const response = await client.submitAndWait(signed.tx_blob);
     const fee = new BigNumber(response.result.tx_json?.Fee);
 
-    if (response.result.meta.TransactionResult !== "tesSUCCESS") {
-      throw new Error(
-        `Withdrawal failed: ${response.result.meta.TransactionResult}`,
-      );
-    }
+    handleAMMWithdrawResult(response, {
+      operation: 'withdrawLiquidityTwoAsset',
+      ammAccount,
+      asset1: assetA.currency,
+      asset2: assetB.currency,
+      minWithdrawalA,
+      minWithdrawalB
+    });
 
     const nodes = response.result.meta.AffectedNodes;
     let actualWithdrawnA = null;
@@ -309,11 +313,13 @@ export async function withdrawLiquidityWithLPToken(
 
     const fee = new BigNumber(response.result.tx_json?.Fee);
 
-    if (response.result.meta.TransactionResult !== "tesSUCCESS") {
-      throw new Error(
-        `❌ Withdrawal failed: ${response.result.meta.TransactionResult}`,
-      );
-    }
+    handleAMMWithdrawResult(response, {
+      operation: 'withdrawLiquidityWithLPToken',
+      ammAccount,
+      asset1: assetA.currency,
+      asset2: assetB.currency,
+      lpTokenAmount
+    });
 
     const nodes = response.result.meta.AffectedNodes;
     let actualWithdrawnA = null;
@@ -468,11 +474,12 @@ export async function withdrawAllLiquidity(withdrawerWallet, ammAccount) {
 
     const fee = new BigNumber(response.result.tx_json?.Fee);
 
-    if (response.result.meta.TransactionResult !== "tesSUCCESS") {
-      throw new Error(
-        `❌ AMM withdrawal failed: ${response.result.meta.TransactionResult}`,
-      );
-    }
+    handleAMMWithdrawResult(response, {
+      operation: 'withdrawAllLiquidity',
+      ammAccount,
+      asset1: assetA.currency,
+      asset2: assetB.currency
+    });
 
     // Parse the transaction metadata to extract actual withdrawn amounts
     const nodes = response.result.meta.AffectedNodes;
@@ -671,11 +678,12 @@ export async function withdrawSingleAsset(
     console.log("🚀 Submitting single asset withdrawal...");
     const response = await client.submitAndWait(signedTx.tx_blob);
 
-    if (response.result.meta.TransactionResult !== "tesSUCCESS") {
-      throw new Error(
-        `AMM withdrawal failed: ${response.result.meta.TransactionResult}`,
-      );
-    }
+    handleAMMWithdrawResult(response, {
+      operation: 'withdrawSingleAsset',
+      ammAccount,
+      assetType,
+      withdrawAmount
+    });
 
     const fee = new BigNumber(response.result.tx_json?.Fee);
     const nodes = response.result.meta.AffectedNodes;
@@ -886,11 +894,12 @@ export async function withdrawAllSingleAsset(
     const signedTx = withdrawerWallet.sign(preparedTx);
     const response = await client.submitAndWait(signedTx.tx_blob);
 
-    if (response.result.meta.TransactionResult !== "tesSUCCESS") {
-      throw new Error(
-        `AMM withdrawal failed: ${response.result.meta.TransactionResult}`,
-      );
-    }
+    handleAMMWithdrawResult(response, {
+      operation: 'withdrawAllSingleAsset',
+      ammAccount,
+      assetType,
+      desiredAmount
+    });
 
     const fee = new BigNumber(response.result.tx_json?.Fee);
     const nodes = response.result.meta.AffectedNodes;
@@ -1092,11 +1101,12 @@ export async function withdrawSingleAssetWithLPToken(
     const signedTx = withdrawerWallet.sign(preparedTx);
     const response = await client.submitAndWait(signedTx.tx_blob);
 
-    if (response.result.meta.TransactionResult !== "tesSUCCESS") {
-      throw new Error(
-        `AMM withdrawal failed: ${response.result.meta.TransactionResult}`,
-      );
-    }
+    handleAMMWithdrawResult(response, {
+      operation: 'withdrawSingleAssetWithLPToken',
+      ammAccount,
+      assetType,
+      lpTokenAmount
+    });
 
     const fee = new BigNumber(response.result.tx_json?.Fee);
     const nodes = response.result.meta.AffectedNodes;

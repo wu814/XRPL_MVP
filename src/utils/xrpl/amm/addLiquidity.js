@@ -2,6 +2,7 @@ import { client, connectXrplClient } from "../testnet";
 import * as xrpl from "xrpl";
 import { checkTrustline } from "@/utils/xrpl/trustline/setTrustline";
 import BigNumber from "bignumber.js";
+import { handleAMMDepositResult } from '../errorHandler.js';
 
 const BASE_RESERVE_XRP = 1; // Base reserve for an account in XRP
 const OWNER_RESERVE_XRP = 0.2; // Owner reserve for each object in XRP
@@ -540,16 +541,14 @@ export async function addLiquidityTwoAsset(
   console.log("⏳ Waiting for transaction validation...");
   const result = await client.submitAndWait(signed.tx_blob);
 
-  const outcome = result.result.meta.TransactionResult;
-  if (outcome !== "tesSUCCESS") {
-    const reason =
-      outcome === "tecUNFUNDED_AMM"
-        ? "The AMM must be funded with both assets first (use 'Two Asset If Empty')"
-        : outcome === "tecAMM_FAILED"
-          ? "AMM failure: invalid amounts or mismatched pool ratio"
-          : `Transaction failed with code: ${outcome}`;
-    throw new Error(reason);
-  }
+  handleAMMDepositResult(result, {
+    operation: 'addLiquidityTwoAsset',
+    ammAccount,
+    asset1: assetAObj.currency,
+    asset2: assetBObj.currency,
+    amount1: assetAObj.value,
+    amount2: assetBObj.value
+  });
 
   console.log("✅ Successfully added liquidity to AMM");
 
@@ -783,15 +782,13 @@ export async function addLiquidityLPToken(
   console.log("⏳ Submitting transaction and waiting for validation...");
   const result = await client.submitAndWait(signed.tx_blob);
 
-  const outcome = result.result.meta.TransactionResult;
-  if (outcome !== "tesSUCCESS") {
-    if (outcome === "tecAMM_FAILED") {
-      throw new Error(
-        "AMM deposit failed: pool ratio constraints likely unmet. Try smaller LP token amount or fallback to basic deposit.",
-      );
-    }
-    throw new Error(`Transaction failed with code: ${outcome}`);
-  }
+  handleAMMDepositResult(result, {
+    operation: 'addLiquidityLPToken',
+    ammAccount,
+    asset1: assetAObj.currency,
+    asset2: assetBObj.currency,
+    lpTokenOut: lpTokenOut.value
+  });
 
   console.log("✅ Successfully added liquidity to AMM (LPToken)");
 
@@ -994,15 +991,14 @@ export async function addLiquidityIfEmpty(
   console.log("⏳ Submitting transaction and waiting for validation...");
   const result = await client.submitAndWait(signed.tx_blob);
 
-  const outcome = result.result.meta.TransactionResult;
-  if (outcome !== "tesSUCCESS") {
-    if (outcome === "tecAMM_FAILED") {
-      throw new Error(
-        "AMM deposit failed: pool constraints or ratios may not be satisfied.",
-      );
-    }
-    throw new Error(`Transaction failed with code: ${outcome}`);
-  }
+  handleAMMDepositResult(result, {
+    operation: 'addLiquidityIfEmpty',
+    ammAccount,
+    asset1: assetAObj.currency,
+    asset2: assetBObj.currency,
+    amount1: assetAObj.value,
+    amount2: assetBObj.value
+  });
 
   console.log("✅ Successfully added liquidity to AMM (IfEmpty)");
 
@@ -1207,20 +1203,23 @@ export async function addLiquiditySingleAsset(
   const signed = providerWallet.sign(prepared);
   console.log("⏳ Submitting transaction and waiting for validation...");
   const result = await client.submitAndWait(signed.tx_blob);
-  if (result.result.meta.TransactionResult === "tesSUCCESS") {
-    console.log("✅ Successfully added single-asset liquidity to AMM");
-    const lpTokensReceived = await extractLPTokensReceived(
-      result,
-      providerWallet,
-      ammAccount,
-    );
-    const assetsDeposited = extractActualAssetsDeposited(result);
-    return displayTransactionDetails(result, lpTokensReceived, assetsDeposited);
-  } else {
-    throw new Error(
-      `Failed to add liquidity: ${result.result.meta.TransactionResult}`,
-    );
-  }
+
+  handleAMMDepositResult(result, {
+    operation: 'addLiquiditySingleAsset',
+    ammAccount,
+    asset: assetObj.currency,
+    amount: assetObj.value
+  });
+
+  console.log("✅ Successfully added single-asset liquidity to AMM");
+
+  const lpTokensReceived = await extractLPTokensReceived(
+    result,
+    providerWallet,
+    ammAccount,
+  );
+  const assetsDeposited = extractActualAssetsDeposited(result);
+  return displayTransactionDetails(result, lpTokensReceived, assetsDeposited);
 }
 
 export async function addLiquidityOneAssetLPToken(
@@ -1403,15 +1402,13 @@ export async function addLiquidityOneAssetLPToken(
   const signed = providerWallet.sign(prepared);
   const result = await client.submitAndWait(signed.tx_blob);
 
-  const outcome = result.result.meta.TransactionResult;
-  if (outcome !== "tesSUCCESS") {
-    if (outcome === "tecAMM_FAILED") {
-      throw new Error(
-        "AMM deposit failed: pool ratio mismatch or LP token amount too high.",
-      );
-    }
-    throw new Error(`Transaction failed with code: ${outcome}`);
-  }
+  handleAMMDepositResult(result, {
+    operation: 'addLiquidityOneAssetLPToken',
+    ammAccount,
+    asset: assetObj.currency,
+    maxAmount: assetObj.value,
+    lpTokenOut: lpTokenOut.value
+  });
 
   const lpTokensReceived = await extractLPTokensReceived(
     result,
@@ -1609,17 +1606,13 @@ export async function addLiquidityLimitLPToken(
   const signed = providerWallet.sign(prepared);
   const result = await client.submitAndWait(signed.tx_blob);
 
-  if (result.result.meta.TransactionResult !== "tesSUCCESS") {
-    if (result.result.meta.TransactionResult === "tecAMM_FAILED") {
-      throw new Error(
-        "AMM deposit failed: effective price is too restrictive or pool constraints not satisfied.",
-      );
-    } else {
-      throw new Error(
-        `Transaction failed: ${result.result.meta.TransactionResult}`,
-      );
-    }
-  }
+  handleAMMDepositResult(result, {
+    operation: 'addLiquidityLimitLPToken',
+    ammAccount,
+    asset: assetObj.currency,
+    amount: assetObj.value,
+    ePrice: ePrice
+  });
 
   const lpTokensReceived = await extractLPTokensReceived(
     result,
