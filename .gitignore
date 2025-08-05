@@ -42,6 +42,3 @@ next-env.d.ts
 
 # prettier
 .prettierrc
-
-# Supabase server configuration
-src/utils/supabase/server.js
