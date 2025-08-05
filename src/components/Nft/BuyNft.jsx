@@ -57,7 +57,7 @@ export default function BuyNft() {
         offerID: offerID.trim(),
         paymentCurrency,
         issuerWalletAddress: issuerWallet.classicAddress,
-        userWalletSeed: userWallet.seed
+        userWallet
       };
 
       console.log("🛒 Submitting NFT purchase request...", payload);

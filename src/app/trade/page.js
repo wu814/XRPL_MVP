@@ -47,7 +47,7 @@ export default function Trade() {
           {/* Trading Options Content */}
           <div className="space-y-2">
             {/* Liquidity Pool */}
-            <div className="w-full rounded-lg bg-color2 p-12 border-b border-gray-700">
+            <div className="w-full rounded-lg bg-color2 p-12 border-gray-700">
               <Link
                 href="/trade/amm"
                 className="-m-8 block rounded-lg p-8 transition-colors hover:bg-color3"

@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import authorizeDeposit from "@/utils/xrpl/wallet/authorizeDeposit";
+import { createSupabaseAnonClient } from "@/utils/supabase/server";
+import { Wallet } from "xrpl";
 
 export async function POST(req) {
   const session = await getServerSession(authOptions);
@@ -10,16 +12,34 @@ export async function POST(req) {
   }
 
   try {
-    const { treasuryWallet, authorizedAddress } = await req.json();
+    const { walletWithDepositAuth, authorizedAddress } = await req.json();
 
-    if (!treasuryWallet?.seed || !authorizedAddress) {
+    if (!walletWithDepositAuth) {
+      return NextResponse.json({ error: "Missing walletWithDepositAuth" }, { status: 400 });
+    }
+
+    if (!authorizedAddress) {
+      return NextResponse.json({ error: "Missing authorizedAddress" }, { status: 400 });
+    }
+
+    // Get seed from Supabase using classicAddress
+    const supabase = await createSupabaseAnonClient();
+    const { data: walletData, error: walletError } = await supabase
+      .from("wallets")
+      .select("seed")
+      .eq("classic_address", walletWithDepositAuth.classicAddress)
+      .single();
+
+    if (walletError || !walletData) {
       return NextResponse.json(
-        { error: "Missing wallet or address." },
-        { status: 400 },
+        { error: "Wallet not found for the provided classicAddress" },
+        { status: 404 },
       );
     }
 
-    const result = await authorizeDeposit(treasuryWallet, authorizedAddress);
+    const walletWithDepositAuthXrplWallet = Wallet.fromSeed(walletData.seed);
+
+    const result = await authorizeDeposit(walletWithDepositAuthXrplWallet, authorizedAddress);
 
     return NextResponse.json({ message: result.message });
   } catch (error) {

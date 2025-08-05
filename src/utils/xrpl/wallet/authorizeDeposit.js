@@ -2,12 +2,10 @@ import { client, connectXrplClient } from "../testnet";
 import { Wallet } from "xrpl";
 
 export default async function authorizeDeposit(
-  treasuryWallet,
+  walletWithDepositAuth,
   authorizedAddress,
 ) {
   await connectXrplClient();
-
-  const walletWithDepositAuth = Wallet.fromSeed(treasuryWallet.seed);
 
   const dpTx = {
     TransactionType: "DepositPreauth",

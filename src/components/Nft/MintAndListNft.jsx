@@ -48,7 +48,7 @@ export default function MintAndListNft() {
 
     try {
       const payload = {
-        businessWalletSeed: businessWallet.seed,
+        businessWallet,
         issuerWalletAddress: issuerWallets[0].classicAddress,
         uri: uri.trim(),
         priceUSD: parseFloat(priceUSD),

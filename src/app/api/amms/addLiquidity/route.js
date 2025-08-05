@@ -12,22 +12,46 @@ import { createSupabaseAnonClient } from "@/utils/supabase/server";
 
 export async function POST(req) {
   try {
-    const { depositType, walletSeed, ammInfo, assetA, assetB, lpTokenOut } =
+    const { depositType, wallet, ammInfo, assetA, assetB, lpTokenOut } =
       await req.json();
 
-    if (!depositType || !walletSeed || !ammInfo) {
+    if (!depositType) {
       return NextResponse.json(
-        {
-          error:
-            "Missing required parameters: depositType, walletSeed, or ammAccount",
-        },
+        { error: "Missing deposit type" },
         { status: 400 },
+      );
+    }
+
+    if (!wallet) {
+      return NextResponse.json(
+        { error: "Missing adder wallet" },
+        { status: 400 },
+      );
+    }
+
+    if (!ammInfo) {
+      return NextResponse.json({ error: "Missing amm info" }, { status: 400 });
+    }
+
+
+    // Get seed from Supabase using classicAddress
+    const supabase = await createSupabaseAnonClient();
+    const { data: walletData, error: walletError } = await supabase
+      .from("wallets")
+      .select("seed")
+      .eq("classic_address", wallet.classicAddress)
+      .single();
+
+    if (walletError || !walletData) {
+      return NextResponse.json(
+        { error: "Wallet not found for the provided classicAddress" },
+        { status: 404 },
       );
     }
 
     // Initialize data
     const ammAccount = ammInfo.account;
-    const providerWallet = Wallet.fromSeed(walletSeed);
+    const providerWallet = Wallet.fromSeed(walletData.seed);
     let result;
 
     switch (depositType) {

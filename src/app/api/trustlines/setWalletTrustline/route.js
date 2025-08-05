@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { setTrustline } from "@/utils/xrpl/trustline/setTrustline";
+import { createSupabaseAnonClient } from "@/utils/supabase/server";
+import { Wallet } from "xrpl";
 
 export async function POST(req) {
   const session = await getServerSession(authOptions);
@@ -12,19 +14,37 @@ export async function POST(req) {
   try {
     const { setterWallet, issuerWallets, currency } = await req.json();
 
-    if (
-      !setterWallet?.seed ||
-      !issuerWallets?.[0]?.classicAddress ||
-      !currency
-    ) {
+    if (!setterWallet) {
+      return NextResponse.json({ error: "Missing setterWallet" }, { status: 400 });
+    }
+
+    if (!issuerWallets?.[0]?.classicAddress) {
+      return NextResponse.json({ error: "Missing issuerWallets" }, { status: 400 });
+    }
+
+    if (!currency) {
+      return NextResponse.json({ error: "Missing currency" }, { status: 400 });
+    }
+
+    // Get seed from Supabase using classicAddress
+    const supabase = await createSupabaseAnonClient();
+    const { data: walletData, error: walletError } = await supabase
+      .from("wallets")
+      .select("seed")
+      .eq("classic_address", setterWallet.classicAddress)
+      .single();
+
+    if (walletError || !walletData) {
       return NextResponse.json(
-        { error: "Invalid or missing input data." },
-        { status: 400 },
+        { error: "Wallet not found for the provided classicAddress" },
+        { status: 404 },
       );
     }
 
+    const setterXrplWallet = Wallet.fromSeed(walletData.seed);
+
     const result = await setTrustline(
-      setterWallet,
+      setterXrplWallet,
       issuerWallets[0].classicAddress,
       currency,
       issuerWallets,

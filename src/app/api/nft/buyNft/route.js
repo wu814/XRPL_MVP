@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { purchaseNFTWithSmartTrade } from "@/utils/xrpl/pos/nftManager";
+import { Wallet } from "xrpl";
+import { createSupabaseAnonClient } from "@/utils/supabase/server";
 
 export async function POST(req) {
   try {
@@ -10,77 +12,95 @@ export async function POST(req) {
     if (!session) {
       return NextResponse.json(
         { error: "Authentication required" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
     // Parse request body
-    const { offerID, paymentCurrency, issuerWalletAddress, userWalletSeed } = await req.json();
+    const { offerID, paymentCurrency, issuerWalletAddress, userWallet } =
+      await req.json();
 
     // Validate required parameters
     if (!offerID) {
       return NextResponse.json(
         { error: "Offer ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (!paymentCurrency) {
       return NextResponse.json(
         { error: "Payment currency is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (!issuerWalletAddress) {
       return NextResponse.json(
         { error: "Issuer wallet address is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    if (!userWalletSeed) {
+    if (!userWallet) {
       return NextResponse.json(
-        { error: "User wallet seed is required" },
-        { status: 400 }
+        { error: "User wallet is required" },
+        { status: 400 },
       );
     }
 
-    console.log(`🛒 Processing NFT purchase request...`);
-    console.log(`   👤 User: ${session.user.username}`);
-    console.log(`   🆔 Offer ID: ${offerID}`);
-    console.log(`   💰 Payment Currency: ${paymentCurrency}`);
+    // Get seed from Supabase using classicAddress
+    const supabase = await createSupabaseAnonClient();
+    const { data: walletData, error: walletError } = await supabase
+      .from("wallets")
+      .select("seed")
+      .eq("classic_address", userWallet.classicAddress)
+      .single();
+
+    if (walletError || !walletData) {
+      return NextResponse.json(
+        { error: "Wallet not found for the provided classicAddress" },
+        { status: 404 },
+      );
+    }
+
+    const purchaserWallet = Wallet.fromSeed(walletData.seed);
 
     // Call the purchase function
     const result = await purchaseNFTWithSmartTrade(
       issuerWalletAddress,
       offerID,
       paymentCurrency,
-      userWalletSeed
+      purchaserWallet,
     );
 
     if (result.success) {
       console.log(`✅ NFT purchase successful!`);
-      return NextResponse.json({
-        success: true,
-        message: result.message,
-      }, { status: 200 });
+      return NextResponse.json(
+        {
+          success: true,
+          message: result.message,
+        },
+        { status: 200 },
+      );
     } else {
       console.log(`❌ NFT purchase failed: ${result.error}`);
-      return NextResponse.json({
-        success: false,
-        error: result.error || "NFT purchase failed"
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: result.error || "NFT purchase failed",
+        },
+        { status: 400 },
+      );
     }
-
   } catch (error) {
     console.error(`❌ API Error in buyNft:`, error.message);
     return NextResponse.json(
-      { 
+      {
         success: false,
-        error: `Server error: ${error.message}` 
+        error: `Server error: ${error.message}`,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

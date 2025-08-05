@@ -20,7 +20,7 @@ export default function AuthorizeDepositBtn({ treasuryWallet, onSuccess }) {
       const res = await fetch("/api/wallets/authorizeDeposit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ treasuryWallet, authorizedAddress }),
+        body: JSON.stringify({ walletWithDepositAuth: treasuryWallet, authorizedAddress }),
       });
 
       const result = await res.json();

@@ -3,7 +3,7 @@ import * as xrpl from "xrpl";
 
 /**
  * Creates an AMM on the XRPL
- * @param {Object} creatorWallet - Treasury Wallet object with .seed
+ * @param {Object} treasuryWallet - Treasury Wallet object with .seed
  * @param {Array} issuerWallets - Array of issuer wallet(s)
  * @param {string} assetAType - Asset A (e.g., XRP or token code)
  * @param {string | number} amountA - Amount for asset A
@@ -13,7 +13,7 @@ import * as xrpl from "xrpl";
  * @returns {Object} AMM metadata
  */
 export default async function createAmm(
-  creatorWallet,
+  treasuryWallet,
   issuerWallets,
   assetAType,
   amountA,
@@ -24,8 +24,6 @@ export default async function createAmm(
   await connectXrplClient();
   console.log("✅ Preparing AMM creation...");
 
-  // Recreate the treasury wallet from the treasury wallet seed
-  const treasuryWallet = xrpl.Wallet.fromSeed(creatorWallet.seed);
   const issuerWallet = issuerWallets?.[0];
   if (!issuerWallet) throw new Error("Missing issuer wallet.");
 

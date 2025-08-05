@@ -16,7 +16,6 @@ export const IssuerWalletProvider = ({ children }) => {
       const issuerWalletsData = (result.data || []).map((wallet) => ({
         classicAddress: wallet.classic_address,
         walletType: wallet.wallet_type,
-        seed: wallet.seed,
       }));
 
       setIssuerWallets(issuerWalletsData);

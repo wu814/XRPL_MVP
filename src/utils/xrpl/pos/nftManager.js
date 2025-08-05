@@ -1,5 +1,5 @@
 import { connectXrplClient, client } from '../testnet';
-import * as xrpl from 'xrpl';
+import { dropsToXrp } from 'xrpl';
 
 /**
  * Automated workflow: Mint NFT and immediately list on DEX for USD (Business Wallet preferred)
@@ -62,17 +62,9 @@ const extractNFTokenID = (meta) => {
  * @param {number} taxon - NFT Taxon (defaults to RECEIPT_TAXON)
  * @returns {Promise<Object>} Result object with NFTokenID on success
  */
-const mintReceiptNFT = async (businessWalletSeed, uri, taxon = RECEIPT_TAXON) => {
+const mintReceiptNFT = async (minterWallet, uri, taxon = RECEIPT_TAXON) => {
   try {
     await connectXrplClient();
-    
-    // Load Business Wallet for minting
-    const minterWallet = xrpl.Wallet.fromSeed(businessWalletSeed);
-    
-    console.log(`🎫 Minting receipt NFT with Business Wallet...`);
-    console.log(`   📄 URI: ${uri}`);
-    console.log(`   🏪 Minter: ${minterWallet.classicAddress}`);
-    console.log(`   🏷️ Taxon: ${taxon}`);
     
     // Validate URI
     if (!uri || uri.length === 0) {
@@ -167,13 +159,9 @@ const extractOfferID = (meta) => {
  * @param {string} destination - Optional destination wallet (User Wallet address)
  * @returns {Promise<Object>} Result object with offer details
  */
-export async function createNFTSellOfferUSD(businessWalletSeed, issuerWalletAddress, nftTokenID, priceUSD, destination = null) {
+export async function createNFTSellOfferUSD(businessWallet, issuerWalletAddress, nftTokenID, priceUSD, destination = null) {
   try {
     await connectXrplClient();
-    
-    // Load Business Wallet for creating offers
-    const businessWallet = xrpl.Wallet.fromSeed(businessWalletSeed);
-
     
     // Validate and sanitize price input
     let validPriceUSD = priceUSD;
@@ -263,7 +251,7 @@ export async function createNFTSellOfferUSD(businessWalletSeed, issuerWalletAddr
 
 
 
-export async function mintAndListNFTUSD(businessWalletSeed, issuerWalletAddress, uri, priceUSD, destination = null, taxon = RECEIPT_TAXON) {
+export async function mintAndListNFTUSD(minterWallet, issuerWalletAddress, uri, priceUSD, destination = null, taxon = RECEIPT_TAXON) {
   console.log(`🚀 Starting automated NFT mint & DEX listing workflow (USD)...`);
   console.log(`   📄 URI: ${uri}`);
   console.log(`   💵 DEX Price: $${priceUSD} USD`);
@@ -274,7 +262,7 @@ export async function mintAndListNFTUSD(businessWalletSeed, issuerWalletAddress,
   try {
     // Step 1: Mint the NFT
     console.log(`\n🎫 Step 1: Minting NFT...`);
-    const mintResult = await mintReceiptNFT(businessWalletSeed, uri, taxon);
+    const mintResult = await mintReceiptNFT(minterWallet, uri, taxon);
     
     if (!mintResult.success) {
       throw new Error(`NFT minting failed: ${mintResult.error}`);
@@ -288,7 +276,7 @@ export async function mintAndListNFTUSD(businessWalletSeed, issuerWalletAddress,
     
     // Step 2: Create sell offer on DEX for USD
     console.log(`\n💵 Step 2: Creating USD sell offer on DEX...`);
-    const sellResult = await createNFTSellOfferUSD(businessWalletSeed, issuerWalletAddress, mintResult.nftTokenID, priceUSD, destination);
+    const sellResult = await createNFTSellOfferUSD(minterWallet, issuerWalletAddress, mintResult.nftTokenID, priceUSD, destination);
     
     if (!sellResult.success) {
       console.log(`⚠️ NFT minted but sell offer failed: ${sellResult.error}`);
@@ -352,23 +340,17 @@ export async function mintAndListNFTUSD(businessWalletSeed, issuerWalletAddress,
  * Purchase NFT with User Wallet using smart currency conversion
  * @param {string} offerID - The offer ID to accept
  * @param {string} paymentCurrency - Currency to pay with (e.g., "EUR", "USD", "XRP")
- * @param {string} userWalletType - Wallet type ("userWallet" or specific user wallet)
+ * @param {string} purchaserWallet - Wallet used for the purchase
  * @returns {Promise<Object>} Result object with purchase details
  */
-export async function purchaseNFTWithSmartTrade(issuerWalletAddress, offerID, paymentCurrency, userWalletSeed) {
+export async function purchaseNFTWithSmartTrade(issuerWalletAddress, offerID, paymentCurrency, purchaserWallet) {
   try {
     await connectXrplClient();
-    
-    // Load User Wallet for purchasing
-    const userWallet = xrpl.Wallet.fromSeed(userWalletSeed);
-    if (!userWallet) {
-      throw new Error(`payment walletnot found. Please create it first.`);
-    }
     
     
     console.log(`🛒 Smart NFT Purchase with User Wallet...`);
     console.log(`   🆔 Offer ID: ${offerID}`);
-    console.log(`   👤 Buyer: ${userWallet.classicAddress}`);
+    console.log(`   👤 Buyer: ${purchaserWallet.classicAddress}`);
     console.log(`   💰 Preferred Payment Currency: ${paymentCurrency}`);
     
     // Step 1: Identify NFT currency and required amount
@@ -400,7 +382,7 @@ export async function purchaseNFTWithSmartTrade(issuerWalletAddress, offerID, pa
           console.log(`   🆔 Offer ID: ${offerID}`);
         } else if (typeof offer.Amount === 'string') {
           // XRP currency
-          requiredAmount = parseFloat(xrpl.dropsToXrp(offer.Amount));
+          requiredAmount = parseFloat(dropsToXrp(offer.Amount));
           nftCurrency = "XRP";
           console.log(`💰 ✅ NFT offer found! Requires exactly: ${requiredAmount} ${nftCurrency}`);
           console.log(`   🎫 NFT ID: ${nftTokenID}`);
@@ -423,7 +405,7 @@ export async function purchaseNFTWithSmartTrade(issuerWalletAddress, offerID, pa
       
       const acceptOfferTransaction = {
         TransactionType: "NFTokenAcceptOffer",
-        Account: userWallet.classicAddress,
+        Account: purchaserWallet.classicAddress,
         NFTokenSellOffer: offerID
       };
       
@@ -431,7 +413,7 @@ export async function purchaseNFTWithSmartTrade(issuerWalletAddress, offerID, pa
       
       const response = await client.submitAndWait(acceptOfferTransaction, { 
         autofill: true, 
-        wallet: userWallet 
+        wallet: purchaserWallet 
       });
       
       if (response.result.meta.TransactionResult === "tesSUCCESS") {
@@ -442,7 +424,7 @@ export async function purchaseNFTWithSmartTrade(issuerWalletAddress, offerID, pa
           success: true,
           message: `🎉 NFT purchased successfully!\n\n🎫 NFT ID: ${nftTokenID}\n💰 Paid: ${requiredAmount} ${nftCurrency}\n📋 Transaction: ${response.result.hash}`,
           transactionHash: response.result.hash,
-          buyer: userWallet.classicAddress,
+          buyer: purchaserWallet.classicAddress,
           offerID: offerID,
           paymentCurrency: nftCurrency,
           conversionUsed: false,
@@ -460,8 +442,8 @@ export async function purchaseNFTWithSmartTrade(issuerWalletAddress, offerID, pa
     
     // Use existing sendCrossCurrency for the conversion (personal swap to same wallet)
     const conversionResult = await sendCrossCurrency(
-      userWallet,
-      userWallet.classicAddress, // Send to self (personal swap)
+      purchaserWallet,
+      purchaserWallet.classicAddress, // Send to self (personal swap)
       paymentCurrency,
       null, // Let it calculate the amount needed
       nftCurrency, // NFT currency (could be USD, BTC, EUR, etc.)
@@ -489,7 +471,7 @@ export async function purchaseNFTWithSmartTrade(issuerWalletAddress, offerID, pa
     // TRANSACTION 2: Accept NFT offer
     const acceptOfferTransaction = {
       TransactionType: "NFTokenAcceptOffer",
-      Account: userWallet.classicAddress,
+      Account: purchaserWallet.classicAddress,
       NFTokenSellOffer: offerID
     };
     
@@ -497,7 +479,7 @@ export async function purchaseNFTWithSmartTrade(issuerWalletAddress, offerID, pa
     
     const nftResponse = await client.submitAndWait(acceptOfferTransaction, { 
       autofill: true, 
-      wallet: userWallet 
+      wallet: purchaserWallet 
     });
     
     if (nftResponse.result.meta.TransactionResult === "tesSUCCESS") {
@@ -512,7 +494,7 @@ export async function purchaseNFTWithSmartTrade(issuerWalletAddress, offerID, pa
         message: `🎉 NFT purchased successfully!\n\n🎫 NFT ID: ${nftTokenID}\n💱 Converted: ${conversionResult.amountSent} → ${conversionResult.amountDelivered}\n📋 Purchase: ${nftResponse.result.hash}\n🔄 Conversion: ${conversionHash}`,
         nftTransactionHash: nftResponse.result.hash,
         conversionTransactionHash: conversionHash,
-        buyer: userWallet.classicAddress,
+        buyer: purchaserWallet.classicAddress,
         offerID: offerID,
         paymentCurrency: paymentCurrency,
         nftCurrency: nftCurrency,

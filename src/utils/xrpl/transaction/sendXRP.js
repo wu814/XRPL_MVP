@@ -1,5 +1,5 @@
 import { client, connectXrplClient } from "../testnet";
-import * as xrpl from "xrpl";
+import { xrpToDrops } from "xrpl";
 
 const handlePaymentError = (errorCode, errorMessage = "") => {
   const errorMap = {
@@ -20,11 +20,8 @@ const handlePaymentError = (errorCode, errorMessage = "") => {
   throw new Error(error);
 };
 
-const sendXRP = async (wallet, destination, amount, destinationTag = null) => {
+const sendXRP = async (senderWallet, destination, amount, destinationTag = null) => {
   await connectXrplClient();
-
-  // Recreate the sender wallet from the seed
-  const senderWallet = xrpl.Wallet.fromSeed(wallet.seed);
 
   // Parse amount as float and convert to drops
   const amountInXRP = parseFloat(amount);
@@ -36,7 +33,7 @@ const sendXRP = async (wallet, destination, amount, destinationTag = null) => {
     TransactionType: "Payment",
     Account: senderWallet.classicAddress,
     Destination: destination,
-    Amount: xrpl.xrpToDrops(amountInXRP.toString()),
+    Amount: xrpToDrops(amountInXRP.toString()),
     ...(destinationTag !== null &&
       destinationTag !== "" && { DestinationTag: destinationTag }),
   };

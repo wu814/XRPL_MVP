@@ -2,20 +2,38 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Wallet } from "xrpl";
 import { setLPTrustlineFromAMMData } from "@/utils/xrpl/trustline/setTrustline";
+import { createSupabaseAnonClient } from "@/utils/supabase/server";
 
 export async function POST(req) {
   try {
-    const { walletSeed, ammInfo } = await req.json();
+    const { setterWallet, ammInfo } = await req.json();
 
-    if (!walletSeed || !ammInfo) {
+    if (!setterWallet) {
+      return NextResponse.json({ error: "Missing setterWallet" }, { status: 400 });
+    }
+
+    if (!ammInfo) {
+      return NextResponse.json({ error: "Missing ammInfo" }, { status: 400 });
+    }
+
+    // Get seed from Supabase using classicAddress
+    const supabase = await createSupabaseAnonClient();
+    const { data: walletData, error: walletError } = await supabase
+      .from("wallets")
+      .select("seed")
+      .eq("classic_address", setterWallet.classicAddress)
+      .single();
+
+    if (walletError || !walletData) {
       return NextResponse.json(
-        { error: "Missing walletSeed or ammInfo." },
-        { status: 400 },
+        { error: "Wallet not found for the provided classicAddress" },
+        { status: 404 },
       );
     }
 
-    const wallet = Wallet.fromSeed(walletSeed);
-    const result = await setLPTrustlineFromAMMData(wallet, ammInfo);
+    const setterXrplWallet = Wallet.fromSeed(walletData.seed);
+
+    const result = await setLPTrustlineFromAMMData(setterXrplWallet, ammInfo);
 
     if (!result || !result.success) {
       return NextResponse.json(

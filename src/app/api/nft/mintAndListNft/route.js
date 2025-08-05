@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { mintAndListNFTUSD } from "@/utils/xrpl/pos/nftManager";
+import { createSupabaseAnonClient } from "@/utils/supabase/server";
+import { Wallet } from "xrpl";
 
 export async function POST(req) {
   try {
@@ -23,7 +25,7 @@ export async function POST(req) {
     }
 
     // Parse request body
-    const { businessWalletSeed, issuerWalletAddress, uri, priceUSD, destination, taxon } = await req.json();
+    const { businessWallet, issuerWalletAddress, uri, priceUSD, destination, taxon } = await req.json();
     
 
     // Validate required parameters
@@ -41,17 +43,26 @@ export async function POST(req) {
       );
     }
 
-    console.log(`🎫 Processing NFT mint and list request...`);
-    console.log(`   👤 Business User: ${session.user.username}`);
-    console.log(`   📄 URI: ${uri}`);
-    console.log(`   💵 Price: $${priceUSD} USD`);
-    if (destination) {
-      console.log(`   🎯 Destination: ${destination}`);
+    // Get seed from Supabase using classicAddress
+    const supabase = await createSupabaseAnonClient();
+    const { data: walletData, error: walletError } = await supabase
+      .from("wallets")
+      .select("seed")
+      .eq("classic_address", businessWallet.classicAddress)
+      .single();
+
+    if (walletError || !walletData) {
+      return NextResponse.json(
+        { error: "Wallet not found for the provided classicAddress" },
+        { status: 404 },
+      );
     }
+
+    const minterWallet = Wallet.fromSeed(walletData.seed);
 
     // Call the mint and list function
     const result = await mintAndListNFTUSD(
-      businessWalletSeed,
+      minterWallet,
       issuerWalletAddress,
       uri,
       priceUSD,

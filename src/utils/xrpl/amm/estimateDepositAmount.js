@@ -84,25 +84,28 @@ export default function estimateDepositAmounts({
 
   if (payWith === token1.currency) {
     const value = solveDepositAmount(poolA, totalLP, fee, weight, desiredLP);
+    // Round up to make sure the value is slightly more than the desired amount, singleAssetLpToken will have error if it's less or equal to the desired amount
+    const roundedUp = new BigNumber(value).decimalPlaces(6, BigNumber.ROUND_UP);
     singleAsset = {
       currency: token1.currency,
       issuer: token1.issuer,
-      value: value.toFixed(6),
+      value: roundedUp.toFixed(6),
     };
     maxSingleAsset = {
       ...singleAsset,
-      value: value.times(slip).toFixed(6),
+      value: roundedUp.times(slip).toFixed(6),
     };
   } else if (payWith === token2.currency) {
     const value = solveDepositAmount(poolB, totalLP, fee, weight, desiredLP);
+    const roundedUp = new BigNumber(value).decimalPlaces(6, BigNumber.ROUND_UP);
     singleAsset = {
       currency: token2.currency,
       issuer: token2.issuer,
-      value: value.toFixed(6),
+      value: roundedUp.toFixed(6),
     };
     maxSingleAsset = {
       ...singleAsset,
-      value: value.times(slip).toFixed(6),
+      value: roundedUp.times(slip).toFixed(6),
     };
   }
 
