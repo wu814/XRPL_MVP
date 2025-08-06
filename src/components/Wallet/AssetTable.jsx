@@ -4,25 +4,27 @@ import { Wallet, ArrowUpRight, ChevronRight, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Button from "../Button";
-import { 
-  formatCurrencyValue, 
-  getCurrencyIcon, 
-  getAssetKey, 
-  isLpToken, 
-  getLpTokenCurrencyPair, 
-  formatLpTokenDisplay 
-} from "@/utils/xrpl/assets";
+import { formatCurrencyValue, getCurrencyIcon } from "@/utils/currencyUtils";
+import {
+  getAssetKey,
+  isLpToken,
+  getLpTokenCurrencyPair,
+  formatLpTokenDisplay,
+} from "@/utils/assetUtils";
 
 // LP Token Icon Component - shows overlapping currency icons diagonally
 const LpTokenIcon = ({ currencyA, currencyB, size = 40 }) => {
   const iconA = getCurrencyIcon(currencyA);
   const iconB = getCurrencyIcon(currencyB);
   const iconSize = Math.round(size * 0.7); // Calculate icon size once
-  
+
   return (
-    <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
+    <div
+      className="relative flex items-center justify-center"
+      style={{ width: size, height: size }}
+    >
       {/* First currency icon (top-left) */}
-      <div className="absolute top-0 left-0 z-10">
+      <div className="absolute left-0 top-0 z-10">
         {iconA ? (
           <Image
             src={iconA}
@@ -32,15 +34,15 @@ const LpTokenIcon = ({ currencyA, currencyB, size = 40 }) => {
             className="rounded-full"
           />
         ) : (
-          <div 
-            className="bg-gray-500 rounded-full flex items-center justify-center font-bold text-xs"
+          <div
+            className="flex items-center justify-center rounded-full bg-gray-500 text-xs font-bold"
             style={{ width: iconSize, height: iconSize }}
           >
             <span>{currencyA.substring(0, 2)}</span>
           </div>
         )}
       </div>
-      
+
       {/* Second currency icon (bottom-right) */}
       <div className="absolute bottom-0 right-0 z-20">
         {iconB ? (
@@ -52,8 +54,8 @@ const LpTokenIcon = ({ currencyA, currencyB, size = 40 }) => {
             className="rounded-full"
           />
         ) : (
-          <div 
-            className="bg-gray-500 rounded-full flex items-center justify-center font-bold text-xs"
+          <div
+            className="flex items-center justify-center rounded-full bg-gray-500 text-xs font-bold"
             style={{ width: iconSize, height: iconSize }}
           >
             <span>{currencyB.substring(0, 2)}</span>
@@ -64,11 +66,11 @@ const LpTokenIcon = ({ currencyA, currencyB, size = 40 }) => {
   );
 };
 
-export default function AssetTable({ 
-  assets = [], 
-  loading = false, 
+export default function AssetTable({
+  assets = [],
+  loading = false,
   isIssuer = false,
-  wallet = null 
+  wallet = null,
 }) {
   const [expandedAssets, setExpandedAssets] = useState(new Set());
   const [lpTokenPairs, setLpTokenPairs] = useState({});
@@ -77,16 +79,16 @@ export default function AssetTable({
   // Load LP token currency pairs when assets change
   useEffect(() => {
     const loadLpTokenPairs = async () => {
-      const lpTokens = assets.filter(asset => isLpToken(asset));
-      
+      const lpTokens = assets.filter((asset) => isLpToken(asset));
+
       if (lpTokens.length === 0) {
         setLpTokenPairs({});
         return;
       }
-      
+
       setLoadingPairs(true);
       const pairs = {};
-      
+
       try {
         // Load currency pairs for all LP tokens
         await Promise.all(
@@ -95,9 +97,9 @@ export default function AssetTable({
             if (currencyPair) {
               pairs[asset.issuer] = currencyPair;
             }
-          })
+          }),
         );
-        
+
         setLpTokenPairs(pairs);
       } catch (error) {
         console.error("Error loading LP token pairs:", error);
@@ -133,10 +135,10 @@ export default function AssetTable({
       const currencyPair = lpTokenPairs[asset.issuer];
       if (currencyPair) {
         return (
-          <LpTokenIcon 
-            currencyA={currencyPair.currencyA} 
-            currencyB={currencyPair.currencyB} 
-            size={40} 
+          <LpTokenIcon
+            currencyA={currencyPair.currencyA}
+            currencyB={currencyPair.currencyB}
+            size={40}
           />
         );
       }
@@ -148,13 +150,13 @@ export default function AssetTable({
 
   const tableTitle = isIssuer ? "Issued Assets" : "Assets";
   const emptyStateTitle = isIssuer ? "No Issued Assets" : "No Assets Found";
-  const emptyStateMessage = isIssuer 
+  const emptyStateMessage = isIssuer
     ? "This issuer wallet has not issued any currencies yet."
     : "Your wallet balances will appear here once you have assets.";
 
   return (
-    <div className="w-full bg-color2 rounded-lg">
-      <div className="p-4 border-b border-gray-700">
+    <div className="w-full rounded-lg bg-color2">
+      <div className="border-b border-gray-700 p-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold">{tableTitle}</h2>
           <div className="text-xl font-bold">USD Values</div>
@@ -163,8 +165,8 @@ export default function AssetTable({
 
       {/* Loading State */}
       {loading && (
-        <div className="flex justify-center items-center py-12">
-          <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
         </div>
       )}
 
@@ -178,18 +180,18 @@ export default function AssetTable({
             const iconElement = getAssetIcon(asset);
             const isLp = isLpToken(asset);
             const currencyPair = isLp ? lpTokenPairs[asset.issuer] : null;
-            
+
             return (
               <div key={assetKey}>
                 {/* Main Asset Row */}
-                <div 
-                  className="p-3 hover:bg-color3 transition-colors cursor-pointer"
+                <div
+                  className="cursor-pointer p-3 transition-colors hover:bg-color3"
                   onClick={() => handleAssetClick(asset, index)}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 flex items-center justify-center">
-                        {typeof iconElement === 'string' ? (
+                      <div className="flex h-10 w-10 items-center justify-center">
+                        {typeof iconElement === "string" ? (
                           iconElement ? (
                             <Image
                               src={iconElement}
@@ -199,7 +201,7 @@ export default function AssetTable({
                               className="rounded-full"
                             />
                           ) : (
-                            <div className="w-10 h-10 bg-gray-500 rounded-full flex items-center justify-center font-bold text-xs">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-500 text-xs font-bold">
                               <span>{displayName.substring(0, 2)}</span>
                             </div>
                           )
@@ -210,11 +212,11 @@ export default function AssetTable({
                       </div>
                       <div>
                         <div className="font-semibold">{displayName}</div>
-                        <div className="text-gray-400 text-sm">
+                        <div className="text-sm text-gray-400">
                           {formatCurrencyValue(asset.balance)}
                           {isIssuer && " issued"}
                           {isLp && loadingPairs && (
-                            <span className="text-xs text-yellow-400 ml-2">
+                            <span className="ml-2 text-xs text-yellow-400">
                               Loading...
                             </span>
                           )}
@@ -223,29 +225,37 @@ export default function AssetTable({
                     </div>
                     <div className="flex items-center space-x-3">
                       <div className="text-right">
-                        <div className="font-semibold text-xl">${formatCurrencyValue(asset.value || 0)}</div>
-                        <div className={`${
-                          (parseFloat(asset.change24h) || 0) >= 0 ? "text-green-400" : "text-red-400"
-                        }`}>
+                        <div className="text-xl font-semibold">
+                          ${formatCurrencyValue(asset.value || 0)}
+                        </div>
+                        <div
+                          className={`${
+                            (parseFloat(asset.change24h) || 0) >= 0
+                              ? "text-green-400"
+                              : "text-red-400"
+                          }`}
+                        >
                           {(parseFloat(asset.change24h) || 0) >= 0 ? "+" : ""}
                           {(parseFloat(asset.change24h) || 0).toFixed(2)}%
                         </div>
                       </div>
-                      <ChevronRight className={`w-3 h-3 text-gray-400 transition-transform ${
-                        isExpanded ? "rotate-90" : ""
-                      }`} />
+                      <ChevronRight
+                        className={`h-3 w-3 text-gray-400 transition-transform ${
+                          isExpanded ? "rotate-90" : ""
+                        }`}
+                      />
                     </div>
                   </div>
                 </div>
 
                 {/* Expanded Details */}
                 {isExpanded && (
-                  <div className="p-4 bg-color3">
+                  <div className="bg-color3 p-4">
                     <div className="flex flex-col">
                       {isIssuer ? (
                         <div>
                           <span className="text-gray-400">Issuer Address:</span>
-                          <div className="font-mono break-all text-sm">
+                          <div className="break-all font-mono text-sm">
                             {wallet?.classicAddress || wallet?.classic_address}
                           </div>
                         </div>
@@ -256,13 +266,15 @@ export default function AssetTable({
                             <div>
                               <div className="mt-2">
                                 <div className="flex flex-row">
-                                  <span className="text-gray-400 mr-2">AMM:</span>
-                                  <div className="text-sm">
-                                    {asset.issuer}
-                                  </div>
+                                  <span className="mr-2 text-gray-400">
+                                    AMM:
+                                  </span>
+                                  <div className="text-sm">{asset.issuer}</div>
                                 </div>
                                 <div className="flex flex-row">
-                                  <span className="text-gray-400 mr-2">Token:</span>
+                                  <span className="mr-2 text-gray-400">
+                                    Token:
+                                  </span>
                                   <div className="text-sm">
                                     {asset.currency}
                                   </div>
@@ -270,20 +282,22 @@ export default function AssetTable({
                               </div>
                             </div>
                           )}
-                          
+
                           {/* Regular asset details */}
                           {!isLp && asset.issuer && (
                             <div className="flex flex-row">
-                              <span className="text-gray-400 mr-2">Issuer:</span>
-                              <div className="text-sm">
-                                {asset.issuer}
-                              </div>
+                              <span className="mr-2 text-gray-400">
+                                Issuer:
+                              </span>
+                              <div className="text-sm">{asset.issuer}</div>
                             </div>
                           )}
-                          
+
                           {asset.walletAddress && (
                             <div className="flex flex-row">
-                              <span className="text-gray-400 mr-2">Wallet:</span>
+                              <span className="mr-2 text-gray-400">
+                                Wallet:
+                              </span>
                               <div className="text-sm">
                                 {asset.walletAddress}
                               </div>
@@ -295,19 +309,19 @@ export default function AssetTable({
                   </div>
                 )}
               </div>
-            )
+            );
           })}
         </div>
       )}
 
       {/* Empty State */}
       {!loading && assets.length === 0 && (
-        <div className="text-center py-8">
-          <Wallet className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-          <h3 className="text-base font-semibold mb-1">{emptyStateTitle}</h3>
+        <div className="py-8 text-center">
+          <Wallet className="mx-auto mb-2 h-8 w-8 text-gray-400" />
+          <h3 className="mb-1 text-base font-semibold">{emptyStateTitle}</h3>
           <p className="text-gray-400">{emptyStateMessage}</p>
         </div>
       )}
     </div>
   );
-} 
+}

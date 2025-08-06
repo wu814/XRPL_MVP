@@ -12,7 +12,7 @@ import SuccessMdl from "@/components/SuccessMdl";
 import Button from "../Button";
 import { useCurrentUserWallet } from "@/components/Wallet/CurrentUserWalletProvider";
 import { useIssuerWallet } from "@/components/Wallet/IssuerWalletProvider";
-import { availableCurrencies, formatCurrencyValue } from "@/utils/xrpl/assets";
+import { availableCurrencies, formatCurrencyValue } from "@/utils/currencyUtils";
 import { useSession } from "next-auth/react";
 // Import from the new client-safe calculation file
 import { calculateExactAMMInput, calculateEstimateOutput } from "@/utils/xrpl/amm/calculations";

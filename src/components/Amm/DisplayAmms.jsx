@@ -7,7 +7,7 @@ import { useSession } from "next-auth/react";
 import ErrorMdl from "../ErrorMdl";
 import CurrencyIcon from "../Currency/CurrencyIcon";
 import CreateAmmBtn from "./CreateAmmBtn";
-import { fetchUsdPrices, getUsdValue, formatCurrencyValue } from "@/utils/xrpl/assets";
+import { fetchUSDPrices, getUSDValue, formatCurrencyValue } from "@/utils/currencyUtils";
 
 // This class is used to parse the AMM data returned from the API
 class AmmInfo {
@@ -66,7 +66,7 @@ export default function DisplayAmms() {
   // Function to fetch USD prices
   const fetchPrices = async () => {
     try {
-      const prices = await fetchUsdPrices();
+      const prices = await fetchUSDPrices();
       setLivePrices(prices);
     } catch (error) {
       console.error("Error fetching prices:", error);
@@ -104,8 +104,8 @@ export default function DisplayAmms() {
       return null;
     }
 
-    const usdValue1 = getUsdValue(ammInfo.amount.currency, ammInfo.amount.value, livePrices);
-    const usdValue2 = getUsdValue(ammInfo.amount2.currency, ammInfo.amount2.value, livePrices);
+    const usdValue1 = getUSDValue(ammInfo.amount.currency, ammInfo.amount.value, livePrices);
+    const usdValue2 = getUSDValue(ammInfo.amount2.currency, ammInfo.amount2.value, livePrices);
     const totalUsdValue = usdValue1 + usdValue2;
 
     return totalUsdValue > 0 ? totalUsdValue : null;

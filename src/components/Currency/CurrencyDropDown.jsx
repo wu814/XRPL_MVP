@@ -9,7 +9,7 @@ import {
 } from "@headlessui/react";
 import { Fragment } from "react";
 import { ChevronDown } from "lucide-react";
-import { availableCurrencies } from "@/utils/xrpl/assets";
+import { availableCurrencies } from "@/utils/currencyUtils";
 
 export default function CurrencyDropDown({
   value,

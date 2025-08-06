@@ -6,7 +6,8 @@ import {
   useCurrentUserWallet,
 } from "@/components/Wallet/CurrentUserWalletProvider";
 import CreateUserWalletBtn from "@/components/Wallet/CreateUserWalletBtn";
-import { useLivePrices, useWalletAssets } from "@/utils/xrpl/assets";
+import { useLivePrices } from "@/utils/currencyUtils";
+import { useWalletAssets } from "@/utils/assetUtils";
 import usePageTitle from "@/utils/usePageTitle";
 
 // AssetTableWrapper component to access wallet context

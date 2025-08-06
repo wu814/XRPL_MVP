@@ -4,10 +4,10 @@ import { RefreshCw, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useCurrentUserWallet } from "@/components/Wallet/CurrentUserWalletProvider";
 import {
-  fetchUsdPrices,
-  getUsdValue,
+  fetchUSDPrices,
+  getUSDValue,
   formatCurrencyValue,
-} from "@/utils/xrpl/assets";
+} from "@/utils/currencyUtils";
 
 export default function DashboardHeader({ totalBalance }) {
   const { currentUserWallets } = useCurrentUserWallet();
@@ -29,7 +29,7 @@ export default function DashboardHeader({ totalBalance }) {
     setLoading(true);
     try {
       // Step 1: Get live prices using utility function
-      const livePrices = await fetchUsdPrices();
+      const livePrices = await fetchUSDPrices();
 
       if (!livePrices || livePrices.length === 0) {
         console.error("No live prices available");
@@ -62,7 +62,7 @@ export default function DashboardHeader({ totalBalance }) {
       // Add XRP balance if not an issuer wallet
       if (primaryWallet.walletType !== "ISSUER" && accountInfo.data?.balance) {
         const xrpBalance = parseFloat(accountInfo.data.balance);
-        totalUsdValue += getUsdValue("XRP", xrpBalance, livePrices);
+        totalUsdValue += getUSDValue("XRP", xrpBalance, livePrices);
       }
 
       // Add trustline balances
@@ -70,7 +70,7 @@ export default function DashboardHeader({ totalBalance }) {
         accountLines.data.lines.forEach((line) => {
           const balance = parseFloat(line.balance);
           const currency = line.currency;
-          totalUsdValue += getUsdValue(currency, balance, livePrices);
+          totalUsdValue += getUSDValue(currency, balance, livePrices);
         });
       }
 

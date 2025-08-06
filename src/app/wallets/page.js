@@ -8,10 +8,10 @@ import {
   useCurrentUserWallet,
 } from "@/components/Wallet/CurrentUserWalletProvider";
 import { 
-  useLivePrices, 
   useWalletAssets, 
   getWalletDisplayName 
-} from "@/utils/xrpl/assets";
+} from "@/utils/assetUtils";
+import { useLivePrices } from "@/utils/currencyUtils";
 import usePageTitle from "@/utils/usePageTitle";
 
 // Wallet component that displays individual wallet and its assets

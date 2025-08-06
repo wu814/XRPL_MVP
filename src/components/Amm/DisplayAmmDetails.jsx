@@ -9,7 +9,7 @@ import ManageAmmBalance from "./ManageAmmBalance";
 import Breadcrumbs from "../Navigation/Breadcrumbs";
 import { useRouter } from "next/navigation";
 import { CurrentUserWalletProvider } from "../Wallet/CurrentUserWalletProvider";
-import { fetchUsdPrices, getUsdValue, formatCurrencyValue } from "@/utils/xrpl/assets";
+import { fetchUSDPrices, getUSDValue, formatCurrencyValue } from "@/utils/currencyUtils";
 
 // This class is used to parse the AMM data returned from the API
 class AmmInfo {
@@ -91,7 +91,7 @@ export default function DisplayAmmDetails({ ammAccount }) {
 
   const fetchPrices = async () => {
     try {
-      const prices = await fetchUsdPrices();
+      const prices = await fetchUSDPrices();
       setLivePrices(prices);
     } catch (error) {
       console.error("Error fetching prices:", error);
@@ -196,8 +196,8 @@ export default function DisplayAmmDetails({ ammAccount }) {
           </div>
         ) : (
           (() => {
-            const usdValue1 = getUsdValue(ammInfo.amount.currency, ammInfo.amount.value, livePrices);
-            const usdValue2 = getUsdValue(ammInfo.amount2.currency, ammInfo.amount2.value, livePrices);
+            const usdValue1 = getUSDValue(ammInfo.amount.currency, ammInfo.amount.value, livePrices);
+            const usdValue2 = getUSDValue(ammInfo.amount2.currency, ammInfo.amount2.value, livePrices);
             const totalUsdValue = usdValue1 + usdValue2;
 
             if (totalUsdValue > 0) {
