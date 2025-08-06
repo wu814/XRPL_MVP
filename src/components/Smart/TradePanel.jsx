@@ -321,7 +321,6 @@ export default function TradePanel() {
     setSendAmount("");
     setReceiveAmount("");
     setAmount("");
-    setCurrency("");
   };
 
   const handleSendAmountChangeForPayment = (e) => {
@@ -393,9 +392,6 @@ export default function TradePanel() {
       if (!recipientUsername) setRecipientUsername("");
       setRecipientAddress("");
       setAmount("");
-      setCurrency("");
-      setSendCurrency("");
-      setReceiveCurrency("");
       setDestinationTag("");
       setSendAmount("");
       setReceiveAmount("");

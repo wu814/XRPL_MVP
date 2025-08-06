@@ -5,11 +5,8 @@ import AuthRedirect from "@/components/AuthRedirect";
 import AssetTable from "@/components/Wallet/AssetTable";
 import { Wallet, Loader2 } from "lucide-react";
 import {
-  CurrentUserWalletProvider,
   useCurrentUserWallet,
 } from "@/components/Wallet/CurrentUserWalletProvider";
-import { IssuerWalletProvider } from "@/components/Wallet/IssuerWalletProvider";
-import TradePanel from "@/components/Smart/TradePanel";
 import { 
   useLivePrices, 
   useWalletAssets, 
@@ -121,15 +118,10 @@ export default function WalletsPage() {
   }
 
   return (
-    <CurrentUserWalletProvider>
-      <IssuerWalletProvider>
-        <div className="min-h-screen p-2">
-          <div className="mx-auto max-w-6xl">
-            <WalletsWrapper />
-          </div>
-          <TradePanel />
-        </div>
-      </IssuerWalletProvider>
-    </CurrentUserWalletProvider>
+    <div className="min-h-screen p-2">
+      <div className="mx-auto max-w-6xl">
+        <WalletsWrapper />
+      </div>
+    </div>
   );
 }

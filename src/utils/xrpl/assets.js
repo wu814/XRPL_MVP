@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 
 export const availableCurrencies = [
-  { id: "XRP", name: "XRP", avatar: "/icons/XRP.png" },
   { id: "USD", name: "USD", avatar: "/icons/USD.png" },
+  { id: "XRP", name: "XRP", avatar: "/icons/XRP.png" },
   { id: "EUR", name: "Euro", avatar: "/icons/EUR.png" },
   { id: "BTC", name: "Bitcoin", avatar: "/icons/BTC.png" }, 
   { id: "ETH", name: "Ethereum", avatar: "/icons/ETH.png" },

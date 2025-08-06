@@ -5,8 +5,7 @@ import DisplayAllOffers from "@/components/Dex/DisplayAllOffers";
 import DisplayUserOffers from "@/components/Dex/DisplayUserOffers";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
-import { CurrentUserWalletProvider } from "@/components/Wallet/CurrentUserWalletProvider";
-import { IssuerWalletProvider } from "@/components/Wallet/IssuerWalletProvider";
+
 import CurrencyPairSelection from "@/components/Currency/CurrencyPairSelection";
 import Breadcrumbs from "@/components/Navigation/Breadcrumbs";
 import usePageTitle from "@/utils/usePageTitle";
@@ -42,8 +41,7 @@ export default function DEX() {
   }
 
   return (
-    <CurrentUserWalletProvider>
-      <IssuerWalletProvider>
+
         <div className="min-h-screen bg-color1 p-2">
           {/* Breadcrumbs */}
           <div className="m-2">
@@ -90,7 +88,6 @@ export default function DEX() {
             </div>
           </div>
         </div>
-      </IssuerWalletProvider>
-    </CurrentUserWalletProvider>
+
   );
 }
