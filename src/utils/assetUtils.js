@@ -1,107 +1,6 @@
 import { useState, useEffect } from "react";
+import { getUSDValue, fetchUSDPrices } from "@/utils/currencyUtils";
 
-export const availableCurrencies = [
-  { id: "XRP", name: "XRP", avatar: "/icons/XRP.png" },
-  { id: "USD", name: "USD", avatar: "/icons/USD.png" },
-  { id: "EUR", name: "Euro", avatar: "/icons/EUR.png" },
-  { id: "BTC", name: "Bitcoin", avatar: "/icons/BTC.png" }, 
-  { id: "ETH", name: "Ethereum", avatar: "/icons/ETH.png" },
-  { id: "SOL", name: "Solana", avatar: "/icons/SOL.png" },
-];
-
-/**
- * Fetches USD prices for currencies using the oracle
- * @returns {Promise<Array>} Array of price objects with baseAsset and price properties
- */
-export async function fetchUsdPrices() {
-  try {
-    // Step 1: Get treasury wallet (oracle account)
-    const treasuryResponse = await fetch("/api/wallets/getTreasuryWallet");
-    const treasuryData = await treasuryResponse.json();
-
-    if (!treasuryData.data || treasuryData.data.length === 0) {
-      console.error("No treasury wallet found");
-      return [];
-    }
-
-    const treasuryWallet = treasuryData.data[0];
-
-    // Step 2: Get live prices from oracle
-    const pricesResponse = await fetch("/api/oracle/getLivePrices", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        account: treasuryWallet.classic_address,
-        oracleDocumentId: 1,
-        ledgerIndex: "validated",
-      }),
-    });
-
-    const pricesData = await pricesResponse.json();
-
-    if (pricesData.success) {
-      return pricesData.livePrices;
-    } else {
-      console.error("Failed to fetch prices:", pricesData.error);
-      return [];
-    }
-  } catch (error) {
-    console.error("Error fetching USD prices:", error);
-    return [];
-  }
-}
-
-/**
- * Get USD value for a specific currency and amount
- * @param {string} currency - The currency symbol (e.g., "XRP", "BTC", "ETH")
- * @param {number} amount - The amount of the currency
- * @param {Array} livePrices - Array of live price objects from oracle
- * @returns {number} USD value or 0 if price not found
- */
-export function getUsdValue(currency, amount, livePrices) {
-  if (!livePrices || !currency || !amount) return 0;
-
-  // Handle USD directly
-  if (currency === "USD") {
-    return amount;
-  }
-
-  // Find price for the currency
-  const priceInfo = livePrices.find(
-    (p) => p.baseAsset === currency && p.available
-  );
-
-  if (priceInfo && priceInfo.price) {
-    return amount * priceInfo.price;
-  }
-
-  return 0;
-}
-
-/**
- * Format any currency value with consistent decimal places (min 2, max 6)
- * @param {number} value - The value to format
- * @returns {string} Formatted value string
- */
-export function formatCurrencyValue(value) {
-  const num = parseFloat(value);
-  if (isNaN(num)) return "0.00";
-  
-  return num.toLocaleString("en-US", { 
-    minimumFractionDigits: 2, 
-    maximumFractionDigits: 2
-  });
-}
-
-/**
- * Get currency icon path
- * @param {string} currency - The currency symbol
- * @returns {string|null} Icon path or null if not found
- */
-export function getCurrencyIcon(currency) {
-  const currencyObj = availableCurrencies.find(c => c.id === currency);
-  return currencyObj ? currencyObj.avatar : null;
-}
 
 /**
  * Generate asset key for identification
@@ -145,7 +44,7 @@ export async function fetchWalletAssets(wallet, livePrices, isIssuer = false) {
     // Add XRP balance for non-issuer wallets
     if (!isIssuer && accountInfo.data?.balance) {
       const xrpBalance = parseFloat(accountInfo.data.balance);
-      const usdValue = getUsdValue("XRP", xrpBalance, livePrices);
+      const usdValue = getUSDValue("XRP", xrpBalance, livePrices);
 
       assets.push({
         id: "xrp-native",
@@ -171,7 +70,7 @@ export async function fetchWalletAssets(wallet, livePrices, isIssuer = false) {
 
         // Convert grouped balances to assets
         Object.entries(grouped).forEach(([currency, totalBalance]) => {
-          const usdValue = getUsdValue(currency, totalBalance, livePrices);
+          const usdValue = getUSDValue(currency, totalBalance, livePrices);
           assets.push({
             id: `issuer-${currency}`,
             currency,
@@ -188,7 +87,7 @@ export async function fetchWalletAssets(wallet, livePrices, isIssuer = false) {
           if (parseFloat(line.balance) > 0) {
             const balance = parseFloat(line.balance);
             const currency = line.currency;
-            const usdValue = getUsdValue(currency, balance, livePrices);
+            const usdValue = getUSDValue(currency, balance, livePrices);
 
             assets.push({
               id: `${line.currency}-${line.account}-${index}`,
@@ -209,32 +108,6 @@ export async function fetchWalletAssets(wallet, livePrices, isIssuer = false) {
     console.error("Error fetching wallet assets:", error);
     return [];
   }
-}
-
-/**
- * Custom hook for live prices
- * @returns {Object} { livePrices, loading }
- */
-export function useLivePrices() {
-  const [livePrices, setLivePrices] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchPrices = async () => {
-      try {
-        const prices = await fetchUsdPrices();
-        setLivePrices(prices);
-      } catch (error) {
-        console.error("Error fetching live prices:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPrices();
-  }, []);
-
-  return { livePrices, loading };
 }
 
 /**
@@ -340,27 +213,4 @@ export function formatLpTokenDisplay(asset, currencyPair) {
   }
   
   return `${currencyPair.currencyA}/${currencyPair.currencyB}`;
-}
-
-/**
- * Enhanced asset processing with LP token support
- * @param {Object} asset - Asset object
- * @param {Object} currencyPair - Currency pair object (for LP tokens)
- * @returns {Object} Enhanced asset object
- */
-export function enhanceAssetWithLpInfo(asset, currencyPair = null) {
-  if (isLpToken(asset)) {
-    return {
-      ...asset,
-      isLpToken: true,
-      displayName: formatLpTokenDisplay(asset, currencyPair),
-      currencyPair: currencyPair
-    };
-  }
-  
-  return {
-    ...asset,
-    isLpToken: false,
-    displayName: asset.currency
-  };
 }

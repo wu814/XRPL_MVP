@@ -5,9 +5,8 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import BuyNft from "@/components/Nft/BuyNft";
 import MintAndListNft from "@/components/Nft/MintAndListNft";
-import TradePanel from "@/components/Smart/TradePanel";
-import { CurrentUserWalletProvider } from "@/components/Wallet/CurrentUserWalletProvider";
-import { IssuerWalletProvider } from "@/components/Wallet/IssuerWalletProvider";
+// Remove this line: import TradePanel from "@/components/Smart/TradePanel";
+
 import usePageTitle from "@/utils/usePageTitle";
 
 export default function NftPage() {
@@ -43,28 +42,21 @@ export default function NftPage() {
   const isBusiness = session.user.role === "BUSINESS";
 
   return (
-    <CurrentUserWalletProvider>
-      <IssuerWalletProvider>
-        <div className="min-h-screen bg-color1">          
-          <div className="container mx-auto px-4 py-8">
-            <div className="max-w-4xl mx-auto">
-              {/* Role-based Content */}
-              <div className="flex justify-center">
-                {isBusiness ? (
-                  <div className="w-full max-w-lg">
-                    <MintAndListNft />
-                  </div>
-                ) : (
-                  <div className="w-full max-w-lg">
-                    <BuyNft />
-                  </div>
-                )}
+    <div className="min-h-screen bg-color1">          
+        <div className="max-w-4xl mx-auto pt-10">
+          {/* Role-based Content */}
+          <div className="flex justify-center">
+            {isBusiness ? (
+              <div className="w-full max-w-lg">
+                <MintAndListNft />
               </div>
-            </div>
-            <TradePanel />
+            ) : (
+              <div className="w-full max-w-lg">
+                <BuyNft />
+              </div>
+            )}
           </div>
         </div>
-      </IssuerWalletProvider>
-    </CurrentUserWalletProvider>
+    </div>
   );
 }

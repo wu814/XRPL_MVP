@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { Plus } from "lucide-react";
 import { useCurrentUserWallet } from "@/components/Wallet/CurrentUserWalletProvider";
 import { useIssuerWallet } from "@/components/Wallet/IssuerWalletProvider";
@@ -11,114 +12,6 @@ import Button from "@/components/Button";
 import ViewWalletDetails from "@/components/Wallet/ViewWalletDetails";
 import AddFundsBtn from "./AddFunds";
 
-// AssetTableWrapper component to access wallet context
-function AssetTableWrapper() {
-  const { currentUserWallets, fetchCurrentUserWallets } = useCurrentUserWallet();
-  const [assets, setAssets] = useState([]);
-  const [loading, setLoading] = useState(false);
-
-  // Get the primary wallet for fetching balances
-  const primaryWallet = currentUserWallets?.find(
-    (wallet) =>
-      wallet.walletType === "USER" ||
-      wallet.walletType === "BUSINESS",
-  );
-
-  const handleWalletCreated = async () => {
-    await fetchCurrentUserWallets();
-  };
-
-  const fetchAssets = async () => {
-    if (!primaryWallet) return;
-
-    setLoading(true);
-    try {
-      // Fetch account info and lines in parallel
-      const [accountInfoResponse, accountLinesResponse] = await Promise.all([
-        fetch("/api/wallets/getAccountInfo", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ wallet: primaryWallet }),
-        }),
-        fetch("/api/wallets/getAccountLines", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ wallet: primaryWallet }),
-        }),
-      ]);
-
-      const accountInfo = await accountInfoResponse.json();
-      const accountLines = await accountLinesResponse.json();
-
-      const newAssets = [];
-
-      // Add XRP balance
-      if (accountInfo.data?.Balance) {
-        const xrpBalance = parseFloat(accountInfo.data.Balance) / 1000000; // Convert drops to XRP
-        newAssets.push({
-          currency: "XRP",
-          balance: xrpBalance.toFixed(6),
-          issuer: null,
-          usdValue: (xrpBalance * 0.5).toFixed(2), // Mock USD value
-          change24h: "+2.3%",
-          changeValue: "+$0.12",
-          icon: "/icons/XRP.png",
-        });
-      }
-
-      // Add trustline balances
-      if (accountLines.data?.lines) {
-        accountLines.data.lines.forEach((line) => {
-          if (parseFloat(line.balance) > 0) {
-            const balance = parseFloat(line.balance);
-            newAssets.push({
-              currency: line.currency,
-              balance: balance.toFixed(6),
-              issuer: line.account,
-              usdValue: (balance * 1.0).toFixed(2), // Mock USD value
-              change24h: "+1.5%",
-              changeValue: "+$0.08",
-              icon: `/icons/${line.currency.toUpperCase()}.png`,
-            });
-          }
-        });
-      }
-
-      setAssets(newAssets);
-    } catch (error) {
-      console.error("Error fetching assets:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    console.log(primaryWallet);
-
-    fetchAssets();
-  }, [primaryWallet]);
-
-  // If no wallets exist, show a simple empty state
-  if (currentUserWallets.length === 0) {
-    return (
-      <div className="rounded-lg border border-gray-700 bg-color2">
-        <div className="border-b border-gray-700 p-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold">My Assets</h2>
-            <div className="text-sm text-gray-400">XRPL Balances</div>
-          </div>
-        </div>
-        <div className="py-8 text-center">
-          <div className="text-sm text-gray-400">
-            Your wallet balances will appear here once you create a wallet.
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return <AssetTable assets={assets} loading={loading} />;
-}
 
 // User Wallet Details Component
 function UserWalletDetails({ onViewDetails }) {
@@ -348,7 +241,8 @@ function UserWalletDetails({ onViewDetails }) {
 }
 
 // Additional Welcome Section Component for users with wallets
-function AdditionalWelcomeSection({ session }) {
+function AdditionalWelcomeSection() {
+  const { data: session } = useSession();
   const { currentUserWallets } = useCurrentUserWallet();
 
   // Only show this section if user has wallets
@@ -394,7 +288,8 @@ function AdditionalWelcomeSection({ session }) {
 }
 
 // Main DisplayUserWallets Component
-export default function DisplayUserWallets({ session, showAssetTable = false }) {
+export default function DisplayUserWallets() {
+  const { data: session } = useSession();
   const { currentUserWallets, fetchCurrentUserWallets } = useCurrentUserWallet();
   const [selectedWallet, setSelectedWallet] = useState(null);
 
@@ -409,11 +304,6 @@ export default function DisplayUserWallets({ session, showAssetTable = false }) 
   const handleCloseDetails = () => {
     setSelectedWallet(null);
   };
-
-  // If component is used to show asset table only
-  if (showAssetTable) {
-    return <AssetTableWrapper />;
-  }
 
   // If a wallet is selected, show the details view
   if (selectedWallet) {
@@ -460,7 +350,7 @@ export default function DisplayUserWallets({ session, showAssetTable = false }) 
     <div className="space-y-4">
       <UserWalletDetails onViewDetails={handleViewDetails} />
       <AddFundsBtn />
-      <AdditionalWelcomeSection session={session} />
+      <AdditionalWelcomeSection />
     </div>
   );
 }

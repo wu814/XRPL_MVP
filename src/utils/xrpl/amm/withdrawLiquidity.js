@@ -143,10 +143,7 @@ export async function withdrawLiquidityTwoAsset(
         const prevBal = new BigNumber(entry.PreviousFields?.Balance || 0);
         const finalBal = new BigNumber(entry.FinalFields?.Balance || 0);
         if (finalBal.isGreaterThan(prevBal)) {
-          const xrpDiff = finalBal
-            .minus(prevBal)
-            .dividedBy(1_000_000)
-            .toFixed(6);
+          const xrpDiff = xrpl.dropsToXrp(finalBal.minus(prevBal).toString());
           if (assetA.isXRP && !actualWithdrawnA) {
             actualWithdrawnA = { currency: "XRP", value: xrpDiff };
           } else if (assetB.isXRP && !actualWithdrawnB) {
@@ -348,10 +345,7 @@ export async function withdrawLiquidityWithLPToken(
         const prevBal = new BigNumber(state.PreviousFields?.Balance || 0);
         const finalBal = new BigNumber(state.FinalFields?.Balance || 0);
         if (finalBal.isGreaterThan(prevBal)) {
-          const diffXRP = finalBal
-            .minus(prevBal)
-            .dividedBy(1_000_000)
-            .toFixed(6);
+          const diffXRP = xrpl.dropsToXrp(finalBal.minus(prevBal).toString());
           if (assetA.isXRP && !actualWithdrawnA)
             actualWithdrawnA = { currency: "XRP", value: diffXRP };
           else if (assetB.isXRP && !actualWithdrawnB)
@@ -510,10 +504,7 @@ export async function withdrawAllLiquidity(withdrawerWallet, ammAccount) {
         const prevBal = new BigNumber(state.PreviousFields?.Balance || 0);
         const finalBal = new BigNumber(state.FinalFields?.Balance || 0);
         if (finalBal.isGreaterThan(prevBal)) {
-          const diffXRP = finalBal
-            .minus(prevBal)
-            .dividedBy(1_000_000)
-            .toFixed(6);
+          const diffXRP = xrpl.dropsToXrp(finalBal.minus(prevBal).toString());
           if (assetA.isXRP && !actualWithdrawnA)
             actualWithdrawnA = { currency: "XRP", value: diffXRP };
           else if (assetB.isXRP && !actualWithdrawnB)
@@ -723,10 +714,7 @@ export async function withdrawSingleAsset(
         const prevBal = new BigNumber(entry.PreviousFields?.Balance || 0);
         const finalBal = new BigNumber(entry.FinalFields?.Balance || 0);
         if (finalBal.isGreaterThan(prevBal)) {
-          const diffXRP = finalBal
-            .minus(prevBal)
-            .dividedBy(1_000_000)
-            .toFixed(6);
+          const diffXRP = xrpl.dropsToXrp(finalBal.minus(prevBal).toString());
           if (asset.isXRP) {
             actualWithdrawn = { currency: "XRP", value: diffXRP };
           }
@@ -931,10 +919,7 @@ export async function withdrawAllSingleAsset(
         const prevBal = new BigNumber(entry.PreviousFields?.Balance || 0);
         const finalBal = new BigNumber(entry.FinalFields?.Balance || 0);
         if (finalBal.isGreaterThan(prevBal) && asset.isXRP) {
-          const diffXRP = finalBal
-            .minus(prevBal)
-            .dividedBy(1_000_000)
-            .toFixed(6);
+          const diffXRP = xrpl.dropsToXrp(finalBal.minus(prevBal).toString());
           actualWithdrawn = { currency: "XRP", value: diffXRP };
         }
       }
@@ -1138,10 +1123,7 @@ export async function withdrawSingleAssetWithLPToken(
         const prevBal = new BigNumber(entry.PreviousFields?.Balance || 0);
         const finalBal = new BigNumber(entry.FinalFields?.Balance || 0);
         if (finalBal.isGreaterThan(prevBal) && asset.isXRP) {
-          const diffXRP = finalBal
-            .minus(prevBal)
-            .dividedBy(1_000_000)
-            .toFixed(6);
+          const diffXRP = xrpl.dropsToXrp(finalBal.minus(prevBal).toString());
           actualWithdrawn = { currency: "XRP", value: diffXRP };
         }
       }

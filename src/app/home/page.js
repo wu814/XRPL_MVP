@@ -5,17 +5,17 @@ import { Plus } from "lucide-react";
 import DisplayAdminWallets from "@/components/Wallet/DisplayAdminWallets";
 import DisplayUserWallets from "@/components/Wallet/DisplayUserWallets";
 import DashboardHeader from "@/components/Wallet/DashboardHeader";
-import TradePanel from "@/components/Smart/TradePanel";
-import { IssuerWalletProvider } from "@/components/Wallet/IssuerWalletProvider";
-import { CurrentUserWalletProvider } from "@/components/Wallet/CurrentUserWalletProvider";
+
 import { useCurrentUserWallet } from "@/components/Wallet/CurrentUserWalletProvider";
 import { useIssuerWallet } from "@/components/Wallet/IssuerWalletProvider";
 import CreateUserWalletBtn from "@/components/Wallet/CreateUserWalletBtn";
 import CreateAdminWalletBtn from "@/components/Wallet/CreateAdminWalletBtn";
 
 // Welcome/Dashboard Section Component
-function WelcomeSection({ session }) {
-  const { currentUserWallets, fetchCurrentUserWallets } = useCurrentUserWallet();
+function WelcomeSection() {
+  const { data: session } = useSession();
+  const { currentUserWallets, fetchCurrentUserWallets } =
+    useCurrentUserWallet();
   const { fetchIssuerWallets } = useIssuerWallet();
 
   const handleWalletCreated = async () => {
@@ -35,7 +35,8 @@ function WelcomeSection({ session }) {
           Welcome to XRPL MVP, {session.user.username}!
         </h2>
         <p className="mb-4">
-          Get started by creating your first XRPL wallet to manage your digital assets.
+          Get started by creating your first XRPL wallet to manage your digital
+          assets.
         </p>
         <div className="rounded-lg border border-white/20 bg-white/10 p-4">
           <div className="flex items-center space-x-4">
@@ -49,7 +50,9 @@ function WelcomeSection({ session }) {
               </p>
             </div>
             {session.user.role === "ADMIN" ? (
-              <CreateAdminWalletBtn onWalletCreated={handleAdminWalletCreated} />
+              <CreateAdminWalletBtn
+                onWalletCreated={handleAdminWalletCreated}
+              />
             ) : (
               <CreateUserWalletBtn onWalletCreated={handleWalletCreated} />
             )}
@@ -68,13 +71,11 @@ function WelcomeSection({ session }) {
           Welcome back, {session.user.username}!
         </h2>
         <p className="text-green-100">
-          {session.user.role === "ADMIN" 
-            ? "Manage your XRPL infrastructure and monitor system performance." 
+          {session.user.role === "ADMIN"
+            ? "Manage your XRPL infrastructure and monitor system performance."
             : "Your XRPL portfolio is ready. Start trading or manage your assets."}
         </p>
       </div>
-
-      
 
       {/* User Wallets or Admin Wallets Section */}
       {session.user.role === "ADMIN" ? (
@@ -87,7 +88,7 @@ function WelcomeSection({ session }) {
       ) : (
         <div className="space-y-4">
           <h3 className="text-xl font-bold">User Wallets Overview</h3>
-          <DisplayUserWallets session={session} />
+          <DisplayUserWallets />
         </div>
       )}
     </div>
@@ -96,7 +97,7 @@ function WelcomeSection({ session }) {
 
 export default function Home() {
   const { data: session, status } = useSession();
-  
+
   // Set dynamic page title
   usePageTitle("Home - YONA");
 
@@ -125,26 +126,16 @@ export default function Home() {
   }
 
   return (
-    <CurrentUserWalletProvider>
-      <IssuerWalletProvider>
-        <div
-          className="min-h-screen w-full bg-color1 p-2"
-        >
-          {/* Content */}
-          <div className="space-y-4 h-full overflow-y-auto">
-            {/* Dashboard Header with Balance */}
-            <div className="w-full">
-              <DashboardHeader />
-            </div>
-
-            {/* Welcome Section */}
-            <WelcomeSection session={session} />
-          </div>
+    <div className="min-h-screen w-full bg-color1 p-2">
+      {/* Content */}
+      <div className="h-full space-y-4 overflow-y-auto">
+        {/* Dashboard Header with Balance */}
+        <div className="w-full">
+          <DashboardHeader />
         </div>
-
-        {/* Trade Panel - Always visible */}
-        <TradePanel user={session.user} session={session} />
-      </IssuerWalletProvider>
-    </CurrentUserWalletProvider>
+        {/* Welcome Section */}
+        <WelcomeSection />
+      </div>
+    </div>
   );
 }

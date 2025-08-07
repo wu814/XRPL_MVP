@@ -1,6 +1,7 @@
 "use client";
 import Sidebar from "@/components/Navigation/Sidebar";
 import Topbar from "@/components/Navigation/Topbar";
+import TradePanel from "@/components/Smart/TradePanel";
 import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 
@@ -19,6 +20,7 @@ export default function ClientLayoutContent({ children }) {
       <div className={`${showNavigation ? "mt-24 ml-56" : ""} ${showSmartTradePanel ? "mr-[30rem]" : ""}`}>
         {children}
       </div>
+      {showSmartTradePanel && <TradePanel />}
     </div>
   );
 } 

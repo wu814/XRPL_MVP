@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
-import { availableCurrencies } from "@/utils/xrpl/assets";
+import { availableCurrencies } from "@/utils/currencyUtils";
 
 // Asset Selection Component for Convert Tab
 export default function ConvertCurrencyDropDown({ asset, onSelect, label, availableAmount, currencies }) {

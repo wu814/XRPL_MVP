@@ -3,13 +3,11 @@ import { useSession } from "next-auth/react";
 import { Plus } from "lucide-react";
 import AssetTable from "@/components/Wallet/AssetTable";
 import {
-  CurrentUserWalletProvider,
   useCurrentUserWallet,
 } from "@/components/Wallet/CurrentUserWalletProvider";
-import { IssuerWalletProvider } from "@/components/Wallet/IssuerWalletProvider";
-import TradePanel from "@/components/Smart/TradePanel";
 import CreateUserWalletBtn from "@/components/Wallet/CreateUserWalletBtn";
-import { useLivePrices, useWalletAssets } from "@/utils/xrpl/assets";
+import { useLivePrices } from "@/utils/currencyUtils";
+import { useWalletAssets } from "@/utils/assetUtils";
 import usePageTitle from "@/utils/usePageTitle";
 
 // AssetTableWrapper component to access wallet context
@@ -96,13 +94,8 @@ export default function AssetsPage() {
   }
 
   return (
-    <CurrentUserWalletProvider>
-      <IssuerWalletProvider>
-        <div className="min-h-screen p-2">
-          <AssetTableWrapper />
-          <TradePanel />
-        </div>
-      </IssuerWalletProvider>
-    </CurrentUserWalletProvider>
+    <div className="min-h-screen p-2">
+      <AssetTableWrapper />
+    </div>
   );
 }

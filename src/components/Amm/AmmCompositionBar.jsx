@@ -1,4 +1,4 @@
-import { formatCurrencyValue, getUsdValue } from "@/utils/xrpl/assets";
+import { formatCurrencyValue, getUSDValue } from "@/utils/currencyUtils";
 
 export default function AmmCompositionBar({ amount1, amount2, livePrices, pricesLoading }) {
   // When the component is loading, show a skeleton loader
@@ -19,8 +19,8 @@ export default function AmmCompositionBar({ amount1, amount2, livePrices, prices
   }
 
   // Calculate USD values
-  const usdValue1 = getUsdValue(amount1.currency, amount1.value, livePrices);
-  const usdValue2 = getUsdValue(amount2.currency, amount2.value, livePrices);
+  const usdValue1 = getUSDValue(amount1.currency, amount1.value, livePrices);
+  const usdValue2 = getUSDValue(amount2.currency, amount2.value, livePrices);
 
   // Calculate percentages for the bar
   const totalValue = Number(usdValue1) + Number(usdValue2);

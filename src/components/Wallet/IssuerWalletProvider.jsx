@@ -1,10 +1,12 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 
 const IssuerWalletContext = createContext();
 
 export const IssuerWalletProvider = ({ children }) => {
+  const { data: session } = useSession();
   const [issuerWallets, setIssuerWallets] = useState([]);
   const [errorMessage, setErrorMessage] = useState(null);
 
@@ -25,8 +27,12 @@ export const IssuerWalletProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    fetchIssuerWallets();
-  }, []);
+    if (session) {
+      fetchIssuerWallets();
+    } else {
+      setIssuerWallets([]);
+    }
+  }, [session]);
 
   return (
     <IssuerWalletContext.Provider

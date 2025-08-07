@@ -15,7 +15,6 @@ export async function GET() {
 
     const { data, error } = await supabase
       .from("friend_requests")
-      //
       .select("id, sender, sent_at")
       .eq("receiver", receiverName)
       .eq("status", "pending")

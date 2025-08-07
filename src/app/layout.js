@@ -3,6 +3,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import SessionWrapper from "@/components/SessionWrapper";
 import ClientLayoutContent from "@/components/ClientLayoutContent";
+import { IssuerWalletProvider } from "@/components/Wallet/IssuerWalletProvider";
+import { CurrentUserWalletProvider } from "@/components/Wallet/CurrentUserWalletProvider";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -28,7 +30,11 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className={`${inter.variable} antialiased`}>
         <SessionWrapper>
-          <ClientLayoutContent>{children}</ClientLayoutContent>
+          <CurrentUserWalletProvider>
+            <IssuerWalletProvider>
+              <ClientLayoutContent>{children}</ClientLayoutContent>
+            </IssuerWalletProvider>
+          </CurrentUserWalletProvider>
         </SessionWrapper>
       </body>
     </html>

@@ -4,7 +4,7 @@ import Breadcrumbs from "@/components/Navigation/Breadcrumbs";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import usePageTitle from "@/utils/usePageTitle";
-import { IssuerWalletProvider } from "@/components/Wallet/IssuerWalletProvider";
+
 
 export default function AMM() {
   const { data: session, status } = useSession();
@@ -43,9 +43,7 @@ export default function AMM() {
 
       {/* Main Content - Full Width */}
       <div className="w-full">
-        <IssuerWalletProvider>
-          <DisplayAmms />
-        </IssuerWalletProvider>
+        <DisplayAmms />
       </div>
     </div>
   );

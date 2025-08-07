@@ -24,7 +24,7 @@ export default function TransferBtn({
   const [recipientAddress, setRecipientAddress] = useState("");
   const [useUsername, setUseUsername] = useState(true);
   const [amount, setAmount] = useState("");
-  const [currency, setCurrency] = useState("");
+  const [currency, setCurrency] = useState("USD");
   const [destinationTag, setDestinationTag] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
@@ -36,8 +36,8 @@ export default function TransferBtn({
 
   const [paymentType, setPaymentType] = useState("direct"); // "direct" or "convertable"
   const [convertInputType, setConvertInputType] = useState(null); // "exact_input" or "exact_output"
-  const [sendCurrency, setSendCurrency] = useState(""); // for cross-currency
-  const [receiveCurrency, setReceiveCurrency] = useState(""); // for cross-currency
+  const [sendCurrency, setSendCurrency] = useState("USD"); // for cross-currency
+  const [receiveCurrency, setReceiveCurrency] = useState("XRP"); // for cross-currency
 
   const [sendAmount, setSendAmount] = useState("");
   const [receiveAmount, setReceiveAmount] = useState("");
@@ -193,7 +193,6 @@ export default function TransferBtn({
     setSendAmount("");
     setReceiveAmount("");
     setAmount("");
-    setCurrency("");
     setCalculationError(null);
   };
 
@@ -290,9 +289,8 @@ export default function TransferBtn({
       if (!presetRecipientUsername) setRecipientUsername("");
       setRecipientAddress("");
       setAmount("");
-      setCurrency("");
-      setSendCurrency("");
-      setReceiveCurrency("");
+      setSendAmount("");
+      setReceiveAmount("");
       setDestinationTag("");
     }
   };
