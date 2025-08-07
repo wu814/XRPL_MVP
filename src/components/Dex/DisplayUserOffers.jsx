@@ -8,7 +8,8 @@ import CancelOfferBtn from "./CancelOfferBtn";
 // Helper: Convert XRP drops or IOU object to unified format
 const parseAsset = (asset) => {
   if (typeof asset === "string") {
-    return { currency: "XRP", value: Number(asset) / 1_000_000 };
+    const xrpl = require("xrpl");
+    return { currency: "XRP", value: Number(xrpl.dropsToXrp(asset)) };
   }
   return { currency: asset.currency, value: Number(asset.value) };
 };

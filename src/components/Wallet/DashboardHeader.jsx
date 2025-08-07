@@ -53,8 +53,6 @@ export default function DashboardHeader({ totalBalance }) {
       const accountInfo = await accountInfoResponse.json();
       const accountLines = await accountLinesResponse.json();
 
-      console.log(accountInfo);
-      console.log(accountLines);
 
       // Step 3: Calculate total USD value using utility function
       let totalUsdValue = 0;

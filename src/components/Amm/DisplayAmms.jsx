@@ -19,7 +19,7 @@ class AmmInfo {
     this.lp_token = {
       currency: data.lp_token.currency,
       issuer: data.lp_token.issuer,
-      value: parseFloat(data.lp_token.value),
+      value: data.lp_token.value,
     };
 
     // Asset 1 and 2 (XRP or IOU)
@@ -31,17 +31,18 @@ class AmmInfo {
   parseAmount(amount) {
     if (typeof amount === "string") {
       // XRP is a string of drops
+      const xrpl = require("xrpl");
       return {
         currency: "XRP",
         issuer: null,
-        value: parseFloat(amount) / 1_000_000, // Convert drops to XRP
+        value: xrpl.dropsToXrp(amount), // Convert drops to XRP
       };
     } else {
       // IOU is an object
       return {
         currency: amount.currency,
         issuer: amount.issuer,
-        value: parseFloat(amount.value),
+        value: amount.value,
       };
     }
   }

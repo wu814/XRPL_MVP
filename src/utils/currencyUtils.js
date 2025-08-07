@@ -63,7 +63,7 @@ export function getUSDValue(currency, amount, livePrices) {
 
   // Handle USD directly
   if (currency === "USD") {
-    return amount;
+    return parseFloat(amount);
   }
 
   // Find price for the currency
@@ -72,7 +72,7 @@ export function getUSDValue(currency, amount, livePrices) {
   );
 
   if (priceInfo && priceInfo.price) {
-    return amount * priceInfo.price;
+    return parseFloat(amount) * priceInfo.price;
   }
 
   return 0;
@@ -101,6 +101,53 @@ export function formatCurrencyValue(value) {
 export function getCurrencyIcon(currency) {
   const currencyObj = availableCurrencies.find(c => c.id === currency);
   return currencyObj ? currencyObj.avatar : null;
+}
+
+/**
+ * Format currency object for API calls and backend functions
+ * Creates a standardized currency object structure for internal use
+ * @param {string} currency - The currency code (e.g., "XRP", "USD", "BTC")
+ * @param {string} issuerAddress - The issuer address (always provided, but ignored for XRP)
+ * @param {string|number} value - The amount value (defaults to "0" if not specified)
+ * @returns {Object} Currency object - For XRP: {currency, value}, For others: {currency, issuer, value}
+ */
+export function formatAPICurrencyObj(currency, issuerAddress, value = "0") {  
+  if (currency === "XRP") {
+    return {
+      currency,
+      value: value
+    };
+  }
+  
+  return {
+    currency,
+    issuer: issuerAddress,
+    value: value
+  };
+}
+
+/**
+ * Format currency object for XRPL transactions (createOffer, AMMDeposit, etc.)
+ * Creates currency objects in the format expected by XRPL transactions
+ * @param {string} currency - The currency code (e.g., "XRP", "USD", "BTC")
+ * @param {string} issuerAddress - The issuer address (ignored for XRP)
+ * @param {string|number} value - The amount value (defaults to "0" if not specified)
+ * @returns {string|Object} For XRP: string in drops, For others: {currency, issuer, value}
+ */
+export function formatXRPLCurrencyObj(currency, issuerAddress, value = "0") { 
+  
+  if (currency === "XRP") {
+    // Import xrpl dynamically to avoid issues with SSR
+    const xrpl = require("xrpl");
+    // Convert to float only for xrpToDrops calculation, then return as string
+    return xrpl.xrpToDrops(value);
+  }
+  
+  return {
+    currency,
+    issuer: issuerAddress,
+    value: value
+  };
 }
 
 /**

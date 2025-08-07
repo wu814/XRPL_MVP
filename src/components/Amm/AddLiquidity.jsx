@@ -8,6 +8,7 @@ import SlippagePanel from "../SlippagePanel";
 import estimateDepositAmounts from "@/utils/xrpl/amm/estimateDepositAmount";
 import { useCurrentUserWallet } from "../Wallet/CurrentUserWalletProvider";
 import { Settings, Loader2 } from "lucide-react";
+import { formatAPICurrencyObj } from "@/utils/currencyUtils";
 
 export default function AddLiquidity({ ammInfo, onAdded }) {
   // Fetch current user wallets from wallet context
@@ -62,16 +63,8 @@ export default function AddLiquidity({ ammInfo, onAdded }) {
         wallet.walletType === "TREASURY",
     );
 
-    const assetA = {
-      currency: token1.currency,
-      issuer: token1.issuer,
-      value: amount1,
-    };
-    const assetB = {
-      currency: token2.currency,
-      issuer: token2.issuer,
-      value: amount2,
-    };
+    const assetA = formatAPICurrencyObj(token1.currency, token1.issuer, amount1);
+    const assetB = formatAPICurrencyObj(token2.currency, token2.issuer, amount2);
 
     const basePayload = { wallet, ammInfo };
 
@@ -93,11 +86,7 @@ export default function AddLiquidity({ ammInfo, onAdded }) {
 
     if (!lpAmount) throw new Error("Enter LP token amount.");
 
-    const lpTokenOut = {
-      currency: ammInfo.lp_token.currency,
-      issuer: ammInfo.account,
-      value: lpAmount,
-    };
+    const lpTokenOut = formatAPICurrencyObj(ammInfo.lp_token.currency, ammInfo.account, lpAmount);
 
     if (payWith === "both") {
       return {

@@ -21,7 +21,7 @@ class AmmInfo {
     this.lp_token = {
       currency: data.lp_token.currency,
       issuer: data.lp_token.issuer,
-      value: parseFloat(data.lp_token.value),
+      value: data.lp_token.value,
     };
 
     // Asset 1 and 2 (XRP or IOU)
@@ -32,18 +32,19 @@ class AmmInfo {
   // Converts XRP from drops or parses IOU
   parseAmount(amount) {
     if (typeof amount === "string") {
+      const xrpl = require("xrpl");
       // XRP is a string of drops
       return {
         currency: "XRP",
         issuer: null,
-        value: parseFloat(amount) / 1_000_000, // Convert drops to XRP
+        value: xrpl.dropsToXrp(amount), // Convert drops to XRP
       };
     } else {
       // IOU is an object
       return {
         currency: amount.currency,
         issuer: amount.issuer,
-        value: parseFloat(amount.value),
+        value: amount.value,
       };
     }
   }
@@ -70,6 +71,7 @@ export default function DisplayAmmDetails({ ammAccount }) {
 
       const result = await res.json();
       if (!res.ok) throw new Error(result.error || "Failed to fetch AMM info");
+      console.log(result.data);
       setAmmInfo(new AmmInfo(result.data));
     } catch (error) {
       if (
