@@ -12,7 +12,8 @@ import CreateUserWalletBtn from "@/components/Wallet/CreateUserWalletBtn";
 import CreateAdminWalletBtn from "@/components/Wallet/CreateAdminWalletBtn";
 
 // Welcome/Dashboard Section Component
-function WelcomeSection({ session }) {
+function WelcomeSection() {
+  const { data: session } = useSession();
   const { currentUserWallets, fetchCurrentUserWallets } =
     useCurrentUserWallet();
   const { fetchIssuerWallets } = useIssuerWallet();
@@ -87,7 +88,7 @@ function WelcomeSection({ session }) {
       ) : (
         <div className="space-y-4">
           <h3 className="text-xl font-bold">User Wallets Overview</h3>
-          <DisplayUserWallets session={session} />
+          <DisplayUserWallets />
         </div>
       )}
     </div>
@@ -132,9 +133,8 @@ export default function Home() {
         <div className="w-full">
           <DashboardHeader />
         </div>
-
         {/* Welcome Section */}
-        <WelcomeSection session={session} />
+        <WelcomeSection />
       </div>
     </div>
   );
