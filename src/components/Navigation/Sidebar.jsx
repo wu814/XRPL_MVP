@@ -69,7 +69,7 @@ export default function Sidebar() {
     {
       name: "Friends",
       icon: User,
-      path: `/friends/${session.user.username}`,
+      path: "/friends",
     },
     {
       name: "Settings",
@@ -80,10 +80,9 @@ export default function Sidebar() {
 
   return (
     <div className="fixed left-0 top-0 flex h-full w-56 flex-col border-r border-gray-700 bg-color1 p-4">
-      {/* Logo */}
-      <div className="p-4 pb-10 flex flex-row items-center">
-        <h1 className="text-5xl font-extrabold text-primary">ツ</h1>
-        <h1 className="ml-1 text-4xl font-extrabold">YONA</h1>
+      {/* Logo */}  
+      <div className="flex content-center justify-center pt-5 pb-10">
+        <h1 className="text-5xl font-extrabold text-primary">YONA</h1>
       </div>
       {/* Navigation */}
       <nav className="flex-1">

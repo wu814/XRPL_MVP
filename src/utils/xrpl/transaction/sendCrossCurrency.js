@@ -4,17 +4,19 @@ import * as xrpl from "xrpl";
 import { connectXrplClient, client } from "../testnet";
 import { analyzeMarket } from "../pathfind/corePathfindingEngine";
 import { calculateExactAMMInput, calculateEstimateOutput } from "../amm/calculations.js";
+import BigNumber from 'bignumber.js';
 
 // Helper functions to reduce redundancy
-const formatCurrency = (amount, currency, issuer = null) => {
+const formatCurrency = (amount, currency, issuer = null, preserveExactValue = false) => {
   const numAmount = parseFloat(amount);
   if (currency === "XRP") {
-    return xrpl.xrpToDrops(numAmount.toFixed(6));
+    // For XRP, use exact value for precise payments
+    return xrpl.xrpToDrops(preserveExactValue ? numAmount.toString() : numAmount.toFixed(6));
   }
   return {
     currency,
     issuer,
-    value: numAmount.toFixed(6)
+    value: preserveExactValue ? numAmount.toString() : numAmount.toFixed(6)
   };
 };
 
@@ -195,9 +197,11 @@ const parseTransactionResult = (response, recommendation, walletObject, sendCurr
     
     if (response.result.meta.delivered_amount) {
       const delivered = response.result.meta.delivered_amount;
-      actualAmountDelivered = typeof delivered === 'string' ? 
-        `${xrpl.dropsToXrp(delivered)} XRP` : 
-        `${delivered.value} ${delivered.currency}`;
+      const deliveredAmount = typeof delivered === 'string' ? 
+        xrpl.dropsToXrp(delivered) : 
+        delivered.value;
+      const deliveredCurrency = typeof delivered === 'string' ? 'XRP' : delivered.currency;
+      actualAmountDelivered = formatCurrencyDisplay(deliveredAmount, deliveredCurrency);
     }
     
     // Determine routing method
@@ -252,13 +256,15 @@ export async function sendCrossCurrency(
         const { poolSend, poolReceive } = mapPoolCurrencies(directPool, sendCurrency, receiveCurrency);
         const tradingFeeBasisPoints = directPool.trading_fee || 0;
         
-        const calculation = calculateExactAMMInput(poolSend, poolReceive, parseFloat(exactOutputAmount), slippagePercent / 100, tradingFeeBasisPoints);
+        // Use BigNumber for exact output amount to preserve precision
+        const exactOutputBN = new BigNumber(exactOutputAmount);
+        const calculation = calculateExactAMMInput(poolSend, poolReceive, parseFloat(exactOutputBN.toString()), slippagePercent / 100, tradingFeeBasisPoints);
         if (!calculation.success) {
           throw new Error(`AMM calculation failed: ${calculation.error}`);
         }
         
         sendAmount = calculation.inputWithSlippage.toString();
-        console.log(`✅ Calculated input: ${sendAmount} ${sendCurrency}`);
+        console.log(`✅ Calculated input: ${sendAmount} ${sendCurrency} for exact output: ${exactOutputBN.toString()} ${receiveCurrency}`);
         
       } catch (calcError) {
         throw new Error(`Failed to calculate required input: ${calcError.message}`);
@@ -294,7 +300,8 @@ export async function sendCrossCurrency(
       const executionBuffer = 1 + (slippagePercent / 100);
       sendAmount = (requiredInput * executionBuffer).toString();
       
-      console.log(`🔄 Optimized input: ${sendAmount} ${sendCurrency} (${slippagePercent}% buffer)`);
+      console.log(`🔄 Optimized input: ${sendAmount} ${sendCurrency} (${slippagePercent}% slippage)`);
+      console.log(`🎯 Target output: exactly ${exactOutputAmount} ${receiveCurrency}`);
       recommendation.estimatedOutput = exactOutputAmount;
     }
     
@@ -303,7 +310,7 @@ export async function sendCrossCurrency(
       recommendation, sendCurrency, receiveCurrency, sendAmount, issuerAddress, slippagePercent, paymentType
     );
     
-    const sendMax = formatCurrency(preciseInputNeeded, sendCurrency, issuerAddress);
+    const sendMax = formatCurrency(preciseInputNeeded, sendCurrency, issuerAddress, true);
     
     // Step 5: Handle DEX routing via counter-offer
     if (recommendation.type === 'DEX') {
@@ -324,13 +331,15 @@ export async function sendCrossCurrency(
     // Step 6: Calculate destination amount
     let destinationAmount;
     if (paymentType === "exact_output") {
-      destinationAmount = formatCurrency(exactOutputAmount, receiveCurrency, issuerAddress);
+      // For exact output, preserve the exact amount without rounding
+      destinationAmount = formatCurrency(exactOutputAmount, receiveCurrency, issuerAddress, true);
+      console.log(`🎯 Setting exact destination amount: ${JSON.stringify(destinationAmount)}`);
     } else {
       let preciseOutput;
       if (recommendation.type === 'DEX') {
         preciseOutput = parseFloat(sendAmount) * recommendation.rate;
-        // Convert to exact output for DEX reliability
-        exactOutputAmount = preciseOutput.toFixed(6);
+        // Convert to exact output for DEX reliability - preserve precision
+        exactOutputAmount = preciseOutput.toString();
         paymentType = "exact_output";
       } else {
         preciseOutput = parseFloat(recommendation.estimatedOutput);
@@ -390,6 +399,10 @@ export async function sendCrossCurrency(
     }
     
     console.log("🚀 Submitting payment transaction...");
+    console.log(`📋 Payment Details:`);
+    console.log(`   SendMax: ${JSON.stringify(paymentTx.SendMax)}`);
+    console.log(`   Amount (destination): ${JSON.stringify(paymentTx.Amount)}`);
+    console.log(`   Payment Type: ${paymentType}`);
     
     const preparedTx = await client.autofill(paymentTx);
     const currentLedger = await client.request({ command: "ledger_current" });

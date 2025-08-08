@@ -48,15 +48,6 @@ export async function POST(request) {
     const result = await getOracleData(account, oracleDocumentId, ledgerIndex);
     
     if (result.success) {
-      console.log("✅ Oracle structure retrieved successfully!");
-      console.log("\n📊 Oracle Information:");
-      console.log(`🆔 Oracle ID: ${oracleDocumentId}`);
-      console.log(`👤 Owner: ${result.oracle.Owner}`);
-      console.log(`🏢 Provider: ${result.oracle.Provider}`);
-      console.log(`📂 Asset Class: ${result.oracle.AssetClass}`);
-      console.log(`⏰ Oracle Created: ${new Date(result.oracle.LastUpdateTime * 1000).toISOString()}`);
-      console.log(`💰 XRP Reserve: ${result.oracle.PriceDataSeries?.length <= 5 ? '1 XRP' : '2 XRP'} (${result.oracle.PriceDataSeries?.length || 0} assets)`);
-      
       let livePricesData = [];
       let dataSource = "Oracle Data (Fallback)";
       

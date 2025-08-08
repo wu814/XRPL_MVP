@@ -85,14 +85,14 @@ export default async function createFillOrKillOffer(
       // Log offer details from creator's perspective
       message += `💱 Paying: ${
         typeof takerGets === "object"
-          ? `${takerGets.value} ${takerGets.currency}`
-          : `${xrpl.dropsToXrp(takerGets)} XRP`
+          ? `${parseFloat(takerGets.value).toFixed(6)} ${takerGets.currency}`
+          : `${parseFloat(xrpl.dropsToXrp(takerGets)).toFixed(6)} XRP`
       }\n`;
 
       message += `💱 Getting: ${
         typeof takerPays === "object"
-          ? `${takerPays.value} ${takerPays.currency}`
-          : `${xrpl.dropsToXrp(takerPays)} XRP`
+          ? `${parseFloat(takerPays.value).toFixed(6)} ${takerPays.currency}`
+          : `${parseFloat(xrpl.dropsToXrp(takerPays)).toFixed(6)} XRP`
       }\n`;
 
       message += `📋 Transaction Hash: ${response.result.hash}\n`;
@@ -163,14 +163,14 @@ export default async function createFillOrKillOffer(
 
       message += `💱 Attempted to pay: ${
         typeof takerGets === "object"
-          ? `${takerGets.value} ${takerGets.currency}`
-          : `${xrpl.dropsToXrp(takerGets)} XRP`
+          ? `${parseFloat(takerGets.value).toFixed(6)} ${takerGets.currency}`
+          : `${parseFloat(xrpl.dropsToXrp(takerGets)).toFixed(6)} XRP`
       }\n`;
 
       message += `💱 Attempted to get: ${
         typeof takerPays === "object"
-          ? `${takerPays.value} ${takerPays.currency}`
-          : `${xrpl.dropsToXrp(takerPays)} XRP`
+          ? `${parseFloat(takerPays.value).toFixed(6)} ${takerPays.currency}`
+          : `${parseFloat(xrpl.dropsToXrp(takerPays)).toFixed(6)} XRP`
       }\n`;
 
       message += `📋 Transaction Hash: ${response.result.hash}\n`;

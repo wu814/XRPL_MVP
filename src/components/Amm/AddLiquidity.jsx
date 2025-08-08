@@ -288,7 +288,7 @@ export default function AddLiquidity({ ammInfo, onAdded }) {
             <button
               key={type}
               className={`rounded-full px-4 py-1 text-sm ${
-                mode === type ? "bg-primary text-black" : "text-gray-300 hover:text-white"
+                mode === type ? "bg-primary/20 text-primary border border-primary" : "text-gray-300 hover:text-white"
               }`}
               onClick={() => setMode(type)}
             >

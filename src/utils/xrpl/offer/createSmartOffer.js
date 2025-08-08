@@ -65,8 +65,8 @@ export default async function createSmartOffer(
         
         if (buyAmount === 'market') {
           // Set buy amount based on market rate with competitive buffer
-          finalBuyAmount = (marketOutput * (1 - competitiveBuffer)).toFixed(6);
-          console.log(`⚡ Setting competitive offer at: ${finalBuyAmount} ${buyCurrency} (${(competitiveBuffer * 100).toFixed(1)}% better than market)`);
+          finalBuyAmount = marketOutput * (1 - competitiveBuffer);
+          console.log(`⚡ Setting competitive offer at: ${finalBuyAmount.toFixed(6)} ${buyCurrency} (${(competitiveBuffer * 100).toFixed(1)}% better than market)`);
         } else {
           // Check if our desired rate is competitive
           const ourRate = parseFloat(buyAmount) / parseFloat(sellAmount);
@@ -79,18 +79,20 @@ export default async function createSmartOffer(
           } else {
             console.log(`✅ Your offer rate is competitive with current market`);
           }
+          finalBuyAmount = parseFloat(buyAmount);
         }
         
-        offerRate = parseFloat(finalBuyAmount) / parseFloat(sellAmount);
+        offerRate = finalBuyAmount / parseFloat(sellAmount);
       } else {
         console.log(`ℹ️ No market data available for rate analysis, proceeding with your specified rate`);
         if (buyAmount === 'market') {
           throw new Error("Cannot create market order - no market data available");
         }
-        offerRate = parseFloat(finalBuyAmount) / parseFloat(sellAmount);
+        offerRate = finalBuyAmount / parseFloat(sellAmount);
       }
     } else {
-      offerRate = parseFloat(finalBuyAmount) / parseFloat(sellAmount);
+      finalBuyAmount = parseFloat(buyAmount);
+      offerRate = finalBuyAmount / parseFloat(sellAmount);
     }
     
     // Step 2: Check order book depth for better positioning
@@ -107,12 +109,12 @@ export default async function createSmartOffer(
     
     // TakerPays = what the taker pays = what we get (buy currency)
     if (buyCurrency === "XRP") {
-      takerPays = xrpl.xrpToDrops(finalBuyAmount);
+      takerPays = xrpl.xrpToDrops(finalBuyAmount.toString());
     } else {
       takerPays = {
         currency: buyCurrency,
         issuer: issuerAddress,
-        value: finalBuyAmount
+        value: finalBuyAmount.toFixed(6)
       };
     }
     
@@ -130,7 +132,7 @@ export default async function createSmartOffer(
     console.log(`📝 Final Offer Details:`);
     console.log(`   Rate: ${offerRate.toFixed(6)} ${buyCurrency}/${sellCurrency}`);
     console.log(`   Selling: ${sellAmount} ${sellCurrency}`);
-    console.log(`   Asking: ${finalBuyAmount} ${buyCurrency}`);
+    console.log(`   Asking: ${finalBuyAmount.toFixed(6)} ${buyCurrency}`);
     console.log(`   Competitive: ${isCompetitive ? '✅' : '⚠️'}`);
     
     // Step 4: Create the offer based on type

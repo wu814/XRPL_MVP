@@ -9,22 +9,23 @@ const Button = ({
 }) => {
   // Base button styles, including hover scaling
   const baseStyles =
-    "px-4 py-2 rounded-lg font-semibold text-sm transition duration-100 ease-in-out hover:scale-100";
+    "px-4 py-2 rounded-full font-medium text-sm transition duration-100 ease-in-out hover:scale-100";
 
   //
   // tyles for each variant
   const variantStyles = {
     primary:
-      "border-2 border-transparent bg-primary text-black hover:text-primary hover:bg-transparent hover:border-primary",
+      // "border-2 border-transparent bg-primary text-black hover:text-primary hover:bg-transparent hover:border-primary",
+      "border border-primary bg-primary/20 text-primary hover:text-black hover:bg-primary/90 hover:border-transparent",
     cancel:
-      "border-2 border-transparent bg-cancel text-black hover:text-cancel hover:bg-transparent hover:border-cancel",
+      "border border-cancel bg-cancel/20 text-cancel hover:text-black hover:bg-cancel/90 hover:border-transparent",
     login:
-      "border-2 border-primary text-primary bg-transparent hover:text-black hover:bg-primary hover:border-transparent",
+      "border border-primary text-primary bg-transparent hover:text-black hover:bg-primary/90 hover:border-transparent",
   };
 
   // Styles to apply when the button is disabled
   const disabledStyles =
-    "disabled:bg-gray-400 disabled:border-transparent disabled:text-white disabled:opacity-80 disabled:cursor-not-allowed disabled:hover:scale-100";
+    "disabled:bg-gray-400 disabled:border-transparent disabled:text-white disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100";
 
   return (
     <button

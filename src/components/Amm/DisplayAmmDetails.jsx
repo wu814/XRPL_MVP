@@ -158,8 +158,8 @@ export default function DisplayAmmDetails({ ammAccount }) {
 
             const s1 = currency1 || "Asset1";
             const s2 = currency2 || "Asset2";
-            const price1 = (a2 / a1).toFixed(4);
-            const price2 = (a1 / a2).toFixed(4);
+            const price1 = (a2 / a1).toFixed(6);
+            const price2 = (a1 / a2).toFixed(6);
 
             return (
               <div className="flex flex-col font-medium text-lg ml-2">

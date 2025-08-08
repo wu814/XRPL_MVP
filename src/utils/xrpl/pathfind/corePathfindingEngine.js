@@ -528,7 +528,7 @@ export function analyzeDirectAMMRoute(amm, fromCurrency, toCurrency, fromAmount)
     
     // Get AMM trading fee from live data (fallback to 0 if not available)
     const tradingFeeBasisPoints = amm.trading_fee || 0; // Use live trading fee, no assumptions
-    const tradingFeeDecimal = tradingFeeBasisPoints / 10000; // Convert to decimal
+    const tradingFeeDecimal = tradingFeeBasisPoints / 100000; // Convert XRPL fee units to decimal
     
     // Calculate exchange rate using constant product formula WITH AMM fees
     // For AMM with fees (CORRECT LOGIC): 
@@ -789,7 +789,7 @@ export function calculateAMMInputForOutput(amm, fromCurrency, toCurrency, target
     
     // Get trading fee
     const tradingFeeBasisPoints = amm.trading_fee || 0;
-    const tradingFeeDecimal = tradingFeeBasisPoints / 10000;
+    const tradingFeeDecimal = tradingFeeBasisPoints / 100000;
     
     // AMM constant product formula for exact output (reverse calculation):
     // k = poolInput * poolOutput

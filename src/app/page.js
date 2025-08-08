@@ -10,9 +10,9 @@ import usePageTitle from "@/utils/usePageTitle";
 export default function Login() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  
+
   // Set page title
-  usePageTitle("ツYONA - Your DeFi Platform");
+  usePageTitle("YONA - Your DeFi Platform");
 
   useEffect(() => {
     if (session) {
@@ -39,10 +39,7 @@ export default function Login() {
       >
         <div></div>
         <div className="mr-20 mt-20 flex flex-col content-end items-center">
-          <div className="flex flex-row items-center mb-7">
-            <h1 className="text-7xl text-primary font-extrabold">ツ</h1>
-            <h1 className="ml-2 text-6xl font-extrabold">YONA</h1>
-          </div>
+          <h1 className="mb-7 ml-2 text-6xl font-extrabold">YONA</h1>
           <h3 className="mb-7 text-6xl font-semibold">Control the Ledger</h3>
           <h3 className="mb-7 text-6xl font-semibold">Shape the Future.</h3>
           <Button

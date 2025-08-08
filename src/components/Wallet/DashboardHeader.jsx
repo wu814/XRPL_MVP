@@ -74,8 +74,6 @@ export default function DashboardHeader({ totalBalance }) {
 
       setCalculatedBalance(totalUsdValue);
       setLastUpdated(new Date().toLocaleTimeString());
-
-      console.log(`💰 Total Portfolio Value: $${totalUsdValue.toFixed(2)}`);
     } catch (error) {
       console.error("Error calculating total balance:", error);
       // Fallback to passed totalBalance or 0
@@ -96,9 +94,9 @@ export default function DashboardHeader({ totalBalance }) {
     calculatedBalance != 0 ? calculatedBalance : totalBalance || 0;
 
   return (
-    <div className="mb-4 p-4">
-      <div className="mb-2 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Dashboard</h1>
+    <div className="p-4">
+      <div className="pb-2 flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Total Balance</h1>
         {lastUpdated && (
           <span className="text-xs text-gray-400">
             Last updated: {lastUpdated}
@@ -111,9 +109,9 @@ export default function DashboardHeader({ totalBalance }) {
           <div className="flex items-center space-x-2">
             <div className="flex items-center space-x-2">
               {loading && (
-                <Loader2 className="h-7 w-7 animate-spin text-primary" />
+                <Loader2 className="h-7 w-7 animate-spin" />
               )}
-              <span className="text-5xl font-bold text-primary">
+              <span className="text-5xl font-bold">
                 ${formatCurrencyValue(displayBalance)}
               </span>
             </div>

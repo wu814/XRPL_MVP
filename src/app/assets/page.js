@@ -33,7 +33,7 @@ function AssetTableWrapper() {
   if (currentUserWallets.length === 0) {
     return (
       <div className="space-y-6">
-        <div className="w-full rounded-lg bg-gradient-to-r from-[#30ccfe] to-[#b06cfd] p-6">
+        <div className="w-full rounded-lg bg-gradient-to-r from-[#77C7F1] via-[#A156E2] to-[#8875DD] p-6">
           <h2 className="mb-2 text-xl font-bold">No Wallet Found</h2>
           <p className="mb-4">
             Create your first XRPL wallet to start managing your digital assets.

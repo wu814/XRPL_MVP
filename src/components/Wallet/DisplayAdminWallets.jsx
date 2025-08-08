@@ -139,13 +139,13 @@ export default function DisplayAdminWallets() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="text-lg font-semibold text-green-400">
-                            Available: {balanceInfo.availableBalance.toFixed(6)} XRP
+                          <div className="text-lg font-semibold text-gray-400">
+                            Reserved: {balanceInfo.totalReserve.toFixed(1)} XRP
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="text-lg font-semibold text-orange-400">
-                            Reserved: {balanceInfo.totalReserve.toFixed(1)} XRP
+                          <div className="text-lg font-semibold text-green-500">
+                            Available: {balanceInfo.availableBalance.toFixed(6)} XRP
                           </div>
                         </div>
                       </>

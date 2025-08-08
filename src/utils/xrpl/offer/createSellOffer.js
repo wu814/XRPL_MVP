@@ -84,14 +84,14 @@ export default async function createSellOffer(
       // From creator's perspective
       message += `💱 Selling: ${
         typeof takerGets === "object"
-          ? `${takerGets.value} ${takerGets.currency}`
-          : `${xrpl.dropsToXrp(takerGets)} XRP`
+          ? `${parseFloat(takerGets.value).toFixed(6)} ${takerGets.currency}`
+          : `${parseFloat(xrpl.dropsToXrp(takerGets)).toFixed(6)} XRP`
       }\n`;
 
       message += `💱 Getting: ${
         typeof takerPays === "object"
-          ? `${takerPays.value} ${takerPays.currency}`
-          : `${xrpl.dropsToXrp(takerPays)} XRP`
+          ? `${parseFloat(takerPays.value).toFixed(6)} ${takerPays.currency}`
+          : `${parseFloat(xrpl.dropsToXrp(takerPays)).toFixed(6)} XRP`
       }\n`;
 
       message += `📋 Transaction Hash: ${response.result.hash}\n`;

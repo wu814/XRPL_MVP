@@ -309,7 +309,7 @@ export default function TransferBtn({
                 Transfer / Pay
               </h2>
               {paymentType === "convertable" && (
-                <button onClick={() => setShowSlippagePanel((prev) => !prev)} className="p-2 hover:bg-color4 rounded-lg transition-colors hover:text-white text-gray-400">
+                <button onClick={() => setShowSlippagePanel((prev) => !prev)} className="p-2 hover:bg-color4 rounded-full transition-colors hover:text-white text-gray-400">
                   <Settings className="h-5 w-5" />
                 </button>
               )}
@@ -325,16 +325,16 @@ export default function TransferBtn({
               className={`flex ${session?.user?.role === "ADMIN" ? "justify-between space-x-2" : "justify-center"}`}
             >
               <div
-                className={`flex space-x-1 rounded-lg bg-color4 p-1 ${!session?.user?.role === "ADMIN" ? "w-full" : ""}`}
+                className={`flex space-x-1 rounded-full bg-color4 p-1 ${!session?.user?.role === "ADMIN" ? "w-full" : ""}`}
               >
                 <button
-                  className={`flex-1 rounded-lg px-3 py-1 transition-colors ${paymentType === "direct" ? "bg-primary text-black" : "text-gray-300 hover:text-white"}`}
+                  className={`flex-1 rounded-full px-3 py-1 transition-colors ${paymentType === "direct" ? "bg-primary/20 text-primary border border-primary" : "text-gray-300 hover:text-white"}`}
                   onClick={() => handlePaymentTypeChange("direct")}
                 >
                   Direct
                 </button>
                 <button
-                  className={`flex-1 rounded-lg px-3 py-1 transition-colors ${paymentType === "convertable" ? "bg-primary text-black" : "text-gray-300 hover:text-white"}`}
+                  className={`flex-1 rounded-full px-3 py-1 transition-colors ${paymentType === "convertable" ? "bg-primary/20 text-primary border border-primary" : "text-gray-300 hover:text-white"}`}
                   onClick={() => handlePaymentTypeChange("convertable")}
                 >
                   Convertable
@@ -343,14 +343,14 @@ export default function TransferBtn({
 
               {/* Only show option to send with address for Admin */}
               {session?.user?.role === "ADMIN" && (
-                <div className="flex space-x-1 rounded-lg bg-color4 p-1">
+                <div className="flex space-x-1 rounded-full bg-color4 p-1">
                   {[true, false].map((type) => (
                     <button
                       key={String(type)}
-                      className={`rounded-lg px-2 py-1 ${
+                      className={`rounded-full px-2 py-1 ${
                         useUsername === type
-                          ? "bg-primary text-black"
-                          : "text-white"
+                          ? "bg-primary/20 text-primary border border-primary"
+                          : "text-gray-300 hover:text-white"
                       }`}
                       onClick={() => setUseUsername(type)}
                     >
@@ -363,7 +363,7 @@ export default function TransferBtn({
 
             {/* Show AMM loading state for convertable payments */}
             {paymentType === "convertable" && loadingAmmData && (
-              <div className="mb-4 p-3 bg-blue-900/20 border border-blue-500 rounded-lg">
+              <div className="mb-4 p-3 bg-blue-900/20 border border-blue-500 rounded-full">
                 <div className="flex items-center space-x-2">
                   <Loader2 className="h-4 w-4 animate-spin text-blue-400" />
                   <p className="text-blue-400 text-sm">Loading AMM pool data...</p>
@@ -373,24 +373,24 @@ export default function TransferBtn({
 
             {/* Show AMM data error for convertable payments */}
             {paymentType === "convertable" && ammDataError && (
-              <div className="mb-4 p-3 bg-red-900/20 border border-red-500 rounded-lg">
+              <div className="mb-4 p-3 bg-red-900/20 border border-red-500 rounded-full">
                 <p className="text-red-400 text-sm">{ammDataError}</p>
               </div>
             )}
 
             {/* Show calculation error if any */}
             {paymentType === "convertable" && calculationError && (
-              <div className="mb-4 p-3 bg-red-900/20 border border-red-500 rounded-lg">
+              <div className="mb-4 p-3 bg-red-900/20 border border-red-500 rounded-full">
                 <p className="text-red-400 text-sm">Calculation Error: {calculationError}</p>
               </div>
             )}
 
             {/* Show AMM pool info when loaded for convertable payments */}
             {paymentType === "convertable" && ammData && !loadingAmmData && (
-              <div className="mb-4 p-3 bg-green-900/20 border border-green-500 rounded-lg">
+              <div className="mb-4 p-3 bg-green-900/20 border border-green-500 rounded-full">
                 <p className="text-green-400 text-sm">
                   AMM Pool: {ammData.amount.currency}/{ammData.amount2.currency} 
-                  {ammData.trading_fee > 0 && ` (${ammData.trading_fee/1000}% fee)`}
+                  {` (${ammData.trading_fee/1000}% fee)`}
                 </p>
               </div>
             )}

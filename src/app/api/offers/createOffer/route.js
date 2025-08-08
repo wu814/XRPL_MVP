@@ -94,7 +94,7 @@ export async function POST(req) {
     }
 
     // Calculate total value
-    const totalValue = (limitPrice * quantity).toFixed(6);
+    const totalValue = limitPrice * quantity;
 
     // Construct takerPays and takerGets based on order type
     let takerPays, takerGets;
@@ -114,11 +114,11 @@ export async function POST(req) {
 
       takerGets =
         quoteCurrency === "XRP"
-          ? xrpToDrops(totalValue)
+          ? xrpToDrops(totalValue.toString())
           : {
               currency: quoteCurrency,
               issuer: issuerAddress,
-              value: totalValue.toString(),
+              value: totalValue.toFixed(6),
             };
     } else if (orderType === "sell") {
       // Selling base currency for quote currency
@@ -126,11 +126,11 @@ export async function POST(req) {
       // Taker gets: base currency (what we're selling)
       takerPays =
         quoteCurrency === "XRP"
-          ? xrpToDrops(totalValue)
+          ? xrpToDrops(totalValue.toString())
           : {
               currency: quoteCurrency,
               issuer: issuerAddress,
-              value: totalValue.toString(),
+              value: totalValue.toFixed(6),
             };
 
       takerGets =

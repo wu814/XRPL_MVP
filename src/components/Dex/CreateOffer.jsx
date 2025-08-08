@@ -85,11 +85,11 @@ export default function CreateOffer({ baseCurrency, quoteCurrency }) {
       <h1 className="p-4 text-2xl font-bold">Create an Offer</h1>
       <div className="space-y-4 px-4">
         {/* Buy/Sell Toggle */}
-        <div className="flex space-x-1 rounded-lg bg-color3 p-1">
+        <div className="flex space-x-1 rounded-full bg-color3 p-1">
           <button
-            className={`flex-1 rounded-lg py-2 text-sm transition-colors ${
+            className={`flex-1 rounded-full py-2 text-sm transition-colors ${
               orderType === "buy"
-                ? "bg-primary text-black"
+                ? "bg-primary/20 text-primary border border-primary"
                 : "text-mutedText hover:text-white"
             }`}
             onClick={() => setOrderType("buy")}
@@ -97,9 +97,9 @@ export default function CreateOffer({ baseCurrency, quoteCurrency }) {
             Buy
           </button>
           <button
-            className={`flex-1 rounded-lg py-2 text-sm transition-colors ${
+            className={`flex-1 rounded-full py-2 text-sm transition-colors ${
               orderType === "sell"
-                ? "bg-primary text-black"
+                ? "bg-primary/20 text-primary border border-primary"
                 : "text-mutedText hover:text-white"
             }`}
             onClick={() => setOrderType("sell")}

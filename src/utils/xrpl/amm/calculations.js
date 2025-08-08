@@ -3,74 +3,84 @@
  * No server-side imports - safe for client components
  */
 
+// Import BigNumber for precise decimal calculations
+import BigNumber from 'bignumber.js';
+
 /**
  * Calculate exact AMM input needed for a specific output using constant product formula
  * @param {number} poolX - Input asset pool balance
  * @param {number} poolY - Output asset pool balance  
  * @param {number} desiredOutput - Desired output amount
  * @param {number} slippageTolerance - Slippage tolerance (default 0.01 = 1%)
- * @param {number} tradingFeeBasisPoints - Trading fee in basis points (default 0)
+ * @param {number} tradingFeeUnits - Trading fee in XRPL units (1 unit = 0.001%, max 1000 = 1%)
  * @returns {Object} Calculation result with exact input needed
  */
-export function calculateExactAMMInput(poolX, poolY, desiredOutput, slippageTolerance = 0, tradingFeeBasisPoints = 0) {
+export function calculateExactAMMInput(poolX, poolY, desiredOutput, slippageTolerance = 0, tradingFeeUnits = 0) {
   try {
-    console.log(`🧮 AMM Constant Product Calculation:`);
+    console.log(`🧮 AMM Constant Product Calculation (High Precision):`);
     console.log(`   Initial Pool: ${poolX} (input) / ${poolY} (output)`);
     console.log(`   Desired Output: ${desiredOutput}`);
-    console.log(`   Trading Fee: ${tradingFeeBasisPoints} basis points (${tradingFeeBasisPoints/1000}%)`);
-    console.log(`   Constant k = ${poolX * poolY}`);
+    console.log(`   Trading Fee: ${tradingFeeUnits} XRPL fee units (${(tradingFeeUnits/1000).toFixed(3)}%)`);
     
-    // Convert trading fee from basis points to decimal (100 basis points = 1%)
-    const tradingFeeDecimal = tradingFeeBasisPoints / 100000;
+    // Use BigNumber for precise calculations
+    const poolXBN = new BigNumber(poolX);
+    const poolYBN = new BigNumber(poolY);
+    const desiredOutputBN = new BigNumber(desiredOutput);
+    const slippageToleranceBN = new BigNumber(slippageTolerance);
+    
+    console.log(`   Constant k = ${poolXBN.multipliedBy(poolYBN).toFixed()}`);
+    
+    // Convert XRPL trading fee units to decimal with high precision
+    // Per XRPL docs: fee units are in 1/100,000; value of 1 = 0.001%, max 1000 = 1%
+    const tradingFeeDecimalBN = new BigNumber(tradingFeeUnits).dividedBy(100000);
     
     // If there's a trading fee, we need to account for it in our calculation
-    // The AMM will deduct the fee from the output, so we need to request more
-    // to ensure we get exactly the desired amount after fees
-    let adjustedDesiredOutput = desiredOutput;
+    let adjustedDesiredOutputBN = desiredOutputBN;
     
-    if (tradingFeeBasisPoints > 0) {
+    if (tradingFeeUnits > 0) {
       // Calculate how much extra we need to request to account for the fee
       // If fee is 1% and we want 100, we need to request ~101.01 so that after 1% fee we get 100
-      adjustedDesiredOutput = desiredOutput / (1 - tradingFeeDecimal);
-      console.log(`   Fee Adjustment: Requesting ${adjustedDesiredOutput.toFixed(6)} to get ${desiredOutput} after ${tradingFeeBasisPoints}bps fee`);
+      const oneMinusFee = new BigNumber(1).minus(tradingFeeDecimalBN);
+      adjustedDesiredOutputBN = desiredOutputBN.dividedBy(oneMinusFee);
+      console.log(`   Fee Adjustment: Requesting ${adjustedDesiredOutputBN.toFixed(6)} to get ${desiredOutput} after ${tradingFeeUnits} fee units`);
     }
     
     // Constant product formula: X * Y = k
-    const k = poolX * poolY;
+    const k = poolXBN.multipliedBy(poolYBN);
     
     // After taking adjustedDesiredOutput from poolY:
     // newPoolY = poolY - adjustedDesiredOutput
-    const newPoolY = poolY - adjustedDesiredOutput;
+    const newPoolYBN = poolYBN.minus(adjustedDesiredOutputBN);
     
-    if (newPoolY <= 0) {
-      throw new Error(`Insufficient liquidity: Cannot withdraw ${adjustedDesiredOutput} from pool of ${poolY}`);
+    if (newPoolYBN.lte(0)) {
+      throw new Error(`Insufficient liquidity: Cannot withdraw ${adjustedDesiredOutputBN.toFixed(6)} from pool of ${poolY}`);
     }
     
     // Calculate newPoolX using k = newPoolX * newPoolY
     // newPoolX = k / newPoolY
-    const newPoolX = k / newPoolY;
+    const newPoolXBN = k.dividedBy(newPoolYBN);
     
     // Input needed = newPoolX - poolX
-    const exactInputNeeded = newPoolX - poolX;
+    const exactInputNeededBN = newPoolXBN.minus(poolXBN);
     
     // Apply slippage tolerance
-    const inputWithSlippage = exactInputNeeded * (1 + slippageTolerance);
+    const inputWithSlippageBN = exactInputNeededBN.multipliedBy(new BigNumber(1).plus(slippageToleranceBN));
     
-    console.log(`   After withdrawal: ${newPoolX.toFixed(6)} / ${newPoolY.toFixed(6)}`);
-    console.log(`   Exact input needed: ${exactInputNeeded.toFixed(6)}`);
-    console.log(`   With ${slippageTolerance * 100}% slippage: ${inputWithSlippage.toFixed(6)}`);
-    console.log(`   Price per unit: ${(exactInputNeeded / desiredOutput).toFixed(6)}`);
+    console.log(`   After withdrawal: ${newPoolXBN.toFixed(6)} / ${newPoolYBN.toFixed(6)}`);
+    console.log(`   Exact input needed: ${exactInputNeededBN.toFixed(6)}`);
+    console.log(`   With ${slippageTolerance * 100}% slippage: ${inputWithSlippageBN.toFixed(6)}`);
+    console.log(`   Price per unit: ${exactInputNeededBN.dividedBy(desiredOutputBN).toFixed(6)}`);
     
     return {
       success: true,
-      exactInput: exactInputNeeded,
-      inputWithSlippage: inputWithSlippage,
-      pricePerUnit: exactInputNeeded / desiredOutput,
-      newPoolX: newPoolX,
-      newPoolY: newPoolY,
-      slippageAmount: inputWithSlippage - exactInputNeeded,
-      tradingFeeAdjustment: adjustedDesiredOutput - desiredOutput,
-      adjustedOutput: adjustedDesiredOutput
+      exactInput: exactInputNeededBN.toNumber(),
+      inputWithSlippage: inputWithSlippageBN.toNumber(),
+      pricePerUnit: exactInputNeededBN.dividedBy(desiredOutputBN).toNumber(),
+      newPoolX: newPoolXBN.toNumber(),
+      newPoolY: newPoolYBN.toNumber(),
+      slippageAmount: inputWithSlippageBN.minus(exactInputNeededBN).toNumber(),
+      tradingFeeAdjustment: adjustedDesiredOutputBN.minus(desiredOutputBN).toNumber(),
+      adjustedOutput: adjustedDesiredOutputBN.toNumber()
     };
     
   } catch (error) {
@@ -87,15 +97,15 @@ export function calculateExactAMMInput(poolX, poolY, desiredOutput, slippageTole
  * @param {number} poolX - Input asset pool balance
  * @param {number} poolY - Output asset pool balance
  * @param {number} input - Input amount
- * @param {number} tradingFeeBasisPoints - Trading fee in basis points (default 0)
+ * @param {number} tradingFeeUnits - Trading fee in XRPL units (1 unit = 0.001%, max 1000 = 1%)
  * @returns {Object} Calculation result with estimated output
  */
-export function calculateEstimateOutput(poolX, poolY, input, tradingFeeBasisPoints = 0) {
+export function calculateEstimateOutput(poolX, poolY, input, tradingFeeUnits = 0) {
   try {
     console.log(`🧮 Calculating estimated output:`);
     console.log(`   Pool: ${poolX} (input) / ${poolY} (output)`);
     console.log(`   Input: ${input}`);
-    console.log(`   Trading Fee: ${tradingFeeBasisPoints} basis points`);
+    console.log(`   Trading Fee: ${tradingFeeUnits} XRPL fee units (${(tradingFeeUnits/1000).toFixed(3)}%)`);
     
     const k = poolX * poolY; // constant product
     const newPoolX = poolX + parseFloat(input);
@@ -103,11 +113,12 @@ export function calculateEstimateOutput(poolX, poolY, input, tradingFeeBasisPoin
     const grossOutput = poolY - newPoolY;
     
     // Apply trading fee (fee is deducted from output)
-    const tradingFeeDecimal = tradingFeeBasisPoints / 100000;
+    // Per XRPL docs: fee units are in 1/100,000; value of 1 = 0.001%, max 1000 = 1%
+    const tradingFeeDecimal = tradingFeeUnits / 100000;
     const netOutput = grossOutput * (1 - tradingFeeDecimal);
     
     console.log(`   Gross output: ${grossOutput.toFixed(6)}`);
-    console.log(`   Net output (after ${tradingFeeBasisPoints}bps fee): ${netOutput.toFixed(6)}`);
+    console.log(`   Net output (after ${tradingFeeUnits} fee units): ${netOutput.toFixed(6)}`);
     
     return {
       success: true,

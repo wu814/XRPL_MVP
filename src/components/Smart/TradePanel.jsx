@@ -1,7 +1,18 @@
 "use client";
 
 import { useState, useContext, useEffect } from "react";
-import { ArrowUpRight, ArrowDownLeft, ArrowUpDown, Building2, Search, Star, X, ChevronDown, Settings, Loader2 } from "lucide-react";
+import {
+  ArrowUpRight,
+  ArrowDownLeft,
+  ArrowUpDown,
+  Building2,
+  Search,
+  Star,
+  X,
+  ChevronDown,
+  Settings,
+  Loader2,
+} from "lucide-react";
 import ConvertCurrencyDropDown from "@/components/Currency/ConvertCurrencyDropDown";
 import SendCurrencyDropDown from "@/components/Currency/SendCurrencyDropDown";
 import CurrencyDropDown from "@/components/Currency/CurrencyDropDown";
@@ -12,10 +23,16 @@ import SuccessMdl from "@/components/SuccessMdl";
 import Button from "../Button";
 import { useCurrentUserWallet } from "@/components/Wallet/CurrentUserWalletProvider";
 import { useIssuerWallet } from "@/components/Wallet/IssuerWalletProvider";
-import { availableCurrencies, formatCurrencyValue } from "@/utils/currencyUtils";
+import {
+  availableCurrencies,
+  formatCurrencyValue,
+} from "@/utils/currencyUtils";
 import { useSession } from "next-auth/react";
 // Import from the new client-safe calculation file
-import { calculateExactAMMInput, calculateEstimateOutput } from "@/utils/xrpl/amm/calculations";
+import {
+  calculateExactAMMInput,
+  calculateEstimateOutput,
+} from "@/utils/xrpl/amm/calculations";
 
 export default function TradePanel() {
   const { data: sessionData, status } = useSession();
@@ -28,16 +45,16 @@ export default function TradePanel() {
   const [buyAmount, setBuyAmount] = useState("");
   const [activeInput, setActiveInput] = useState("sell");
   const [tradeInputType, setTradeInputType] = useState("exact_input");
-  
+
   // Add calculation states
   const [calculatingAmounts, setCalculatingAmounts] = useState(false);
   const [calculationError, setCalculationError] = useState(null);
-  
+
   // AMM data states - fetch once when currencies change
   const [ammData, setAmmData] = useState(null);
   const [loadingAmmData, setLoadingAmmData] = useState(false);
   const [ammDataError, setAmmDataError] = useState(null);
-  
+
   // Send form states (Enhanced from TransferBtn)
   const [recipientUsername, setRecipientUsername] = useState("");
   const [recipientAddress, setRecipientAddress] = useState("");
@@ -51,7 +68,7 @@ export default function TradePanel() {
   const [receiveCurrency, setReceiveCurrency] = useState("XRP"); // for cross-currency
   const [sendAmount, setSendAmount] = useState("");
   const [receiveAmount, setReceiveAmount] = useState("");
-  
+
   // Common states
   const [slippage, setSlippage] = useState("0");
   const [showSlippagePanel, setShowSlippagePanel] = useState(false);
@@ -65,7 +82,10 @@ export default function TradePanel() {
 
   // Get the primary wallet
   const senderWallet = currentUserWallets?.find(
-    (wallet) => wallet.walletType === "USER" || wallet.walletType === "BUSINESS" || wallet.walletType === "ISSUER"
+    (wallet) =>
+      wallet.walletType === "USER" ||
+      wallet.walletType === "BUSINESS" ||
+      wallet.walletType === "ISSUER",
   );
 
   // Add new state for wallet balance
@@ -118,7 +138,14 @@ export default function TradePanel() {
       setAmmData(null);
       setAmmDataError(null);
     }
-  }, [activeTab, sellCurrency, buyCurrency, sendCurrency, receiveCurrency, paymentType]);
+  }, [
+    activeTab,
+    sellCurrency,
+    buyCurrency,
+    sendCurrency,
+    receiveCurrency,
+    paymentType,
+  ]);
 
   const fetchAmmData = async (currency1, currency2) => {
     setLoadingAmmData(true);
@@ -150,7 +177,12 @@ export default function TradePanel() {
   };
 
   // Generic calculation function for output (replaces calculateOutput)
-  const calculateOutputAmount = async (inputAmount, inputCurrency, outputCurrency, setOutputAmount) => {
+  const calculateOutputAmount = async (
+    inputAmount,
+    inputCurrency,
+    outputCurrency,
+    setOutputAmount,
+  ) => {
     if (!ammData) {
       console.log("⚠️ No AMM data available for output calculation");
       return;
@@ -159,7 +191,7 @@ export default function TradePanel() {
     setCalculatingAmounts(true);
     setCalculationError(null);
 
-    try {      
+    try {
       // Determine pool balances from cached AMM data
       let poolInput, poolOutput;
       if (ammData.amount.currency === inputCurrency) {
@@ -171,8 +203,13 @@ export default function TradePanel() {
       }
 
       // Calculate estimated output using the imported function
-      const calculation = calculateEstimateOutput(poolInput, poolOutput, inputAmount, ammData.trading_fee || 0);
-      
+      const calculation = calculateEstimateOutput(
+        poolInput,
+        poolOutput,
+        inputAmount,
+        ammData.trading_fee || 0,
+      );
+
       if (calculation.success) {
         setOutputAmount(calculation.estimatedOutput.toFixed(6));
       } else {
@@ -187,7 +224,12 @@ export default function TradePanel() {
   };
 
   // Generic calculation function for input (replaces calculateInput)
-  const calculateInputAmount = async (outputAmount, inputCurrency, outputCurrency, setInputAmount) => {
+  const calculateInputAmount = async (
+    outputAmount,
+    inputCurrency,
+    outputCurrency,
+    setInputAmount,
+  ) => {
     if (!ammData) {
       console.log("⚠️ No AMM data available for input calculation");
       return;
@@ -209,13 +251,13 @@ export default function TradePanel() {
 
       // Calculate required input using the imported function
       const calculation = calculateExactAMMInput(
-        poolInput, 
-        poolOutput, 
-        parseFloat(outputAmount), 
-        parseFloat(slippage) / 100, 
-        ammData.trading_fee || 0
+        poolInput,
+        poolOutput,
+        parseFloat(outputAmount),
+        parseFloat(slippage) / 100,
+        ammData.trading_fee || 0,
       );
-      
+
       if (calculation.success) {
         setInputAmount(calculation.inputWithSlippage.toFixed(6));
       } else {
@@ -232,39 +274,105 @@ export default function TradePanel() {
   // Updated useEffects using the generic functions
   // Calculate output when sell amount changes (Convert form)
   useEffect(() => {
-    if (sellAmount && parseFloat(sellAmount) > 0 && sellCurrency && buyCurrency && sellCurrency !== buyCurrency && activeInput === "sell" && ammData) {
-      calculateOutputAmount(sellAmount, sellCurrency, buyCurrency, setBuyAmount);
-    } else if (activeInput === "sell" && (!sellAmount || parseFloat(sellAmount) <= 0)) {
+    if (
+      sellAmount &&
+      parseFloat(sellAmount) > 0 &&
+      sellCurrency &&
+      buyCurrency &&
+      sellCurrency !== buyCurrency &&
+      activeInput === "sell" &&
+      ammData
+    ) {
+      calculateOutputAmount(
+        sellAmount,
+        sellCurrency,
+        buyCurrency,
+        setBuyAmount,
+      );
+    } else if (
+      activeInput === "sell" &&
+      (!sellAmount || parseFloat(sellAmount) <= 0)
+    ) {
       setBuyAmount("");
     }
   }, [sellAmount, sellCurrency, buyCurrency, activeInput, ammData]);
 
   // Calculate input when buy amount changes (Convert form)
   useEffect(() => {
-    if (buyAmount && parseFloat(buyAmount) > 0 && sellCurrency && buyCurrency && sellCurrency !== buyCurrency && activeInput === "buy" && ammData) {
+    if (
+      buyAmount &&
+      parseFloat(buyAmount) > 0 &&
+      sellCurrency &&
+      buyCurrency &&
+      sellCurrency !== buyCurrency &&
+      activeInput === "buy" &&
+      ammData
+    ) {
       calculateInputAmount(buyAmount, sellCurrency, buyCurrency, setSellAmount);
-    } else if (activeInput === "buy" && (!buyAmount || parseFloat(buyAmount) <= 0)) {
+    } else if (
+      activeInput === "buy" &&
+      (!buyAmount || parseFloat(buyAmount) <= 0)
+    ) {
       setSellAmount("");
     }
   }, [buyAmount, sellCurrency, buyCurrency, activeInput, slippage, ammData]);
 
   // Calculate receive amount when send amount changes (Send form)
   useEffect(() => {
-    if (sendAmount && parseFloat(sendAmount) > 0 && sendCurrency && receiveCurrency && sendCurrency !== receiveCurrency && convertInputType === "exact_input" && ammData) {
-      calculateOutputAmount(sendAmount, sendCurrency, receiveCurrency, setReceiveAmount);
-    } else if (convertInputType === "exact_input" && (!sendAmount || parseFloat(sendAmount) <= 0)) {
+    if (
+      sendAmount &&
+      parseFloat(sendAmount) > 0 &&
+      sendCurrency &&
+      receiveCurrency &&
+      sendCurrency !== receiveCurrency &&
+      convertInputType === "exact_input" &&
+      ammData
+    ) {
+      calculateOutputAmount(
+        sendAmount,
+        sendCurrency,
+        receiveCurrency,
+        setReceiveAmount,
+      );
+    } else if (
+      convertInputType === "exact_input" &&
+      (!sendAmount || parseFloat(sendAmount) <= 0)
+    ) {
       setReceiveAmount("");
     }
   }, [sendAmount, sendCurrency, receiveCurrency, convertInputType, ammData]);
 
   // Calculate send amount when receive amount changes (Send form)
   useEffect(() => {
-    if (receiveAmount && parseFloat(receiveAmount) > 0 && sendCurrency && receiveCurrency && sendCurrency !== receiveCurrency && convertInputType === "exact_output" && ammData) {
-      calculateInputAmount(receiveAmount, sendCurrency, receiveCurrency, setSendAmount);
-    } else if (convertInputType === "exact_output" && (!receiveAmount || parseFloat(receiveAmount) <= 0)) {
+    if (
+      receiveAmount &&
+      parseFloat(receiveAmount) > 0 &&
+      sendCurrency &&
+      receiveCurrency &&
+      sendCurrency !== receiveCurrency &&
+      convertInputType === "exact_output" &&
+      ammData
+    ) {
+      calculateInputAmount(
+        receiveAmount,
+        sendCurrency,
+        receiveCurrency,
+        setSendAmount,
+      );
+    } else if (
+      convertInputType === "exact_output" &&
+      (!receiveAmount || parseFloat(receiveAmount) <= 0)
+    ) {
       setSendAmount("");
     }
-  }, [receiveAmount, sendCurrency, receiveCurrency, convertInputType, slippage, ammData]);
+  }, [
+    receiveAmount,
+    sendCurrency,
+    receiveCurrency,
+    convertInputType,
+    slippage,
+    ammData,
+  ]);
 
   const handleSmartTrade = async () => {
     setLoading(true);
@@ -283,7 +391,7 @@ export default function TradePanel() {
       const response = await fetch("/api/smart/smartTrade", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           senderWallet: senderWallet,
           sendCurrency: sellCurrency,
           sendAmount: sellAmount,
@@ -291,7 +399,8 @@ export default function TradePanel() {
           issuerAddress: issuerWallets[0].classicAddress,
           slippagePercent: parseFloat(slippage),
           paymentType: tradeInputType,
-          exactOutputAmount: tradeInputType === "exact_output" ? buyAmount : undefined,
+          exactOutputAmount:
+            tradeInputType === "exact_output" ? buyAmount : undefined,
         }),
       });
 
@@ -301,7 +410,9 @@ export default function TradePanel() {
         throw new Error(result.error || "Smart trade failed");
       }
 
-      setSuccessMessage(result.message || "Smart trade completed successfully!");
+      setSuccessMessage(
+        result.message || "Smart trade completed successfully!",
+      );
       fetchWalletBalances();
 
       // Reset form
@@ -387,7 +498,7 @@ export default function TradePanel() {
       if (!res.ok) throw new Error(result.error);
       setSuccessMessage(result.message || "Payment sent!");
       fetchWalletBalances();
-      
+
       // Reset form
       if (!recipientUsername) setRecipientUsername("");
       setRecipientAddress("");
@@ -402,13 +513,12 @@ export default function TradePanel() {
     }
   };
 
-  
   const recents = [
     { address: "rwnYLU...nqf63J", lastSent: "2 months ago" },
     { address: "0xf839...0369e4", lastSent: "11 months ago" },
-    { address: "rUy72X...zNDTD2", lastSent: "1 year ago" }
+    { address: "rUy72X...zNDTD2", lastSent: "1 year ago" },
   ];
-  
+
   const handleMax = () => {
     if (activeTab === "Convert" && sellCurrency) {
       const maxBalance = walletBalances[sellCurrency] || 0;
@@ -420,7 +530,10 @@ export default function TradePanel() {
   };
 
   const getCurrencyData = (currencyId) => {
-    return availableCurrencies.find(c => c.id === currencyId) || availableCurrencies[0];
+    return (
+      availableCurrencies.find((c) => c.id === currencyId) ||
+      availableCurrencies[0]
+    );
   };
 
   const handleRecipientClick = (recipient) => {
@@ -435,14 +548,18 @@ export default function TradePanel() {
     setOpenDropdown(openDropdown === dropdownId ? null : dropdownId);
   };
 
-  const canTrade = sellCurrency && buyCurrency && sellCurrency !== buyCurrency && 
-    ((sellAmount && parseFloat(sellAmount) > 0) || (buyAmount && parseFloat(buyAmount) > 0)) 
-    // && ammData && !loadingAmmData; // Only allow trading when AMM data is loaded
+  const canTrade =
+    sellCurrency &&
+    buyCurrency &&
+    sellCurrency !== buyCurrency &&
+    ((sellAmount && parseFloat(sellAmount) > 0) ||
+      (buyAmount && parseFloat(buyAmount) > 0));
+  // && ammData && !loadingAmmData; // Only allow trading when AMM data is loaded
 
   // Add function to fetch wallet balances
   const fetchWalletBalances = async () => {
     if (!senderWallet) return;
-    
+
     setLoadingBalance(true);
     try {
       const [accountInfoResponse, accountLinesResponse] = await Promise.all([
@@ -461,7 +578,6 @@ export default function TradePanel() {
       const accountInfo = await accountInfoResponse.json();
       const accountLines = await accountLinesResponse.json();
 
-
       const balances = {};
 
       // Add XRP balance (accounting for reserves)
@@ -470,15 +586,15 @@ export default function TradePanel() {
         const ownerCount = accountInfo.data.ownerCount || 0;
         const BASE_RESERVE_XRP = 1;
         const OWNER_RESERVE_XRP = 0.2;
-        const totalReserve = BASE_RESERVE_XRP + (OWNER_RESERVE_XRP * ownerCount);
+        const totalReserve = BASE_RESERVE_XRP + OWNER_RESERVE_XRP * ownerCount;
         const availableBalance = Math.max(0, xrpBalance - totalReserve);
-        
+
         balances["XRP"] = availableBalance;
       }
 
       // Add IOU balances from account lines
       if (accountLines.data?.lines) {
-        accountLines.data.lines.forEach(line => {
+        accountLines.data.lines.forEach((line) => {
           if (line.currency && line.balance) {
             balances[line.currency] = parseFloat(line.balance);
           }
@@ -507,7 +623,7 @@ export default function TradePanel() {
     setCalculationError(null);
   }, [sellCurrency]);
 
-  // Reset amounts when buy currency changes  
+  // Reset amounts when buy currency changes
   useEffect(() => {
     setSellAmount("");
     setBuyAmount("");
@@ -516,17 +632,19 @@ export default function TradePanel() {
 
   return (
     <>
-      <div className="w-[30rem] fixed right-0 top-24 bottom-0 bg-color2 overflow-y-auto mt-2 rounded-lg">
+      <div className="fixed bottom-0 right-0 top-24 mt-2 w-[30rem] overflow-y-auto rounded-lg bg-color2">
         {/* Smart Trade Header */}
-        <div className="p-6 border-b border-gray-600">
-          <div className="flex flex-row justify-between items-center relative">
-            <h2 className="text-2xl font-bold text-white">Smart Trade / Payment</h2>
+        <div className="border-b border-gray-600 p-6">
+          <div className="relative flex flex-row items-center justify-between">
+            <h2 className="text-2xl font-bold text-white">
+              Smart Trade / Payment
+            </h2>
             {/* Slippage Settings Button - Show for both tabs */}
-            <button 
+            <button
               onClick={() => setShowSlippagePanel((prev) => !prev)}
-              className="p-2 hover:bg-color3 rounded-lg transition-colors hover:text-white text-gray-400"
+              className="rounded-lg p-2 text-gray-400 transition-colors hover:bg-color3 hover:text-white"
             >
-              <Settings className="w-5 h-5" />
+              <Settings className="h-5 w-5" />
             </button>
             {showSlippagePanel && (
               <SlippagePanel
@@ -537,18 +655,18 @@ export default function TradePanel() {
             )}
           </div>
         </div>
-        
+
         {/* Trade Section */}
         <div className="mb-8 p-6">
           {/* Tab Buttons */}
-          <div className="flex bg-color3 rounded-lg p-1 mb-6">
+          <div className="mb-4 flex rounded-full bg-color3 p-1">
             {["Convert", "Send"].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`flex-1 py-2 px-3 rounded-md font-semibold text-md transition-colors ${
+                className={`text-md flex-1 rounded-full px-3 py-2 font-semibold transition-colors ${
                   activeTab === tab
-                    ? "bg-primary text-black"
+                    ? "border border-primary bg-primary/20 text-primary"
                     : "text-gray-300 hover:text-white"
                 }`}
               >
@@ -557,59 +675,70 @@ export default function TradePanel() {
             ))}
           </div>
 
-          {/* Show AMM loading or error state */}
-          {loadingAmmData && (
-            <div className="mb-4 p-3 bg-blue-900/20 border border-blue-500 rounded-lg">
-              <div className="flex items-center space-x-2">
-                <Loader2 className="h-4 w-4 animate-spin text-blue-400" />
-                <p className="text-blue-400 text-sm">Loading AMM pool data...</p>
-              </div>
-            </div>
-          )}
-
-          {/* Show AMM data error */}
-          {ammDataError && (
-            <div className="mb-4 p-3 bg-red-900/20 border border-red-500 rounded-lg">
-              <p className="text-red-400 text-sm">{ammDataError}</p>
-            </div>
-          )}
-
-          {/* Show calculation error if any */}
-          {calculationError && (
-            <div className="mb-4 p-3 bg-red-900/20 border border-red-500 rounded-lg">
-              <p className="text-red-400 text-sm">Calculation Error: {calculationError}</p>
-            </div>
-          )}
-
-          {/* Show AMM pool info when loaded */}
-          {ammData && !loadingAmmData && (
-            <div className="mb-4 p-3 bg-green-900/20 border border-green-500 rounded-lg">
-              <p className="text-green-400 text-sm">
-                AMM Pool: {ammData.amount.currency}/{ammData.amount2.currency} 
-                {ammData.trading_fee > 0 && ` (${ammData.trading_fee/1000}% fee)`}
-              </p>
-            </div>
-          )}
-
           {activeTab === "Convert" ? (
             // Convert Layout - Integrated SmartTradeMenu functionality
             <>
+              {/* Show AMM loading or error state */}
+              {loadingAmmData && (
+                <div className="mb-4 rounded-full border border-blue-500 bg-blue-900/20 p-3">
+                  <div className="flex items-center space-x-2">
+                    <Loader2 className="h-4 w-4 animate-spin text-blue-400" />
+                    <p className="text-sm text-blue-400">
+                      Loading AMM pool data...
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Show AMM data error */}
+              {ammDataError && (
+                <div className="mb-4 rounded-full border border-red-500 bg-red-900/20 p-3">
+                  <p className="text-sm text-red-400">{ammDataError}</p>
+                </div>
+              )}
+
+              {/* Show calculation error if any */}
+              {calculationError && (
+                <div className="mb-4 rounded-full border border-red-500 bg-red-900/20 p-3">
+                  <p className="text-sm text-red-400">
+                    Calculation Error: {calculationError}
+                  </p>
+                </div>
+              )}
+
+              {/* Show AMM pool info when loaded */}
+              {ammData && !loadingAmmData && (
+                <div className="mb-4 rounded-full border border-green-500 bg-green-900/20 p-3">
+                  <p className="text-sm text-green-400">
+                    AMM Pool: {ammData.amount.currency}/
+                    {ammData.amount2.currency}
+                    {` (${ammData.trading_fee / 1000}% fee)`}
+                  </p>
+                </div>
+              )}
               {/* Sell Section */}
-              <div className="mb-4 bg-color3 rounded-lg p-6  border border-transparent hover:border-gray-500 focus-within:!border-primary">
-                <div className="flex items-center rounded-lg justify-between mb-4">
+              <div className="mb-4 rounded-lg border border-transparent bg-color3 p-6 focus-within:!border-primary hover:border-gray-500">
+                <div className="mb-4 flex items-center justify-between rounded-lg">
                   <div className="flex flex-1 flex-col space-y-2">
-                    <label className="text-sm font-medium text-gray-400">Sell</label>
+                    <label className="text-sm font-medium text-gray-400">
+                      Sell
+                    </label>
                     <ConvertCurrencyDropDown
                       asset={getCurrencyData(sellCurrency)}
                       onSelect={setSellCurrency}
                       label=""
-                      currencies={availableCurrencies.filter(c => c.id !== buyCurrency)}
+                      currencies={availableCurrencies.filter(
+                        (c) => c.id !== buyCurrency,
+                      )}
                     />
                     {sellCurrency && (
-                        <div className="text-sm text-gray-400">
-                          Balance: {loadingBalance ? "Loading..." : `${formatCurrencyValue(walletBalances[sellCurrency] || 0)} ${sellCurrency}`}
-                        </div>
-                      )}
+                      <div className="text-sm text-gray-400">
+                        Balance:{" "}
+                        {loadingBalance
+                          ? "Loading..."
+                          : `${formatCurrencyValue(walletBalances[sellCurrency] || 0)} ${sellCurrency}`}
+                      </div>
+                    )}
                   </div>
                   <div className="flex flex-col items-end">
                     <div className="relative">
@@ -619,47 +748,70 @@ export default function TradePanel() {
                         value={sellAmount}
                         onChange={handleSellAmountChange}
                         placeholder="0.00"
-                        className={`bg-transparent text-right text-4xl font-light outline-none text-white w-48 ${
-                          (!!buyAmount && activeInput === "buy") || calculatingAmounts || loadingAmmData ? "cursor-not-allowed opacity-60" : ""
+                        className={`w-48 bg-transparent text-right text-4xl font-light text-white outline-none ${
+                          (!!buyAmount && activeInput === "buy") ||
+                          calculatingAmounts ||
+                          loadingAmmData
+                            ? "cursor-not-allowed opacity-60"
+                            : ""
                         }`}
                         min="0"
-                        disabled={(!!buyAmount && activeInput === "buy") || calculatingAmounts || loadingAmmData}
+                        disabled={
+                          (!!buyAmount && activeInput === "buy") ||
+                          calculatingAmounts ||
+                          loadingAmmData
+                        }
                       />
                     </div>
-                    <div className="flex items-center space-x-2 mt-2">
-                      <button 
+                    <div className="mt-2 flex items-center space-x-2">
+                      <Button
                         onClick={handleMax}
-                        disabled={loadingBalance || !sellCurrency || (walletBalances[sellCurrency] || 0) <= 0 || calculatingAmounts || loadingAmmData}
-                        className="bg-color5 hover:bg-color6 disabled:bg-gray-700 disabled:cursor-not-allowed px-4 py-2 rounded-lg text-sm font-medium"
+                        disabled={
+                          loadingBalance ||
+                          !sellCurrency ||
+                          (walletBalances[sellCurrency] || 0) <= 0 ||
+                          calculatingAmounts ||
+                          loadingAmmData
+                        }
+                        variant="primary"
                       >
                         Max
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Swap Icon */}
-              <div className="flex justify-center my-4">
+              <div className="my-4 flex justify-center">
                 <button
                   onClick={handleCurrencySwap}
-                  className="p-3 bg-color3 rounded-full hover:bg-color4 transition-colors"
-                  disabled={!sellCurrency || !buyCurrency || calculatingAmounts || loadingAmmData}
+                  className="rounded-full bg-color3 p-3 transition-colors hover:bg-color4"
+                  disabled={
+                    !sellCurrency ||
+                    !buyCurrency ||
+                    calculatingAmounts ||
+                    loadingAmmData
+                  }
                 >
-                  <ArrowUpDown className="w-6 h-6 text-gray-400" />
+                  <ArrowUpDown className="h-6 w-6 text-gray-400" />
                 </button>
               </div>
 
               {/* Buy Section */}
-              <div className="mb-8 bg-color3 rounded-lg p-6 border border-transparent hover:border-gray-500 focus-within:!border-primary">
+              <div className="mb-8 rounded-lg border border-transparent bg-color3 p-6 focus-within:!border-primary hover:border-gray-500">
                 <div className="flex items-center justify-between">
                   <div className="flex flex-1 flex-col space-y-2">
-                    <label className="text-sm font-medium text-gray-400">Buy</label>
+                    <label className="text-sm font-medium text-gray-400">
+                      Buy
+                    </label>
                     <ConvertCurrencyDropDown
                       asset={getCurrencyData(buyCurrency)}
                       onSelect={setBuyCurrency}
                       label=""
-                      currencies={availableCurrencies.filter(c => c.id !== sellCurrency)}
+                      currencies={availableCurrencies.filter(
+                        (c) => c.id !== sellCurrency,
+                      )}
                     />
                   </div>
                   <div className="relative">
@@ -669,11 +821,19 @@ export default function TradePanel() {
                       value={buyAmount}
                       onChange={handleBuyAmountChange}
                       placeholder="0.00"
-                      className={`bg-transparent text-right text-4xl font-light outline-none text-white w-48 ${
-                        (!!sellAmount && activeInput === "sell") || calculatingAmounts || loadingAmmData ? "cursor-not-allowed opacity-60" : ""
+                      className={`w-48 bg-transparent text-right text-4xl font-light text-white outline-none ${
+                        (!!sellAmount && activeInput === "sell") ||
+                        calculatingAmounts ||
+                        loadingAmmData
+                          ? "cursor-not-allowed opacity-60"
+                          : ""
                       }`}
                       min="0"
-                      disabled={(!!sellAmount && activeInput === "sell") || calculatingAmounts || loadingAmmData}
+                      disabled={
+                        (!!sellAmount && activeInput === "sell") ||
+                        calculatingAmounts ||
+                        loadingAmmData
+                      }
                     />
                   </div>
                 </div>
@@ -682,7 +842,9 @@ export default function TradePanel() {
               {/* Execute Trade Button */}
               <Button
                 onClick={handleSmartTrade}
-                disabled={!canTrade || loading || calculatingAmounts || loadingAmmData}
+                disabled={
+                  !canTrade || loading || calculatingAmounts || loadingAmmData
+                }
                 className="w-full text-lg"
               >
                 {loading ? (
@@ -709,16 +871,20 @@ export default function TradePanel() {
             // Send Layout - Rest of the existing send functionality
             <>
               {/* Payment Type and Username/Address Toggle */}
-              <div className={`flex ${sessionData?.user?.role === "ADMIN" ? "justify-between space-x-2" : "justify-center"} mb-6`}>
-                <div className={`flex space-x-1 rounded-lg bg-color3 p-1 ${!sessionData?.user?.role === "ADMIN" ? "w-full" : ""}`}>
+              <div
+                className={`flex ${sessionData?.user?.role === "ADMIN" ? "justify-between space-x-2" : "justify-center"} mb-4`}
+              >
+                <div
+                  className={`flex space-x-1 rounded-full bg-color3 p-1 ${!sessionData?.user?.role === "ADMIN" ? "w-full" : ""}`}
+                >
                   <button
-                    className={`flex-1 rounded-lg px-3 py-2 text-md transition-colors ${paymentType === "direct" ? "bg-primary text-black" : "bg-color3 text-gray-300 hover:text-white"}`}
+                    className={`text-md flex-1 rounded-full px-3 py-2 transition-colors ${paymentType === "direct" ? "border border-primary bg-primary/20 text-primary" : "bg-color3 text-gray-300 hover:text-white"}`}
                     onClick={() => handlePaymentTypeChange("direct")}
                   >
                     Direct
                   </button>
                   <button
-                    className={`flex-1 rounded-lg px-3 py-2 text-md transition-colors ${paymentType === "convertable" ? "bg-primary text-black" : "bg-color3 text-gray-300 hover:text-white"}`}
+                    className={`text-md flex-1 rounded-full px-3 py-2 transition-colors ${paymentType === "convertable" ? "border border-primary bg-primary/20 text-primary" : "bg-color3 text-gray-300 hover:text-white"}`}
                     onClick={() => handlePaymentTypeChange("convertable")}
                   >
                     Convertable
@@ -727,13 +893,13 @@ export default function TradePanel() {
 
                 {/* Only show option to send with address for Admin */}
                 {sessionData?.user?.role === "ADMIN" && (
-                  <div className="flex space-x-1 rounded-lg bg-color3 p-1">
+                  <div className="flex space-x-1 rounded-full bg-color3 p-1">
                     {[true, false].map((type) => (
                       <button
                         key={String(type)}
-                        className={`rounded-lg px-2 py-1 text-md ${
+                        className={`text-md rounded-full px-2 py-2 ${
                           useUsername === type
-                            ? "bg-primary text-black"
+                            ? "border border-primary bg-primary/20 text-primary"
                             : "text-gray-300 hover:text-white"
                         }`}
                         onClick={() => setUseUsername(type)}
@@ -745,10 +911,49 @@ export default function TradePanel() {
                 )}
               </div>
 
+              {/* Show AMM loading or error state */}
+              {loadingAmmData && (
+                <div className="mb-4 rounded-full border border-blue-500 bg-blue-900/20 p-3">
+                  <div className="flex items-center space-x-2">
+                    <Loader2 className="h-4 w-4 animate-spin text-blue-400" />
+                    <p className="text-sm text-blue-400">
+                      Loading AMM pool data...
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Show AMM data error */}
+              {ammDataError && (
+                <div className="mb-4 rounded-full border border-red-500 bg-red-900/20 p-3">
+                  <p className="text-sm text-red-400">{ammDataError}</p>
+                </div>
+              )}
+
+              {/* Show calculation error if any */}
+              {calculationError && (
+                <div className="mb-4 rounded-full border border-red-500 bg-red-900/20 p-3">
+                  <p className="text-sm text-red-400">
+                    Calculation Error: {calculationError}
+                  </p>
+                </div>
+              )}
+
+              {/* Show AMM pool info when loaded */}
+              {ammData && !loadingAmmData && (
+                <div className="mb-4 rounded-full border border-green-500 bg-green-900/20 p-3">
+                  <p className="text-sm text-green-400">
+                    AMM Pool: {ammData.amount.currency}/
+                    {ammData.amount2.currency}
+                    {` (${ammData.trading_fee / 1000}% fee)`}
+                  </p>
+                </div>
+              )}
+
               {/* Payment type info */}
-              <div className="text-xs text-gray-400 mb-4">
-                {paymentType === "direct" 
-                  ? "Trustline-to-trustline payment" 
+              <div className="mb-4 text-xs text-gray-400">
+                {paymentType === "direct"
+                  ? "Trustline-to-trustline payment"
                   : "Cross-currency XRPL send"}
               </div>
 
@@ -757,25 +962,29 @@ export default function TradePanel() {
                 {/* Recipient Input */}
                 {useUsername ? (
                   <div className="relative">
-                    <Search className="w-5 h-5 absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 transform text-gray-400" />
                     <input
                       type="text"
                       placeholder="Recipient Username"
                       value={recipientUsername || ""}
-                      onChange={(e) => setRecipientUsername(e.target.value || "")}
-                      className="w-full bg-color3 border border-transparent rounded-lg pl-12 pr-4 py-4 outline-none hover:border-gray-500 focus:border-primary text-lg"
+                      onChange={(e) =>
+                        setRecipientUsername(e.target.value || "")
+                      }
+                      className="w-full rounded-lg border border-transparent bg-color3 py-4 pl-12 pr-4 text-lg outline-none hover:border-gray-500 focus:border-primary"
                       required
                     />
                   </div>
                 ) : (
                   <div className="relative">
-                    <Search className="w-5 h-5 absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 transform text-gray-400" />
                     <input
                       type="text"
                       placeholder="Recipient Address"
                       value={recipientAddress || ""}
-                      onChange={(e) => setRecipientAddress(e.target.value || "")}
-                      className="w-full bg-color3 border border-transparent rounded-lg pl-12 pr-4 py-4 outline-none hover:border-gray-500 focus:border-primary text-lg"
+                      onChange={(e) =>
+                        setRecipientAddress(e.target.value || "")
+                      }
+                      className="w-full rounded-lg border border-transparent bg-color3 py-4 pl-12 pr-4 text-lg outline-none hover:border-gray-500 focus:border-primary"
                       required
                     />
                   </div>
@@ -783,58 +992,66 @@ export default function TradePanel() {
 
                 {paymentType === "convertable" ? (
                   <>
-                  <div className="grid grid-cols-2 gap-4">    
-                    {/* Send Currency */}
-                    <div>
-                      <label className="block text-sm text-gray-400 mb-2">Send Currency</label>
-                      <SendCurrencyDropDown
-                        value={sendCurrency}
-                        onChange={setSendCurrency}
-                        currencies={availableCurrencies}
-                        isOpen={openDropdown === "sendCurrency"}
-                        onToggle={handleDropdownToggle}
-                        dropdownId="sendCurrency"
-                      />
+                    <div className="grid grid-cols-2 gap-4">
+                      {/* Send Currency */}
+                      <div>
+                        <label className="mb-2 block text-sm text-gray-400">
+                          Send Currency
+                        </label>
+                        <SendCurrencyDropDown
+                          value={sendCurrency}
+                          onChange={setSendCurrency}
+                          currencies={availableCurrencies}
+                          isOpen={openDropdown === "sendCurrency"}
+                          onToggle={handleDropdownToggle}
+                          dropdownId="sendCurrency"
+                        />
+                      </div>
+
+                      {/* Receive Currency */}
+                      <div>
+                        <label className="mb-2 block text-sm text-gray-400">
+                          Receive Currency
+                        </label>
+                        <SendCurrencyDropDown
+                          value={receiveCurrency}
+                          onChange={setReceiveCurrency}
+                          currencies={availableCurrencies}
+                          isOpen={openDropdown === "receiveCurrency"}
+                          onToggle={handleDropdownToggle}
+                          dropdownId="receiveCurrency"
+                        />
+                      </div>
                     </div>
-                    
-                    {/* Receive Currency */}
-                    <div>
-                      <label className="block text-sm text-gray-400 mb-2">Receive Currency</label>
-                      <SendCurrencyDropDown
-                        value={receiveCurrency}
-                        onChange={setReceiveCurrency}
-                        currencies={availableCurrencies}
-                        isOpen={openDropdown === "receiveCurrency"}
-                        onToggle={handleDropdownToggle}
-                        dropdownId="receiveCurrency"
-                      />
-                    </div>
-                  </div>
-                    
+
                     {/* Send and Receive Amounts */}
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm text-gray-400 mb-2">Send Amount</label>
+                        <label className="mb-2 block text-sm text-gray-400">
+                          Send Amount
+                        </label>
                         <input
                           type="number"
                           step="0.000001"
                           min="0"
                           value={sendAmount}
                           onChange={handleSendAmountChangeForPayment}
-                          className={`w-full bg-color3 border border-transparent rounded-lg px-4 py-3 outline-none hover:border-gray-500 focus:border-primary ${convertInputType === "exact_output" ? "cursor-not-allowed opacity-60" : ""}`}
+                          className={`w-full rounded-lg border border-transparent bg-color3 px-4 py-3 outline-none hover:border-gray-500 focus:border-primary ${convertInputType === "exact_output" ? "cursor-not-allowed opacity-60" : ""}`}
                           placeholder="0.00"
                           disabled={convertInputType === "exact_output"}
                         />
                       </div>
                       <div>
-                        <label className="block text-sm text-gray-400 mb-2">Receive Amount</label>
+                        <label className="mb-2 block text-sm text-gray-400">
+                          Receive Amount
+                        </label>
                         <input
                           type="number"
                           step="0.000001"
                           min="0"
                           value={receiveAmount}
                           onChange={handleReceiveAmountChangeForPayment}
-                          className={`w-full bg-color3 border border-transparent rounded-lg px-4 py-3 outline-none  hover:border-gray-500 focus:border-primary ${convertInputType === "exact_input" ? "cursor-not-allowed opacity-60" : ""}`}
+                          className={`w-full rounded-lg border border-transparent bg-color3 px-4 py-3 outline-none hover:border-gray-500 focus:border-primary ${convertInputType === "exact_input" ? "cursor-not-allowed opacity-60" : ""}`}
                           placeholder="0.00"
                           disabled={convertInputType === "exact_input"}
                         />
@@ -845,7 +1062,9 @@ export default function TradePanel() {
                   <>
                     {/* Currency */}
                     <div>
-                      <label className="block text-sm text-gray-400 mb-2">Currency</label>
+                      <label className="mb-2 block text-sm text-gray-400">
+                        Currency
+                      </label>
                       <SendCurrencyDropDown
                         value={currency}
                         onChange={setCurrency}
@@ -855,17 +1074,19 @@ export default function TradePanel() {
                         dropdownId="currency"
                       />
                     </div>
-                    
+
                     {/* Amount */}
                     <div>
-                      <label className="block text-sm text-gray-400 mb-2">Amount</label>
+                      <label className="mb-2 block text-sm text-gray-400">
+                        Amount
+                      </label>
                       <input
                         type="number"
                         step="0.000001"
                         min="0"
                         value={amount}
                         onChange={(e) => setAmount(e.target.value)}
-                        className="w-full bg-color3 border border-transparent rounded-lg px-4 py-3 outline-none hover:border-gray-500 focus:border-primary"
+                        className="w-full rounded-lg border border-transparent bg-color3 px-4 py-3 outline-none hover:border-gray-500 focus:border-primary"
                         placeholder="0.00"
                         required
                       />
@@ -875,16 +1096,18 @@ export default function TradePanel() {
 
                 {/* Destination Tag */}
                 <div>
-                  <label className="block text-sm text-gray-400 mb-2">Destination Tag (optional)</label>
+                  <label className="mb-2 block text-sm text-gray-400">
+                    Destination Tag (optional)
+                  </label>
                   <input
                     type="text"
                     placeholder="Enter destination tag..."
                     value={destinationTag}
                     onChange={(e) => setDestinationTag(e.target.value)}
-                    className="w-full bg-color3 border border-transparent rounded-lg px-4 py-3 outline-none hover:border-gray-500 focus:border-primary"
+                    className="w-full rounded-lg border border-transparent bg-color3 px-4 py-3 outline-none hover:border-gray-500 focus:border-primary"
                   />
                 </div>
-                <div className="mt-4">  </div>
+                <div className="mt-4"> </div>
                 <Button
                   type="submit"
                   disabled={
@@ -896,7 +1119,7 @@ export default function TradePanel() {
                         (!sendAmount && !receiveAmount)
                       : !amount || (paymentType === "direct" && !currency))
                   }
-                  className="w-full text-lg py-2"
+                  className="w-full py-2 text-lg"
                 >
                   {loading ? (
                     <div className="flex items-center justify-center space-x-2">
@@ -915,22 +1138,24 @@ export default function TradePanel() {
               {/* Recents Section */}
               {recents.length > 0 && (
                 <div className="mt-8">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-medium text-lg">Recents</h3>
-                    <button className="text-blue-400 text-sm">See all</button>
+                  <div className="mb-4 flex items-center justify-between">
+                    <h3 className="text-lg font-medium">Recents</h3>
+                    <button className="text-sm text-blue-400">See all</button>
                   </div>
                   {recents.map((recent, index) => (
-                    <div 
-                      key={index} 
-                      className="flex items-center space-x-4 p-3 hover:bg-color3 rounded-lg cursor-pointer"
+                    <div
+                      key={index}
+                      className="flex cursor-pointer items-center space-x-4 rounded-lg p-3 hover:bg-color3"
                       onClick={() => handleRecipientClick(recent)}
                     >
-                      <div className="w-10 h-10 bg-gray-600 rounded-full flex items-center justify-center">
-                        <Building2 className="w-5 h-5" />
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-600">
+                        <Building2 className="h-5 w-5" />
                       </div>
                       <div className="flex-1">
                         <div className="font-medium">{recent.address}</div>
-                        <div className="text-xs text-gray-400">Sent to {recent.lastSent}</div>
+                        <div className="text-xs text-gray-400">
+                          Sent to {recent.lastSent}
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -942,36 +1167,42 @@ export default function TradePanel() {
 
         {/* Quick Actions Section */}
         <div className="p-8 pt-0">
-          <h3 className="text-xl font-bold mb-6">Quick Actions</h3>
-          
+          <h3 className="mb-6 text-xl font-bold">Quick Actions</h3>
+
           <div className="grid grid-cols-1 gap-4">
-            <button className="bg-color3 hover:bg-gray-600 rounded-lg p-5 flex items-center space-x-4 transition-colors">
-              <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center">
-                <ArrowDownLeft className="w-6 h-6" />
+            <button className="flex items-center space-x-4 rounded-lg bg-color3 p-5 transition-colors hover:bg-gray-600">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-600">
+                <ArrowDownLeft className="h-6 w-6" />
               </div>
-              <div className="text-left flex-1">
-                <div className="font-medium text-lg">Receive crypto</div>
-                <div className="text-sm text-gray-400">Get your wallet address</div>
-              </div>
-            </button>
-
-            <button className="bg-color3 hover:bg-gray-600 rounded-lg p-5 flex items-center space-x-4 transition-colors">
-              <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center">
-                <Building2 className="w-6 h-6" />
-              </div>
-              <div className="text-left flex-1">
-                <div className="font-medium text-lg">Wrap Assets</div>
-                <div className="text-sm text-gray-400">Secured by our custodian</div>
+              <div className="flex-1 text-left">
+                <div className="text-lg font-medium">Receive crypto</div>
+                <div className="text-sm text-gray-400">
+                  Get your wallet address
+                </div>
               </div>
             </button>
 
-            <button className="bg-color3 hover:bg-gray-600 rounded-lg p-5 flex items-center space-x-4 transition-colors">
-              <div className="w-12 h-12 bg-yellow-600 rounded-full flex items-center justify-center">
-                <ArrowUpRight className="w-6 h-6" />
+            <button className="flex items-center space-x-4 rounded-lg bg-color3 p-5 transition-colors hover:bg-gray-600">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-600">
+                <Building2 className="h-6 w-6" />
               </div>
-              <div className="text-left flex-1">
-                <div className="font-medium text-lg">Return Wrapped Assets</div>
-                <div className="text-sm text-gray-400">Released from our custody</div>
+              <div className="flex-1 text-left">
+                <div className="text-lg font-medium">Wrap Assets</div>
+                <div className="text-sm text-gray-400">
+                  Secured by our custodian
+                </div>
+              </div>
+            </button>
+
+            <button className="flex items-center space-x-4 rounded-lg bg-color3 p-5 transition-colors hover:bg-gray-600">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-yellow-600">
+                <ArrowUpRight className="h-6 w-6" />
+              </div>
+              <div className="flex-1 text-left">
+                <div className="text-lg font-medium">Return Wrapped Assets</div>
+                <div className="text-sm text-gray-400">
+                  Released from our custody
+                </div>
               </div>
             </button>
           </div>
@@ -995,4 +1226,4 @@ export default function TradePanel() {
       )}
     </>
   );
-} 
+}

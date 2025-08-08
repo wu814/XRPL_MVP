@@ -30,7 +30,7 @@ function WelcomeSection() {
   // If user has no wallets, show prominent create wallet section
   if (currentUserWallets.length === 0) {
     return (
-      <div className="rounded-lg bg-gradient-to-r from-[#30ccfe] to-[#b06cfd] p-6">
+      <div className="rounded-lg bg-gradient-to-r from-[#77C7F1] via-[#A156E2] to-[#8875DD] p-6">
         <h2 className="mb-2 text-xl font-bold">
           Welcome to XRPL MVP, {session.user.username}!
         </h2>
@@ -66,7 +66,7 @@ function WelcomeSection() {
   return (
     <div className="space-y-6">
       {/* Welcome Message */}
-      <div className="w-full rounded-lg bg-gradient-to-r from-[#30ccfe] to-[#b06cfd] p-6 text-white">
+      <div className="w-full rounded-lg bg-gradient-to-r from-[#77C7F1] via-[#A156E2] to-[#8875DD] p-6 text-white">
         <h2 className="mb-2 text-xl font-bold">
           Welcome back, {session.user.username}!
         </h2>
@@ -79,17 +79,9 @@ function WelcomeSection() {
 
       {/* User Wallets or Admin Wallets Section */}
       {session.user.role === "ADMIN" ? (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xl font-bold">Admin Wallets Overview</h3>
-          </div>
           <DisplayAdminWallets />
-        </div>
       ) : (
-        <div className="space-y-4">
-          <h3 className="text-xl font-bold">User Wallets Overview</h3>
-          <DisplayUserWallets />
-        </div>
+        <DisplayUserWallets />
       )}
     </div>
   );

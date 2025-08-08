@@ -60,8 +60,6 @@ export async function getOracleData(
     if (ledgerEntryResponse.result && ledgerEntryResponse.result.node) {
       const oracleNode = ledgerEntryResponse.result.node;
 
-      console.log("✅ Retrieved Price Oracle:", oracleNode);
-
       // Decode hex fields for better readability
       const decodedOracle = {
         ...oracleNode,

@@ -102,12 +102,12 @@ export default function DisplayUserOffers() {
     <div className="relative flex h-full flex-col">
       {/* Header with Toggle */}
       <div className="mb-4 flex items-center justify-between">
-        <div className="flex rounded-lg bg-color3 p-1">
+        <div className="flex rounded-full bg-color3 p-1">
           <button
             onClick={() => setActiveTab("offers")}
-            className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
+            className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
               activeTab === "offers"
-                ? "bg-primary text-black"
+                ? "bg-primary/20 text-primary border border-primary"
                 : "text-gray-400 hover:text-white"
             }`}
           >
@@ -115,9 +115,9 @@ export default function DisplayUserOffers() {
           </button>
           <button
             onClick={() => setActiveTab("history")}
-            className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
+            className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
               activeTab === "history"
-                ? "bg-primary text-black"
+                ? "bg-primary/20 text-primary border border-primary"
                 : "text-gray-400 hover:text-white"
             }`}
           >

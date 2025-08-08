@@ -196,13 +196,13 @@ function UserWalletDetails({ onViewDetails }) {
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-lg font-semibold text-green-400">
-                  Available: {walletBalance.availableBalance.toFixed(6)} XRP
+                <div className="text-lg font-semibold text-gray-400">
+                  Reserved: {walletBalance.totalReserve.toFixed(1)} XRP
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-lg font-semibold text-orange-400">
-                  Reserved: {walletBalance.totalReserve.toFixed(1)} XRP
+                <div className="text-lg font-semibold text-green-500">
+                  Available: {walletBalance.availableBalance.toFixed(6)} XRP
                 </div>
               </div>
             </>
@@ -319,7 +319,7 @@ export default function DisplayUserWallets() {
   if (currentUserWallets.length === 0) {
     return (
       <div className="space-y-4">
-        <div className="w-full rounded-lg bg-gradient-to-r from-[#30ccfe] to-[#b06cfd] p-6 text-white">
+        <div className="w-full rounded-lg bg-gradient-to-r from-[#77C7F1] via-[#A156E2] to-[#8875DD] p-6 text-white">
           <h2 className="mb-2 text-xl font-bold">
             Welcome to XRPL MVP, {session.user.username}!
           </h2>

@@ -131,7 +131,7 @@ export async function extractLPTokensReceived(
             lpTokensReceived = {
               currency: balance.currency,
               issuer: ammAccount,
-              value: value.toFixed(2),
+              value: value.toFixed(6),
             };
             break;
           }

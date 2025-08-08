@@ -31,8 +31,8 @@ export default function AmmCompositionBar({ amount1, amount2, livePrices, prices
     <div>
       {/* Bar */}
       <div className="mt-2 flex h-2 w-full overflow-hidden rounded-full">
-        <div className="bg-primary" style={{ width: `${amount1Percent}%` }} />
-        <div className="bg-cancel" style={{ width: `${amount2Percent}%` }} />
+        <div className="bg-primary/85" style={{ width: `${amount1Percent}%` }} />
+        <div className="bg-cancel/85" style={{ width: `${amount2Percent}%` }} />
       </div>
 
       {/* Currency amounts */}

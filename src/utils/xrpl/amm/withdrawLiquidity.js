@@ -82,18 +82,18 @@ export async function withdrawLiquidityTwoAsset(
         ? { currency: "XRP" }
         : { currency: assetB.currency, issuer: assetB.issuer },
       Amount: assetA.isXRP
-        ? xrpl.xrpToDrops(desiredA.toFixed(6))
+        ? xrpl.xrpToDrops(desiredA.toString())
         : {
             currency: assetA.currency,
             issuer: assetA.issuer,
-            value: desiredA.toFixed(6),
+            value: desiredA.toString(),
           },
       Amount2: assetB.isXRP
-        ? xrpl.xrpToDrops(desiredB.toFixed(6))
+        ? xrpl.xrpToDrops(desiredB.toString())
         : {
             currency: assetB.currency,
             issuer: assetB.issuer,
-            value: desiredB.toFixed(6),
+            value: desiredB.toString(),
           },
       Flags: 0x00100000,
       AMMAccount: ammAccount,
@@ -217,13 +217,13 @@ export async function withdrawLiquidityTwoAsset(
     return {
       success: true,
       message,
-      receivedAmountA: actualWithdrawnA?.value,
-      receivedAmountB: actualWithdrawnB?.value,
+      receivedAmountA: actualWithdrawnA?.value ? parseFloat(actualWithdrawnA.value).toFixed(6) : undefined,
+      receivedAmountB: actualWithdrawnB?.value ? parseFloat(actualWithdrawnB.value).toFixed(6) : undefined,
       currencyA: assetA.currency,
       currencyB: assetB.currency,
       issuerA: assetA.issuer,
       issuerB: assetB.issuer,
-      lpTokensUsed,
+      lpTokensUsed: lpTokensUsed ? parseFloat(lpTokensUsed).toFixed(6) : undefined,
       tx_hash: response.result.hash,
       tx_result: response.result.meta.TransactionResult,
     };
@@ -383,10 +383,10 @@ export async function withdrawLiquidityWithLPToken(
       success: true,
       message,
       withdrawnAmount: {
-        [assetA.currency]: actualWithdrawnA?.value ?? expectedA.toFixed(6),
-        [assetB.currency]: actualWithdrawnB?.value ?? expectedB.toFixed(6),
+        [assetA.currency]: actualWithdrawnA?.value ? parseFloat(actualWithdrawnA.value).toFixed(6) : expectedA.toFixed(6),
+        [assetB.currency]: actualWithdrawnB?.value ? parseFloat(actualWithdrawnB.value).toFixed(6) : expectedB.toFixed(6),
       },
-      lpTokensRedeemed: lpAmount.toFixed(6),
+      lpTokensRedeemed: parseFloat(lpAmount).toFixed(6),
       tx_hash: response.result.hash,
       tx_result: response.result.meta.TransactionResult,
     };
@@ -542,11 +542,11 @@ export async function withdrawAllLiquidity(withdrawerWallet, ammAccount) {
       message,
       withdrawnAmount: {
         [assetA.currency]:
-          actualWithdrawnA?.value ?? new BigNumber(assetA.value).toFixed(6),
+          actualWithdrawnA?.value ? parseFloat(actualWithdrawnA.value).toFixed(6) : new BigNumber(assetA.value).toFixed(6),
         [assetB.currency]:
-          actualWithdrawnB?.value ?? new BigNumber(assetB.value).toFixed(6),
+          actualWithdrawnB?.value ? parseFloat(actualWithdrawnB.value).toFixed(6) : new BigNumber(assetB.value).toFixed(6),
       },
-      lpTokensRedeemed: lpBalance.toFixed(6),
+      lpTokensRedeemed: parseFloat(lpBalance).toFixed(6),
       tx_hash: response.result.hash,
       tx_result: response.result.meta.TransactionResult,
     };
@@ -635,11 +635,11 @@ export async function withdrawSingleAsset(
       : { currency: asset.currency, issuer: asset.issuer };
 
     const amountObj = asset.isXRP
-      ? xrpl.xrpToDrops(withdrawAmountBN.toFixed(6))
+      ? xrpl.xrpToDrops(withdrawAmountBN.toString())
       : {
           currency: asset.currency,
           issuer: asset.issuer,
-          value: withdrawAmountBN.toFixed(6),
+          value: withdrawAmountBN.toString(),
         };
 
     const otherAssetObj = otherAsset.isXRP
@@ -802,7 +802,7 @@ export async function withdrawSingleAsset(
     return {
       success: true,
       message,
-      receivedAmount: actualWithdrawn ? actualWithdrawn.value : withdrawAmount,
+      receivedAmount: actualWithdrawn ? parseFloat(actualWithdrawn.value).toFixed(6) : parseFloat(withdrawAmount).toFixed(6),
       currency: asset.currency,
       issuer: asset.issuer,
       tx_hash: response.result.hash,
@@ -1003,11 +1003,11 @@ export async function withdrawAllSingleAsset(
       success: true,
       message,
       receivedAmount: actualWithdrawn
-        ? actualWithdrawn.value
-        : desiredAmount?.toFixed(6) || "0",
+        ? parseFloat(actualWithdrawn.value).toFixed(6)
+        : desiredAmount?.toFixed(6) || "0.000000",
       currency: asset.currency,
       issuer: asset.issuer || null,
-      minimumAmount: desiredAmount ? amount_BN.toFixed(6) : "0",
+      minimumAmount: desiredAmount ? amount_BN.toFixed(6) : "0.000000",
       tx_hash: response.result.hash,
       tx_result: response.result.meta.TransactionResult,
     };
@@ -1198,11 +1198,11 @@ export async function withdrawSingleAssetWithLPToken(
       success: true,
       message,
       receivedAmount: actualWithdrawn
-        ? actualWithdrawn.value
-        : expectedAmount.toFixed(6),
+        ? parseFloat(actualWithdrawn.value).toFixed(6)
+        : parseFloat(expectedAmount).toFixed(6),
       currency: asset.currency,
       issuer: asset.issuer || null,
-      lpTokensUsed: lpTokensUsed,
+      lpTokensUsed: lpTokensUsed ? parseFloat(lpTokensUsed).toFixed(6) : undefined,
       tx_hash: response.result.hash,
       tx_result: response.result.meta.TransactionResult,
     };
