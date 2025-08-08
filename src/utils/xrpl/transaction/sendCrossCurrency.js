@@ -11,18 +11,13 @@ const formatCurrency = (amount, currency, issuer = null, preserveExactValue = fa
   const numAmount = parseFloat(amount);
   if (currency === "XRP") {
     // For XRP, use exact value for precise payments
-    return xrpl.xrpToDrops(preserveExactValue ? numAmount.toString() : numAmount.toFixed(6));
+    return xrpl.xrpToDrops(numAmount.toFixed(6));
   }
   return {
     currency,
     issuer,
     value: preserveExactValue ? numAmount.toString() : numAmount.toFixed(6)
   };
-};
-
-const formatCurrencyDisplay = (amount, currency) => {
-  const numAmount = parseFloat(amount);
-  return currency === "XRP" ? `${numAmount.toFixed(6)} XRP` : `${numAmount.toFixed(6)} ${currency}`;
 };
 
 const getAmmPoolData = async (sendCurrency, receiveCurrency, issuerAddress) => {
@@ -91,7 +86,7 @@ const calculatePreciseAmount = async (recommendation, sendCurrency, receiveCurre
           const targetOutput = parseFloat(recommendation.estimatedOutput);
           const calculation = calculateExactAMMInput(poolSend, poolReceive, targetOutput, slippagePercent / 100, tradingFeeBasisPoints);
           if (calculation.success) {
-            return calculation.exactInput;
+            return calculation.inputWithSlippage; // Use inputWithSlippage instead of exactInput
           }
         } else {
           // For exact_input: Use the exact amount specified (with slippage buffer)
@@ -126,11 +121,11 @@ const createCounterOffer = async (senderWallet, targetAmount, receiveCurrency, s
       success: true,
       transactionHash: result.result.hash,
       ledgerIndex: result.result.ledger_index,
-      deliveredAmount: formatCurrencyDisplay(targetAmount, receiveCurrency),
-      sentAmount: formatCurrencyDisplay(requiredInput, sendCurrency),
+      deliveredAmount: parseFloat(targetAmount),
+      sentAmount: parseFloat(requiredInput),
       routingMethod: "DEX (Counter-Offer)",
       exchangeRate: actualRate,
-      message: `\n=== DEX TRADE COMPLETED ===\n💸 Amount Sent: ${formatCurrencyDisplay(requiredInput, sendCurrency)}\n💰 Amount Delivered: ${formatCurrencyDisplay(targetAmount, receiveCurrency)}\n📈 Exchange Rate: ${actualRate.toFixed(6)} ${receiveCurrency}/${sendCurrency}\n🎯 Routing Method: DEX (Counter-Offer)\n📋 Ledger Index: ${result.result.ledger_index}\n============================\n`
+      message: `\n=== DEX TRADE COMPLETED ===\n💸 Amount Sent: ${parseFloat(requiredInput).toFixed(6)} ${sendCurrency}\n💰 Amount Delivered: ${parseFloat(targetAmount).toFixed(6)} ${receiveCurrency}\n📈 Exchange Rate: ${actualRate.toFixed(6)} ${receiveCurrency}/${sendCurrency}\n🎯 Routing Method: DEX (Counter-Offer)\n📋 Ledger Index: ${result.result.ledger_index}\n============================\n`
     };
   }
   
@@ -138,73 +133,69 @@ const createCounterOffer = async (senderWallet, targetAmount, receiveCurrency, s
 };
 
 const parseTransactionResult = (response, recommendation, walletObject, sendCurrency, receiveCurrency, sendMax) => {
-  let actualAmountSent = "Unknown";
+  let actualAmountSent = null;
   let actualAmountDelivered = "Unknown";
   let actualRoutingMethod = recommendation.type;
   
   try {
     const affectedNodes = response.result.meta.AffectedNodes || [];
-    let actualSentAmount = null;
     let hasAmmUsage = false;
     let hasDexOfferUsage = false;
     
-    // Parse actual amounts and routing method
     affectedNodes.forEach(node => {
       const nodeData = node.ModifiedNode || node.CreatedNode || node.DeletedNode;
       if (!nodeData) return;
       
-      // Check routing method
-      if (nodeData.LedgerEntryType === "AMM" || nodeData.FinalFields?.AMMID || nodeData.PreviousFields?.AMMID) {
+      if (nodeData.LedgerEntryType === "AMM") {
         hasAmmUsage = true;
       }
+      
       if (nodeData.LedgerEntryType === "Offer") {
         hasDexOfferUsage = true;
       }
       
-      // Parse sent amount
+      // Parse sent amount for non-XRP currencies
       if (nodeData.LedgerEntryType === "RippleState") {
-        const prevBalance = parseFloat(nodeData.PreviousFields?.Balance || 0);
-        const finalBalance = parseFloat(nodeData.FinalFields?.Balance || 0);
+        const prevBalance = parseFloat(nodeData.PreviousFields?.Balance?.value || 0);
+        const finalBalance = parseFloat(nodeData.FinalFields?.Balance?.value || 0);
         const balanceChange = finalBalance - prevBalance;
         
-        if (balanceChange < 0) {
+        if (balanceChange < 0 && nodeData.PreviousFields?.Balance?.currency === sendCurrency) {
           const actualSent = Math.abs(balanceChange);
-          if (!actualSentAmount || actualSent > actualSentAmount) {
-            actualSentAmount = actualSent;
+          if (!actualAmountSent || actualSent > actualAmountSent) {
+            actualAmountSent = actualSent;
           }
         }
       }
       
+      // Parse sent amount for XRP
       if (nodeData.LedgerEntryType === "AccountRoot" && nodeData.FinalFields?.Account === walletObject.classicAddress) {
         const prevBalance = parseFloat(nodeData.PreviousFields?.Balance || 0);
         const finalBalance = parseFloat(nodeData.FinalFields?.Balance || 0);
-        const xrpChange = (prevBalance - finalBalance) / 1000000;
+        const xrpChange = xrpl.dropsToXrp(prevBalance - finalBalance);
         
         if (sendCurrency === "XRP" && xrpChange > 0.000012) {
-          actualSentAmount = xrpChange - 0.000012;
+          actualAmountSent = xrpChange - 0.000012;
         }
       }
     });
     
-    // Format amounts
-    if (actualSentAmount !== null) {
-      actualAmountSent = formatCurrencyDisplay(actualSentAmount, sendCurrency);
-    } else {
+    // Fallback if we couldn't parse the actual sent amount
+    if (actualAmountSent === null) {
       actualAmountSent = typeof sendMax === 'string' ? 
-        `${xrpl.dropsToXrp(sendMax)} XRP (max)` : 
-        `${sendMax.value} ${sendMax.currency} (max)`;
+        parseFloat(xrpl.dropsToXrp(sendMax)) : 
+        parseFloat(sendMax.value);
     }
     
+    // Parse delivered amount
     if (response.result.meta.delivered_amount) {
       const delivered = response.result.meta.delivered_amount;
-      const deliveredAmount = typeof delivered === 'string' ? 
-        xrpl.dropsToXrp(delivered) : 
-        delivered.value;
-      const deliveredCurrency = typeof delivered === 'string' ? 'XRP' : delivered.currency;
-      actualAmountDelivered = formatCurrencyDisplay(deliveredAmount, deliveredCurrency);
+      actualAmountDelivered = typeof delivered === 'string' ? 
+        parseFloat(xrpl.dropsToXrp(delivered)) : 
+        parseFloat(delivered.value);
     }
     
-    // Determine routing method
+    // Set routing method
     if (hasAmmUsage && hasDexOfferUsage) {
       actualRoutingMethod = "Hybrid (AMM + DEX)";
     } else if (hasAmmUsage) {
@@ -213,8 +204,12 @@ const parseTransactionResult = (response, recommendation, walletObject, sendCurr
       actualRoutingMethod = "DEX";
     }
     
-  } catch (parseError) {
-    console.error("Error parsing transaction amounts:", parseError.message);
+  } catch (error) {
+    console.error("Error parsing transaction result:", error);
+    // Set fallback values
+    actualAmountSent = typeof sendMax === 'string' ? 
+      parseFloat(xrpl.dropsToXrp(sendMax)) : 
+      parseFloat(sendMax.value);
   }
   
   return { actualAmountSent, actualAmountDelivered, actualRoutingMethod };
@@ -428,7 +423,7 @@ export async function sendCrossCurrency(
           `${receiveCurrency} per XRP` : 
           `${receiveCurrency}/${sendCurrency}`;
       
-      const message = `\n=== Smart Cross-Currency Payment Details ===\n👛 From: ${walletObject.classicAddress}\n👛 To: ${destinationAddress}\n💸 Amount Sent: ${actualAmountSent}\n💰 Amount Delivered: ${actualAmountDelivered}\n🎯 Routing Method: ${actualRoutingMethod}\n📈 Exchange Rate: ${displayRate.toFixed(6)} ${rateLabel}\n📋 Transaction Hash: ${response.result.hash}\n📋 Ledger Index: ${response.result.ledger_index}\n`;
+      const message = `\n=== Smart Cross-Currency Payment Details ===\n👛 From: ${walletObject.classicAddress}\n👛 To: ${destinationAddress}\n💸 Amount Sent: ${actualAmountSent.toFixed(6)} ${sendCurrency}   (+ 0.000012 XRP)\n💰 Amount Delivered: ${actualAmountDelivered.toFixed(6)} ${receiveCurrency}\n🎯 Routing Method: ${actualRoutingMethod}\n📈 Exchange Rate: ${displayRate.toFixed(6)} ${rateLabel}\n📋 Transaction Hash: ${response.result.hash}\n📋 Ledger Index: ${response.result.ledger_index}\n`;
       
       return {
         success: true,
