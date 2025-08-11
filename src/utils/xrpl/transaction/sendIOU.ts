@@ -16,6 +16,7 @@ interface PaymentTransaction {
   Destination: string;
   Amount: IOUAmount;
   DestinationTag?: number;
+  [key: string]: any; // Add index signature
 }
 
 interface PaymentResponse {
@@ -210,7 +211,7 @@ const sendIOU = async (
       };
   }
 
-  const prepared = await client.autofill(payment);
+  const prepared = await client.autofill(payment as any);
   const signed = senderWallet.sign(prepared);
   const response = await client.submitAndWait(signed.tx_blob) as XRPLResponse;
   const resultCode = response.result.meta.TransactionResult;
