@@ -22,7 +22,7 @@ export interface WalletApiResponse {
 
 export interface AccountInfoResponse {
   data?: {
-    balance: number;
+    Balance: string;
     ownerCount?: number;
   };
   error?: string;

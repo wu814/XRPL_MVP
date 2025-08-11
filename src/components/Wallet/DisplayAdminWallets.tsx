@@ -39,7 +39,7 @@ export default function DisplayAdminWallets() {
 
           const data: AccountInfoResponse = await response.json();
           if (data.data) {
-            const balance = parseFloat(data.data.balance.toString()); // Already converted from drops
+            const balance = parseFloat(data.data.Balance); // Already converted from drops
             const ownerCount = data.data.ownerCount || 0;
             const totalReserve = BASE_RESERVE_XRP + OWNER_RESERVE_XRP * ownerCount;
             const availableBalance = Math.max(0, balance - totalReserve);

@@ -61,7 +61,7 @@ export function UserWalletDetails({ onViewDetails }: UserWalletDetailsProps) {
       const accountObjects: AccountObjectsResponse = await accountObjectsResponse.json();
 
       if (accountInfo.data) {
-        const balance = parseFloat(accountInfo.data.balance.toString());
+        const balance = parseFloat(accountInfo.data.Balance);
         const ownerCount = accountInfo.data.ownerCount || 0;
         const totalReserve = BASE_RESERVE_XRP + OWNER_RESERVE_XRP * ownerCount;
         const availableBalance = Math.max(0, balance - totalReserve);
