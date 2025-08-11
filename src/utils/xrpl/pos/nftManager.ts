@@ -1,0 +1,637 @@
+import { connectXrplClient, client } from '../testnet';
+import { dropsToXrp } from 'xrpl';
+import { Wallet } from 'xrpl';
+
+/**
+ * Automated workflow: Mint NFT and immediately list on DEX for USD (Business Wallet preferred)
+ * @param uri - Metadata URI for the NFT
+ * @param priceUSD - Price in USD for the DEX listing (e.g., "10" for $10)
+ * @param destination - Optional destination wallet to lock the offer
+ * @param taxon - NFT Taxon (defaults to RECEIPT_TAXON)
+ * @returns Result object with both NFT and offer details
+ */
+
+const RECEIPT_TAXON = 1001; // Constant taxon for all receipt NFTs
+const NFT_FLAGS = {
+  tfBurnable: 0x00000001,      // NFT can be burned
+  tfOnlyXRP: 0x00000002,       // Only allow XRP for offers
+  tfTrustLine: 0x00000004,     // Allow trustline holders
+  tfTransferable: 0x00000008   // NFT is transferable
+};
+
+// Type definitions
+interface NFTMintResult {
+  success: boolean;
+  nftTokenID?: string;
+  transactionHash?: string;
+  uri?: string;
+  uriHex?: string;
+  taxon?: number;
+  minter?: string;
+  ledgerIndex?: number;
+  businessWallet?: string;
+  error?: string;
+}
+
+interface NFTSellOfferResult {
+  success: boolean;
+  offerID?: string;
+  nftTokenID?: string;
+  transactionHash?: string;
+  seller?: string;
+  destination?: string | null;
+  price?: string;
+  currency?: string;
+  issuer?: string;
+  ledgerIndex?: number;
+  offerType?: string;
+  error?: string;
+}
+
+interface NFTWorkflowResult {
+  success: boolean;
+  workflow?: string;
+  message?: string;
+  nft?: {
+    nftTokenID: string;
+    transactionHash: string;
+    uri: string;
+    minter: string;
+  };
+        sellOffer?: NFTSellOfferResult;
+  summary?: {
+    nftTokenID: string;
+    offerID: string;
+    price: string;
+    businessWallet: string;
+    uri: string;
+    readyForPurchase: boolean;
+  };
+  error?: string;
+  uri?: string;
+  priceUSD?: string | number;
+}
+
+interface NFTPurchaseResult {
+  success: boolean;
+  message?: string;
+  transactionHash?: string;
+  nftTransactionHash?: string;
+  conversionTransactionHash?: string;
+  buyer?: string;
+  offerID?: string;
+  paymentCurrency?: string;
+  nftCurrency?: string;
+  conversionUsed?: boolean;
+  amounts?: {
+    required: number;
+    requiredCurrency: string;
+    requiredUSD: number;
+    amountSent: string;
+    amountDelivered: string;
+    inputUsed: string;
+    inputCurrency: string;
+    excessUSD: number;
+  };
+  ledgerIndex?: number;
+  error?: string;
+}
+
+interface NFTokenOffer {
+  NFTokenID: string;
+  Amount: {
+    currency: string;
+    value: string;
+    issuer: string;
+  } | string;
+  LedgerEntryType: string;
+}
+
+interface LedgerEntryResponse {
+  result: {
+    node?: NFTokenOffer;
+    ledger_index?: number;
+  };
+}
+
+/**
+ * Helper function to extract NFTokenID from transaction metadata
+ * @param meta - Transaction metadata
+ * @returns NFTokenID if found
+ */
+const extractNFTokenID = (meta: any): string | null => {
+  // First check the direct nftoken_id field (XRPL 2.0+ format)
+  if (meta.nftoken_id) {
+    return meta.nftoken_id;
+  }
+  
+  // Fallback to AffectedNodes structure (older format)
+  if (meta.AffectedNodes) {
+    for (const node of meta.AffectedNodes) {
+      if (node.CreatedNode && node.CreatedNode.LedgerEntryType === "NFToken") {
+        return node.CreatedNode.NewFields.NFTokenID;
+      }
+      // Also check ModifiedNode for NFTokenPage updates
+      if (node.ModifiedNode && node.ModifiedNode.LedgerEntryType === "NFTokenPage") {
+        const finalFields = node.ModifiedNode.FinalFields;
+        const previousFields = node.ModifiedNode.PreviousFields;
+        if (finalFields && finalFields.NFTokens) {
+          // Find the newly added NFToken
+          const prevTokens = previousFields?.NFTokens || [];
+          const newTokens = finalFields.NFTokens || [];
+          if (newTokens.length > prevTokens.length) {
+            // Return the newest NFToken ID
+            return newTokens[newTokens.length - 1].NFToken;
+          }
+        }
+      }
+    }
+  }
+  return null;
+};
+
+/**
+ * Mint a Receipt NFT for a completed payment using Business Wallet
+ * @param minterWallet - Wallet to mint the NFT
+ * @param uri - Metadata URI (e.g., "https://yourdomain.com/receipts/inv_8329.json")
+ * @param taxon - NFT Taxon (defaults to RECEIPT_TAXON)
+ * @returns Result object with NFTokenID on success
+ */
+const mintReceiptNFT = async (
+  minterWallet: Wallet, 
+  uri: string, 
+  taxon: number = RECEIPT_TAXON
+): Promise<NFTMintResult> => {
+  try {
+    await connectXrplClient();
+    
+    // Validate URI
+    if (!uri || uri.length === 0) {
+      throw new Error("URI is required for NFT minting");
+    }
+    
+    // Convert URI to hex encoding
+    const uriHex = Buffer.from(uri, 'utf8').toString('hex').toUpperCase();
+    console.log("🎫 URI Hex:", uriHex);
+    
+    // Create NFTokenMint transaction
+    const mintTransaction = {
+      TransactionType: "NFTokenMint" as const,
+      Account: minterWallet.classicAddress,
+      URI: uriHex,
+      Flags: NFT_FLAGS.tfBurnable | NFT_FLAGS.tfTransferable, // Allow burning and transferring
+      NFTokenTaxon: taxon
+    };
+    
+    console.log(`📜 Submitting NFTokenMint transaction...`);
+    console.log(`   🔗 URI (hex): ${uriHex}`);
+    
+    // Submit and wait for validation
+    const response = await client.submitAndWait(mintTransaction, { 
+      autofill: true, 
+      wallet: minterWallet 
+    });
+    
+    console.log("✅ NFTokenMint Transaction Result:", response);
+    
+    if ((response.result.meta as any).TransactionResult === "tesSUCCESS") {
+      // Extract NFTokenID from transaction metadata
+      const nftTokenID = extractNFTokenID(response.result.meta);
+      
+      if (nftTokenID) {
+        console.log(`🎉 Receipt NFT minted successfully!`);
+        console.log(`   🆔 NFTokenID: ${nftTokenID}`);
+        console.log(`   📋 Transaction Hash: ${response.result.hash}`);
+        
+        return {
+          success: true,
+          nftTokenID: nftTokenID,
+          transactionHash: response.result.hash,
+          uri: uri,
+          uriHex: uriHex,
+          taxon: taxon,
+          minter: minterWallet.classicAddress,
+          ledgerIndex: response.result.ledger_index,
+          businessWallet: minterWallet.classicAddress
+        };
+      } else {
+        throw new Error("NFTokenID not found in transaction metadata");
+      }
+      
+    } else {
+      throw new Error(`Transaction failed: ${(response.result.meta as any).TransactionResult}`);
+    }
+    
+  } catch (error) {
+    console.error(`❌ Error minting receipt NFT:`, error instanceof Error ? error.message : String(error));
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : String(error),
+      uri: uri
+    };
+  }
+};
+
+/**
+ * Helper function to extract offer ID from transaction metadata
+ * @param meta - Transaction metadata
+ * @returns Offer ID if found
+ */
+const extractOfferID = (meta: any): string | null => {
+  if (meta.AffectedNodes) {
+    for (const node of meta.AffectedNodes) {
+      if (node.CreatedNode && node.CreatedNode.LedgerEntryType === "NFTokenOffer") {
+        return node.CreatedNode.LedgerIndex;
+      }
+    }
+  }
+  return null;
+};
+
+/**
+ * Create a DEX sell offer for NFT priced in USD (Business Wallet's preferred currency)
+ * @param businessWallet - Business wallet creating the offer
+ * @param issuerWalletAddress - USD issuer wallet address
+ * @param nftTokenID - The NFToken ID to create a sell offer for
+ * @param priceUSD - Price in USD (e.g., 10 for $10 USD)
+ * @param destination - Optional destination wallet (User Wallet address)
+ * @returns Result object with offer details
+ */
+export async function createNFTSellOfferUSD(
+  businessWallet: Wallet, 
+  issuerWalletAddress: string, 
+  nftTokenID: string, 
+  priceUSD: string | number, 
+  destination: string | null = null
+): Promise<NFTSellOfferResult> {
+  try {
+    await connectXrplClient();
+    
+    // Validate and sanitize price input
+    let validPriceUSD = priceUSD;
+    if (!priceUSD || priceUSD.toString().trim() === "" || isNaN(parseFloat(priceUSD.toString()))) {
+      validPriceUSD = "10"; // Default to $10 USD if no valid price provided
+      console.log(`⚠️ Invalid or empty price provided, using default: $${validPriceUSD} USD`);
+    }
+    
+    const parsedPrice = parseFloat(validPriceUSD.toString());
+    if (parsedPrice <= 0) {
+      throw new Error("Price must be greater than $0 USD");
+    }
+    
+    console.log(`💰 Creating NFT sell offer on DEX (USD)...`);
+    console.log(`   🆔 NFTokenID: ${nftTokenID}`);
+    console.log(`   🏢 Seller: ${businessWallet.classicAddress}`);
+    console.log(`   💵 Price: $${validPriceUSD} USD`);
+    console.log(`   🏛️ USD Issuer: ${issuerWalletAddress}`);
+    if (destination) {
+      console.log(`   👤 Destination: ${destination}`);
+    }
+    
+    // Create NFTokenCreateOffer transaction (sell offer for USD)
+    const createOfferTransaction = {
+      TransactionType: "NFTokenCreateOffer" as const,
+      Account: businessWallet.classicAddress,
+      NFTokenID: nftTokenID,
+      Amount: {
+        currency: "USD",
+        value: validPriceUSD.toString(),
+        issuer: issuerWalletAddress
+      },
+      Flags: 1 // tfSellNFToken flag (this is a sell offer)
+    };
+    
+    // Add destination if specified (locks offer to specific wallet)
+    if (destination) {
+      (createOfferTransaction as any).Destination = destination;
+    }
+    
+    console.log(`📜 Submitting NFTokenCreateOffer transaction...`);
+    console.log(`   💵 Price: $${validPriceUSD} USD (${issuerWalletAddress})`);
+    
+    // Submit and wait for validation
+    const response = await client.submitAndWait(createOfferTransaction, { 
+      autofill: true, 
+      wallet: businessWallet 
+    });
+    
+    console.log("✅ NFTokenCreateOffer Transaction Result:", response);
+    
+    if ((response.result.meta as any).TransactionResult === "tesSUCCESS") {
+      // Extract offer ID from transaction metadata
+      const offerID = extractOfferID(response.result.meta);
+      
+      console.log(`🎉 NFT sell offer created successfully on DEX!`);
+      console.log(`   🆔 Offer ID: ${offerID}`);
+      console.log(`   📋 Transaction Hash: ${response.result.hash}`);
+      
+      return {
+        success: true,
+        offerID: offerID,
+        nftTokenID: nftTokenID,
+        transactionHash: response.result.hash,
+        seller: businessWallet.classicAddress,
+        destination: destination,
+        price: validPriceUSD.toString(),
+        currency: "USD",
+        issuer: issuerWalletAddress,
+        ledgerIndex: response.result.ledger_index,
+        offerType: "sell"
+      };
+      
+    } else {
+      throw new Error(`Transaction failed: ${(response.result.meta as any).TransactionResult}`);
+    }
+    
+  } catch (error) {
+    console.error(`❌ Error creating NFT sell offer:`, error instanceof Error ? error.message : String(error));
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : String(error),
+      nftTokenID: nftTokenID
+    };
+  }
+}
+
+export async function mintAndListNFTUSD(
+  minterWallet: Wallet, 
+  issuerWalletAddress: string, 
+  uri: string, 
+  priceUSD: string | number, 
+  destination: string | null = null, 
+  taxon: number = RECEIPT_TAXON
+): Promise<NFTWorkflowResult> {
+  console.log(`🚀 Starting automated NFT mint & DEX listing workflow (USD)...`);
+  console.log(`   📄 URI: ${uri}`);
+  console.log(`   💵 DEX Price: $${priceUSD} USD`);
+  if (destination) {
+    console.log(`   👤 Locked to: ${destination}`);
+  }
+  
+  try {
+    // Step 1: Mint the NFT
+    console.log(`\n🎫 Step 1: Minting NFT...`);
+    const mintResult = await mintReceiptNFT(minterWallet, uri, taxon);
+    
+    if (!mintResult.success) {
+      throw new Error(`NFT minting failed: ${mintResult.error}`);
+    }
+    
+    console.log(`✅ NFT minted successfully!`);
+    console.log(`   🆔 NFT Token ID: ${mintResult.nftTokenID}`);
+    
+    // Small delay to ensure transaction is fully processed
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Step 2: Create sell offer on DEX for USD
+    console.log(`\n💵 Step 2: Creating USD sell offer on DEX...`);
+    const sellResult = await createNFTSellOfferUSD(minterWallet, issuerWalletAddress, mintResult.nftTokenID!, priceUSD, destination);
+    
+    if (!sellResult.success) {
+      console.log(`⚠️ NFT minted but sell offer failed: ${sellResult.error}`);
+      return {
+        success: true,
+        workflow: "partial",
+        nft: {
+          nftTokenID: mintResult.nftTokenID!,
+          transactionHash: mintResult.transactionHash!,
+          uri: mintResult.uri!,
+          minter: mintResult.businessWallet!
+        },
+        sellOffer: sellResult,
+        message: "NFT minted successfully but DEX listing failed"
+      };
+    }
+    
+    console.log(`✅ Sell offer created successfully!`);
+    console.log(`   🆔 Offer ID: ${sellResult.offerID}`);
+    
+    // Return complete workflow result
+    return {
+      success: true,
+      workflow: "complete",
+      message: `✅ NFT minted and listed successfully!\n\n🎫 NFT ID: ${mintResult.nftTokenID}\n💰 Listed for: $${priceUSD} USD\n🆔 Offer ID: ${sellResult.offerID}`,
+      nft: {
+        nftTokenID: mintResult.nftTokenID!,
+        transactionHash: mintResult.transactionHash!,
+        uri: mintResult.uri!,
+        minter: mintResult.businessWallet!
+      },
+      sellOffer: sellResult,
+      summary: {
+        nftTokenID: mintResult.nftTokenID!,
+        offerID: sellResult.offerID!,
+        price: `$${priceUSD} USD`,
+        businessWallet: mintResult.businessWallet!,
+        uri: uri,
+        readyForPurchase: true
+      }
+    };
+    
+  } catch (error) {
+    console.error(`❌ Automated workflow failed:`, error instanceof Error ? error.message : String(error));
+    return {
+      success: false,
+      workflow: "failed",
+      message: `❌ NFT workflow failed: ${error instanceof Error ? error.message : String(error)}`,
+      error: error instanceof Error ? error.message : String(error),
+      uri: uri,
+      priceUSD: priceUSD
+    };
+  }
+}
+
+/**
+ * Purchase NFT with User Wallet using smart currency conversion
+ * @param issuerWalletAddress - USD issuer wallet address
+ * @param offerID - The offer ID to accept
+ * @param paymentCurrency - Currency to pay with (e.g., "EUR", "USD", "XRP")
+ * @param purchaserWallet - Wallet used for the purchase
+ * @returns Result object with purchase details
+ */
+export async function purchaseNFTWithSmartTrade(
+  issuerWalletAddress: string, 
+  offerID: string, 
+  paymentCurrency: string, 
+  purchaserWallet: Wallet
+): Promise<NFTPurchaseResult> {
+  try {
+    await connectXrplClient();
+    
+    console.log(`🛒 Smart NFT Purchase with User Wallet...`);
+    console.log(`   🆔 Offer ID: ${offerID}`);
+    console.log(`   👤 Buyer: ${purchaserWallet.classicAddress}`);
+    console.log(`   💰 Preferred Payment Currency: ${paymentCurrency}`);
+    
+    // Step 1: Identify NFT currency and required amount
+    console.log(`🔍 Step 1: Identifying NFT currency and required amount...`);
+    let requiredAmount: number | null = null;
+    let nftCurrency: string | null = null;
+    let nftTokenID: string | null = null;
+    
+    console.log(`🔍 Querying NFT sell offer details for ${offerID}...`);
+    
+    try {
+      // Method 1: Query the offer directly by its ledger index
+      const offerResponse = await client.request({
+        command: "ledger_entry" as const,
+        index: offerID,
+        ledger_index: "validated"
+      }) as LedgerEntryResponse;
+      
+      if (offerResponse.result.node && (offerResponse.result.node as any).LedgerEntryType === "NFTokenOffer") {
+        const offer = offerResponse.result.node as any;
+        nftTokenID = offer.NFTokenID;
+        
+        if (typeof offer.Amount === 'object') {
+          // IOU currency (USD, EUR, BTC, etc.)
+          requiredAmount = parseFloat(offer.Amount.value);
+          nftCurrency = offer.Amount.currency;
+          console.log(`💰 ✅ NFT offer found! Requires exactly: ${requiredAmount} ${nftCurrency}`);
+          console.log(`   🎫 NFT ID: ${nftTokenID}`);
+          console.log(`   🆔 Offer ID: ${offerID}`);
+        } else if (typeof offer.Amount === 'string') {
+          // XRP currency
+          requiredAmount = dropsToXrp(offer.Amount as string);
+          nftCurrency = "XRP";
+          console.log(`💰 ✅ NFT offer found! Requires exactly: ${requiredAmount} ${nftCurrency}`);
+          console.log(`   🎫 NFT ID: ${nftTokenID}`);
+          console.log(`   🆔 Offer ID: ${offerID}`);
+        } else {
+          throw new Error("NFT offer has invalid amount format");
+        }
+      } else {
+        throw new Error("NFT offer not found or invalid");
+      }
+      
+    } catch (nftOfferError) {
+      console.log(`⚠️ NFT offer query failed: ${nftOfferError instanceof Error ? nftOfferError.message : String(nftOfferError)}`);
+      throw new Error(`Offer ${offerID} not found. Please check the offer ID is correct and still active.`);
+    }
+    
+    // Step 2: Handle direct payment (no conversion needed)
+    if (paymentCurrency.toUpperCase() === nftCurrency!.toUpperCase()) {
+      console.log(`💰 Direct ${nftCurrency} payment (no conversion needed)...`);
+      
+      const acceptOfferTransaction = {
+        TransactionType: "NFTokenAcceptOffer" as const,
+        Account: purchaserWallet.classicAddress,
+        NFTokenSellOffer: offerID
+      };
+      
+      console.log(`📜 Submitting NFTokenAcceptOffer transaction...`);
+      
+      const response = await client.submitAndWait(acceptOfferTransaction, { 
+        autofill: true, 
+        wallet: purchaserWallet 
+      });
+      
+      if ((response.result.meta as any).TransactionResult === "tesSUCCESS") {
+        console.log(`🎉 NFT purchased successfully with ${nftCurrency}!`);
+        console.log(`   📋 Transaction Hash: ${response.result.hash}`);
+        
+        return {
+          success: true,
+          message: `🎉 NFT purchased successfully!\n\n🎫 NFT ID: ${nftTokenID}\n💰 Paid: ${requiredAmount} ${nftCurrency}\n📋 Transaction: ${response.result.hash}`,
+          transactionHash: response.result.hash,
+          buyer: purchaserWallet.classicAddress,
+          offerID: offerID,
+          paymentCurrency: nftCurrency,
+          conversionUsed: false,
+          ledgerIndex: response.result.ledger_index
+        };
+      } else {
+        throw new Error(`Transaction failed: ${(response.result.meta as any).TransactionResult}`);
+      }
+    }
+    
+    // Step 3: Convert payment currency to NFT currency using existing sendCrossCurrency
+    console.log(`💱 Step 3: Converting ${paymentCurrency} → ${nftCurrency} using existing sendCrossCurrency`);
+    
+    const { sendCrossCurrency } = require('../transaction/sendCrossCurrency');
+    
+    // Use existing sendCrossCurrency for the conversion (personal swap to same wallet)
+    const conversionResult = await sendCrossCurrency(
+      purchaserWallet,
+      purchaserWallet.classicAddress, // Send to self (personal swap)
+      paymentCurrency,
+      null, // Let it calculate the amount needed
+      nftCurrency!, // NFT currency (could be USD, BTC, EUR, etc.)
+      issuerWalletAddress,
+      0, // 0% slippage - same as smart trade option 6
+      null, // no destination tag
+      "exact_output", // Get exactly the amount needed
+      requiredAmount!.toString() // Exactly what the NFT costs
+    );
+    
+    if (!conversionResult.success) {
+      throw new Error(`Currency conversion failed: ${conversionResult.error}`);
+    }
+      
+    console.log(`✅ Currency conversion completed!`);
+    console.log(`   📋 Transaction Hash: ${conversionResult.txHash}`);
+    console.log(`   💰 Amount Sent: ${conversionResult.amountSent}`);
+    console.log(`   💵 Amount Delivered: ${conversionResult.amountDelivered}`);
+      
+    const conversionHash = conversionResult.txHash;
+    
+    // Step 4: Purchase NFT with converted currency (SEPARATE TRANSACTION)
+    console.log(`🎫 Step 4: Purchasing NFT with converted ${nftCurrency}...`);
+    
+    // TRANSACTION 2: Accept NFT offer
+    const acceptOfferTransaction = {
+      TransactionType: "NFTokenAcceptOffer" as const,
+      Account: purchaserWallet.classicAddress,
+      NFTokenSellOffer: offerID
+    };
+    
+    console.log(`📜 Submitting NFTokenAcceptOffer transaction...`);
+    
+    const nftResponse = await client.submitAndWait(acceptOfferTransaction, { 
+      autofill: true, 
+      wallet: purchaserWallet 
+    });
+    
+    if ((nftResponse.result.meta as any).TransactionResult === "tesSUCCESS") {
+      console.log(`🎉 NFT purchased successfully!`);
+      console.log(`   🎯 Business received: ${requiredAmount} ${nftCurrency}`);
+      console.log(`   💰 User paid: ${conversionResult.amountSent}`);
+      console.log(`   📋 NFT Purchase Hash: ${nftResponse.result.hash}`);
+      console.log(`   💱 Conversion Hash: ${conversionHash}`);
+      
+      return {
+        success: true,
+        message: `🎉 NFT purchased successfully!\n\n🎫 NFT ID: ${nftTokenID}\n💱 Converted: ${conversionResult.amountSent} → ${conversionResult.amountDelivered}\n📋 Purchase: ${nftResponse.result.hash}\n🔄 Conversion: ${conversionHash}`,
+        nftTransactionHash: nftResponse.result.hash,
+        conversionTransactionHash: conversionHash,
+        buyer: purchaserWallet.classicAddress,
+        offerID: offerID,
+        paymentCurrency: paymentCurrency,
+        nftCurrency: nftCurrency,
+        conversionUsed: true,
+        amounts: {
+          required: requiredAmount!,
+          requiredCurrency: nftCurrency!,
+          requiredUSD: requiredAmount!, // Legacy compatibility
+          amountSent: conversionResult.amountSent,
+          amountDelivered: conversionResult.amountDelivered,
+          inputUsed: conversionResult.amountSent, // What index.js expects
+          inputCurrency: paymentCurrency,
+          excessUSD: 0 // No excess in exact output mode
+        },
+        ledgerIndex: nftResponse.result.ledger_index
+      };
+    } else {
+      throw new Error(`NFT purchase failed: ${(nftResponse.result.meta as any).TransactionResult}`);
+    }
+    
+  } catch (error) {
+    console.error(`❌ Error in smart NFT purchase:`, error instanceof Error ? error.message : String(error));
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : String(error),
+      offerID: offerID,
+      paymentCurrency: paymentCurrency
+    };
+  }
+}

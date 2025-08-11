@@ -1,11 +1,21 @@
-// components/ManageAmmBalance.jsx
 import { useState } from "react";
 import AddLiquidity from "./AddLiquidity";
 import WithdrawLiquidity from "./WithdrawLiquidity";
 import SwapLiquidity from "./SwapLiquidity";
+import { AmmInfo } from "./DisplayAmms";
 
-export default function ManageAmmBalance({ ammInfo, onChange }) {
-  const [activeTab, setActiveTab] = useState("swap");
+interface ManageAmmBalanceProps {
+  ammInfo: AmmInfo;
+  onChange?: () => void;
+}
+
+export default function ManageAmmBalance({
+  ammInfo,
+  onChange,
+}: ManageAmmBalanceProps) {
+  const [activeTab, setActiveTab] = useState<"swap" | "add" | "withdraw">(
+    "swap",
+  );
 
   return (
     <div>
@@ -31,15 +41,15 @@ export default function ManageAmmBalance({ ammInfo, onChange }) {
         </button>
       </div>
 
-      {/* Panels */}
+      {/* Tab Content */}
+      {activeTab === "swap" && (
+        <SwapLiquidity ammInfo={ammInfo} onSwapped={onChange} />
+      )}
       {activeTab === "add" && (
         <AddLiquidity ammInfo={ammInfo} onAdded={onChange} />
       )}
       {activeTab === "withdraw" && (
         <WithdrawLiquidity ammInfo={ammInfo} onWithdrawn={onChange} />
-      )}
-      {activeTab === "swap" && (
-        <SwapLiquidity ammInfo={ammInfo} onSwapped={onChange} />
       )}
     </div>
   );
