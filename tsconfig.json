@@ -32,7 +32,7 @@
     "next-env.d.ts",
     ".next/types/**/*.ts",
     "**/*.ts",
-    "**/*.tsx"],
+    "**/*.tsx", "src/app/api/amms/getAmmInfoByCurrencies/route.js", "src/app/api/amms/getAmmInfo/route.js"],
   "exclude": [
     "node_modules"
   ]

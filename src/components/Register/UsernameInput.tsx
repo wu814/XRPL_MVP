@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface UsernameInputProps {
   value: string;
@@ -17,8 +17,17 @@ interface CheckUsernameResponse {
 export default function UsernameInput({ value, onChange, error, setError }: UsernameInputProps) {
   const [isChecking, setIsChecking] = useState<boolean>(false);
   const [isAvailable, setIsAvailable] = useState<boolean | null>(null);
+  const prevValueRef = useRef<string>("");
 
   useEffect(() => {
+    // Only check if the value actually changed
+    if (prevValueRef.current === value) {
+      return;
+    }
+
+    // Update the previous value reference
+    prevValueRef.current = value;
+
     const checkUsername = async () => {
       if (!value || value.length < 3) {
         setIsAvailable(null);
