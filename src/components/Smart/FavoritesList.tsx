@@ -27,7 +27,7 @@ export default function FavoritesList({ onRecipientClick }: FavoritesListProps) 
   const fetchFavorites = async () => {
     setLoadingFavorites(true);
     try {
-      const res = await fetch("/api/favorites/getAllFavorites");
+      const res = await fetch("/api/friend/getAllFavorites");
       if (!res.ok) throw new Error("Failed to fetch favorites");
       const result: FavoritesResponse = await res.json();
       setFavorites(result.data || []);

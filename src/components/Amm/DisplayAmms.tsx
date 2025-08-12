@@ -160,7 +160,7 @@ export default function DisplayAmms() {
   // Function to fetch detailed AMM info for pool value calculation
   const fetchAmmDetails = async (ammAccount: string) => {
     try {
-      const res = await fetch("/api/amms/getAmmInfo", {
+      const res = await fetch("/api/amm/getAmmInfo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ammAccount }),
@@ -199,7 +199,7 @@ export default function DisplayAmms() {
     setLoading(true);
     try {
       // Getting amms from the database
-      const res = await fetch("/api/amms/getAllAmms");
+      const res = await fetch("/api/amm/getAllAmms");
       const result: AmmResponse = await res.json();
       if (Array.isArray(result.data) && result.data.length > 0) {
         const ammsData = result.data

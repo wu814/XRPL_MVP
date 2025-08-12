@@ -191,7 +191,7 @@ export default function TradePanel() {
     setAmmData(null);
 
     try {
-      const response = await fetch("/api/amms/getAmmInfoByCurrencies", {
+      const response = await fetch("/api/amm/getAmmInfoByCurrencies", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -487,7 +487,7 @@ export default function TradePanel() {
       let endpoint: string, requestBody: any;
 
       if (paymentType === "convertable") {
-        endpoint = "/api/transactions/sendCrossCurrency";
+        endpoint = "/api/transaction/sendCrossCurrency";
         requestBody = {
           senderWallet,
           sendCurrency,
@@ -505,8 +505,8 @@ export default function TradePanel() {
       } else {
         endpoint =
           currency === "XRP"
-            ? "/api/transactions/sendXRP"
-            : "/api/transactions/sendIOU";
+            ? "/api/transaction/sendXRP"
+            : "/api/transaction/sendIOU";
         requestBody = {
           senderWallet,
           amount,
@@ -591,12 +591,12 @@ export default function TradePanel() {
     setLoadingBalance(true);
     try {
       const [accountInfoResponse, accountLinesResponse] = await Promise.all([
-        fetch("/api/wallets/getAccountInfo", {
+        fetch("/api/wallet/getAccountInfo", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ wallet: senderWallet }),
         }),
-        fetch("/api/wallets/getAccountLines", {
+        fetch("/api/wallet/getAccountLines", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ wallet: senderWallet }),

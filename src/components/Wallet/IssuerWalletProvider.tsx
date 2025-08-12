@@ -17,7 +17,7 @@ export default function IssuerWalletProvider({ children }: IssuerWalletProviderP
 
   const fetchIssuerWallets = async (): Promise<void> => {
     try {
-      const response = await fetch("/api/wallets/getIssuerWallets", {
+      const response = await fetch("/api/wallet/getIssuerWallets", {
         method: "GET",
         headers: { "Content-Type": "application/json" },
       });

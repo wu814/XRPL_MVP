@@ -24,7 +24,7 @@ export default function AddFriendBtn({ receiver }: AddFriendBtnProps) {
     setErrorMessage("");
 
     try {
-      const res = await fetch("/api/friends/sendRequest", {
+      const res = await fetch("/api/friend/sendRequest", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ receiver }),

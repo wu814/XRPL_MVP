@@ -32,7 +32,7 @@ export default function AuthorizeDepositBtn({ treasuryWallet, onSuccess }: Autho
     setLoading(true);
     setErrorMessage(null);
     try {
-      const res = await fetch("/api/wallets/authorizeDeposit", {
+      const res = await fetch("/api/wallet/authorizeDeposit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ walletWithDepositAuth: treasuryWallet, authorizedAddress }),

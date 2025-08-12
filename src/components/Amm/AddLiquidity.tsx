@@ -180,7 +180,7 @@ export default function AddLiquidity({ ammInfo, onAdded }: AddLiquidityProps) {
       console.log("payload", payload);
 
       // Step 1: Check if trustline exists
-      const checkRes = await fetch("/api/trustlines/checkTrustline", {
+      const checkRes = await fetch("/api/trustline/checkTrustline", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -195,7 +195,7 @@ export default function AddLiquidity({ ammInfo, onAdded }: AddLiquidityProps) {
       if (!hasTrustline) {
         setLoadingMessage("Setting up LP trustline...");
 
-        const res = await fetch("/api/trustlines/setLPTrustline", {
+        const res = await fetch("/api/trustline/setLPTrustline", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -215,7 +215,7 @@ export default function AddLiquidity({ ammInfo, onAdded }: AddLiquidityProps) {
 
       setLoadingMessage("Adding liquidity...");
       // Step 2: Add liquidity
-      const res = await fetch("/api/amms/addLiquidity", {
+      const res = await fetch("/api/amm/addLiquidity", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

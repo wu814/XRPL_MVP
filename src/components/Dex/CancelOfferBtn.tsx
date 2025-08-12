@@ -34,7 +34,7 @@ export default function CancelOfferBtn({
     if (!wallet || !offerSequence) return;
     setLoading(true);
     try {
-      const res = await fetch("/api/offers/cancelOffer", {
+      const res = await fetch("/api/dex/cancelOffer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

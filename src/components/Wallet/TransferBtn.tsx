@@ -113,7 +113,7 @@ export default function TransferBtn({
     setAmmData(null);
 
     try {
-      const response = await fetch("/api/amms/getAmmInfoByCurrencies", {
+      const response = await fetch("/api/amm/getAmmInfoByCurrencies", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -265,7 +265,7 @@ export default function TransferBtn({
       let endpoint: string, requestBody: any;
 
       if (paymentType === "convertable") {
-        endpoint = "/api/transactions/sendCrossCurrency";
+        endpoint = "/api/transaction/sendCrossCurrency";
         requestBody = {
           senderWallet,
           sendCurrency,
@@ -283,8 +283,8 @@ export default function TransferBtn({
       } else {
         endpoint =
           currency === "XRP"
-            ? "/api/transactions/sendXRP"
-            : "/api/transactions/sendIOU";
+            ? "/api/transaction/sendXRP"
+            : "/api/transaction/sendIOU";
         requestBody = {
           senderWallet,
           amount,

@@ -20,7 +20,7 @@ export default function ViewWalletDetails({ wallet, onBack }: ViewWalletDetailsP
   const fetchReserveBreakdown = async (wallet: YONAWallet) => {
     setLoading(true);
     try {
-      const accountObjectsResponse = await fetch("/api/wallets/getAccountObjects", {
+      const accountObjectsResponse = await fetch("/api/wallet/getAccountObjects", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ wallet }),

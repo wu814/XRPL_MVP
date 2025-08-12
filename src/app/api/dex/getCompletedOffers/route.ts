@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import getCompletedOffers from "@/utils/xrpl/offer/getCompletedOffers";
+import getCompletedOffers from "@/utils/xrpl/dex/getCompletedOffers";
 
 interface GetCompletedOffersRequest {
   sourceWallet: {
@@ -17,10 +17,9 @@ export async function POST(req: NextRequest) {
 
     const completedOffers = await getCompletedOffers(sourceWallet);
 
-    return NextResponse.json({ completedOffers }, { status: 200 });
+    return NextResponse.json({ success: true, message: "Completed offers fetched successfully", data: completedOffers }, { status: 200 });
   } catch (error) {
-    console.error("API Error:", error instanceof Error ? error.message : 'Unknown error');
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
   }
 }

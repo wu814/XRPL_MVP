@@ -31,7 +31,7 @@ export default function DisplayAdminWallets() {
     try {
       const promises = currentUserWallets.map(async (wallet: YONAWallet) => {
         try {
-          const response = await fetch("/api/wallets/getAccountInfo", {
+          const response = await fetch("/api/wallet/getAccountInfo", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ wallet }),

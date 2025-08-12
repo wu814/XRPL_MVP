@@ -38,7 +38,7 @@ export default function UsernameInput({ value, onChange, error, setError }: User
       setError(null);
 
       try {
-        const response = await fetch("/api/users/checkUsername", {
+        const response = await fetch("/api/user/checkUsername", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ username: value })

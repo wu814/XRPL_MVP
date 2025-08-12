@@ -116,7 +116,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ message: result.message }, { status: 200 });
   } catch (error) {
-    console.error("Error in /api/transactions/sendIOU:", error);
+    console.error("Error in /api/transaction/sendIOU:", error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     return NextResponse.json(
       { error: `sendIOU failed: ${errorMessage}` },

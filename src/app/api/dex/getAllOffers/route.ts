@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAllSellOffers, getAllBuyOffers } from "@/utils/xrpl/offer/getAllOffers";
+import { getAllSellOffers, getAllBuyOffers } from "@/utils/xrpl/dex/getAllOffers";
 
 interface GetAllOffersRequest {
   baseCurrency: string;

@@ -46,7 +46,7 @@ export default function CreateAmmBtn({ onAmmCreated }: CreateAmmBtnProps) {
 
   const fetchTreasuryWallet = async () => {
     try {
-      const res = await fetch("/api/wallets/getTreasuryWallet");
+      const res = await fetch("/api/wallet/getTreasuryWallet");
       const result: TreasuryResponse = await res.json();
       if (Array.isArray(result.data) && result.data.length > 0) {
         const wallet = result.data[0];
@@ -72,7 +72,7 @@ export default function CreateAmmBtn({ onAmmCreated }: CreateAmmBtnProps) {
     setErrorMessage(null);
 
     try {
-      const res = await fetch("/api/amms/createAmm", {
+      const res = await fetch("/api/amm/createAmm", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

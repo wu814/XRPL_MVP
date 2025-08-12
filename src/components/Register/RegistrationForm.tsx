@@ -136,7 +136,7 @@ export default function RegistrationForm() {
     setErrorMessage(null);
 
     try {
-      const response = await fetch("/api/users/createUser", {
+      const response = await fetch("/api/user/createUser", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

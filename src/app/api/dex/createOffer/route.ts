@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import createOffer from "@/utils/xrpl/offer/createOffer";
-import createFillOrKillOffer from "@/utils/xrpl/offer/createFillOrKillOffer";
-import createImmediateOrCancelOffer from "@/utils/xrpl/offer/createImmediateOrCancelOffer";
-import createPassiveOffer from "@/utils/xrpl/offer/createPassiveOffer";
-import createSellOffer from "@/utils/xrpl/offer/createSellOffer";
+import createOffer from "@/utils/xrpl/dex/createOffer";
+import createFillOrKillOffer from "@/utils/xrpl/dex/createFillOrKillOffer";
+import createImmediateOrCancelOffer from "@/utils/xrpl/dex/createImmediateOrCancelOffer";
+import createPassiveOffer from "@/utils/xrpl/dex/createPassiveOffer";
+import createSellOffer from "@/utils/xrpl/dex/createSellOffer";
 import { Wallet, xrpToDrops } from "xrpl";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
 

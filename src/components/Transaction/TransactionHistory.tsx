@@ -227,7 +227,7 @@ export default function TransactionHistory() {
         requestBody.marker = marker;
       }
 
-      const response = await fetch("/api/transactions/getAccountTransactions", {
+      const response = await fetch("/api/transaction/getAccountTransactions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestBody),

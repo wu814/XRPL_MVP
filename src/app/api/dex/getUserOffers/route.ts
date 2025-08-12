@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import getUserOffers from "@/utils/xrpl/offer/getUserOffers";
+import getUserOffers from "@/utils/xrpl/dex/getUserOffers";
 
 interface GetUserOffersRequest {
   sourceWallet: {

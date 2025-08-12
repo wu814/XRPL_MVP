@@ -4,7 +4,12 @@ import { useEffect, useState } from "react";
 import { RefreshCw, CheckCircle, XCircle, ExternalLink } from "lucide-react";
 import { useCurrentUserWallet } from "@/components/Wallet/CurrentUserWalletProvider";
 import CancelOfferBtn from "./CancelOfferBtn";
-import { GetUserOffersResponse, OfferWithTimestamp } from "@/types/offerTypes";
+import { 
+  GetUserOffersAPIResponse,
+  OfferWithTimestamp,
+  GetCompletedOffersAPIResponse,
+  CompletedOffer,
+} from "@/types/offerTypes";
 
 // Helper: Convert XRP drops or IOU object to unified format
 function parseAsset(asset: any) {
@@ -23,7 +28,7 @@ function getExplorerUrl(hash: string) {
 export default function DisplayUserOffers() {
   const { currentUserWallets } = useCurrentUserWallet();
   const [offers, setOffers] = useState<OfferWithTimestamp[]>([]);
-  const [completedOffers, setCompletedOffers] = useState<any[]>([]);
+  const [completedOffers, setCompletedOffers] = useState<CompletedOffer[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"offers" | "history">("offers");
@@ -42,13 +47,13 @@ export default function DisplayUserOffers() {
     setError(null);
 
     try {
-      const response = await fetch("/api/offers/getUserOffers", {
+      const response = await fetch("/api/dex/getUserOffers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sourceWallet }),
       });
 
-      const result: GetUserOffersResponse = await response.json();
+      const result: GetUserOffersAPIResponse = await response.json();
       if (!response.ok) throw new Error("Failed to fetch offers");
 
       if (result.success === false) throw new Error(result.error || "Failed to fetch offers");
@@ -68,13 +73,13 @@ export default function DisplayUserOffers() {
     setError(null);
 
     try {
-      const response = await fetch("/api/offers/getCompletedOffers", {
+      const response = await fetch("/api/dex/getCompletedOffers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sourceWallet }),
       });
 
-      const result: GetUserOffersResponse = await response.json();
+      const result: GetCompletedOffersAPIResponse = await response.json();
       if (!response.ok) throw new Error("Failed to fetch completed offers");
 
       if (result.success === false) throw new Error(result.error || "Failed to fetch completed offers");

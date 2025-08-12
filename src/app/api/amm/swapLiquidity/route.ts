@@ -1,43 +1,36 @@
-import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
+import { NextRequest, NextResponse } from "next/server";
 import { sendCrossCurrency } from "@/utils/xrpl/transaction/sendCrossCurrency";
 import { Wallet } from "xrpl";
 
-interface SendCrossCurrencyRequest {
+interface SwapLiquidityRequest {
   senderWallet: {
     classicAddress: string;
   };
-  recipient: string;
   sendCurrency: string;
-  sendAmount?: string | number;
+  sendAmount?: string;
   receiveCurrency: string;
   issuerAddress: string;
   slippagePercent?: number;
-  destinationTag?: number | null;
-  useUsername?: boolean;
   paymentType?: "exact_input" | "exact_output";
-  exactOutputAmount?: string | number;
+  exactOutputAmount?: string;
 }
 
 export async function POST(req: NextRequest) {
   try {
     const {
       senderWallet,
-      recipient,
       sendCurrency,
       sendAmount,
       receiveCurrency,
       issuerAddress,
       slippagePercent,
-      destinationTag,
-      useUsername,
       paymentType,
       exactOutputAmount,
-    }: SendCrossCurrencyRequest = await req.json();
+    }: SwapLiquidityRequest = await req.json();
 
     if (
       !senderWallet ||
-      !recipient ||
       !sendCurrency ||
       (!sendAmount && !exactOutputAmount) ||
       !receiveCurrency ||
@@ -49,32 +42,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    let recipientAddress = recipient;
-
-    if (useUsername) {
-      const supabase = await createSupabaseAnonClient();
-      const { data: userData, error: userError } = await supabase
-        .from("users")
-        .select("user_id")
-        .eq("username", recipient)
-        .single();
-
-      if (userError || !userData) {
-        throw new Error("User not found");
-      }
-
-      const { data: walletData, error: walletError } = await supabase
-        .from("wallets")
-        .select("classic_address")
-        .eq("user_id", userData.user_id)
-        .single();
-
-      if (walletError || !walletData) {
-        throw new Error("Receiver wallet not found");
-      }
-
-      recipientAddress = walletData.classic_address;
-    }
+    const recipientAddress = senderWallet.classicAddress;
 
     // Get seed from Supabase using classicAddress
     const supabase = await createSupabaseAnonClient();
@@ -91,7 +59,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const senderXrplWallet = Wallet.fromSeed(walletData.seed);
+    const senderXrplWallet: Wallet = Wallet.fromSeed(walletData.seed);
 
     const result = await sendCrossCurrency({
       senderWallet: senderXrplWallet,
@@ -101,21 +69,24 @@ export async function POST(req: NextRequest) {
       receiveCurrency,
       issuerAddress,
       slippagePercent: slippagePercent ?? 0,
-      destinationTag: destinationTag ?? null,
+      destinationTag: null,
       paymentType: paymentType ?? "exact_input",
       exactOutputAmount: exactOutputAmount ?? null
     });
 
     return NextResponse.json({ 
-      success: result.success,
-      message: result.message,
-     }, { status: 200 });
+        success: result.success,
+        message: result.message,
+      },
+      { status: 200 },
+    );
   } catch (error) {
-    console.error("Error in /api/transactions/sendCrossCurrency:", error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    console.error("Error in /api/amm/swapLiquidity:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
     return NextResponse.json(
-      { error: `sendCrossCurrency failed: ${errorMessage}` },
-      { status: 500 }
+      { error: `swapLiquidity failed: ${errorMessage}` },
+      { status: 500 },
     );
   }
 }

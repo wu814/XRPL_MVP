@@ -52,7 +52,7 @@ export const availableCurrencies: Currency[] = [
 export async function fetchUSDPrices(): Promise<PriceInfo[]> {
   try {
     // Step 1: Get treasury wallet (oracle account)
-    const treasuryResponse = await fetch("/api/wallets/getTreasuryWallet");
+    const treasuryResponse = await fetch("/api/wallet/getTreasuryWallet");
     const treasuryData: TreasuryWalletResponse = await treasuryResponse.json();
 
     if (!treasuryData.data || treasuryData.data.length === 0) {

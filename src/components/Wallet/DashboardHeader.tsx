@@ -53,12 +53,12 @@ export default function DashboardHeader({ totalBalance }: DashboardHeaderProps) 
 
       // Step 2: Get user's wallet assets
       const [accountInfoResponse, accountLinesResponse] = await Promise.all([
-        fetch("/api/wallets/getAccountInfo", {
+        fetch("/api/wallet/getAccountInfo", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ wallet: primaryWallet }),
         }),
-        fetch("/api/wallets/getAccountLines", {
+        fetch("/api/wallet/getAccountLines", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ wallet: primaryWallet }),

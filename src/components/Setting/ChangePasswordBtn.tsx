@@ -53,7 +53,7 @@ export default function ChangePasswordBtn() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/users/changePassword", {
+      const response = await fetch("/api/user/changePassword", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

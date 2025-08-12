@@ -1,17 +1,8 @@
 import { client, connectXrplClient } from "../testnet";
 import * as xrpl from "xrpl";
+import { Clawback } from "xrpl";
 
 // Type definitions
-interface ClawbackTransaction {
-  TransactionType: "Clawback";
-  Account: string;
-  Amount: {
-    currency: string;
-    issuer: string;
-    value: string;
-  };
-}
-
 interface AccountInfoResponse {
   result: {
     account_data: {
@@ -160,7 +151,7 @@ export default async function clawbackTokens(
     // Create the Clawback transaction - structure according to documentation:
     // For an IOU (trust line) in the XRP Ledger, the issuer's address is in the Account field,
     // and the token holder's address is in the Amount field's issuer sub-field
-    const clawbackTx: ClawbackTransaction = {
+    const clawbackTx: Clawback = {
       TransactionType: "Clawback",
       Account: issuerWallet.classicAddress,
       Amount: {

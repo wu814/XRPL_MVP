@@ -28,7 +28,7 @@ export default function DeleteWalletBtn({ classicAddress, onWalletDeleted }: Del
     setLoading(true);
 
     try {
-      const res = await fetch("/api/wallets/deleteWallet", {
+      const res = await fetch("/api/wallet/deleteWallet", {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",

@@ -35,7 +35,7 @@ export default function CreateAdminWalletBtn({ onWalletCreated }: CreateAdminWal
     setErrorMessage(null);
 
     try {
-      const res = await fetch("/api/wallets/createWallet", {
+      const res = await fetch("/api/wallet/createWallet", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ walletType }),
@@ -48,7 +48,7 @@ export default function CreateAdminWalletBtn({ onWalletCreated }: CreateAdminWal
       // Background call to set wallet flags
       setTimeout(async () => {
         try {
-          const flagRes = await fetch("/api/wallets/setWalletFlags", {
+          const flagRes = await fetch("/api/wallet/setWalletFlags", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ wallet: result.data }),

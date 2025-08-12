@@ -27,7 +27,7 @@ export default function CurrentUserWalletProvider({ children }: CurrentUserWalle
     
     try {
       // Changed from POST to GET - the API route uses the session to get user_id
-      const response = await fetch("/api/wallets/getWalletsByUserID", {
+      const response = await fetch("/api/wallet/getWalletsByUserID", {
         method: "GET",
         headers: { "Content-Type": "application/json" },
       });

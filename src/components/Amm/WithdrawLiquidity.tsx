@@ -117,7 +117,7 @@ export default function WithdrawLiquidity({ ammInfo, onWithdrawn }: WithdrawLiqu
     try {
       const payload = buildPayload();
 
-      const res = await fetch("/api/amms/withdrawLiquidity", {
+      const res = await fetch("/api/amm/withdrawLiquidity", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

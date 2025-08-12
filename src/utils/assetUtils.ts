@@ -71,12 +71,12 @@ export async function fetchWalletAssets(
 
   try {
     const [accountInfoResponse, accountLinesResponse] = await Promise.all([
-      fetch("/api/wallets/getAccountInfo", {
+      fetch("/api/wallet/getAccountInfo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ wallet }),
       }),
-      fetch("/api/wallets/getAccountLines", {
+      fetch("/api/wallet/getAccountLines", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ wallet }),
@@ -217,7 +217,7 @@ export function isLpToken(asset: Asset): boolean {
 export async function getLpTokenCurrencyPair(ammAccount: string): Promise<CurrencyPair | null> {
   try {
     // Get AMM registry data
-    const response = await fetch("/api/amms/getAllAmms");
+    const response = await fetch("/api/amm/getAllAmms");
     const ammData: AmmData = await response.json();
     
     if (!ammData.data || !Array.isArray(ammData.data)) {

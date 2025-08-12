@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { purchaseNFTWithSmartTrade } from "@/utils/xrpl/pos/nftManager";
+import { purchaseNFTWithSmartTrade } from "@/utils/xrpl/nft/nftManager";
 import { Wallet } from "xrpl";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
 

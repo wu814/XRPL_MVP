@@ -26,7 +26,7 @@ export default function CreateUserWalletBtn({ onWalletCreated }: CreateUserWalle
     setErrorMessage(null);
 
     try {
-      const response = await fetch("/api/wallets/createWallet", {
+      const response = await fetch("/api/wallet/createWallet", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ walletType: session?.user.role }),

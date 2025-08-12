@@ -24,7 +24,7 @@ export default function FavoriteBtn({ friendUsername, onFavoriteChange }: Favori
   const checkFavoriteStatus = async () => {
     setCheckingStatus(true);
     try {
-      const res = await fetch(`/api/favorites/checkFavorite?friendUsername=${friendUsername}`);
+      const res = await fetch(`/api/friend/checkFavorite?friendUsername=${friendUsername}`);
       const result: FavoriteResponse = await res.json();
       
       if (res.ok) {
@@ -46,7 +46,7 @@ export default function FavoriteBtn({ friendUsername, onFavoriteChange }: Favori
     setErrorMessage(null);
 
     try {
-      const endpoint = isFavorited ? "/api/favorites/removeFromFavorite" : "/api/favorites/addToFavorite";
+      const endpoint = isFavorited ? "/api/friend/removeFromFavorite" : "/api/friend/addToFavorite";
       const res = await fetch(endpoint, {
         method: isFavorited ? "DELETE" : "POST",
         headers: { "Content-Type": "application/json" },

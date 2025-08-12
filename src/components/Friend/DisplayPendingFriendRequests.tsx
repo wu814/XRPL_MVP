@@ -28,7 +28,7 @@ export default function DisplayPendingFriendRequests() {
   const fetchPendingFriendRequests = async () => {
     try {
       setIsLoading(true);
-      const res = await fetch("/api/friends/getPendingFriendRequests");
+      const res = await fetch("/api/friend/getPendingFriendRequests");
       if (!res.ok) throw new Error("Failed to fetch pending requests");
       const result: PendingRequestsResponse = await res.json();
       setPendingRequests(result.data);
@@ -42,7 +42,7 @@ export default function DisplayPendingFriendRequests() {
 
   const handleResponse = async (request_id: string, action: "accept" | "reject") => {
     try {
-      const res = await fetch("/api/friends/respondRequest", {
+      const res = await fetch("/api/friend/respondRequest", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ request_id, action }),

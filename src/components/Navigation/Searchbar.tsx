@@ -24,7 +24,7 @@ export default function Searchbar() {
     if (fetched) return;
     setLoading(true);
     try {
-      const res = await fetch("/api/users/getAllUsernames");
+      const res = await fetch("/api/user/getAllUsernames");
       if (!res.ok) throw new Error("Failed to fetch users");
       const result: ApiResponse = await res.json();
       setAllUsers(result.data);

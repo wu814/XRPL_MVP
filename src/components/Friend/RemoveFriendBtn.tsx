@@ -22,7 +22,7 @@ export default function RemoveFriendBtn({ friendId, onRemoved }: RemoveFriendBtn
     setErrorMessage(null);
 
     try {
-      const res = await fetch("/api/friends/deleteFriend", {
+      const res = await fetch("/api/friend/deleteFriend", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: friendId }),

@@ -87,7 +87,7 @@ export default function DisplayAllOffers({ baseCurrency, quoteCurrency }: Displa
     setLoading(true);
     setSearched(false);
     try {
-      const res = await fetch("/api/offers/getAllOffers", {
+      const res = await fetch("/api/dex/getAllOffers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

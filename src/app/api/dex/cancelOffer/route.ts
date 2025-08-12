@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import cancelOffer from "@/utils/xrpl/offer/cancelOffer";
+import cancelOffer from "@/utils/xrpl/dex/cancelOffer";
 import { Wallet } from "xrpl";
 import bcrypt from "bcryptjs";
 import { getServerSession } from "next-auth";

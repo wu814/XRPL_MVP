@@ -33,7 +33,7 @@ export default function DisplayFriends() {
   const fetchFriends = async () => {
     try {
       setIsLoading(true);
-      const res = await fetch("/api/friends/getAllFriends");
+      const res = await fetch("/api/friend/getAllFriends");
       if (!res.ok) throw new Error("Failed to fetch friends");
       const result: FriendsResponse = await res.json();
       setFriends(result.data || []);

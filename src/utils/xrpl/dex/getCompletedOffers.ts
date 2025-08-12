@@ -5,25 +5,11 @@ import {
   AccountOffersRequest, 
   AccountOffersResponse,
   Amount,
-  TransactionMetadata
 } from "xrpl";
+import { CompletedOffer } from "@/types/offerTypes";
 
 interface Wallet {
   classicAddress: string;
-}
-
-interface CompletedOffer {
-  sequence: number;
-  taker_pays: Amount;
-  taker_gets: Amount;
-  createdAt: Date | null;
-  completedAt: Date | null;
-  formattedCreatedDate: string;
-  formattedCompletedDate: string;
-  status: "filled" | "cancelled";
-  createHash: string | null;
-  completeHash: string | null;
-  isEstimated?: boolean;
 }
 
 interface OfferCreateInfo {

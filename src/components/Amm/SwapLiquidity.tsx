@@ -206,7 +206,7 @@ export default function SwapLiquidity({ ammInfo, onSwapped }: SwapLiquidityProps
         throw new Error("No issuer wallets available");
       }
 
-      const response = await fetch("/api/amms/swapLiquidity", {
+      const response = await fetch("/api/amm/swapLiquidity", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

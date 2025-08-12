@@ -138,7 +138,7 @@ export default function DisplayAmmDetails({
 
   const fetchAmmInfo = async (): Promise<void> => {
     try {
-      const res = await fetch("/api/amms/getAmmInfo", {
+      const res = await fetch("/api/amm/getAmmInfo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ammAccount }),
