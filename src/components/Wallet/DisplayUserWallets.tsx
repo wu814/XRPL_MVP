@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { Plus } from "lucide-react";
-import { YONAWallet, WalletBalance, AccountInfoResponse, AccountObjectsResponse, ReserveItem, AccountObject } from "@/types/wallet";
+import { YONAWallet, WalletBalance, AccountInfoResponse } from "@/types/wallet";
 import { useCurrentUserWallet } from "@/components/Wallet/CurrentUserWalletProvider";
 import { useIssuerWallet } from "@/components/Wallet/IssuerWalletProvider";
 import SetTrustlineBtn from "@/components/Wallet/SetTrustlineBtn";
@@ -13,238 +13,8 @@ import Button from "@/components/Button";
 import ViewWalletDetails from "@/components/Wallet/ViewWalletDetails";
 import AddFundsBtn from "./AddFunds";
 
-interface UserWalletDetailsProps {
-  onViewDetails: (wallet: YONAWallet) => void;
-}
-
-// User Wallet Details Component
-export function UserWalletDetails({ onViewDetails }: UserWalletDetailsProps) {
-  const { currentUserWallets, fetchCurrentUserWallets } = useCurrentUserWallet();
-  const { issuerWallets } = useIssuerWallet();
-  const [walletBalance, setWalletBalance] = useState<WalletBalance | null>(null);
-  const [reserveBreakdown, setReserveBreakdown] = useState<ReserveItem[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [expandedReserveItems, setExpandedReserveItems] = useState<Set<number>>(new Set());
-
-  // Get the user's primary wallet
-  const userWallet = currentUserWallets?.find(
-    (wallet: YONAWallet) =>
-      wallet.walletType === "USER" ||
-      wallet.walletType === "PATHFIND" ||
-      wallet.walletType === "BUSINESS",
-  );
-
-  // Constants for reserve calculation
-  const BASE_RESERVE_XRP = 1; // Base reserve for an account in XRP
-  const OWNER_RESERVE_XRP = 0.2; // Owner reserve for each object in XRP
-
-  // Fetch wallet balance and reserve info
-  const fetchWalletBalance = async (): Promise<void> => {
-    if (!userWallet) return;
-
-    setLoading(true);
-    try {
-      const [accountInfoResponse, accountObjectsResponse] = await Promise.all([
-        fetch("/api/wallets/getAccountInfo", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ wallet: userWallet }),
-        }),
-        fetch("/api/wallets/getAccountObjects", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ wallet: userWallet }),
-        }),
-      ]);
-
-      const accountInfo: AccountInfoResponse = await accountInfoResponse.json();
-      const accountObjects: AccountObjectsResponse = await accountObjectsResponse.json();
-
-      if (accountInfo.data) {
-        const balance = parseFloat(accountInfo.data.Balance);
-        const ownerCount = accountInfo.data.ownerCount || 0;
-        const totalReserve = BASE_RESERVE_XRP + OWNER_RESERVE_XRP * ownerCount;
-        const availableBalance = Math.max(0, balance - totalReserve);
-
-        setWalletBalance({
-          balance,
-          ownerCount,
-          totalReserve,
-          availableBalance,
-        });
-
-        // Process reserve breakdown
-        const reserves: ReserveItem[] = [];
-
-        // Base reserve
-        reserves.push({
-          type: "Base Account Reserve",
-          description: "Required reserve for account existence",
-          xrpAmount: BASE_RESERVE_XRP,
-          count: 1,
-        });
-
-        // Process account objects for owner reserves
-        if (accountObjects.data?.account_objects) {
-          const objectCounts: Record<string, { description: string; items: string[]; count: number }> = {};
-
-          accountObjects.data.account_objects.forEach((obj: AccountObject) => {
-            const type = obj.LedgerEntryType;
-            let description = "";
-            let details = "";
-
-            switch (type) {
-              case "RippleState":
-                description = "Trustline";
-                const currency = obj.Balance?.currency || "Unknown";
-                const issuer =
-                  obj.HighLimit?.issuer === userWallet.classicAddress
-                    ? obj.LowLimit?.issuer
-                    : obj.HighLimit?.issuer;
-                details = `${currency} (${issuer})`;
-                break;
-              case "Offer":
-                description = "DEX Offer";
-                details = `${obj.TakerGets?.currency || "XRP"} → ${obj.TakerPays?.currency || "XRP"}`;
-                break;
-              case "AMM":
-                description = "AMM Pool";
-                details = `AMM participation`;
-                break;
-              case "DepositPreauth":
-                description = "Deposit Authorization";
-                details = `Authorized: ${obj.Authorize}`;
-                break;
-              case "Escrow":
-                description = "Escrow";
-                details = `Escrowed funds`;
-                break;
-              case "PayChannel":
-                description = "Payment Channel";
-                details = `Channel to ${obj.Destination}`;
-                break;
-              case "Check":
-                description = "Check";
-                details = `Check from ${obj.Account}`;
-                break;
-              default:
-                description = type;
-                details = "Reserve-consuming object";
-            }
-
-            if (!objectCounts[type]) {
-              objectCounts[type] = { description, items: [], count: 0 };
-            }
-            objectCounts[type].items.push(details);
-            objectCounts[type].count++;
-          });
-
-          // Add owner reserves to breakdown
-          Object.entries(objectCounts).forEach(([type, data]) => {
-            reserves.push({
-              type: data.description,
-              description: `${data.count} object${data.count > 1 ? "s" : ""} requiring reserve`,
-              xrpAmount: OWNER_RESERVE_XRP * data.count,
-              count: data.count,
-              items: data.items,
-            });
-          });
-        }
-
-        setReserveBreakdown(reserves);
-      }
-    } catch (error) {
-      console.error("Error fetching wallet balance:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchWalletBalance();
-  }, [userWallet]);
-
-  const handleWalletAction = async (): Promise<void> => {
-    await fetchCurrentUserWallets();
-    await fetchWalletBalance();
-  };
-
-  const toggleReserveItemExpansion = (index: number): void => {
-    setExpandedReserveItems(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(index)) {
-        newSet.delete(index);
-      } else {
-        newSet.add(index);
-      }
-      return newSet;
-    });
-  };
-
-  if (!userWallet) return null;
-
-  return (
-    <div className="rounded-lg bg-color2 p-8">
-      <div className="mb-2 flex items-baseline justify-between">
-        <div>
-          <h3 className="text-2xl font-bold">My Wallet</h3>
-        </div>
-
-        {/* Balance Information */}
-        <div className="flex items-baseline space-x-6">
-          {walletBalance ? (
-            <>
-              <div className="text-right">
-                <div className="text-lg font-semibold text-gray-400">
-                  Balance: {walletBalance.balance.toFixed(6)} XRP
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="text-lg font-semibold text-gray-400">
-                  Reserved: {walletBalance.totalReserve.toFixed(1)} XRP
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="text-lg font-semibold text-green-500">
-                  Available: {walletBalance.availableBalance.toFixed(6)} XRP
-                </div>
-              </div>
-            </>
-          ) : (
-            <div className="text-lg text-gray-400">Loading balance...</div>
-          )}
-        </div>
-      </div>
-
-      {/* Wallet Address */}
-      <div className="mb-6">
-        <p className="font-mono text-lg text-gray-400">
-          {userWallet.classicAddress}
-        </p>
-      </div>
-
-      {/* Wallet Management Actions */}
-      <div className="flex justify-between border-t border-gray-600 pt-6">
-        <div className="flex gap-2">
-          <TransferBtn
-            senderWallet={userWallet}
-            issuerWallets={issuerWallets}
-            onSuccess={handleWalletAction}
-          />
-          <SetTrustlineBtn
-            setterWallet={userWallet}
-            issuerWallets={issuerWallets}
-            onSuccess={handleWalletAction}
-          />
-        </div>
-        <Button onClick={() => onViewDetails(userWallet)}>View Details</Button>
-      </div>
-    </div>
-  );
-};
-
 // Additional Welcome Section Component for users with wallets
-const AdditionalWelcomeSection: React.FC = () => {
+function AdditionalWelcomeSection() {
   const { data: session } = useSession();
   const { currentUserWallets } = useCurrentUserWallet();
 
@@ -288,17 +58,74 @@ const AdditionalWelcomeSection: React.FC = () => {
       </div>
     </div>
   );
-};
+}
 
 // Main DisplayUserWallets Component
 export default function DisplayUserWallets() {
   const { data: session } = useSession();
   const { currentUserWallets, fetchCurrentUserWallets } = useCurrentUserWallet();
+  const { issuerWallets } = useIssuerWallet();
   const [selectedWallet, setSelectedWallet] = useState<YONAWallet | null>(null);
+  const [walletBalances, setWalletBalances] = useState<Record<string, WalletBalance>>({});
 
-  const handleWalletCreated = async (): Promise<void> => {
-    await fetchCurrentUserWallets();
+  // Constants for reserve calculation
+  const BASE_RESERVE_XRP = 1; // Base reserve for an account in XRP
+  const OWNER_RESERVE_XRP = 0.2; // Owner reserve for each object in XRP
+
+  // Fetch balance and reserve info for all wallets
+  const fetchWalletBalances = async (): Promise<void> => {
+    const balances: Record<string, WalletBalance> = {};
+
+    try {
+      const promises = currentUserWallets.map(async (wallet: YONAWallet) => {
+        try {
+          const response = await fetch("/api/wallets/getAccountInfo", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ wallet }),
+          });
+
+          const data: AccountInfoResponse = await response.json();
+          if (data.data) {
+            const balance = parseFloat(data.data.Balance); // Already converted from drops
+            const ownerCount = data.data.OwnerCount || 0;
+            const totalReserve = BASE_RESERVE_XRP + OWNER_RESERVE_XRP * ownerCount;
+            const availableBalance = Math.max(0, balance - totalReserve);
+
+            balances[wallet.classicAddress] = {
+              balance,
+              ownerCount,
+              totalReserve,
+              availableBalance,
+            };
+          }
+        } catch (error) {
+          console.error(
+            `Error fetching balance for ${wallet.classicAddress}:`,
+            error,
+          );
+          balances[wallet.classicAddress] = {
+            balance: 0,
+            ownerCount: 0,
+            totalReserve: BASE_RESERVE_XRP,
+            availableBalance: 0,
+          };
+        }
+      });
+
+      await Promise.all(promises);
+      setWalletBalances(balances);
+    } catch (error) {
+      console.error("Error fetching wallet balances:", error);
+    }
   };
+
+  // Fetch balances when wallets change
+  useEffect(() => {
+    if (currentUserWallets.length > 0) {
+      fetchWalletBalances();
+    }
+  }, [currentUserWallets]);
 
   const handleViewDetails = (wallet: YONAWallet): void => {
     setSelectedWallet(wallet);
@@ -306,6 +133,15 @@ export default function DisplayUserWallets() {
 
   const handleCloseDetails = (): void => {
     setSelectedWallet(null);
+  };
+
+  const handleWalletCreated = async (): Promise<void> => {
+    await fetchCurrentUserWallets();
+  };
+
+  const handleWalletAction = async (): Promise<void> => {
+    await fetchCurrentUserWallets();
+    await fetchWalletBalances();
   };
 
   // If a wallet is selected, show the details view
@@ -351,7 +187,82 @@ export default function DisplayUserWallets() {
   // If user has wallets, show wallet details and additional sections
   return (
     <div className="space-y-4">
-      <UserWalletDetails onViewDetails={handleViewDetails} />
+      {/* Wallet Display - Same pattern as DisplayAdminWallets */}
+      <div className="space-y-6">
+        <div className="grid gap-4">
+          {currentUserWallets.map((wallet: YONAWallet) => {
+            const balanceInfo = walletBalances[wallet.classicAddress];
+
+            return (
+              <div
+                key={wallet.classicAddress}
+                className="relative rounded-lg bg-color2 p-8"
+              >
+                <div className="mb-2 flex items-baseline justify-between">
+                  <div>
+                    <h3 className="text-2xl font-bold">{wallet.walletType}</h3>
+                  </div>
+
+                  {/* Balance Information */}
+                  <div className="flex items-baseline space-x-6">
+                    {balanceInfo ? (
+                      <>
+                        <div className="text-right">
+                          <div className="text-lg font-semibold text-gray-400">
+                            Balance: {balanceInfo.balance.toFixed(6)} XRP
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-lg font-semibold text-gray-400">
+                            Reserved: {balanceInfo.totalReserve.toFixed(1)} XRP
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-lg font-semibold text-green-500">
+                            Available: {balanceInfo.availableBalance.toFixed(6)} XRP
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-lg text-gray-400">Loading balance...</div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Wallet Address */}
+                <div className="mb-6">
+                  <p className="font-mono text-lg text-gray-400">
+                    {wallet.classicAddress}
+                  </p>
+                </div>
+
+                {/* Wallet Management Options */}
+                <div className="flex justify-between gap-2 border-t border-gray-600 pt-4">
+                  <div className="flex flex-row gap-2">
+                    <TransferBtn
+                      senderWallet={wallet}
+                      issuerWallets={issuerWallets}
+                      onSuccess={handleWalletAction}
+                    />
+                    <SetTrustlineBtn
+                      setterWallet={wallet}
+                      issuerWallets={issuerWallets}
+                      onSuccess={handleWalletAction}
+                    />
+                  </div>
+                  <div>
+                    {/* View Details Button */}
+                    <Button onClick={() => handleViewDetails(wallet)}>
+                      View Details
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       <AddFundsBtn />
       <AdditionalWelcomeSection />
     </div>

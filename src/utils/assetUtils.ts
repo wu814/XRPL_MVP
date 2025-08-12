@@ -15,7 +15,7 @@ export interface Asset {
 
 export interface AccountInfo {
   data?: {
-    balance?: number;
+    Balance?: number;
   };
 }
 
@@ -26,9 +26,7 @@ export interface AccountLine {
 }
 
 export interface AccountLines {
-  data?: {
-    lines?: AccountLine[];
-  };
+  data?: AccountLine[];
 }
 
 export interface CurrencyPair {
@@ -91,8 +89,8 @@ export async function fetchWalletAssets(
     const assets: Asset[] = [];
 
     // Add XRP balance for non-issuer wallets
-    if (!isIssuer && accountInfo.data?.balance) {
-      const xrpBalance = parseFloat(accountInfo.data.balance.toString());
+    if (!isIssuer && accountInfo.data?.Balance) {
+      const xrpBalance = parseFloat(accountInfo.data.Balance.toString());
       const usdValue = getUSDValue("XRP", xrpBalance, livePrices);
 
       assets.push({
@@ -107,10 +105,10 @@ export async function fetchWalletAssets(
     }
 
     // Process trustline balances
-    if (accountLines.data?.lines) {
+    if (accountLines.data) {
       if (isIssuer) {
         // For issuer wallets, group and sum by currency
-        const grouped: Record<string, number> = accountLines.data.lines.reduce((acc, line) => {
+        const grouped: Record<string, number> = accountLines.data.reduce((acc, line) => {
           const currency = line.currency;
           const balance = parseFloat(line.balance);
           acc[currency] = (acc[currency] || 0) + balance;
@@ -132,7 +130,7 @@ export async function fetchWalletAssets(
         });
       } else {
         // For regular wallets, add individual trustlines with positive balances
-        accountLines.data.lines.forEach((line, index) => {
+        accountLines.data.forEach((line, index) => {
           if (parseFloat(line.balance) > 0) {
             const balance = parseFloat(line.balance);
             const currency = line.currency;
