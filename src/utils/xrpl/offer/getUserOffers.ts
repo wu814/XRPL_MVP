@@ -4,18 +4,13 @@ import {
   AccountOffersResponse, 
   AccountTxRequest, 
   AccountTxResponse,
-  AccountOffer // Use AccountOffer instead of OfferObject
 } from "xrpl";
+import { OfferWithTimestamp } from "@/types/offerTypes";
 
 interface Wallet {
   classicAddress: string;
 }
 
-interface OfferWithTimestamp extends AccountOffer {
-  timestamp?: number;
-  date?: string;
-  creation_hash?: string;
-}
 
 /**
  * List all direct offers for a specific wallet with creation timestamps
@@ -58,11 +53,11 @@ export default async function getUserOffers(wallet: Wallet): Promise<OfferWithTi
     const offerDetails = new Map<number, { timestamp: number; date: string; hash: string }>();
     
     transactions.forEach((tx) => {
-      if (tx.tx && (tx.tx as any).TransactionType === 'OfferCreate') {
-        const sequence = (tx.tx as any).Sequence;
-        const timestamp = (tx.tx as any).date + 946684800; // Convert Ripple timestamp to Unix timestamp
+      if (tx.tx_json && tx.tx_json.TransactionType === 'OfferCreate') {
+        const sequence = tx.tx_json.Sequence;
+        const timestamp = tx.tx_json.date + 946684800; // Convert Ripple timestamp to Unix timestamp
         const date = new Date(timestamp * 1000).toISOString();
-        const hash = (tx.tx as any).hash;
+        const hash = tx.hash; // Hash is at transaction level, not in tx_json
         
         offerDetails.set(sequence, { timestamp, date, hash });
       }

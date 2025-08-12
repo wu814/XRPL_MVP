@@ -17,10 +17,10 @@ export async function POST(req: NextRequest) {
 
     const offers = await getUserOffers(sourceWallet);
 
-    return NextResponse.json({ offers }, { status: 200 });
+    return NextResponse.json(
+      { success: true, message: "Offers fetched successfully", data: offers }, { status: 200 });
   } catch (error) {
-    console.error("API Error:", error instanceof Error ? error.message : 'Unknown error');
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    return NextResponse.json({ success: false, error: `Error fetching offers: ${errorMessage}` }, { status: 500 });
   }
 }

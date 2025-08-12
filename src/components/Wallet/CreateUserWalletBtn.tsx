@@ -6,11 +6,7 @@ import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
 import { useSession } from "next-auth/react";
-
-interface CreateWalletResponse {
-  message?: string;
-  error?: string;
-}
+import { CreateWalletResponse } from "@/types/wallet";
 
 interface CreateUserWalletBtnProps {
   onWalletCreated: () => void;
@@ -30,16 +26,20 @@ export default function CreateUserWalletBtn({ onWalletCreated }: CreateUserWalle
     setErrorMessage(null);
 
     try {
-      const res = await fetch("/api/wallets/createWallet", {
+      const response = await fetch("/api/wallets/createWallet", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ walletType: session?.user.role }),
       });
 
-      const result: CreateWalletResponse = await res.json();
-      if (!res.ok) throw new Error(result.error || "Failed to add wallet");
+      const result: CreateWalletResponse = await response.json();
+      if (!response.ok) throw new Error("Failed to add wallet");
 
-      setSuccessMessage(result.message || "Wallet created successfully");
+      if (result.success === false) {
+        setErrorMessage(result.error || "Failed to add wallet");
+      } else {
+        setSuccessMessage(result.message || "Wallet created successfully");
+      }
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : "Unknown error");
     } finally {

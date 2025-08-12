@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useCurrentUserWallet } from "../Wallet/CurrentUserWalletProvider";
+import { YONAWallet } from "@/types/wallet";
 import { 
   ArrowUpRight, 
   ArrowDownLeft, 
@@ -32,10 +33,6 @@ interface TransactionResponse {
   error?: string;
 }
 
-interface Wallet {
-  classicAddress: string;
-  walletType: string;
-}
 
 type TransactionDirection = 
   | "sent" 
@@ -169,11 +166,11 @@ export default function TransactionHistory() {
   const [error, setError] = useState<string | null>(null);
   const [marker, setMarker] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState<boolean>(true);
-  const [selectedWallet, setSelectedWallet] = useState<Wallet | null>(null);
+  const [selectedWallet, setSelectedWallet] = useState<YONAWallet | null>(null);
   const [showWalletDropdown, setShowWalletDropdown] = useState<boolean>(false);
 
   // Determine the best default wallet based on user type
-  const getDefaultWallet = (wallets: Wallet[]): Wallet | null => {
+  const getDefaultWallet = (wallets: YONAWallet[]): YONAWallet | null => {
     if (!wallets || wallets.length === 0) return null;
     
     // For single wallet users, use the only wallet
@@ -222,7 +219,7 @@ export default function TransactionHistory() {
 
     try {
       const requestBody: any = {
-        wallet: primaryWallet,
+        targetAddress: primaryWallet.classicAddress,
         limit: 50,
       };
 
@@ -266,7 +263,7 @@ export default function TransactionHistory() {
     }
   };
 
-  const handleWalletChange = (wallet: Wallet): void => {
+  const handleWalletChange = (wallet: YONAWallet): void => {
     setSelectedWallet(wallet);
     setShowWalletDropdown(false);
     setTransactions([]); // Clear existing transactions

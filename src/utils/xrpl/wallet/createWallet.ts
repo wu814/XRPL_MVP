@@ -1,11 +1,6 @@
 import { client, connectXrplClient } from "../testnet";
-import * as xrpl from "xrpl";
+import { FundWalletResult } from "@/types/wallet";
 
-interface FundWalletResult {
-  classicAddress: string;
-  walletType: string;
-  seed: string;
-}
 
 /**
  * Create and fund a new XRPL wallet on testnet
