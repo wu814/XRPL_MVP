@@ -1,8 +1,9 @@
 import { client, connectXrplClient } from "../testnet";
+import { dropsToXrp } from "xrpl";
 
 interface AccountInfo {
   Account: string;
-  Balance: string;
+  Balance: number | string; // Balance in drops or XRP
   Flags: number;
   LedgerEntryType: string;
   OwnerCount: number;
@@ -14,9 +15,9 @@ interface AccountInfo {
 }
 
 interface AccountLines {
-  currency: string;
-  account: string;
+  account: string; 
   balance: string;
+  currency: string;
   limit: string;
   limit_peer: string;
   quality_in: number;
@@ -27,7 +28,6 @@ interface AccountLines {
   peer_authorized: boolean;
   freeze: boolean;
   freeze_peer: boolean;
-  [key: string]: any;
 }
 
 interface AccountObjects {
@@ -36,9 +36,9 @@ interface AccountObjects {
 }
 
 /**
- * Get account information
+ * Get account information with balance in XRP
  * @param address - Account address
- * @returns Account information
+ * @returns Account information with balance converted to XRP
  */
 export async function getAccountInfo(address: string): Promise<AccountInfo> {
   await connectXrplClient();
@@ -49,7 +49,14 @@ export async function getAccountInfo(address: string): Promise<AccountInfo> {
     ledger_index: "validated",
   });
 
-  return response.result.account_data as AccountInfo;
+  const accountData = response.result.account_data as AccountInfo;
+  
+  // Convert balance from drops to XRP
+  if (accountData.Balance) {
+    accountData.Balance = dropsToXrp(accountData.Balance);
+  }
+
+  return accountData;
 }
 
 /**

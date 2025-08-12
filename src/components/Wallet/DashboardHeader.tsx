@@ -9,12 +9,7 @@ import {
   formatCurrencyValue,
   PriceInfo,
 } from "@/utils/currencyUtils";
-
-interface AccountInfoResponse {
-  data?: {
-    balance?: string;
-  };
-}
+import { AccountInfoResponse } from "@/types/wallet";
 
 interface AccountLine {
   balance: string;
@@ -22,9 +17,7 @@ interface AccountLine {
 }
 
 interface AccountLinesResponse {
-  data?: {
-    lines?: AccountLine[];
-  };
+  data?: AccountLine[];
 }
 
 interface DashboardHeaderProps {
@@ -79,14 +72,14 @@ export default function DashboardHeader({ totalBalance }: DashboardHeaderProps) 
       let totalUsdValue = 0;
 
       // Add XRP balance if not an issuer wallet
-      if (primaryWallet.walletType !== "ISSUER" && accountInfo.data?.balance) {
-        const xrpBalance = parseFloat(accountInfo.data.balance);
+      if (primaryWallet.walletType !== "ISSUER" && accountInfo.data?.Balance) {
+        const xrpBalance = parseFloat(accountInfo.data.Balance);
         totalUsdValue += getUSDValue("XRP", xrpBalance, livePrices);
       }
 
       // Add trustline balances
-      if (accountLines.data?.lines) {
-        accountLines.data.lines.forEach((line) => {
+      if (accountLines.data) {
+        accountLines.data.forEach((line) => {
           const balance = parseFloat(line.balance);
           const currency = line.currency;
           totalUsdValue += getUSDValue(currency, balance, livePrices);

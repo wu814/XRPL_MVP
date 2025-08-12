@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { Landmark } from "lucide-react";
 import { YONAWallet, ReserveItem, AccountObjectsResponse } from "@/types/wallet";
 
 interface ViewWalletDetailsProps {
@@ -176,7 +177,7 @@ export default function ViewWalletDetails({ wallet, onBack }: ViewWalletDetailsP
               <div key={index} className="rounded-lg bg-color3 p-3">
                 <div className="mb-2 flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    {/* <Landmark className="w-7 h-7 text-primary" /> */}
+                    <Landmark className="w-7 h-7 text-primary" />
                     <div>
                       <div className="font-medium">{reserve.type}</div>
                       <div className="text-sm text-gray-400">
