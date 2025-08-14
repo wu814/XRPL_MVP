@@ -1,8 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Landmark } from "lucide-react";
-import { ReserveItem, AccountObjectsResponse } from "@/types/wallet";
+import { ReserveItem } from "@/types/wallet";
 import { YONAWallet } from "@/types/appTypes";
+import { GetAccountObjectsAPIResponse } from "@/types/api/index";
 
 interface ViewWalletDetailsProps {
   wallet: YONAWallet;
@@ -27,7 +28,8 @@ export default function ViewWalletDetails({ wallet, onBack }: ViewWalletDetailsP
         body: JSON.stringify({ wallet }),
       });
 
-      const accountObjects: AccountObjectsResponse = await accountObjectsResponse.json();
+      const accountObjects: GetAccountObjectsAPIResponse = await accountObjectsResponse.json();
+      console.log(accountObjects);
 
       // Process reserve breakdown
       const reserves: ReserveItem[] = [];
@@ -41,10 +43,10 @@ export default function ViewWalletDetails({ wallet, onBack }: ViewWalletDetailsP
       });
 
       // Process account objects for owner reserves
-      if (accountObjects.data?.account_objects) {
+      if (accountObjects.data) {
         const objectCounts: Record<string, { description: string; items: string[]; count: number }> = {};
 
-        accountObjects.data.account_objects.forEach((obj) => {
+        accountObjects.data.forEach((obj) => {
           const type = obj.LedgerEntryType;
           
           // Skip RippleState (trustlines) for issuer wallets
@@ -67,7 +69,13 @@ export default function ViewWalletDetails({ wallet, onBack }: ViewWalletDetailsP
               break;
             case "Offer":
               description = "DEX Offer";
-              details = `${obj.TakerGets?.currency || "XRP"} → ${obj.TakerPays?.currency || "XRP"}`;
+              const takerGets = typeof obj.TakerGets === 'string' 
+                ? { value: obj.TakerGets, currency: 'XRP' }
+                : { value: obj.TakerGets.value, currency: obj.TakerGets.currency };
+              const takerPays = typeof obj.TakerPays === 'string'
+                ? { value: obj.TakerPays, currency: 'XRP' }
+                : { value: obj.TakerPays.value, currency: obj.TakerPays.currency };
+              details = `${takerGets.value} ${takerGets.currency} → ${takerPays.value} ${takerPays.currency}`;
               break;
             case "AMM":
               description = "AMM Pool";

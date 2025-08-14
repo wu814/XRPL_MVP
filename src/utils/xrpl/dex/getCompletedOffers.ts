@@ -6,7 +6,7 @@ import {
   AccountOffersResponse,
   Amount,
 } from "xrpl";
-import { EnhancedCompletedOffer, GetCompletedOffersResult } from "@/types/xrpl/index";
+import { EnhancedCompletedOffer } from "@/types/xrpl/index";
 import { YONAWallet } from "@/types/appTypes";
 
 interface OfferCreateInfo {
@@ -63,7 +63,7 @@ const hasAssetExchange = (txData: any, walletAddress: string): boolean => {
  * @param wallet - The wallet to get completed offers for
  * @returns Array of completed offers with status and completion info
  */
-export default async function getCompletedOffers(wallet: YONAWallet): Promise<GetCompletedOffersResult> {
+export default async function getCompletedOffers(wallet: YONAWallet): Promise<EnhancedCompletedOffer[]> {
   try {
     await connectXrplClient();
 
@@ -247,11 +247,7 @@ export default async function getCompletedOffers(wallet: YONAWallet): Promise<Ge
 
     console.log(`📋 Found ${completedOffers.length} completed offers for ${wallet.classicAddress}`);
 
-    return {
-      success: true,
-      message: "Completed offers fetched successfully",
-      data: completedOffers
-    };
+    return completedOffers;
   } catch (error: any) {
     console.error("❌ Error getting completed offers:", error.message);
     throw new Error(`Failed to get completed offers: ${error.message}`);

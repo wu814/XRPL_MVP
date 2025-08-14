@@ -1,7 +1,7 @@
 import { client, connectXrplClient } from "../testnet";
 import { AccountSet, Wallet } from "xrpl";
 import { isTransactionSuccessful, getTransactionResult } from "../errorHandler";
-import { WalletFlagsResult } from "@/types/xrpl/wallet/walletXRPLTypes";
+import { SetWalletFlagsResult } from "@/types/xrpl/wallet/walletXRPLTypes";
 
 interface FlagConfig {
   name: string;
@@ -14,7 +14,7 @@ interface FlagConfig {
  * Set flags for issuer wallet with proper sequence management and offsets
  * @param wallet - XRPL wallet instance
  */
-export async function setIssuerWalletFlags(wallet: Wallet): Promise<WalletFlagsResult> {
+export async function setIssuerWalletFlags(wallet: Wallet): Promise<SetWalletFlagsResult> {
   try {
     // THROW: System validation
     if (!wallet?.classicAddress) {
@@ -92,7 +92,7 @@ export async function setIssuerWalletFlags(wallet: Wallet): Promise<WalletFlagsR
  * Set flags for treasury wallet with proper sequence management and offsets
  * @param wallet - XRPL wallet instance
  */
-export async function setTreasuryWalletFlags(wallet: Wallet): Promise<WalletFlagsResult> {
+export async function setTreasuryWalletFlags(wallet: Wallet): Promise<SetWalletFlagsResult> {
   try {
     // THROW: System validation
     if (!wallet?.classicAddress) {
@@ -168,7 +168,7 @@ export async function setTreasuryWalletFlags(wallet: Wallet): Promise<WalletFlag
  * Set flags for pathfind wallet with proper sequence management and offsets
  * @param wallet - XRPL wallet instance
  */
-export async function setPathfindWalletFlags(wallet: Wallet): Promise<WalletFlagsResult> {
+export async function setPathfindWalletFlags(wallet: Wallet): Promise<SetWalletFlagsResult> {
   try {
     // THROW: System validation
     if (!wallet?.classicAddress) {

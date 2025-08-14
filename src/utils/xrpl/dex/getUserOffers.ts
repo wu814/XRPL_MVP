@@ -6,8 +6,7 @@ import {
   AccountTxResponse,
 } from "xrpl";
 import { YONAWallet } from "@/types/appTypes";
-import { GetUserOffersResult } from "@/types/xrpl/index";
-
+import { EnhancedOffer } from "@/types/xrpl/index";
 
 /**
  * List all direct offers for a specific wallet with creation timestamps
@@ -15,7 +14,7 @@ import { GetUserOffersResult } from "@/types/xrpl/index";
  * @param wallet - The wallet to list offers for
  * @returns Array of offers with creation timestamps
  */
-export default async function getUserOffers(wallet: YONAWallet): Promise<GetUserOffersResult> {
+export default async function getUserOffers(wallet: YONAWallet): Promise<EnhancedOffer[]> {
   try {
     await connectXrplClient();
 
@@ -31,11 +30,7 @@ export default async function getUserOffers(wallet: YONAWallet): Promise<GetUser
 
     // If no offers, return empty array
     if (directOffers.length === 0) {
-      return {
-        success: true,
-        message: "No offers found",
-        data: []
-      };
+      return [];
     }
 
     // Get transaction history to find OfferCreate transactions with timestamps
@@ -80,18 +75,10 @@ export default async function getUserOffers(wallet: YONAWallet): Promise<GetUser
     
     console.log(`📋 Found ${enhancedOffers.length} active offers for ${wallet.classicAddress}`);
     
-    return {
-      success: true,
-      message: `Found ${enhancedOffers.length} offers`,
-      data: enhancedOffers
-    };
+    return enhancedOffers;
 
   } catch (error: any) {
-    return {
-      success: false,
-      message: "Failed to fetch user offers",
-      data: [],
-      error: error.message
-    };
+    console.error("❌ Error getting user offers:", error.message);
+    throw new Error(`Failed to get user offers: ${error.message}`);
   }
 }

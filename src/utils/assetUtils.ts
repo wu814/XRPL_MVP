@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { getUSDValue, fetchUSDPrices, PriceInfo } from "@/utils/currencyUtils";
 import { YONAWallet } from "@/types/appTypes";
+import { GetAccountInfoAPIResponse, GetAccountLinesAPIResponse } from "@/types/api/index";
 
 // Type definitions
 export interface Asset {
@@ -11,12 +12,6 @@ export interface Asset {
   change24h: string;
   walletAddress: string;
   issuer: string | null;
-}
-
-export interface AccountInfo {
-  data?: {
-    Balance?: number;
-  };
 }
 
 export interface AccountLine {
@@ -83,8 +78,8 @@ export async function fetchWalletAssets(
       }),
     ]);
 
-    const accountInfo: AccountInfo = await accountInfoResponse.json();
-    const accountLines: AccountLines = await accountLinesResponse.json();
+    const accountInfo: GetAccountInfoAPIResponse = await accountInfoResponse.json();
+    const accountLines: GetAccountLinesAPIResponse = await accountLinesResponse.json();
 
     const assets: Asset[] = [];
 

@@ -1,15 +1,7 @@
 "use client";
 
 import { useState, useEffect, ChangeEvent, FormEvent } from "react";
-import {
-  ArrowUpRight,
-  ArrowDownLeft,
-  ArrowUpDown,
-  Building2,
-  Search,
-  Settings,
-  Loader2,
-} from "lucide-react";
+import { ArrowUpRight, ArrowDownLeft, ArrowUpDown, Building2, Search, Settings, Loader2 } from "lucide-react";
 import ConvertCurrencyDropDown from "@/components/Currency/ConvertCurrencyDropDown";
 import SendCurrencyDropDown from "@/components/Currency/SendCurrencyDropDown";
 import FavoritesList from "@/components/Smart/FavoritesList";
@@ -19,17 +11,11 @@ import SuccessMdl from "@/components/SuccessMdl";
 import Button from "../Button";
 import { useCurrentUserWallet } from "@/components/Wallet/CurrentUserWalletProvider";
 import { useIssuerWallet } from "@/components/Wallet/IssuerWalletProvider";
-import {
-  availableCurrencies,
-  formatCurrencyValue,
-  Currency,
-} from "@/utils/currencyUtils";
+import { availableCurrencies, formatCurrencyValue, Currency } from "@/utils/currencyUtils";
 import { useSession } from "next-auth/react";
-import {
-  calculateExactAMMInput,
-  calculateEstimateOutput,
-} from "@/utils/xrpl/amm/calculations";
+import { calculateExactAMMInput, calculateEstimateOutput } from "@/utils/xrpl/amm/calculations";
 import { YONAWallet } from "@/types/appTypes";
+import { GetAccountInfoAPIResponse, GetAccountLinesAPIResponse } from "@/types/api/index";
 
 
 interface WalletBalance {
@@ -42,12 +28,7 @@ interface AmmDataResponse {
   error?: string;
 }
 
-interface AccountInfoResponse {
-  data?: {
-    balance?: number;
-    ownerCount?: number;
-  };
-}
+
 
 interface AccountLinesResponse {
   data?: {
@@ -603,14 +584,14 @@ export default function TradePanel() {
         }),
       ]);
 
-      const accountInfo: AccountInfoResponse = await accountInfoResponse.json();
-      const accountLines: AccountLinesResponse = await accountLinesResponse.json();
+      const accountInfo: GetAccountInfoAPIResponse = await accountInfoResponse.json();
+      const accountLines: GetAccountLinesAPIResponse = await accountLinesResponse.json();
 
       const balances: WalletBalance = {};
 
-      if (accountInfo.data?.balance) {
-        const xrpBalance = parseFloat(accountInfo.data.balance.toString());
-        const ownerCount = accountInfo.data.ownerCount || 0;
+      if (accountInfo.data?.Balance) {
+        const xrpBalance = parseFloat(accountInfo.data.Balance.toString());
+        const ownerCount = accountInfo.data.OwnerCount || 0;
         const BASE_RESERVE_XRP = 1;
         const OWNER_RESERVE_XRP = 0.2;
         const totalReserve = BASE_RESERVE_XRP + OWNER_RESERVE_XRP * ownerCount;
@@ -619,8 +600,8 @@ export default function TradePanel() {
         balances["XRP"] = availableBalance;
       }
 
-      if (accountLines.data?.lines) {
-        accountLines.data.lines.forEach((line) => {
+      if (accountLines.data) {
+        accountLines.data.forEach((line) => {
           if (line.currency && line.balance) {
             balances[line.currency] = parseFloat(line.balance);
           }

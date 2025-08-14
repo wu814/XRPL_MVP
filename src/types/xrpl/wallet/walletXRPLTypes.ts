@@ -1,4 +1,4 @@
-import { Wallet } from "xrpl";
+import { Wallet, AccountInfoResponse } from "xrpl";
 
 
 export interface FundWalletResult {
@@ -13,7 +13,9 @@ export interface CreateWalletResult {
   error?: string;
 }
 
-export interface WalletFlagsResult {
+export interface SetWalletFlagsResult {
   success: boolean;
   error?: string;
 }
+
+export type AccountInfo = AccountInfoResponse['result']['account_data'];

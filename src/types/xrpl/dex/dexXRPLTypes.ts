@@ -1,13 +1,13 @@
 import { AccountOffer, Amount } from "xrpl";
 
 // Create a type alias for the enhanced offer
-export type EnhancedOffer = AccountOffer & {
+export interface EnhancedOffer extends AccountOffer {
   dateTime?: string;
   creation_hash?: string;
 };
 
 // Create a type alias for completed offers
-export type EnhancedCompletedOffer = {
+export interface EnhancedCompletedOffer {
   sequence: number;
   taker_pays: Amount;
   taker_gets: Amount;
@@ -17,17 +17,3 @@ export type EnhancedCompletedOffer = {
   createHash: string | null;
   completeHash: string | null;
 };
-
-export type GetUserOffersResult = {
-  success: boolean;
-  message: string;
-  data: EnhancedOffer[];
-  error?: string;
-}
-
-export type GetCompletedOffersResult = {
-  success: boolean;
-  message: string;
-  data: EnhancedCompletedOffer[];
-  error?: string;
-}

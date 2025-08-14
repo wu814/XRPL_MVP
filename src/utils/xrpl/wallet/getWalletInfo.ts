@@ -1,39 +1,6 @@
 import { client, connectXrplClient } from "../testnet";
-import { dropsToXrp } from "xrpl";
-
-interface AccountInfo {
-  Account: string;
-  Balance: number | string; // Balance in drops or XRP
-  Flags: number;
-  LedgerEntryType: string;
-  OwnerCount: number;
-  PreviousTxnID: string;
-  PreviousTxnLgrSeq: number;
-  Sequence: number;
-  TransferRate?: number;
-  [key: string]: any;
-}
-
-interface AccountLines {
-  account: string; 
-  balance: string;
-  currency: string;
-  limit: string;
-  limit_peer: string;
-  quality_in: number;
-  quality_out: number;
-  no_ripple: boolean;
-  no_ripple_peer: boolean;
-  authorized: boolean;
-  peer_authorized: boolean;
-  freeze: boolean;
-  freeze_peer: boolean;
-}
-
-interface AccountObjects {
-  LedgerEntryType: string;
-  [key: string]: any;
-}
+import { dropsToXrp, AccountLinesTrustline, AccountObject } from "xrpl";
+import { AccountInfo } from "@/types/xrpl/index";
 
 /**
  * Get account information with balance in XRP
@@ -49,11 +16,11 @@ export async function getAccountInfo(address: string): Promise<AccountInfo> {
     ledger_index: "validated",
   });
 
-  const accountData = response.result.account_data as AccountInfo;
+  const accountData: AccountInfo = response.result.account_data;
   
   // Convert balance from drops to XRP
   if (accountData.Balance) {
-    accountData.Balance = dropsToXrp(accountData.Balance);
+    accountData.Balance = dropsToXrp(accountData.Balance).toString();
   }
 
   return accountData;
@@ -64,7 +31,7 @@ export async function getAccountInfo(address: string): Promise<AccountInfo> {
  * @param address - Account address
  * @returns Account trustlines
  */
-export async function getAccountLines(address: string): Promise<AccountLines[]> {
+export async function getAccountLines(address: string): Promise<AccountLinesTrustline[]> {
   await connectXrplClient();
   
   const response = await client.request({
@@ -73,7 +40,7 @@ export async function getAccountLines(address: string): Promise<AccountLines[]> 
     ledger_index: "validated",
   });
 
-  return response.result.lines as AccountLines[];
+  return response.result.lines as AccountLinesTrustline[];
 }
 
 /**
@@ -81,7 +48,7 @@ export async function getAccountLines(address: string): Promise<AccountLines[]> 
  * @param address - Account address
  * @returns Account objects
  */
-export async function getAccountObjects(address: string): Promise<AccountObjects[]> {
+export async function getAccountObjects(address: string): Promise<AccountObject[]> {
   await connectXrplClient();
   
   const response = await client.request({
@@ -90,5 +57,5 @@ export async function getAccountObjects(address: string): Promise<AccountObjects
     ledger_index: "validated",
   });
 
-  return response.result.account_objects as AccountObjects[];
+  return response.result.account_objects as AccountObject[];
 }

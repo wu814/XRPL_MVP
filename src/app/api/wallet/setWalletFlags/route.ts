@@ -7,7 +7,7 @@ import {
 import { Wallet } from "xrpl";
 import { APIErrorResponse, SetWalletFlagsAPIRequest, SetWalletFlagsAPIResponse } from "@/types/api/index";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
-import { WalletFlagsResult } from "@/types/xrpl/wallet/walletXRPLTypes";
+import { SetWalletFlagsResult } from "@/types/xrpl/wallet/walletXRPLTypes";
 
 
 export async function POST(req: NextRequest) {
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
     }
 
     const xrplWallet = Wallet.fromSeed(walletData.seed);
-    let result: WalletFlagsResult;
+    let result: SetWalletFlagsResult;
 
     switch (wallet.walletType) {
       case "ISSUER":

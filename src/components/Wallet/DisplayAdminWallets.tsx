@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { WalletBalance, AccountInfoResponse } from "@/types/wallet";
-import { YONAWallet } from "@/types/appTypes";
+import { WalletBalance } from "@/types/wallet";
 import { useCurrentUserWallet } from "@/components/Wallet/CurrentUserWalletProvider";
 import { useIssuerWallet } from "@/components/Wallet/IssuerWalletProvider";
 import DeleteWalletBtn from "@/components/Wallet/DeleteWalletBtn";
@@ -14,6 +13,8 @@ import CreateAdminWalletBtn from "@/components/Wallet/CreateAdminWalletBtn";
 import Button from "@/components/Button";
 import ManageOracleBtn from "@/components/Wallet/ManageOracleBtn";
 import ViewWalletDetails from "@/components/Wallet/ViewWalletDetails";
+import { YONAWallet } from "@/types/appTypes";
+import { GetAccountInfoAPIResponse } from "@/types/api/index";
 
 export default function DisplayAdminWallets() {
   const { currentUserWallets, fetchCurrentUserWallets } = useCurrentUserWallet();
@@ -38,7 +39,7 @@ export default function DisplayAdminWallets() {
             body: JSON.stringify({ wallet }),
           });
 
-          const data: AccountInfoResponse = await response.json();
+          const data: GetAccountInfoAPIResponse = await response.json();
           if (data.data) {
             const balance = parseFloat(data.data.Balance); // Already converted from drops
             const ownerCount = data.data.OwnerCount || 0;

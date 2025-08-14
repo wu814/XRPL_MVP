@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { Plus } from "lucide-react";
-import { WalletBalance, AccountInfoResponse } from "@/types/wallet";
 import { YONAWallet } from "@/types/appTypes";
 import { useCurrentUserWallet } from "@/components/Wallet/CurrentUserWalletProvider";
 import { useIssuerWallet } from "@/components/Wallet/IssuerWalletProvider";
@@ -13,6 +12,8 @@ import CreateUserWalletBtn from "@/components/Wallet/CreateUserWalletBtn";
 import Button from "@/components/Button";
 import ViewWalletDetails from "@/components/Wallet/ViewWalletDetails";
 import AddFundsBtn from "./AddFunds";
+import { WalletBalance } from "@/types/wallet";
+import { GetAccountInfoAPIResponse } from "@/types/api/index";
 
 // Additional Welcome Section Component for users with wallets
 function AdditionalWelcomeSection() {
@@ -86,7 +87,7 @@ export default function DisplayUserWallets() {
             body: JSON.stringify({ wallet }),
           });
 
-          const data: AccountInfoResponse = await response.json();
+          const data: GetAccountInfoAPIResponse = await response.json();
           if (data.data) {
             const balance = parseFloat(data.data.Balance); // Already converted from drops
             const ownerCount = data.data.OwnerCount || 0;

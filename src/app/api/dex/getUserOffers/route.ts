@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import getUserOffers from "@/utils/xrpl/dex/getUserOffers";
 import { GetUserOffersAPIRequest, GetUserOffersAPIResponse, APIErrorResponse } from "@/types/api/index";
-import { GetUserOffersResult } from "@/types/xrpl/index";
 
 export async function POST(req: NextRequest) {
   try {
@@ -14,19 +13,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const result: GetUserOffersResult = await getUserOffers(sourceWallet);
+    const offers = await getUserOffers(sourceWallet);
     
-    if (!result.success) {
-      return NextResponse.json<APIErrorResponse>(
-        { message: result.error || "Failed to fetch offers" },
-        { status: 500 }
-      );
-    }
-
     return NextResponse.json<GetUserOffersAPIResponse>(
       {
-        message: result.message,
-        data: result.data
+        message: `Found ${offers.length} offers`,
+        data: offers
       },
       { status: 200 }
     );
