@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
-import BigNumber from "bignumber.js";
+import { useState, useMemo } from "react";
 import CurrencyIcon from "../Currency/CurrencyIcon";
 import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";

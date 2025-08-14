@@ -5,21 +5,17 @@ import {
   setPathfindWalletFlags,
 } from "@/utils/xrpl/wallet/setWalletFlags";
 import { Wallet } from "xrpl";
+import { APIErrorResponse, SetWalletFlagsAPIRequest, SetWalletFlagsAPIResponse } from "@/types/api/index";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
+import { WalletFlagsResult } from "@/types/xrpl/wallet/walletXRPLTypes";
 
-interface SetWalletFlagsRequest {
-  wallet: {
-    classicAddress: string;
-    walletType: "ISSUER" | "TREASURY" | "PATHFIND";
-  };
-}
 
 export async function POST(req: NextRequest) {
   try {
-    const { wallet }: SetWalletFlagsRequest = await req.json();
+    const { wallet }: SetWalletFlagsAPIRequest = await req.json();
 
     if (!wallet) {
-      return NextResponse.json({ error: "Missing wallet" }, { status: 400 });
+      return NextResponse.json<APIErrorResponse>({ message: "Missing wallet" }, { status: 400 });
     }
 
     // Get seed from Supabase using classicAddress
@@ -31,39 +27,47 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (walletError || !walletData) {
-      return NextResponse.json(
-        { error: "Wallet not found for the provided classicAddress" },
+      return NextResponse.json<APIErrorResponse>(
+        { message: "Wallet not found for the provided classicAddress" },
         { status: 404 },
       );
     }
 
     const xrplWallet = Wallet.fromSeed(walletData.seed);
+    let result: WalletFlagsResult;
 
     switch (wallet.walletType) {
       case "ISSUER":
-        await setIssuerWalletFlags(xrplWallet);
+        result = await setIssuerWalletFlags(xrplWallet);
         break;
       case "TREASURY":
-        await setTreasuryWalletFlags(xrplWallet);
+        result = await setTreasuryWalletFlags(xrplWallet);
         break;
       case "PATHFIND":
-        await setPathfindWalletFlags(xrplWallet);
+        result = await setPathfindWalletFlags(xrplWallet);
         break;
       default:
-        return NextResponse.json(
-          { error: `Unsupported walletType: ${wallet.walletType}` },
+        return NextResponse.json<APIErrorResponse>(
+          { message: `Unsupported walletType: ${wallet.walletType}` },
           { status: 400 },
         );
     }
 
-    return NextResponse.json(
+    if (!result.success) {
+      return NextResponse.json<APIErrorResponse>(
+        { message: `❌ Error setting wallet flags: ${result.error}` },
+        { status: 500 },
+      );
+    }
+
+    return NextResponse.json<SetWalletFlagsAPIResponse>(
       { message: `✅ Flags successfully set for ${wallet.walletType} wallet.` },
       { status: 200 },
     );
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    return NextResponse.json(
-      { error: `❌ Error setting wallet flags: ${errorMessage}` },
+    return NextResponse.json<APIErrorResponse>(
+      { message: `❌ Error setting wallet flags: ${errorMessage}` },
       { status: 500 },
     );
   }

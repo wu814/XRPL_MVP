@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { YONAWallet, WalletBalance, AccountInfoResponse } from "@/types/wallet";
+import { WalletBalance, AccountInfoResponse } from "@/types/wallet";
+import { YONAWallet } from "@/types/appTypes";
 import { useCurrentUserWallet } from "@/components/Wallet/CurrentUserWalletProvider";
 import { useIssuerWallet } from "@/components/Wallet/IssuerWalletProvider";
 import DeleteWalletBtn from "@/components/Wallet/DeleteWalletBtn";

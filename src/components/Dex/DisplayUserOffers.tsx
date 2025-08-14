@@ -4,12 +4,8 @@ import { useEffect, useState } from "react";
 import { RefreshCw, CheckCircle, XCircle, ExternalLink } from "lucide-react";
 import { useCurrentUserWallet } from "@/components/Wallet/CurrentUserWalletProvider";
 import CancelOfferBtn from "./CancelOfferBtn";
-import { 
-  GetUserOffersAPIResponse,
-  OfferWithTimestamp,
-  GetCompletedOffersAPIResponse,
-  CompletedOffer,
-} from "@/types/offerTypes";
+import { EnhancedOffer, EnhancedCompletedOffer } from "@/types/xrpl/index";
+import { GetUserOffersAPIResponse, GetCompletedOffersAPIResponse, APIErrorResponse } from "@/types/api/index";
 
 // Helper: Convert XRP drops or IOU object to unified format
 function parseAsset(asset: any) {
@@ -27,10 +23,10 @@ function getExplorerUrl(hash: string) {
 
 export default function DisplayUserOffers() {
   const { currentUserWallets } = useCurrentUserWallet();
-  const [offers, setOffers] = useState<OfferWithTimestamp[]>([]);
-  const [completedOffers, setCompletedOffers] = useState<CompletedOffer[]>([]);
+  const [offers, setOffers] = useState<EnhancedOffer[]>([]);
+  const [completedOffers, setCompletedOffers] = useState<EnhancedCompletedOffer[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"offers" | "history">("offers");
 
   const sourceWallet = currentUserWallets?.find(
@@ -44,7 +40,7 @@ export default function DisplayUserOffers() {
     if (!sourceWallet?.classicAddress) return;
 
     setLoading(true);
-    setError(null);
+    setErrorMessage(null);
 
     try {
       const response = await fetch("/api/dex/getUserOffers", {
@@ -53,14 +49,15 @@ export default function DisplayUserOffers() {
         body: JSON.stringify({ sourceWallet }),
       });
 
+      if (!response.ok) {
+        const errorData: APIErrorResponse = await response.json();
+        setErrorMessage(errorData.message);
+        return;
+      }
       const result: GetUserOffersAPIResponse = await response.json();
-      if (!response.ok) throw new Error("Failed to fetch offers");
-
-      if (result.success === false) throw new Error(result.error || "Failed to fetch offers");
-
       setOffers(result.data);
     } catch (err: any) {
-      setError(err.message);
+      setErrorMessage(err.message); 
     } finally {
       setLoading(false);
     }
@@ -70,7 +67,7 @@ export default function DisplayUserOffers() {
     if (!sourceWallet?.classicAddress) return;
 
     setLoading(true);
-    setError(null);
+    setErrorMessage(null);
 
     try {
       const response = await fetch("/api/dex/getCompletedOffers", {
@@ -79,14 +76,16 @@ export default function DisplayUserOffers() {
         body: JSON.stringify({ sourceWallet }),
       });
 
+      if (!response.ok) {
+        const errorData: APIErrorResponse = await response.json();
+        setErrorMessage(errorData.message);
+        return;
+      }
+
       const result: GetCompletedOffersAPIResponse = await response.json();
-      if (!response.ok) throw new Error("Failed to fetch completed offers");
-
-      if (result.success === false) throw new Error(result.error || "Failed to fetch completed offers");
-
       setCompletedOffers(result.data);
     } catch (err: any) {
-      setError(err.message);
+      setErrorMessage(err.message);
     } finally {
       setLoading(false);
     }
@@ -152,11 +151,11 @@ export default function DisplayUserOffers() {
         {activeTab === "offers" && (
           <>
             {loading && <p className="text-mutedText">Loading offers...</p>}
-            {!loading && error && (
-              <p className="text-red-500">Error: {error}</p>
+            {!loading && errorMessage && (
+              <p className="text-red-500">Error: {errorMessage}</p>
             )}
             {!loading &&
-              !error &&
+              !errorMessage &&
               sourceWallet?.classicAddress &&
               offers?.length === 0 && (
                 <p className="text-mutedText">You have no active offers.</p>
@@ -194,7 +193,7 @@ export default function DisplayUserOffers() {
                         {gets.value} {gets.currency}
                       </div>
                       <div className="">
-                        {offer.date}
+                        {offer.dateTime}
                       </div>
                       <div className="">
                         <a
@@ -218,11 +217,11 @@ export default function DisplayUserOffers() {
         {activeTab === "history" && (
           <>
             {loading && <p className="text-mutedText">Loading completed offers...</p>}
-            {!loading && error && (
-              <p className="text-red-500">Error: {error}</p>
+            {!loading && errorMessage && (
+              <p className="text-red-500">Error: {errorMessage}</p>
             )}
             {!loading &&
-              !error &&
+              !errorMessage &&
               sourceWallet?.classicAddress &&
               completedOffers && completedOffers.length === 0 && (
                 <p className="text-mutedText">You have no completed offers.</p>
@@ -265,7 +264,7 @@ export default function DisplayUserOffers() {
                         {pays.value} {pays.currency}
                       </div>
                       <div className="">
-                        {offer.formattedCompletedDate}
+                        {offer.completedAtDateTime}
                       </div>
                       <div className="flex gap-2">
                         <a

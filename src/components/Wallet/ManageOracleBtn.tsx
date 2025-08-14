@@ -5,7 +5,7 @@ import { Loader2 } from "lucide-react";
 import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
-import { YONAWallet } from "@/types/wallet";
+import { YONAWallet } from "@/types/appTypes";
 
 interface OracleResponse {
   message?: string;

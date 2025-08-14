@@ -1,4 +1,4 @@
-import xrpl from "xrpl";
+import { SubmitResponse, TxResponse } from "xrpl";
 
 /**
  * Enhanced Error Handling & Retry Logic System
@@ -199,209 +199,117 @@ export function classifyError(error: any, operation: string = 'unknown'): { type
   };
 }
 
-/**
- * Exponential backoff delay calculation
- */
-export function calculateDelay(attempt: number, config: RetryConfig = DEFAULT_RETRY_CONFIG): number {
-  const delay = Math.min(
-    config.baseDelay * Math.pow(config.backoffFactor, attempt),
-    config.maxDelay
-  );
-  
-  // Add jitter to prevent thundering herd
-  const jitter = Math.random() * 0.1 * delay;
-  return Math.floor(delay + jitter);
-}
 
 /**
- * Sleep utility for delays
+ * Handle AMM deposit errors with specific guidance
  */
-export function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-/**
- * Enhanced retry wrapper with exponential backoff and detailed logging
- */
-export async function withRetry<T>(
-  operation: () => Promise<T>,
-  operationName: string = 'operation',
-  config: RetryConfig = DEFAULT_RETRY_CONFIG,
-  metadata?: Record<string, any>
-): Promise<Result<T>> {
-  let lastError: any;
+export function handleAMMDepositError(error: any): ErrorResult {
+  const errorCode = error?.engine_result || error?.code;
+  const specificMessage = AMMDepositErrorCodes[errorCode as keyof typeof AMMDepositErrorCodes];
   
-  for (let attempt = 0; attempt <= config.maxRetries; attempt++) {
-    try {
-      console.log(`🔄 Attempting ${operationName} (attempt ${attempt + 1}/${config.maxRetries + 1})`);
-      
-      const result = await operation();
-      
-      if (attempt > 0) {
-        console.log(`✅ ${operationName} succeeded after ${attempt + 1} attempts`);
-      }
-      
-      return { success: true, data: result };
-      
-    } catch (error) {
-      lastError = error;
-      const classification = classifyError(error, operationName);
-      
-      const context: ErrorContext = {
-        operation: operationName,
-        attempt: attempt + 1,
-        maxRetries: config.maxRetries,
-        error: error,
-        metadata
-      };
-      
-      console.error(`❌ ${operationName} failed (attempt ${attempt + 1}):`, {
-        error: classification.message,
-        type: classification.type,
-        canRetry: classification.canRetry,
-        context
-      });
-      
-      // Don't retry if it's the last attempt or error is not retryable
-      if (attempt >= config.maxRetries || !classification.canRetry) {
-        return {
-          success: false,
-          error: classification.message,
-          errorType: classification.type,
-          context,
-          canRetry: classification.canRetry
-        };
-      }
-      
-      // Calculate delay and wait before retry
-      const delay = calculateDelay(attempt, config);
-      console.log(`⏳ Retrying ${operationName} in ${delay}ms...`);
-      await sleep(delay);
-    }
+  if (specificMessage) {
+    return {
+      success: false,
+      error: `AMM Deposit Failed: ${specificMessage}`,
+      errorType: ErrorTypes.AMM,
+      canRetry: false
+    };
   }
   
-  // This should never be reached, but just in case
-  const classification = classifyError(lastError, operationName);
+  const classification = classifyError(error, 'AMM Deposit');
   return {
     success: false,
     error: classification.message,
     errorType: classification.type,
-    canRetry: false
+    canRetry: classification.canRetry
   };
 }
 
 /**
- * Specific error handlers for common XRPL operations
+ * Enhanced response type that covers all your use cases
  */
-export class XRPLErrorHandler {
-  
-  /**
-   * Handle AMM deposit errors with specific guidance
-   */
-  static handleAMMDepositError(error: any): ErrorResult {
-    const errorCode = error?.engine_result || error?.code;
-    const specificMessage = AMMDepositErrorCodes[errorCode as keyof typeof AMMDepositErrorCodes];
-    
-    if (specificMessage) {
-      return {
-        success: false,
-        error: `AMM Deposit Failed: ${specificMessage}`,
-        errorType: ErrorTypes.AMM,
-        canRetry: false
-      };
-    }
-    
-    const classification = classifyError(error, 'AMM Deposit');
-    return {
-      success: false,
-      error: classification.message,
-      errorType: classification.type,
-      canRetry: classification.canRetry
+export type XRPLTransactionResponse = SubmitResponse | TxResponse | {
+  result: {
+    meta?: {
+      TransactionResult?: string;
+      [key: string]: any;
     };
-  }
-  
-  /**
-   * Handle AMM withdrawal errors with specific guidance
-   */
-  static handleAMMWithdrawError(error: any): ErrorResult {
-    const errorCode = error?.engine_result || error?.code;
-    const specificMessage = AMMWithdrawErrorCodes[errorCode as keyof typeof AMMWithdrawErrorCodes];
-    
-    if (specificMessage) {
-      return {
-        success: false,
-        error: `AMM Withdrawal Failed: ${specificMessage}`,
-        errorType: ErrorTypes.AMM,
-        canRetry: false
-      };
-    }
-    
-    const classification = classifyError(error, 'AMM Withdrawal');
-    return {
-      success: false,
-      error: classification.message,
-      errorType: classification.type,
-      canRetry: classification.canRetry
-    };
-  }
-  
-  /**
-   * Handle transaction submission errors
-   */
-  static handleTransactionError(error: any, transactionType: string = 'transaction'): ErrorResult {
-    const classification = classifyError(error, transactionType);
-    
-    // Provide more specific guidance for common transaction errors
-    if (classification.type === ErrorTypes.INSUFFICIENT_FUNDS) {
-      return {
-        success: false,
-        error: `Insufficient funds for ${transactionType}. Please check your balance and try again.`,
-        errorType: ErrorTypes.INSUFFICIENT_FUNDS,
-        canRetry: false
-      };
-    }
-    
-    return {
-      success: false,
-      error: classification.message,
-      errorType: classification.type,
-      canRetry: classification.canRetry
-    };
-  }
-}
-
-/**
- * Graceful error wrapper for API responses
- */
-export function wrapApiError<T>(result: Result<T>): { success: boolean; data?: T; error?: string; errorType?: ErrorType } {
-  if (result.success) {
-    return {
-      success: true,
-      data: result.data
-    };
-  }
-  
-  // Type assertion since we know it's ErrorResult when success is false
-  const errorResult = result as ErrorResult;
-  return {
-    success: false,
-    error: errorResult.error,
-    errorType: errorResult.errorType
+    engine_result?: string;
+    hash?: string;
+    [key: string]: any;
   };
+} | {
+  result: {
+    engine_result: string;
+    engine_result_code: number;
+    engine_result_message: string;
+    tx_blob: string;
+    tx_json: any;
+    accepted: boolean;
+    hash?: string;
+    [key: string]: any;
+  };
+};
+
+/**
+ * Enhanced transaction result extraction with fallbacks
+ */
+export function getTransactionResult(response: XRPLTransactionResponse): string {
+  if (!response || !('result' in response) || !response.result) {
+    return 'UNKNOWN_ERROR';
+  }
+  
+  // Check if response has meta (TxResponse)
+  if ('meta' in response.result && response.result.meta?.TransactionResult) {
+    return response.result.meta.TransactionResult;
+  }
+  
+  // Check if response has engine_result (SubmitResponse)
+  if ('engine_result' in response.result && response.result.engine_result) {
+    return response.result.engine_result;
+  }
+  
+  // Check if response has meta but no TransactionResult
+  if ('meta' in response.result && response.result.meta && Object.keys(response.result.meta).length > 0) {
+    return 'TRANSACTION_FAILED_NO_RESULT';
+  }
+  
+  // Check if response has hash
+  if ('hash' in response.result && response.result.hash) {
+    return 'TRANSACTION_SUBMITTED_NO_RESULT';
+  }
+  
+  return 'UNKNOWN_ERROR';
 }
 
 /**
- * Log error with context for debugging
+ * Enhanced success check with comprehensive validation
  */
-export function logError(error: any, context: string, metadata?: Record<string, any>): void {
-  const classification = classifyError(error, context);
+export function isTransactionSuccessful(response: XRPLTransactionResponse): boolean {
+  const result = getTransactionResult(response);
   
-  console.error(`🚨 Error in ${context}:`, {
-    message: classification.message,
-    type: classification.type,
-    canRetry: classification.canRetry,
-    originalError: error,
-    metadata,
-    timestamp: new Date().toISOString()
-  });
+  // Known success codes
+  if (result === 'tesSUCCESS') {
+    return true;
+  }
+  
+  // Known failure codes (start with tec, tem, ter)
+  if (result.startsWith('tec') || result.startsWith('tem') || result.startsWith('ter')) {
+    return false;
+  }
+  
+  // Handle our custom error codes
+  if (result === 'TRANSACTION_FAILED_NO_RESULT' || 
+      result === 'UNKNOWN_ERROR') {
+    return false;
+  }
+  
+  // If we have a hash but no clear result, assume it's processing
+  if ('hash' in response?.result && response.result.hash && 
+      !('meta' in response.result && response.result.meta?.TransactionResult)) {
+    return false; // Conservative approach - assume failure until confirmed
+  }
+  
+  return false; // Default to failure for safety
 }
+

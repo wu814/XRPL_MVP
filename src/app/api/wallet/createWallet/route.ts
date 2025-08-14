@@ -2,8 +2,9 @@ import { createSupabaseAnonClient } from "@/utils/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import createWallet  from "@/utils/xrpl/wallet/createWallet";
-import { CreateWalletResponse } from "@/types/wallet";
+import createWallet from "@/utils/xrpl/wallet/createWallet";
+import { CreateWalletResult } from "@/types/xrpl/index.js";
+import { APIErrorResponse, CreateWalletAPIRequest, CreateWalletAPIResponse } from "@/types/api/index";
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -14,28 +15,37 @@ export async function POST(req: NextRequest) {
   const user_id = session.user.user_id;
   
   try {
-    const { walletType }: { walletType: string } = await req.json();
+    const { walletType }: CreateWalletAPIRequest = await req.json();
 
-    const walletData = await createWallet(walletType);
+    const walletResult: CreateWalletResult = await createWallet(walletType);
+    
+    if (!walletResult.success) {
+      return NextResponse.json<APIErrorResponse>(
+        { message: walletResult.error || "Failed to create wallet" },
+        { status: 500 }
+      );
+    }
 
     const supabase = await createSupabaseAnonClient();
     const { error } = await supabase.from("wallets").insert([
       {
         user_id,
-        classic_address: walletData.classicAddress,
-        wallet_type: walletData.walletType,
-        seed: walletData.seed,
+        classic_address: walletResult.data.wallet.address,
+        wallet_type: walletType,
+        seed: walletResult.data.wallet.seed,
         created_at: new Date().toISOString(),
       },
     ]);
 
     if (error) throw error;
 
-    return NextResponse.json<CreateWalletResponse>(
+    return NextResponse.json<CreateWalletAPIResponse>(
       {
-        success: true,
-        message: `${walletData.walletType} wallet created!`,
-        data: walletData,
+        message: walletResult.message,
+        data: {
+          classicAddress: walletResult.data.wallet.address,
+          walletType: walletType,
+        },
       },
       { status: 201 }
     );
@@ -43,8 +53,8 @@ export async function POST(req: NextRequest) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error occurred";
 
-    return NextResponse.json<CreateWalletResponse>(
-      { success: false, error: `Error creating wallet: ${errorMessage}` },
+    return NextResponse.json<APIErrorResponse>(
+      { message: `Error creating wallet: ${errorMessage}` },
       { status: 500 }
     );
   }

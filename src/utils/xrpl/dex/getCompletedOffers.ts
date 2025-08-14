@@ -6,11 +6,8 @@ import {
   AccountOffersResponse,
   Amount,
 } from "xrpl";
-import { CompletedOffer } from "@/types/offerTypes";
-
-interface Wallet {
-  classicAddress: string;
-}
+import { EnhancedCompletedOffer, GetCompletedOffersResult } from "@/types/xrpl/index";
+import { YONAWallet } from "@/types/appTypes";
 
 interface OfferCreateInfo {
   sequence: number;
@@ -66,7 +63,7 @@ const hasAssetExchange = (txData: any, walletAddress: string): boolean => {
  * @param wallet - The wallet to get completed offers for
  * @returns Array of completed offers with status and completion info
  */
-export default async function getCompletedOffers(wallet: Wallet): Promise<CompletedOffer[]> {
+export default async function getCompletedOffers(wallet: YONAWallet): Promise<GetCompletedOffersResult> {
   try {
     await connectXrplClient();
 
@@ -97,7 +94,7 @@ export default async function getCompletedOffers(wallet: Wallet): Promise<Comple
     // Find all OfferCreate transactions and explicit cancellations
     const offerCreates = new Map<number, OfferCreateInfo>();
     const offerCancels = new Map<number, OfferCancelInfo>();
-    const completedOffers: CompletedOffer[] = [];
+    const completedOffers: EnhancedCompletedOffer[] = [];
 
     // Process all transactions to find offer creates and cancels
     transactions.forEach((txData, index) => {
@@ -159,10 +156,8 @@ export default async function getCompletedOffers(wallet: Wallet): Promise<Comple
               sequence: tx.Sequence,
               taker_pays: tx.TakerPays,
               taker_gets: tx.TakerGets,
-              createdAt: timestamp,
-              completedAt: timestamp, // Same time as creation for immediate fill/kill
-              formattedCreatedDate: timestamp ? timestamp.toLocaleString() : "Unknown",
-              formattedCompletedDate: timestamp ? timestamp.toLocaleString() : "Unknown",
+              createdAtDateTime: timestamp ? timestamp.toLocaleString() : "Unknown",
+              completedAtDateTime: timestamp ? timestamp.toLocaleString() : "Unknown",
               status: finalStatus,
               createHash: hash,
               completeHash: hash
@@ -234,28 +229,29 @@ export default async function getCompletedOffers(wallet: Wallet): Promise<Comple
         sequence,
         taker_pays: offer.taker_pays,
         taker_gets: offer.taker_gets,
-        createdAt: offer.createdAt,
-        completedAt: completedAt || offer.createdAt,
-        formattedCreatedDate: offer.createdAt ? offer.createdAt.toLocaleString() : "Unknown",
-        formattedCompletedDate: completedAt ? completedAt.toLocaleString() : "Est. " + (completedAt ? completedAt.toLocaleString() : "Unknown"),
+        createdAtDateTime: offer.createdAt ? offer.createdAt.toLocaleString() : "Unknown",
+        completedAtDateTime: completedAt ? completedAt.toLocaleString() : "Unknown",
         status,
         createHash: offer.hash,
-        completeHash: completedHash,
-        isEstimated: status === "filled" && !offerCancels.has(sequence) // Mark estimated completion times
+        completeHash: completedHash
       });
     });
 
     // Sort by completion time (newest first)
     completedOffers.sort((a, b) => {
-      if (a.completedAt && b.completedAt) {
-        return b.completedAt.getTime() - a.completedAt.getTime();
+      if (a.createdAtDateTime && b.createdAtDateTime) {
+        return new Date(b.createdAtDateTime).getTime() - new Date(a.createdAtDateTime).getTime();
       }
       return b.sequence - a.sequence;
     });
 
     console.log(`📋 Found ${completedOffers.length} completed offers for ${wallet.classicAddress}`);
 
-    return completedOffers;
+    return {
+      success: true,
+      message: "Completed offers fetched successfully",
+      data: completedOffers
+    };
   } catch (error: any) {
     console.error("❌ Error getting completed offers:", error.message);
     throw new Error(`Failed to get completed offers: ${error.message}`);

@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { Plus } from "lucide-react";
-import { YONAWallet, WalletBalance, AccountInfoResponse } from "@/types/wallet";
+import { WalletBalance, AccountInfoResponse } from "@/types/wallet";
+import { YONAWallet } from "@/types/appTypes";
 import { useCurrentUserWallet } from "@/components/Wallet/CurrentUserWalletProvider";
 import { useIssuerWallet } from "@/components/Wallet/IssuerWalletProvider";
 import SetTrustlineBtn from "@/components/Wallet/SetTrustlineBtn";

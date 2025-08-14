@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useCurrentUserWallet } from "../Wallet/CurrentUserWalletProvider";
-import { YONAWallet } from "@/types/wallet";
+import { YONAWallet } from "@/types/appTypes";
 import { 
   ArrowUpRight, 
   ArrowDownLeft, 

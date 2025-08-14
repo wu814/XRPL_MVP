@@ -1,0 +1,22 @@
+import { EnhancedOffer, EnhancedCompletedOffer } from "@/types/xrpl/index";
+import { YONAWallet } from "@/types/appTypes";
+
+export interface GetUserOffersAPIRequest {
+  sourceWallet: YONAWallet;
+}
+
+export interface GetUserOffersAPIResponse {
+  message: string;
+  data: EnhancedOffer[];
+  error?: string;
+}
+
+export interface GetCompletedOffersAPIRequest {
+  sourceWallet: YONAWallet;
+}
+
+export interface GetCompletedOffersAPIResponse {
+  message: string;
+  data: EnhancedCompletedOffer[];
+  error?: string;
+}

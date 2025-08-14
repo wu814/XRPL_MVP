@@ -29,7 +29,7 @@ import {
   calculateExactAMMInput,
   calculateEstimateOutput,
 } from "@/utils/xrpl/amm/calculations";
-import { YONAWallet } from "@/types/wallet";
+import { YONAWallet } from "@/types/appTypes";
 
 
 interface WalletBalance {

@@ -6,7 +6,7 @@ import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
 import CurrencyDropDown from "../Currency/CurrencyDropDown";
-import { YONAWallet } from "@/types/wallet";
+import { YONAWallet } from "@/types/appTypes";
 
 interface SetTrustlineResponse {
   message?: string;

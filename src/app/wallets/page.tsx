@@ -13,7 +13,7 @@ import {
 } from "@/utils/assetUtils";
 import { useLivePrices } from "@/utils/currencyUtils";
 import usePageTitle from "@/utils/usePageTitle";
-import { YONAWallet } from "@/types/wallet";
+import { YONAWallet } from "@/types/appTypes";
 import { PriceInfo } from "@/utils/currencyUtils";
 
 // Wallet component that displays individual wallet and its assets

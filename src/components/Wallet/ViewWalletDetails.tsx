@@ -1,7 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Landmark } from "lucide-react";
-import { YONAWallet, ReserveItem, AccountObjectsResponse } from "@/types/wallet";
+import { ReserveItem, AccountObjectsResponse } from "@/types/wallet";
+import { YONAWallet } from "@/types/appTypes";
 
 interface ViewWalletDetailsProps {
   wallet: YONAWallet;

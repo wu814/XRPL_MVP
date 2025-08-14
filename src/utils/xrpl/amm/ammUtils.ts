@@ -6,6 +6,7 @@ import {
   Amount, 
   IssuedCurrencyAmount
 } from "xrpl";
+import { AMMData } from "@/types/xrpl/amm/ammXRPLTypes";
 
 interface Asset {
   currency: string;
@@ -87,7 +88,7 @@ export async function getAmmInfo(ammAccount: string): Promise<AmmInfo | null> {
       };
     }
     
-    const amm: any = response.result.amm;
+    const amm: AMMData = response.result.amm;
     
     // Parse assets consistently
     const parseAsset = (assetData: Amount): Asset => {

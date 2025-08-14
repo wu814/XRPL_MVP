@@ -2,7 +2,8 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { useSession } from "next-auth/react";
-import { YONAWallet, WalletApiResponse, IssuerWalletContextType } from "@/types/wallet";
+import { WalletApiResponse, IssuerWalletContextType } from "@/types/wallet";
+import { YONAWallet } from "@/types/appTypes";
 
 const IssuerWalletContext = createContext<IssuerWalletContextType | undefined>(undefined);
 

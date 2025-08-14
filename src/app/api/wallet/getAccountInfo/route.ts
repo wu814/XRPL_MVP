@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAccountInfo } from "@/utils/xrpl/wallet/getWalletInfo";
-import { YONAWallet } from "@/types/wallet";
+import { YONAWallet } from "@/types/appTypes";
 
 interface GetAccountInfoRequest {
   wallet: YONAWallet;

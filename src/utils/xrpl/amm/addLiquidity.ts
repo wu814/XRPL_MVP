@@ -3,7 +3,7 @@ import { Wallet, IssuedCurrencyAmount } from "xrpl";
 import * as xrpl from "xrpl";
 import { checkTrustline } from "@/utils/xrpl/trustline/setTrustline";
 import BigNumber from "bignumber.js";
-import { XRPLErrorHandler } from '../errorHandler';
+import { handleAMMDepositError } from '../errorHandler';
 
 const BASE_RESERVE_XRP = 1; // Base reserve for an account in XRP
 const OWNER_RESERVE_XRP = 0.2; // Owner reserve for each object in XRP
@@ -602,7 +602,7 @@ export async function addLiquidityTwoAsset(
 
   // Handle any AMM deposit errors
   try {
-    XRPLErrorHandler.handleAMMDepositError(result);
+    handleAMMDepositError(result);
   } catch (error: any) {
     console.error(`❌ AMM Deposit error: ${error.message}`);
   }
@@ -835,7 +835,7 @@ export async function addLiquidityLPToken(
 
   // Handle any AMM deposit errors
   try {
-    XRPLErrorHandler.handleAMMDepositError(result);
+    handleAMMDepositError(result);
   } catch (error: any) {
     console.error(`❌ AMM Deposit error: ${error.message}`);
   }
@@ -1037,7 +1037,7 @@ export async function addLiquidityIfEmpty(
 
   // Handle any AMM deposit errors
   try {
-    XRPLErrorHandler.handleAMMDepositError(result);
+    handleAMMDepositError(result);
   } catch (error: any) {
     console.error(`❌ AMM Deposit error: ${error.message}`);
   }
@@ -1244,7 +1244,7 @@ export async function addLiquiditySingleAsset(
 
   // Handle any AMM deposit errors
   try {
-    XRPLErrorHandler.handleAMMDepositError(result);
+    handleAMMDepositError(result);
   } catch (error: any) {
     console.error(`❌ AMM Deposit error: ${error.message}`);
   }
@@ -1439,7 +1439,7 @@ export async function addLiquidityOneAssetLPToken(
 
   // Handle any AMM deposit errors
   try {
-    XRPLErrorHandler.handleAMMDepositError(result);
+    handleAMMDepositError(result);
   } catch (error: any) {
     console.error(`❌ AMM Deposit error: ${error.message}`);
   }
@@ -1642,7 +1642,7 @@ export async function addLiquidityLimitLPToken(
 
   // Handle any AMM deposit errors
   try {
-    XRPLErrorHandler.handleAMMDepositError(result);
+    handleAMMDepositError(result);
   } catch (error: any) {
     console.error(`❌ AMM Deposit error: ${error.message}`);
   }

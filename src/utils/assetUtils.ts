@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { getUSDValue, fetchUSDPrices, PriceInfo } from "@/utils/currencyUtils";
-import { YONAWallet } from "@/types/wallet";
+import { YONAWallet } from "@/types/appTypes";
 
 // Type definitions
 export interface Asset {

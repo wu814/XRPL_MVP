@@ -7,7 +7,7 @@ import CreateAmmMdl from "./CreateAmmMdl";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
 import { useIssuerWallet } from "@/components/Wallet/IssuerWalletProvider";
-import { YONAWallet } from "@/types/wallet";
+import { YONAWallet } from "@/types/appTypes";
 
 interface TreasuryWalletData {
   classic_address: string;

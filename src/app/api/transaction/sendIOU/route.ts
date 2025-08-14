@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
 import sendIOU from "@/utils/xrpl/transaction/sendIOU";
 import { Wallet } from "xrpl";
-import { YONAWallet } from "@/types/wallet";
+import { YONAWallet } from "@/types/appTypes";
 
 interface SendIOURequest {
   senderWallet: {

@@ -9,7 +9,7 @@ import SlippagePanel from "../SlippagePanel";
 import { Settings, Loader2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { calculateExactAMMInput, calculateEstimateOutput } from "@/utils/xrpl/amm/calculations";
-import { YONAWallet } from "@/types/wallet";
+import { YONAWallet } from "@/types/appTypes";
 
 interface TransferBtnProps {
   senderWallet: YONAWallet;

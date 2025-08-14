@@ -1,6 +1,6 @@
 // Change this file when there are more than 1 issuer wallet
 import { client, connectXrplClient } from "../testnet";
-import { YONAWallet } from "@/types/wallet";
+import { YONAWallet } from "@/types/appTypes";
 import { Wallet } from "xrpl";
 import sendIOU from "../transaction/sendIOU";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
@@ -12,7 +12,7 @@ interface TrustlineResult {
 }
 
 interface AMMData {
-  account: string;
+  amm_account: string;
   lp_token: {
     currency: string;
     issuer: string;
@@ -193,7 +193,7 @@ export async function setLPTrustlineFromAMMData(
 ): Promise<TrustlineResult | undefined> {
   await connectXrplClient();
 
-  const ammAccount = ammData.account;
+  const ammAccount = ammData.amm_account;
 
   if (!ammAccount) {
     throw new Error("❌ AMM account must be specified to set up LP trustline.");

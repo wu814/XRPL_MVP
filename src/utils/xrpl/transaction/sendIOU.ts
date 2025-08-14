@@ -1,7 +1,7 @@
 import { client, connectXrplClient } from "../testnet";
 import BigNumber from "bignumber.js";
 import * as xrpl from "xrpl";
-import { YONAWallet } from "@/types/wallet";
+import { YONAWallet } from "@/types/appTypes";
 
 // Type definitions
 interface IOUAmount {

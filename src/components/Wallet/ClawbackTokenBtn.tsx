@@ -6,7 +6,7 @@ import CurrencyDropDown from "../Currency/CurrencyDropDown";
 import Button from "../Button";
 import SuccessMdl from "../SuccessMdl";
 import ErrorMdl from "../ErrorMdl";
-import { YONAWallet } from "@/types/wallet";
+import { YONAWallet } from "@/types/appTypes";
 
 interface ClawbackResponse {
   message?: string;

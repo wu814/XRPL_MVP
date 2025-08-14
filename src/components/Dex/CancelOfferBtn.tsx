@@ -5,7 +5,7 @@ import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
 import PasswordConfirmMdl from "../PasswordConfirmMdl";
 import { Trash2 } from "lucide-react";
-import { YONAWallet } from "@/types/wallet";
+import { YONAWallet } from "@/types/appTypes";
 
 interface CancelOfferResponse {
   success: boolean;

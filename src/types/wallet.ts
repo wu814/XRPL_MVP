@@ -87,12 +87,5 @@ export interface AccountObjectsResponse {
   error?: string;
 }
 
-export interface FundWalletResult {
-  classicAddress: string;
-  walletType: string;
-  seed: string;
-}
 
-export type CreateWalletResponse =
-  | { success: true; message: string; data: FundWalletResult }
-  | { success: false; error: string };
+

@@ -2,11 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { Wallet } from "xrpl";
 import { setLPTrustlineFromAMMData } from "@/utils/xrpl/trustline/setTrustline";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
+import { YONAWallet } from "@/types/appTypes";
 
 interface SetLPTrustlineRequest {
-  setterWallet: {
-    classicAddress: string;
-  };
+  setterWallet: YONAWallet;
   ammInfo: any; // You can define a more specific type if needed
 }
 

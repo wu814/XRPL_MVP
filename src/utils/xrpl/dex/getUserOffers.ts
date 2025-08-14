@@ -5,11 +5,8 @@ import {
   AccountTxRequest, 
   AccountTxResponse,
 } from "xrpl";
-import { OfferWithTimestamp } from "@/types/offerTypes";
-
-interface Wallet {
-  classicAddress: string;
-}
+import { YONAWallet } from "@/types/appTypes";
+import { GetUserOffersResult } from "@/types/xrpl/index";
 
 
 /**
@@ -18,7 +15,7 @@ interface Wallet {
  * @param wallet - The wallet to list offers for
  * @returns Array of offers with creation timestamps
  */
-export default async function getUserOffers(wallet: Wallet): Promise<OfferWithTimestamp[]> {
+export default async function getUserOffers(wallet: YONAWallet): Promise<GetUserOffersResult> {
   try {
     await connectXrplClient();
 
@@ -34,7 +31,11 @@ export default async function getUserOffers(wallet: Wallet): Promise<OfferWithTi
 
     // If no offers, return empty array
     if (directOffers.length === 0) {
-      return [];
+      return {
+        success: true,
+        message: "No offers found",
+        data: []
+      };
     }
 
     // Get transaction history to find OfferCreate transactions with timestamps
@@ -42,7 +43,7 @@ export default async function getUserOffers(wallet: Wallet): Promise<OfferWithTi
       command: "account_tx",
       account: wallet.classicAddress,
       binary: false,
-      limit: 500, // Get more transactions to find offer creation times
+      limit: 500,
       forward: false
     };
 
@@ -50,27 +51,26 @@ export default async function getUserOffers(wallet: Wallet): Promise<OfferWithTi
     const transactions = accountTx.result?.transactions || [];
     
     // Create a map of sequence numbers to timestamps and hashes from OfferCreate transactions
-    const offerDetails = new Map<number, { timestamp: number; date: string; hash: string }>();
+    const offerDetails = new Map<number, { dateTime: string; hash: string }>();
     
     transactions.forEach((tx) => {
       if (tx.tx_json && tx.tx_json.TransactionType === 'OfferCreate') {
         const sequence = tx.tx_json.Sequence;
-        const timestamp = tx.tx_json.date + 946684800; // Convert Ripple timestamp to Unix timestamp
-        const date = new Date(timestamp * 1000).toISOString();
-        const hash = tx.hash; // Hash is at transaction level, not in tx_json
+        const timestamp = tx.tx_json.date + 946684800;
+        const dateTime = new Date(timestamp * 1000).toLocaleString();
+        const hash = tx.hash;
         
-        offerDetails.set(sequence, { timestamp, date, hash });
+        offerDetails.set(sequence, { dateTime, hash });
       }
     });
 
     // Enhance offers with timestamps
-    const enhancedOffers: OfferWithTimestamp[] = directOffers.map((offer) => {
-      const details = offerDetails.get((offer as any).seq); // Use seq, not Sequence
+    const enhancedOffers = directOffers.map((offer) => {
+      const details = offerDetails.get((offer as any).seq);
       
       return {
-        ...offer, // Spread all OfferObject properties
-        timestamp: details?.timestamp,
-        date: details?.date,
+        ...offer,
+        dateTime: details?.dateTime,
         creation_hash: details?.hash
       };
     });
@@ -80,10 +80,18 @@ export default async function getUserOffers(wallet: Wallet): Promise<OfferWithTi
     
     console.log(`📋 Found ${enhancedOffers.length} active offers for ${wallet.classicAddress}`);
     
-    return enhancedOffers;
+    return {
+      success: true,
+      message: `Found ${enhancedOffers.length} offers`,
+      data: enhancedOffers
+    };
 
   } catch (error: any) {
-    console.error("Error fetching user offers:", error);
-    throw new Error(`Failed to fetch user offers: ${error.message}`);
+    return {
+      success: false,
+      message: "Failed to fetch user offers",
+      data: [],
+      error: error.message
+    };
   }
 }

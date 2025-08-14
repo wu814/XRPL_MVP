@@ -5,17 +5,8 @@ import { Loader2 } from "lucide-react";
 import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
-
-interface CreateWalletResponse {
-  data?: any;
-  message?: string;
-  error?: string;
-}
-
-interface FlagResponse {
-  message?: string;
-  error?: string;
-}
+import { APIErrorResponse } from "@/types/api/index";
+import { CreateWalletAPIResponse, SetWalletFlagsAPIResponse } from "@/types/api/index";
 
 interface CreateAdminWalletBtnProps {
   onWalletCreated: () => void;
@@ -35,29 +26,32 @@ export default function CreateAdminWalletBtn({ onWalletCreated }: CreateAdminWal
     setErrorMessage(null);
 
     try {
-      const res = await fetch("/api/wallet/createWallet", {
+      const response = await fetch("/api/wallet/createWallet", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ walletType }),
       });
-      const result: CreateWalletResponse = await res.json();
-      if (!res.ok) throw new Error(result.error || "Failed to add wallet");
+      const result: CreateWalletAPIResponse = await response.json();
+      if (!response.ok) {
+        const errorData: APIErrorResponse = await response.json();
+        setErrorMessage(errorData.message);
+        return;
+      }
 
       setSuccessMessage(result.message || "Wallet created successfully");
 
       // Background call to set wallet flags
       setTimeout(async () => {
         try {
-          const flagRes = await fetch("/api/wallet/setWalletFlags", {
+          const flagResponse = await fetch("/api/wallet/setWalletFlags", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ wallet: result.data }),
           });
-          const flagResult: FlagResponse = await flagRes.json();
-          if (!flagRes.ok) {
-            throw new Error(`setWalletFlags failed: ${flagResult.error}`);
-          } else {
-            console.log("✅ Flags set:", flagResult.message);
+          if (!flagResponse.ok) {
+            const errorData: APIErrorResponse = await flagResponse.json();
+            setErrorMessage(errorData.message);
+            return;
           }
         } catch (e: any) {
           setErrorMessage(e.message);
