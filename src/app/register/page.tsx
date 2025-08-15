@@ -3,7 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import RegistrationForm from "@/components/Register/RegistrationForm";
+import RegistrationForm from "@/components/register/RegistrationForm";
 import usePageTitle from "@/utils/usePageTitle";
 
 export default function RegisterPage() {

@@ -3,7 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import Button from "@/components/Button";
-import ChangePasswordBtn from "@/components/Setting/ChangePasswordBtn";
+import ChangePasswordBtn from "@/components/setting/ChangePasswordBtn";
 import usePageTitle from "@/utils/usePageTitle";
 
 export default function SettingsPage() {

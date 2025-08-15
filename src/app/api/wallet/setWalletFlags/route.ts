@@ -10,7 +10,7 @@ import { createSupabaseAnonClient } from "@/utils/supabase/server";
 import { SetWalletFlagsResult } from "@/types/xrpl/wallet/walletXRPLTypes";
 
 
-export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest): Promise<NextResponse<SetWalletFlagsAPIResponse | APIErrorResponse>> {
   try {
     const { wallet }: SetWalletFlagsAPIRequest = await req.json();
 
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
 
     if (!result.success) {
       return NextResponse.json<APIErrorResponse>(
-        { message: `❌ Error setting wallet flags: ${result.error}` },
+        { message: `❌ Error setting wallet flags: ${result.error.message}` },
         { status: 500 },
       );
     }

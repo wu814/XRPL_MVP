@@ -1,11 +1,11 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import TransferBtn from "@/components/Wallet/TransferBtn";
-import AddFriendBtn from "@/components/Friend/AddFriendBtn";
+import TransferBtn from "@/components/wallet/TransferBtn";
+import AddFriendBtn from "@/components/friend/AddFriendBtn";
 import ErrorMdl from "@/components/ErrorMdl";
-import { useCurrentUserWallet } from "@/components/Wallet/CurrentUserWalletProvider";
-import { useIssuerWallet } from "@/components/Wallet/IssuerWalletProvider";
+import { useCurrentUserWallet } from "@/components/wallet/CurrentUserWalletProvider";
+import { useIssuerWallet } from "@/components/wallet/IssuerWalletProvider";
 import { useState, useEffect } from "react";
 import usePageTitle from "@/utils/usePageTitle";
 

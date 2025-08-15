@@ -5,18 +5,18 @@ import { Loader2 } from "lucide-react";
 import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
-import CurrencyDropDown from "../Currency/CurrencyDropDown";
-import { useCurrentUserWallet } from "../Wallet/CurrentUserWalletProvider";
-import { useIssuerWallet } from "../Wallet/IssuerWalletProvider";
+import CurrencyDropDown from "../currency/CurrencyDropDown";
+import { useCurrentUserWallet } from "../wallet/CurrentUserWalletProvider";
+import { useIssuerWallet } from "../wallet/IssuerWalletProvider";
 
 
-interface BuyNftResponse {
+interface BuyNFTResponse {
   success?: boolean;
   message?: string;
   error?: string;
 }
 
-export default function BuyNft() {
+export default function BuyNFT() {
   const { currentUserWallets } = useCurrentUserWallet();
   const { issuerWallets } = useIssuerWallet();
 
@@ -69,7 +69,7 @@ export default function BuyNft() {
 
       console.log("🛒 Submitting NFT purchase request...", payload);
 
-      const response = await fetch("/api/nft/buyNft", {
+      const response = await fetch("/api/nft/buyNFT", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -77,7 +77,7 @@ export default function BuyNft() {
         body: JSON.stringify(payload),
       });
 
-      const result: BuyNftResponse = await response.json();
+      const result: BuyNFTResponse = await response.json();
 
       if (!response.ok) {
         throw new Error(result.error || "Purchase failed");

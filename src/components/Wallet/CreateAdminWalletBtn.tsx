@@ -5,8 +5,7 @@ import { Loader2 } from "lucide-react";
 import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
-import { APIErrorResponse } from "@/types/api/index";
-import { CreateWalletAPIResponse, SetWalletFlagsAPIResponse } from "@/types/api/index";
+import { CreateWalletAPIResponse, APIErrorResponse } from "@/types/api/index";
 
 interface CreateAdminWalletBtnProps {
   onWalletCreated: () => void;

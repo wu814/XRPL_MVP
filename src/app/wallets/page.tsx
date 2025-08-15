@@ -2,11 +2,11 @@
 
 import { useSession } from "next-auth/react";
 import AuthRedirect from "@/components/AuthRedirect";
-import AssetTable from "@/components/Wallet/AssetTable";
+import AssetTable from "@/components/wallet/AssetTable";
 import { Wallet, Loader2 } from "lucide-react";
 import {
   useCurrentUserWallet,
-} from "@/components/Wallet/CurrentUserWalletProvider";
+} from "@/components/wallet/CurrentUserWalletProvider";
 import { 
   useWalletAssets, 
   getWalletDisplayName 

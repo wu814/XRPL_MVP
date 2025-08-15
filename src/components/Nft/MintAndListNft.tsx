@@ -5,8 +5,8 @@ import { Loader2 } from "lucide-react";
 import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
-import { useCurrentUserWallet } from "../Wallet/CurrentUserWalletProvider";
-import { useIssuerWallet } from "../Wallet/IssuerWalletProvider";
+import { useCurrentUserWallet } from "../wallet/CurrentUserWalletProvider";
+import { useIssuerWallet } from "../wallet/IssuerWalletProvider";
 
 interface MintAndListResponse {
   success?: boolean;
@@ -14,7 +14,7 @@ interface MintAndListResponse {
   error?: string;
 }
 
-export default function MintAndListNft() {
+export default function MintAndListNFT() {
   const [uri, setUri] = useState<string>("");
   const [priceUSD, setPriceUSD] = useState<string>("");
   const [destination, setDestination] = useState<string>("");
@@ -69,7 +69,7 @@ export default function MintAndListNft() {
 
       console.log("🎫 Submitting NFT mint and list request...", payload);
 
-      const response = await fetch("/api/nft/mintAndListNft", {
+      const response = await fetch("/api/nft/mintAndListNFT", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

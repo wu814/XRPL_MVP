@@ -67,7 +67,10 @@ export async function setIssuerWalletFlags(wallet: Wallet): Promise<SetWalletFla
           const errorCode = getTransactionResult(txResult);
           return {
             success: false,
-            error: `Failed to set ${name} flag: ${errorCode}`
+            error: {
+              code: errorCode,
+              message: `Failed to set ${name} flag: ${errorCode}`
+            }
           };
         }
 
@@ -143,7 +146,10 @@ export async function setTreasuryWalletFlags(wallet: Wallet): Promise<SetWalletF
           const errorCode = getTransactionResult(txResult);
           return {
             success: false,
-            error: `Failed to set ${name} flag: ${errorCode}`
+            error: {
+              code: errorCode,
+              message: `Failed to set ${name} flag: ${errorCode}`
+            }
           };
         }
 
@@ -222,7 +228,10 @@ export async function setPathfindWalletFlags(wallet: Wallet): Promise<SetWalletF
           const errorCode = getTransactionResult(txResult);
           return {
             success: false,
-            error: `Failed to set ${name} flag: ${errorCode}`
+            error: {
+              code: errorCode,
+              message: `Failed to set ${name} flag: ${errorCode}`
+            }
           };
         }
 

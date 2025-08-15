@@ -4,8 +4,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import SessionWrapper from "@/components/SessionWrapper";
 import ClientLayoutContent from "@/components/ClientLayoutContent";
-import IssuerWalletProvider from "@/components/Wallet/IssuerWalletProvider";
-import CurrentUserWalletProvider from "@/components/Wallet/CurrentUserWalletProvider";
+import IssuerWalletProvider from "@/components/wallet/IssuerWalletProvider";
+import CurrentUserWalletProvider from "@/components/wallet/CurrentUserWalletProvider";
 import { Metadata } from "next";
 
 const inter = Inter({

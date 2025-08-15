@@ -1,10 +1,10 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import DisplayAmmDetails from "@/components/Amm/DisplayAmmDetails";
+import DisplayAMMDetails from "@/components/amm/DisplayAMMDetails";
 import usePageTitle from "@/utils/usePageTitle";
 
-export default function AmmDetails() {
+export default function AMMDetails() {
   const params = useParams();
   const address = params.ammAccount as string; // Get the AMM address from the URL
   
@@ -13,7 +13,7 @@ export default function AmmDetails() {
 
   return (
     <div className="p-2 ">
-      <DisplayAmmDetails ammAccount={address} />
+      <DisplayAMMDetails ammAccount={address} />
     </div>
   );
 }

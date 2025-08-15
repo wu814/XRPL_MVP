@@ -2,17 +2,17 @@
 
 import { useState, useEffect } from "react";
 import { WalletBalance } from "@/types/wallet";
-import { useCurrentUserWallet } from "@/components/Wallet/CurrentUserWalletProvider";
-import { useIssuerWallet } from "@/components/Wallet/IssuerWalletProvider";
-import DeleteWalletBtn from "@/components/Wallet/DeleteWalletBtn";
-import SetTrustlineBtn from "@/components/Wallet/SetTrustlineBtn";
-import AuthorizeDepositBtn from "@/components/Wallet/AuthorizeDepositBtn";
-import ClawbackTokenBtn from "@/components/Wallet/ClawbackTokenBtn";
-import TransferBtn from "@/components/Wallet/TransferBtn";
-import CreateAdminWalletBtn from "@/components/Wallet/CreateAdminWalletBtn";
+import { useCurrentUserWallet } from "@/components/wallet/CurrentUserWalletProvider";
+import { useIssuerWallet } from "@/components/wallet/IssuerWalletProvider";
+import DeleteWalletBtn from "@/components/wallet/DeleteWalletBtn";
+import SetTrustlineBtn from "@/components/wallet/SetTrustlineBtn";
+import AuthorizeDepositBtn from "@/components/wallet/AuthorizeDepositBtn";
+import ClawbackTokenBtn from "@/components/wallet/ClawbackTokenBtn";
+import TransferBtn from "@/components/wallet/TransferBtn";
+import CreateAdminWalletBtn from "@/components/wallet/CreateAdminWalletBtn";
 import Button from "@/components/Button";
-import ManageOracleBtn from "@/components/Wallet/ManageOracleBtn";
-import ViewWalletDetails from "@/components/Wallet/ViewWalletDetails";
+import ManageOracleBtn from "@/components/wallet/ManageOracleBtn";
+import ViewWalletDetails from "@/components/wallet/ViewWalletDetails";
 import { YONAWallet } from "@/types/appTypes";
 import { GetAccountInfoAPIResponse } from "@/types/api/index";
 

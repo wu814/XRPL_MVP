@@ -6,10 +6,10 @@ import createWallet from "@/utils/xrpl/wallet/createWallet";
 import { CreateWalletResult } from "@/types/xrpl/index.js";
 import { APIErrorResponse, CreateWalletAPIRequest, CreateWalletAPIResponse } from "@/types/api/index";
 
-export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest): Promise<NextResponse<CreateWalletAPIResponse | APIErrorResponse>> {
   const session = await getServerSession(authOptions);
   if (!session?.user?.user_id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json<APIErrorResponse>({ message: "Unauthorized" }, { status: 401 });
   }
   
   const user_id = session.user.user_id;
@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
     
     if (!walletResult.success) {
       return NextResponse.json<APIErrorResponse>(
-        { message: walletResult.error || "Failed to create wallet" },
+        { message: walletResult.error?.message || "Failed to create wallet" },
         { status: 500 }
       );
     }

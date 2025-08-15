@@ -1,7 +1,7 @@
 import * as xrpl from "xrpl";
 import { Wallet } from "xrpl";
 import BigNumber from "bignumber.js";
-import { getAmmInfo, LPToken } from "./ammUtils";
+import { getAMMInfo, LPToken } from "./ammUtils";
 import { client, connectXrplClient } from "../testnet";
 
 // Type definitions
@@ -158,7 +158,7 @@ export async function withdrawLiquidityTwoAsset(
 ): Promise<WithdrawResult> {
   try {
     await connectXrplClient();
-    const ammData = await getAmmInfo(ammAccount);
+    const ammData = await getAMMInfo(ammAccount);
     if (!ammData || !ammData.amount || !ammData.amount2 || !ammData.lp_token) {
       throw new Error(`❌ Invalid AMM data for account ${ammAccount}`);
     }
@@ -311,14 +311,14 @@ export async function withdrawLiquidityTwoAsset(
     console.log("🔄 Updating AMM data from ledger...");
     try {
       // Get the updated AMM data
-      const updatedAmmData = await getAmmInfo(ammAccount);
+      const updatedAMMData = await getAMMInfo(ammAccount);
 
-      if (updatedAmmData) {
+      if (updatedAMMData) {
         // Log updated pool balances
         message += "\n===== Updated AMM Pool State =====\n";
-        message += `LP tokens balance: ${updatedAmmData.lp_token}\n`;
-        message += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${updatedAmmData.amount.currency}\n`;
-        message += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${updatedAmmData.amount2.currency}\n`;
+        message += `LP tokens balance: ${updatedAMMData.lp_token}\n`;
+        message += `Token balance: ${Number(updatedAMMData.amount.value).toFixed(8)} ${updatedAMMData.amount.currency}\n`;
+        message += `Token balance: ${Number(updatedAMMData.amount2.value).toFixed(8)} ${updatedAMMData.amount2.currency}\n`;
       } else {
         message += "⚠️ Could not retrieve updated AMM data\n";
       }
@@ -354,7 +354,7 @@ export async function withdrawLiquidityWithLPToken(
   try {
     await connectXrplClient();
 
-    const ammData = await getAmmInfo(ammAccount);
+    const ammData = await getAMMInfo(ammAccount);
     if (!ammData || !ammData.amount || !ammData.amount2 || !ammData.lp_token) {
       throw new Error(`❌ Invalid AMM data structure.`);
     }
@@ -468,14 +468,14 @@ export async function withdrawLiquidityWithLPToken(
 
     try {
       // Get the updated AMM data
-      const updatedAmmData = await getAmmInfo(ammAccount);
+      const updatedAMMData = await getAMMInfo(ammAccount);
 
-      if (updatedAmmData) {
+      if (updatedAMMData) {
         // Log updated pool balances
         message += "\n===== Updated AMM Pool State =====\n";
-        message += `LP tokens balance: ${Number(updatedAmmData.lp_token.value).toFixed(2)}\n`;
-        message += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${updatedAmmData.amount.currency}\n`;
-        message += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${updatedAmmData.amount2.currency}\n`;
+        message += `LP tokens balance: ${Number(updatedAMMData.lp_token.value).toFixed(2)}\n`;
+        message += `Token balance: ${Number(updatedAMMData.amount.value).toFixed(8)} ${updatedAMMData.amount.currency}\n`;
+        message += `Token balance: ${Number(updatedAMMData.amount2.value).toFixed(8)} ${updatedAMMData.amount2.currency}\n`;
       } else {
         message += "⚠️ Could not retrieve updated AMM data\n";
       }
@@ -507,7 +507,7 @@ export async function withdrawAllLiquidity(
   try {
     await connectXrplClient();
     // Fetch current AMM state
-    const ammData = await getAmmInfo(ammAccount);
+    const ammData = await getAMMInfo(ammAccount);
 
     if (!ammData || !ammData.amount || !ammData.amount2 || !ammData.lp_token) {
       throw new Error(`❌ Invalid AMM data structure.`);
@@ -623,12 +623,12 @@ export async function withdrawAllLiquidity(
 
     // Refresh and log updated AMM pool state
     try {
-      const updatedAmmData = await getAmmInfo(ammAccount);
-      if (updatedAmmData) {
+      const updatedAMMData = await getAMMInfo(ammAccount);
+      if (updatedAMMData) {
         message += "\n===== Updated AMM Pool State =====\n";
-        message += `LP tokens balance: ${Number(updatedAmmData.lp_token.value).toFixed(2)}\n`;
-        message += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${updatedAmmData.amount.currency}\n`;
-        message += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${updatedAmmData.amount2.currency}\n`;
+        message += `LP tokens balance: ${Number(updatedAMMData.lp_token.value).toFixed(2)}\n`;
+        message += `Token balance: ${Number(updatedAMMData.amount.value).toFixed(8)} ${updatedAMMData.amount.currency}\n`;
+        message += `Token balance: ${Number(updatedAMMData.amount2.value).toFixed(8)} ${updatedAMMData.amount2.currency}\n`;
       } else {
         message += "⚠️ Could not retrieve updated AMM data\n";
       }
@@ -665,7 +665,7 @@ export async function withdrawSingleAsset(
     await connectXrplClient();
 
     // Fetch AMM data
-    const ammData = await getAmmInfo(ammAccount);
+    const ammData = await getAMMInfo(ammAccount);
     if (!ammData || !ammData.amount || !ammData.amount2 || !ammData.lp_token) {
       throw new Error(`❌ Invalid AMM data structure.`);
     }
@@ -875,14 +875,14 @@ export async function withdrawSingleAsset(
     console.log("🔄 Updating AMM data from ledger...");
     try {
       // Get the updated AMM data
-      const updatedAmmData = await getAmmInfo(ammAccount);
+      const updatedAMMData = await getAMMInfo(ammAccount);
 
-      if (updatedAmmData) {
+      if (updatedAMMData) {
         // Log updated pool balances
         message += "\n===== Updated AMM Pool State =====\n";
-        message += `LP tokens balance: ${Number(updatedAmmData.lp_token.value).toFixed(2)}\n`;
-        message += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${updatedAmmData.amount.currency}\n`;
-        message += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${updatedAmmData.amount2.currency}\n`;
+        message += `LP tokens balance: ${Number(updatedAMMData.lp_token.value).toFixed(2)}\n`;
+        message += `Token balance: ${Number(updatedAMMData.amount.value).toFixed(8)} ${updatedAMMData.amount.currency}\n`;
+        message += `Token balance: ${Number(updatedAMMData.amount2.value).toFixed(8)} ${updatedAMMData.amount2.currency}\n`;
       } else {
         message += "⚠️ Could not retrieve updated AMM data\n";
       }
@@ -913,7 +913,7 @@ export async function withdrawAllSingleAsset(
 ): Promise<WithdrawAllSingleAssetResult> {
   try {
     await connectXrplClient();
-    const ammData = await getAmmInfo(ammAccount);
+    const ammData = await getAMMInfo(ammAccount);
     if (!ammData || !ammData.amount || !ammData.amount2 || !ammData.lp_token) {
       throw new Error(`❌ Invalid AMM data for account ${ammAccount}`);
     }
@@ -1067,14 +1067,14 @@ export async function withdrawAllSingleAsset(
 
     try {
       // Get the updated AMM data
-      const updatedAmmData = await getAmmInfo(ammAccount);
+      const updatedAMMData = await getAMMInfo(ammAccount);
 
-      if (updatedAmmData) {
+      if (updatedAMMData) {
         // Log updated pool balances
         message += "\n===== Updated AMM Pool State =====\n";
-        message += `LP tokens balance: ${Number(updatedAmmData.lp_token.value).toFixed(2)}\n`;
-        message += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${updatedAmmData.amount.currency}\n`;
-        message += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${updatedAmmData.amount2.currency}\n`;
+        message += `LP tokens balance: ${Number(updatedAMMData.lp_token.value).toFixed(2)}\n`;
+        message += `Token balance: ${Number(updatedAMMData.amount.value).toFixed(8)} ${updatedAMMData.amount.currency}\n`;
+        message += `Token balance: ${Number(updatedAMMData.amount2.value).toFixed(8)} ${updatedAMMData.amount2.currency}\n`;
       } else {
         message += "⚠️ Could not retrieve updated AMM data\n";
       }
@@ -1108,7 +1108,7 @@ export async function withdrawSingleAssetWithLPToken(
 ): Promise<WithdrawSingleAssetLPTokenResult> {
   try {
     await connectXrplClient();
-    const ammData = await getAmmInfo(ammAccount);
+    const ammData = await getAMMInfo(ammAccount);
     if (!ammData || !ammData.amount || !ammData.amount2 || !ammData.lp_token) {
       throw new Error(`❌ Invalid AMM data for account ${ammAccount}`);
     }
@@ -1254,14 +1254,14 @@ export async function withdrawSingleAssetWithLPToken(
 
     try {
       // Get the updated AMM data
-      const updatedAmmData = await getAmmInfo(ammAccount);
+      const updatedAMMData = await getAMMInfo(ammAccount);
 
-      if (updatedAmmData) {
+      if (updatedAMMData) {
         // Log updated pool balances
         message += "\n===== Updated AMM Pool State =====\n";
-        message += `LP tokens balance: ${Number(updatedAmmData.lp_token.value).toFixed(2)}\n`;
-        message += `Token balance: ${Number(updatedAmmData.amount.value).toFixed(8)} ${updatedAmmData.amount.currency}\n`;
-        message += `Token balance: ${Number(updatedAmmData.amount2.value).toFixed(8)} ${updatedAmmData.amount2.currency}\n`;
+        message += `LP tokens balance: ${Number(updatedAMMData.lp_token.value).toFixed(2)}\n`;
+        message += `Token balance: ${Number(updatedAMMData.amount.value).toFixed(8)} ${updatedAMMData.amount.currency}\n`;
+        message += `Token balance: ${Number(updatedAMMData.amount2.value).toFixed(8)} ${updatedAMMData.amount2.currency}\n`;
       } else {
         message += "⚠️ Could not retrieve updated AMM data\n";
       }

@@ -3,60 +3,16 @@ import { createSupabaseAnonClient } from "@/utils/supabase/server";
 import { 
   AMMInfoRequest, 
   AMMInfoResponse, 
-  Amount, 
-  IssuedCurrencyAmount
 } from "xrpl";
-import { AMMData } from "@/types/xrpl/amm/ammXRPLTypes";
+import { AMMInfo, AMMData } from "@/types/xrpl/index";
 
-interface Asset {
-  currency: string;
-  issuer: string | null;
-  value: string;
-}
-
-export interface LPToken {
-  currency: string;
-  issuer: string;
-  value: string;
-}
-
-interface AmmInfo {
-  success: boolean;
-  amm_account: string;
-  amount: Asset;
-  amount2: Asset;
-  lp_token: LPToken;
-  trading_fee: number;
-  auction_slot: any | null;
-  fetched_at: string;
-}
-
-interface AmmPoolInfo {
-  amm_account: string;
-  currency_a: string;
-  currency_b: string;
-  created_at: string;
-}
-
-interface AmmPoolData {
-  amm_account: string;
-  currency_a: Asset;
-  currency_b: Asset;
-  lp_token: LPToken;
-  trading_fee: number;
-  created_at: string;
-}
-
-interface AllAmmInfoResult {
-  [pairKey: string]: AmmPoolData;
-}
 
 /**
  * Get live AMM information directly from the XRPL ledger
  * @param ammAccount - The AMM account address
  * @returns Live AMM data from ledger or null if failed
  */
-export async function getAmmInfo(ammAccount: string): Promise<AmmInfo | null> {
+export async function getAMMInfo(ammAccount: string): Promise<AMMInfo | null> {
   try {
     await connectXrplClient();
     
@@ -73,10 +29,9 @@ export async function getAmmInfo(ammAccount: string): Promise<AmmInfo | null> {
     if (!response.result || !response.result.amm) {
       console.warn(`⚠️ No AMM data found for account: ${ammAccount}`);
       return {
-        success: false,
-        amm_account: ammAccount,
-        amount: { currency: "XRP", issuer: null, value: "0" },
-        amount2: { currency: "XRP", issuer: null, value: "0" },
+        account: ammAccount,
+        amount: { currency: "Unknown", issuer: null, value: "0" },
+        amount2: { currency: "Unknown", issuer: null, value: "0" },
         lp_token: {
           currency: "LP",
           issuer: ammAccount,
@@ -84,51 +39,12 @@ export async function getAmmInfo(ammAccount: string): Promise<AmmInfo | null> {
         },
         trading_fee: 0,
         auction_slot: null,
-        fetched_at: new Date().toISOString()
       };
     }
     
-    const amm: AMMData = response.result.amm;
+    const ammInfo: AMMInfo = response.result.amm;
     
-    // Parse assets consistently
-    const parseAsset = (assetData: Amount): Asset => {
-      if (typeof assetData === 'string') {
-        // XRP in drops
-        return {
-          currency: "XRP",
-          issuer: null,
-          value: (parseFloat(assetData) / 1000000).toString()
-        };
-      } else {
-        // Token
-        const issuedCurrency = assetData as IssuedCurrencyAmount;
-        return {
-          currency: issuedCurrency.currency,
-          issuer: issuedCurrency.issuer,
-          value: issuedCurrency.value
-        };
-      }
-    };
-    
-    const asset1 = parseAsset(amm.amount);
-    const asset2 = parseAsset(amm.amount2);
-
-    const ammInfo: AmmInfo = {
-      success: true,
-      amm_account: ammAccount,
-      amount: asset1,
-      amount2: asset2,
-      lp_token: {
-        currency: amm.lp_token.currency || "LP",
-        issuer: amm.lp_token.issuer || ammAccount,
-        value: amm.lp_token.value || "0"
-      },
-      trading_fee: amm.trading_fee || 0,
-      auction_slot: amm.auction_slot || null,
-      fetched_at: new Date().toISOString()
-    };
-    
-    console.log(`✅ Live AMM data: ${asset1.currency}/${asset2.currency} - ${asset1.currency}: ${asset1.value}, ${asset2.currency}: ${asset2.value}`);
+    console.log(`✅ Live AMM data: ${ammInfo}`);
     
     return ammInfo;
     
@@ -142,7 +58,7 @@ export async function getAmmInfo(ammAccount: string): Promise<AmmInfo | null> {
  * Get AMM registry data from Supabase
  * @returns Array of AMM pool objects from Supabase
  */
-export async function getAmmData(): Promise<AmmPoolInfo[]> {
+export async function getAllAMMData(): Promise<AMMData[]> {
   try {
     const supabase = await createSupabaseAnonClient();
     const { data, error } = await supabase
@@ -165,91 +81,39 @@ export async function getAmmData(): Promise<AmmPoolInfo[]> {
 }
 
 /**
- * Get all AMM pools with live data
- * @returns Object with currency pairs as keys and AMM data as values
- */
-export async function getAllAmmInfo(): Promise<AllAmmInfoResult> {
-  console.log(`📊 Getting all AMM pools...`);
-  
-  const registry = await getAmmData();
-  const result: AllAmmInfoResult = {};
-  
-  for (const poolInfo of registry) {
-    try {
-      const liveData = await getAmmInfo(poolInfo.amm_account);
-      if (liveData) {
-        // Sort currency codes alphabetically for the key
-        const currencies = [poolInfo.currency_a, poolInfo.currency_b].sort();
-        const pairKey = `${currencies[0]}/${currencies[1]}`;
-        result[pairKey] = {
-          amm_account: liveData.amm_account,
-          currency_a: {
-            currency: liveData.amount.currency,
-            issuer: liveData.amount.issuer,
-            value: liveData.amount.value
-          },
-          currency_b: {
-            currency: liveData.amount2.currency,
-            issuer: liveData.amount2.issuer,
-            value: liveData.amount2.value
-          },
-          lp_token: liveData.lp_token,
-          trading_fee: liveData.trading_fee,
-          created_at: poolInfo.created_at
-        };
-      }
-    } catch (error: any) {
-      console.warn(`⚠️ Failed to get live data for ${poolInfo.amm_account}: ${error.message}`);
-    }
-  }
-  
-  console.log(`✅ Retrieved ${Object.keys(result).length} AMM pools`);
-  return result;
-}
-
-/**
- * Get all AMM accounts from the registry
- * @returns Array of AMM account addresses
- */
-export async function getAmmAccounts(): Promise<string[]> {
-  const ammData = await getAmmData();
-  return ammData.map(pool => pool.amm_account);
-}
-
-/**
  * Find AMM account by currency pair (order-insensitive)
- * @param currencyA - First currency (e.g., "EUR")
- * @param currencyB - Second currency (e.g., "USD")
+ * @param currency1 - First currency (e.g., "EUR")
+ * @param currency2 - Second currency (e.g., "USD")
  * @returns AMM account address or null if not found
  */
-export async function findAmmAccount(currencyA: string, currencyB: string): Promise<string | null> {
-  const ammData = await getAmmData();
+export async function findAMMAccount(currency1: string, currency2: string): Promise<string | null> {
+  const ammData = await getAllAMMData();
 
   // Find a row where the pair matches, order-insensitive
   const found = ammData.find(pool =>
-    (pool.currency_a === currencyA && pool.currency_b === currencyB) ||
-    (pool.currency_a === currencyB && pool.currency_b === currencyA)
+    (pool.currency1 === currency1 && pool.currency2 === currency2) ||
+    (pool.currency1 === currency2 && pool.currency2 === currency1)
   );
   if (found) {
-    return found.amm_account;
+    return found.account;
   }
   
-  console.warn(`⚠️ No AMM found for pair: ${currencyA}/${currencyB}`);
+  console.warn(`⚠️ No AMM found for pair: ${currency1}/${currency2}`);
   return null;
 }
 
 /**
  * Get live AMM info for a currency pair
- * @param currencyA - First currency
- * @param currencyB - Second currency
+ * @param currency1 - First currency
+ * @param currency2 - Second currency
  * @returns Live AMM data or null
  */
-export async function getAmmInfoByCurrencies(currencyA: string, currencyB: string): Promise<AmmInfo | null> {
-  const ammAccount = await findAmmAccount(currencyA, currencyB);
+export async function getAMMInfoByCurrencies(currency1: string, currency2: string): Promise<AMMInfo | null> {
+  const ammAccount = await findAMMAccount(currency1, currency2);
   
   if (!ammAccount) {
     return null;
   }
   
-  return await getAmmInfo(ammAccount);
+  return await getAMMInfo(ammAccount);
 }

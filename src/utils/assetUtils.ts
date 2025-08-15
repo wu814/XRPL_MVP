@@ -30,14 +30,14 @@ export interface CurrencyPair {
   pair: string;
 }
 
-export interface AmmPool {
+export interface AMMPool {
   amm_account: string;
   currency_a: string;
   currency_b: string;
 }
 
-export interface AmmData {
-  data?: AmmPool[];
+export interface AMMData {
+  data?: AMMPool[];
 }
 
 export interface UseWalletAssetsReturn {
@@ -212,15 +212,15 @@ export function isLpToken(asset: Asset): boolean {
 export async function getLpTokenCurrencyPair(ammAccount: string): Promise<CurrencyPair | null> {
   try {
     // Get AMM registry data
-    const response = await fetch("/api/amm/getAllAmms");
-    const ammData: AmmData = await response.json();
+    const response = await fetch("/api/amm/getAllAMMData");
+    const ammData: AMMData = await response.json();
     
     if (!ammData.data || !Array.isArray(ammData.data)) {
       return null;
     }
     
     // Find the AMM pool by account
-    const ammPool = ammData.data.find((pool: AmmPool) => pool.amm_account === ammAccount);
+    const ammPool = ammData.data.find((pool: AMMPool) => pool.amm_account === ammAccount);
     
     if (ammPool) {
       return {

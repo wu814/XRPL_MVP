@@ -7,7 +7,7 @@ import {
   withdrawAllSingleAsset,
   withdrawSingleAssetWithLPToken,
 } from "@/utils/xrpl/amm/withdrawLiquidity";
-import { getAmmInfo } from "@/utils/xrpl/amm/ammUtils";
+import { getAMMInfo } from "@/utils/xrpl/amm/ammUtils";
 import { Wallet } from "xrpl";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
 
@@ -163,7 +163,7 @@ export async function POST(req: NextRequest) {
 
     if (result?.success) {
       // ✅ Check if the AMM still exists on ledger
-      const ammStillExists = await getAmmInfo(ammAccount);
+      const ammStillExists = await getAMMInfo(ammAccount);
 
       if (!ammStillExists || !ammStillExists.success) {
         // 🧹 Delete from Supabase if AMM no longer exists

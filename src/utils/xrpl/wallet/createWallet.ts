@@ -29,7 +29,10 @@ export async function createWallet(walletType: string): Promise<CreateWalletResu
         balance: 0,
         wallet: null,
       },
-      error: error instanceof Error ? error.message : "Unknown error"
+      error: {
+        code: "UNKNOWN_ERROR",
+        message: error instanceof Error ? error.message : "Unknown error",
+      }
     };
   }
 }

@@ -2,10 +2,10 @@
 
 import { FormEvent } from "react";
 import Button from "../Button";
-import CurrencyDropDown from "../Currency/CurrencyDropDown";
+import CurrencyDropDown from "../currency/CurrencyDropDown";
 import { Loader2 } from "lucide-react";
 
-interface CreateAmmMdlProps {
+interface CreateAMMMdlProps {
   onClose: () => void;
   onSubmit: () => void;
   loading: boolean;
@@ -21,7 +21,7 @@ interface CreateAmmMdlProps {
   setFee: (value: string) => void;
 }
 
-export default function CreateAmmMdl({
+export default function CreateAMMMdl({
   onClose,
   onSubmit,
   loading,
@@ -35,7 +35,7 @@ export default function CreateAmmMdl({
   setAmountB,
   fee,
   setFee,
-}: CreateAmmMdlProps) {
+}: CreateAMMMdlProps) {
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     onSubmit();

@@ -4,10 +4,10 @@ import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import ErrorMdl from "../ErrorMdl";
 import RemoveFriendBtn from "./RemoveFriendBtn";
-import TransferBtn from "@/components/Wallet/TransferBtn";
+import TransferBtn from "@/components/wallet/TransferBtn";
 import FavoriteBtn from "./FavoriteBtn";
-import { useCurrentUserWallet } from "../Wallet/CurrentUserWalletProvider";
-import { useIssuerWallet } from "../Wallet/IssuerWalletProvider";
+import { useCurrentUserWallet } from "../wallet/CurrentUserWalletProvider";
+import { useIssuerWallet } from "../wallet/IssuerWalletProvider";
 
 interface Friend {
   id: string;

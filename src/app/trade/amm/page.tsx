@@ -1,6 +1,6 @@
 "use client";
-import DisplayAmms from "@/components/Amm/DisplayAmms";
-import Breadcrumbs from "@/components/Navigation/Breadcrumbs";
+import DisplayAMMs from "@/components/amm/DisplayAMMs";
+import Breadcrumbs from "@/components/navigation/Breadcrumbs";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import usePageTitle from "@/utils/usePageTitle";
@@ -43,7 +43,7 @@ export default function AMM() {
 
       {/* Main Content - Full Width */}
       <div className="w-full">
-        <DisplayAmms />
+        <DisplayAMMs />
       </div>
     </div>
   );

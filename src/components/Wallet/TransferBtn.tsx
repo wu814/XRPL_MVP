@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Button from "@/components/Button";
 import ErrorMdl from "@/components/ErrorMdl";
 import SuccessMdl from "@/components/SuccessMdl";
-import CurrencyDropDown from "@/components/Currency/CurrencyDropDown";
+import CurrencyDropDown from "@/components/currency/CurrencyDropDown";
 import SlippagePanel from "../SlippagePanel";
 import { Settings, Loader2 } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -18,7 +18,7 @@ interface TransferBtnProps {
   onSuccess?: () => void; // Made optional
 }
 
-interface AmmDataResponse {
+interface AMMDataResponse {
   success: boolean;
   data?: any;
   error?: string;
@@ -69,9 +69,9 @@ export default function TransferBtn({
   const [calculationError, setCalculationError] = useState<string | null>(null);
   
   // AMM data states for convertable payments
-  const [ammData, setAmmData] = useState<any>(null);
-  const [loadingAmmData, setLoadingAmmData] = useState<boolean>(false);
-  const [ammDataError, setAmmDataError] = useState<string | null>(null);
+  const [ammData, setAMMData] = useState<any>(null);
+  const [loadingAMMData, setLoadingAMMData] = useState<boolean>(false);
+  const [ammDataError, setAMMDataError] = useState<string | null>(null);
 
   useEffect(() => {
     if (presetRecipientUsername) {
@@ -82,10 +82,10 @@ export default function TransferBtn({
   // Fetch AMM data when currencies change (for convertable payments)
   useEffect(() => {
     if (paymentType === "convertable" && sendCurrency && receiveCurrency && sendCurrency !== receiveCurrency) {
-      fetchAmmData();
+      fetchAMMData();
     } else {
-      setAmmData(null);
-      setAmmDataError(null);
+      setAMMData(null);
+      setAMMDataError(null);
     }
   }, [sendCurrency, receiveCurrency, paymentType]);
 
@@ -107,13 +107,13 @@ export default function TransferBtn({
     }
   }, [receiveAmount, sendCurrency, receiveCurrency, convertInputType, slippage, ammData, paymentType]);
 
-  const fetchAmmData = async (): Promise<void> => {
-    setLoadingAmmData(true);
-    setAmmDataError(null);
-    setAmmData(null);
+  const fetchAMMData = async (): Promise<void> => {
+    setLoadingAMMData(true);
+    setAMMDataError(null);
+    setAMMData(null);
 
     try {
-      const response = await fetch("/api/amm/getAmmInfoByCurrencies", {
+      const response = await fetch("/api/amm/getAMMInfoByCurrencies", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -124,16 +124,16 @@ export default function TransferBtn({
 
       if (!response.ok) throw new Error("Failed to fetch AMM data");
       
-      const result: AmmDataResponse = await response.json();
+      const result: AMMDataResponse = await response.json();
       if (result.success && result.data) {
-        setAmmData(result.data);
+        setAMMData(result.data);
       } else {
         throw new Error(result.error || "AMM pool not found");
       }
     } catch (error: any) {
-      setAmmDataError(error.message);
+      setAMMDataError(error.message);
     } finally {
-      setLoadingAmmData(false);
+      setLoadingAMMData(false);
     }
   };
 
@@ -394,7 +394,7 @@ export default function TransferBtn({
             </div>
 
             {/* Show AMM loading state for convertable payments */}
-            {paymentType === "convertable" && loadingAmmData && (
+            {paymentType === "convertable" && loadingAMMData && (
               <div className="mb-4 p-3 bg-blue-900/20 border border-blue-500 rounded-full">
                 <div className="flex items-center space-x-2">
                   <Loader2 className="h-4 w-4 animate-spin text-blue-400" />
@@ -418,7 +418,7 @@ export default function TransferBtn({
             )}
 
             {/* Show AMM pool info when loaded for convertable payments */}
-            {paymentType === "convertable" && ammData && !loadingAmmData && (
+            {paymentType === "convertable" && ammData && !loadingAMMData && (
               <div className="mb-4 p-3 bg-green-900/20 border border-green-500 rounded-full">
                 <p className="text-green-400 text-sm">
                   AMM Pool: {ammData.amount.currency}/{ammData.amount2.currency} 
@@ -492,10 +492,10 @@ export default function TransferBtn({
                       value={sendAmount}
                       onChange={handleSendAmountChange}
                       className={`mt-1 w-full rounded-lg border border-transparent bg-color4 p-2 hover:border-gray-500 focus:border-primary focus:outline-none ${
-                        convertInputType === "exact_output" || calculatingAmounts || loadingAmmData ? "cursor-not-allowed opacity-60" : ""
+                        convertInputType === "exact_output" || calculatingAmounts || loadingAMMData ? "cursor-not-allowed opacity-60" : ""
                       }`}
                       placeholder="0.00"
-                      disabled={convertInputType === "exact_output" || calculatingAmounts || loadingAmmData}
+                      disabled={convertInputType === "exact_output" || calculatingAmounts || loadingAMMData}
                     />
                   </div>
                   <div>
@@ -509,10 +509,10 @@ export default function TransferBtn({
                       value={receiveAmount}
                       onChange={handleReceiveAmountChange}
                       className={`mt-1 w-full rounded-lg border border-transparent bg-color4 p-2 hover:border-gray-500 focus:border-primary focus:outline-none ${
-                        convertInputType === "exact_input" || calculatingAmounts || loadingAmmData ? "cursor-not-allowed opacity-60" : ""
+                        convertInputType === "exact_input" || calculatingAmounts || loadingAMMData ? "cursor-not-allowed opacity-60" : ""
                       }`}
                       placeholder="0.00"
-                      disabled={convertInputType === "exact_input" || calculatingAmounts || loadingAmmData}
+                      disabled={convertInputType === "exact_input" || calculatingAmounts || loadingAMMData}
                     />
                   </div>
                 </div>
@@ -573,7 +573,7 @@ export default function TransferBtn({
                 disabled={
                   loading ||
                   calculatingAmounts ||
-                  loadingAmmData ||
+                  loadingAMMData ||
                   !(useUsername ? recipientUsername : recipientAddress) ||
                   (paymentType === "convertable"
                     ? !sendCurrency ||
@@ -587,7 +587,7 @@ export default function TransferBtn({
                     <Loader2 className="h-5 w-5 animate-spin" />
                     <span>Sending...</span>
                   </div>
-                ) : loadingAmmData ? (
+                ) : loadingAMMData ? (
                   <div className="flex items-center justify-center space-x-2">
                     <Loader2 className="h-5 w-5 animate-spin" />
                     <span>Loading Pool...</span>

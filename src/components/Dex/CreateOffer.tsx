@@ -5,8 +5,8 @@ import { Loader2 } from "lucide-react";
 import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
-import { useCurrentUserWallet } from "../Wallet/CurrentUserWalletProvider";
-import { useIssuerWallet } from "../Wallet/IssuerWalletProvider";
+import { useCurrentUserWallet } from "../wallet/CurrentUserWalletProvider";
+import { useIssuerWallet } from "../wallet/IssuerWalletProvider";
 
 type OfferType = "Regular" | "FillOrKill" | "ImmediateOrCancel" | "Passive" | "Sell";
 type OrderType = "buy" | "sell";

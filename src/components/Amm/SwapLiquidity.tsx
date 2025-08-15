@@ -1,17 +1,17 @@
 "use client";
 
 import { useState, useEffect, ChangeEvent } from "react";
-import CurrencyIcon from "../Currency/CurrencyIcon";
+import CurrencyIcon from "../currency/CurrencyIcon";
 import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
 import SlippagePanel from "../SlippagePanel";
 import { Settings, ArrowUpDown, Loader2 } from "lucide-react";
-import { useCurrentUserWallet } from "../Wallet/CurrentUserWalletProvider";
-import { useIssuerWallet } from "../Wallet/IssuerWalletProvider";
+import { useCurrentUserWallet } from "../wallet/CurrentUserWalletProvider";
+import { useIssuerWallet } from "../wallet/IssuerWalletProvider";
 // Import calculation functions
 import { calculateExactAMMInput, calculateEstimateOutput } from "@/utils/xrpl/amm/calculations";
-import { AmmInfo } from "./DisplayAmms";
+import { AMMInfo } from "./DisplayAMMs";
 
 interface SwapResponse {
   message?: string;
@@ -26,7 +26,7 @@ interface CalculationResult {
 }
 
 interface SwapLiquidityProps {
-  ammInfo: AmmInfo;
+  ammInfo: AMMInfo;
   onSwapped: () => void;
 }
 

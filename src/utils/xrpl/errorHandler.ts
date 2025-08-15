@@ -1,4 +1,4 @@
-import { SubmitResponse, TxResponse } from "xrpl";
+import type { TxResponse } from "xrpl";
 
 /**
  * Enhanced Error Handling & Retry Logic System
@@ -199,7 +199,6 @@ export function classifyError(error: any, operation: string = 'unknown'): { type
   };
 }
 
-
 /**
  * Handle AMM deposit errors with specific guidance
  */
@@ -226,90 +225,19 @@ export function handleAMMDepositError(error: any): ErrorResult {
 }
 
 /**
- * Enhanced response type that covers all your use cases
+ * Get transaction result from TxResponse (confirmed transaction result)
  */
-export type XRPLTransactionResponse = SubmitResponse | TxResponse | {
-  result: {
-    meta?: {
-      TransactionResult?: string;
-      [key: string]: any;
-    };
-    engine_result?: string;
-    hash?: string;
-    [key: string]: any;
-  };
-} | {
-  result: {
-    engine_result: string;
-    engine_result_code: number;
-    engine_result_message: string;
-    tx_blob: string;
-    tx_json: any;
-    accepted: boolean;
-    hash?: string;
-    [key: string]: any;
-  };
-};
-
-/**
- * Enhanced transaction result extraction with fallbacks
- */
-export function getTransactionResult(response: XRPLTransactionResponse): string {
-  if (!response || !('result' in response) || !response.result) {
+export function getTransactionResult(response: TxResponse): string {
+  if (typeof response.result.meta === 'string') {
     return 'UNKNOWN_ERROR';
   }
-  
-  // Check if response has meta (TxResponse)
-  if ('meta' in response.result && response.result.meta?.TransactionResult) {
-    return response.result.meta.TransactionResult;
-  }
-  
-  // Check if response has engine_result (SubmitResponse)
-  if ('engine_result' in response.result && response.result.engine_result) {
-    return response.result.engine_result;
-  }
-  
-  // Check if response has meta but no TransactionResult
-  if ('meta' in response.result && response.result.meta && Object.keys(response.result.meta).length > 0) {
-    return 'TRANSACTION_FAILED_NO_RESULT';
-  }
-  
-  // Check if response has hash
-  if ('hash' in response.result && response.result.hash) {
-    return 'TRANSACTION_SUBMITTED_NO_RESULT';
-  }
-  
-  return 'UNKNOWN_ERROR';
+  return response.result.meta?.TransactionResult || 'UNKNOWN_ERROR';
 }
 
 /**
- * Enhanced success check with comprehensive validation
+ * Check if a TxResponse indicates success
  */
-export function isTransactionSuccessful(response: XRPLTransactionResponse): boolean {
-  const result = getTransactionResult(response);
-  
-  // Known success codes
-  if (result === 'tesSUCCESS') {
-    return true;
-  }
-  
-  // Known failure codes (start with tec, tem, ter)
-  if (result.startsWith('tec') || result.startsWith('tem') || result.startsWith('ter')) {
-    return false;
-  }
-  
-  // Handle our custom error codes
-  if (result === 'TRANSACTION_FAILED_NO_RESULT' || 
-      result === 'UNKNOWN_ERROR') {
-    return false;
-  }
-  
-  // If we have a hash but no clear result, assume it's processing
-  if ('hash' in response?.result && response.result.hash && 
-      !('meta' in response.result && response.result.meta?.TransactionResult)) {
-    return false; // Conservative approach - assume failure until confirmed
-  }
-  
-  return false; // Default to failure for safety
+export function isTransactionSuccessful(response: TxResponse): boolean {
+  return getTransactionResult(response) === 'tesSUCCESS';
 }
 

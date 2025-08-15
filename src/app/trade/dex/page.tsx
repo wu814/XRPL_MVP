@@ -1,13 +1,13 @@
 "use client";
 
-import CreateOffer from "@/components/Dex/CreateOffer";
-import DisplayAllOffers from "@/components/Dex/DisplayAllOffers";
-import DisplayUserOffers from "@/components/Dex/DisplayUserOffers";
+import CreateOffer from "@/components/dex/CreateOffer";
+import DisplayAllOffers from "@/components/dex/DisplayAllOffers";
+import DisplayUserOffers from "@/components/dex/DisplayUserOffers";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 
-import CurrencyPairSelection from "@/components/Currency/CurrencyPairSelection";
-import Breadcrumbs from "@/components/Navigation/Breadcrumbs";
+import CurrencyPairSelection from "@/components/currency/CurrencyPairSelection";
+import Breadcrumbs from "@/components/navigation/Breadcrumbs";
 import usePageTitle from "@/utils/usePageTitle";
 
 export default function DEX() {

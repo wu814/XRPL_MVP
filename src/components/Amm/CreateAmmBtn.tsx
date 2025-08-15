@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import Button from "../Button";
-import CreateAmmMdl from "./CreateAmmMdl";
+import CreateAMMMdl from "./CreateAMMMdl";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
-import { useIssuerWallet } from "@/components/Wallet/IssuerWalletProvider";
+import { useIssuerWallet } from "@/components/wallet/IssuerWalletProvider";
 import { YONAWallet } from "@/types/appTypes";
 
 interface TreasuryWalletData {
@@ -14,7 +14,7 @@ interface TreasuryWalletData {
   wallet_type: string;
 }
 
-interface CreateAmmResponse {
+interface CreateAMMResponse {
   data?: any;
   message?: string;
   error?: string;
@@ -24,11 +24,11 @@ interface TreasuryResponse {
   data: TreasuryWalletData[];
 }
 
-interface CreateAmmBtnProps {
-  onAmmCreated?: (data: any) => void;
+interface CreateAMMBtnProps {
+  onAMMCreated?: (data: any) => void;
 }
 
-export default function CreateAmmBtn({ onAmmCreated }: CreateAmmBtnProps) {
+export default function CreateAMMBtn({ onAMMCreated }: CreateAMMBtnProps) {
   const { data: session, status } = useSession();
   const [showMdl, setShowMdl] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
@@ -67,12 +67,12 @@ export default function CreateAmmBtn({ onAmmCreated }: CreateAmmBtnProps) {
     }
   }, [status, session]);
 
-  const handleCreateAmm = async () => {
+  const handleCreateAMM = async () => {
     setLoading(true);
     setErrorMessage(null);
 
     try {
-      const res = await fetch("/api/amm/createAmm", {
+      const res = await fetch("/api/amm/createAMM", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -85,9 +85,9 @@ export default function CreateAmmBtn({ onAmmCreated }: CreateAmmBtnProps) {
           fee,
         }),
       });
-      const result: CreateAmmResponse = await res.json();
+      const result: CreateAMMResponse = await res.json();
       if (!res.ok) throw new Error(result.error || "AMM creation failed");
-      if (onAmmCreated) onAmmCreated(result.data);
+      if (onAMMCreated) onAMMCreated(result.data);
       setSuccessMessage(result.message || "AMM created successfully");
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : "Unknown error");
@@ -103,9 +103,9 @@ export default function CreateAmmBtn({ onAmmCreated }: CreateAmmBtnProps) {
       </Button>
 
       {showMdl && (
-        <CreateAmmMdl
+        <CreateAMMMdl
           onClose={() => setShowMdl(false)}
-          onSubmit={handleCreateAmm}
+          onSubmit={handleCreateAMM}
           loading={loading}
           assetA={assetA}
           setAssetA={setAssetA}

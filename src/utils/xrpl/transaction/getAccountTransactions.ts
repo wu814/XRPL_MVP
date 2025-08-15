@@ -132,7 +132,7 @@ interface GetAccountTransactionsResponse {
 }
 
 // Function to extract NFT Token ID from transaction metadata
-function extractNftTokenId(txData: TransactionData): string | null {
+function extractNFTTokenId(txData: TransactionData): string | null {
   const meta = txData.meta;
   if (!meta || !meta.AffectedNodes) return null;
 
@@ -163,7 +163,7 @@ function extractNftTokenId(txData: TransactionData): string | null {
 }
 
 // Function to extract NFT offer price from transaction metadata
-function extractNftOfferPrice(txData: TransactionData, tx: any): string | null {
+function extractNFTOfferPrice(txData: TransactionData, tx: any): string | null {
   // First check if there's a direct Amount in the transaction
   if (tx.Amount) {
     return formatAmount(tx.Amount);
@@ -223,7 +223,7 @@ function extractNftOfferPrice(txData: TransactionData, tx: any): string | null {
 }
 
 // Function to extract deposited amounts from AMM deposit transaction metadata
-function extractAmmDepositAmounts(txData: TransactionData, senderAddress: string): string {
+function extractAMMDepositAmounts(txData: TransactionData, senderAddress: string): string {
   const meta = txData.meta;
   if (!meta || !meta.AffectedNodes) return "Liquidity deposit";
 
@@ -296,7 +296,7 @@ function extractAmmDepositAmounts(txData: TransactionData, senderAddress: string
 }
 
 // Function to extract withdrawn amounts from AMM withdraw transaction metadata
-function extractAmmWithdrawAmounts(txData: TransactionData, senderAddress: string): string {
+function extractAMMWithdrawAmounts(txData: TransactionData, senderAddress: string): string {
   const meta = txData.meta;
   if (!meta || !meta.AffectedNodes) return "Liquidity withdrawal";
 
@@ -517,13 +517,13 @@ export async function getAccountTransactions({
 
         case "AMMDeposit":
           direction = "amm_deposit";
-          amount = extractAmmDepositAmounts(txData, targetAddress);
+          amount = extractAMMDepositAmounts(txData, targetAddress);
           currency = "";
           break;
 
         case "AMMWithdraw":
           direction = "amm_withdraw";
-          amount = extractAmmWithdrawAmounts(txData, targetAddress);
+          amount = extractAMMWithdrawAmounts(txData, targetAddress);
           currency = "";
           break;
 
@@ -536,7 +536,7 @@ export async function getAccountTransactions({
 
         case "NFTokenMint":
           direction = "nft_mint";
-          const tokenId = extractNftTokenId(txData);
+          const tokenId = extractNFTTokenId(txData);
           if (tokenId) {
             amount = `Token ID: ${tokenId}`;
           } else {
@@ -548,7 +548,7 @@ export async function getAccountTransactions({
         case "NFTokenCreateOffer":
           direction = "nft_create_offer";
           counterparty = tx.Owner || tx.Destination;
-          const offerPrice = extractNftOfferPrice(txData, tx);
+          const offerPrice = extractNFTOfferPrice(txData, tx);
           if (offerPrice) {
             amount = `${offerPrice}`;
           } else {
@@ -560,7 +560,7 @@ export async function getAccountTransactions({
         case "NFTokenAcceptOffer":
           direction = "nft_accept_offer";
           counterparty = tx.NFTokenSellOffer || tx.NFTokenBuyOffer;
-          const acceptPrice = extractNftOfferPrice(txData, tx);
+          const acceptPrice = extractNFTOfferPrice(txData, tx);
           if (acceptPrice) {
             amount = `${acceptPrice}`;
           } else {

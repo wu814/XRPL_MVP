@@ -6,19 +6,19 @@ interface CurrencyAmount {
   value: string | number;
 }
 
-interface AmmCompositionBarProps {
+interface AMMCompositionBarProps {
   amount1: CurrencyAmount;
   amount2: CurrencyAmount;
   livePrices: PriceInfo[];
   pricesLoading: boolean;
 }
 
-export default function AmmCompositionBar({ 
+export default function AMMCompositionBar({ 
   amount1, 
   amount2, 
   livePrices, 
   pricesLoading 
-}: AmmCompositionBarProps) {
+}: AMMCompositionBarProps) {
   // When the component is loading, show a skeleton loader
   if (!amount1 || !amount2 || pricesLoading) {
     return (

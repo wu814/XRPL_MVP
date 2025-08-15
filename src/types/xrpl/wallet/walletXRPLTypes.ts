@@ -1,5 +1,5 @@
 import { Wallet, AccountInfoResponse } from "xrpl";
-
+import { ErrorInfo } from "@/types/xrpl/index";
 
 export interface FundWalletResult {
   balance: number;
@@ -10,12 +10,12 @@ export interface CreateWalletResult {
   success: boolean;
   message: string;
   data: FundWalletResult;
-  error?: string;
+  error?: ErrorInfo;
 }
 
 export interface SetWalletFlagsResult {
   success: boolean;
-  error?: string;
+  error?: ErrorInfo;
 }
 
 export type AccountInfo = AccountInfoResponse['result']['account_data'];

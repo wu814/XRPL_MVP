@@ -11,7 +11,7 @@ interface IssuerWallet {
   classicAddress: string;
 }
 
-interface CreateAmmResult {
+interface CreateAMMResult {
   ammAccount: string;
   currency_a: string;
   currency_b: string;
@@ -28,7 +28,7 @@ interface CreateAmmResult {
  * @param fee - Trading fee in basis points
  * @returns AMM metadata
  */
-export default async function createAmm(
+export default async function createAMM(
   treasuryWallet: Wallet,
   issuerWallets: IssuerWallet[],
   assetAType: string,
@@ -36,7 +36,7 @@ export default async function createAmm(
   assetBType: string,
   amountB: string | number,
   fee: string | number,
-): Promise<CreateAmmResult> {
+): Promise<CreateAMMResult> {
   await connectXrplClient();
   console.log("✅ Preparing AMM creation...");
 

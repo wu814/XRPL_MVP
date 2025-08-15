@@ -5,7 +5,7 @@ import { Loader2 } from "lucide-react";
 import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
-import CurrencyDropDown from "../Currency/CurrencyDropDown";
+import CurrencyDropDown from "../currency/CurrencyDropDown";
 import { YONAWallet } from "@/types/appTypes";
 
 interface SetTrustlineResponse {

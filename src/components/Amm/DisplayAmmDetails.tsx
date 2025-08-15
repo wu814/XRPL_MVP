@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import ErrorMdl from "../ErrorMdl";
-import CurrencyIcon from "../Currency/CurrencyIcon";
-import AmmCompositionBar from "./AmmCompositionBar";
-import ManageAmmBalance from "./ManageAmmBalance";
-import Breadcrumbs from "../Navigation/Breadcrumbs";
+import CurrencyIcon from "../currency/CurrencyIcon";
+import AMMCompositionBar from "./AMMCompositionBar";
+import ManageAMMBalance from "./ManageAMMBalance";
+import Breadcrumbs from "../navigation/Breadcrumbs";
 import { useRouter } from "next/navigation";
 import {
   fetchUSDPrices,
@@ -13,15 +13,15 @@ import {
   formatCurrencyValue,
   PriceInfo,
 } from "@/utils/currencyUtils";
-import { AmmInfo } from "./DisplayAmms"; // Import the centralized interface
+import { AMMInfo } from "./DisplayAMMs"; // Import the centralized interface
 
-interface AmmAmount {
+interface AMMAmount {
   currency: string;
   issuer: string | null;
   value: string;
 }
 
-interface AmmApiResponse {
+interface AMMApiResponse {
   amm_account: string;
   trading_fee: number;
   lp_token: {
@@ -45,27 +45,27 @@ interface AmmApiResponse {
       };
 }
 
-interface AmmInfoResponse {
-  data?: AmmApiResponse;
+interface AMMInfoResponse {
+  data?: AMMApiResponse;
   error?: string;
 }
 
-interface CachedAmmData {
+interface CachedAMMData {
   ammAccount?: string;
   currency_a?: string;
   currency_b?: string;
   timestamp?: number;
-  ammDetails?: AmmInfo;
+  ammDetails?: AMMInfo;
   livePrices?: PriceInfo[];
   pricesLoading?: boolean;
 }
 
-interface DisplayAmmDetailsProps {
+interface DisplayAMMDetailsProps {
   ammAccount: string;
 }
 
 // This class is used to parse the AMM data returned from the API
-class AmmInfoParser implements AmmInfo {
+class AMMInfoParser implements AMMInfo {
   amm_account: string;
   trading_fee: number;
   lp_token: {
@@ -84,7 +84,7 @@ class AmmInfoParser implements AmmInfo {
     value: string;
   };
 
-  constructor(data: AmmApiResponse) {
+  constructor(data: AMMApiResponse) {
     this.amm_account = data.amm_account;
     this.trading_fee = data.trading_fee;
 
@@ -103,7 +103,7 @@ class AmmInfoParser implements AmmInfo {
   // Converts XRP from drops or parses IOU
   private parseAmount(
     amount: string | { currency: string; issuer: string; value: string },
-  ): AmmAmount {
+  ): AMMAmount {
     if (typeof amount === "string") {
       const xrpl = require("xrpl");
       // XRP is a string of drops
@@ -123,12 +123,12 @@ class AmmInfoParser implements AmmInfo {
   }
 }
 
-export default function DisplayAmmDetails({
+export default function DisplayAMMDetails({
   ammAccount,
-}: DisplayAmmDetailsProps) {
+}: DisplayAMMDetailsProps) {
   const router = useRouter();
 
-  const [ammInfo, setAmmInfo] = useState<AmmInfo | null>(null);
+  const [ammInfo, setAMMInfo] = useState<AMMInfo | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [currency1, setCurrency1] = useState<string>("");
@@ -136,20 +136,20 @@ export default function DisplayAmmDetails({
   const [livePrices, setLivePrices] = useState<PriceInfo[]>([]);
   const [pricesLoading, setPricesLoading] = useState<boolean>(true);
 
-  const fetchAmmInfo = async (): Promise<void> => {
+  const fetchAMMInfo = async (): Promise<void> => {
     try {
-      const res = await fetch("/api/amm/getAmmInfo", {
+      const res = await fetch("/api/amm/getAMMInfo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ammAccount }),
       });
 
-      const result: AmmInfoResponse = await res.json();
+      const result: AMMInfoResponse = await res.json();
       if (!res.ok) throw new Error(result.error || "Failed to fetch AMM info");
 
       if (result.data) {
         console.log(result.data);
-        setAmmInfo(new AmmInfoParser(result.data));
+        setAMMInfo(new AMMInfoParser(result.data));
       }
     } catch (error: any) {
       if (
@@ -181,11 +181,11 @@ export default function DisplayAmmDetails({
   };
 
   useEffect(() => {
-    // Check for cached data from DisplayAmms
+    // Check for cached data from DisplayAMMs
     const cached = localStorage.getItem("selectedAMM");
     if (cached) {
       try {
-        const parsed: CachedAmmData = JSON.parse(cached);
+        const parsed: CachedAMMData = JSON.parse(cached);
         if (parsed?.ammAccount === ammAccount) {
           setCurrency1(parsed.currency_a || "Unknown");
           setCurrency2(parsed.currency_b || "Unknown");
@@ -196,7 +196,7 @@ export default function DisplayAmmDetails({
 
           if (parsed.ammDetails && parsed.livePrices && cacheValid) {
             // Use cached data
-            setAmmInfo(parsed.ammDetails);
+            setAMMInfo(parsed.ammDetails);
             setLivePrices(parsed.livePrices);
             setPricesLoading(parsed.pricesLoading || false);
             setLoading(false);
@@ -209,7 +209,7 @@ export default function DisplayAmmDetails({
     }
 
     // Fallback to API calls if no valid cached data
-    fetchAmmInfo();
+    fetchAMMInfo();
     fetchPrices();
   }, [ammAccount]);
 
@@ -330,7 +330,7 @@ export default function DisplayAmmDetails({
         <div className="grid grid-cols-6 gap-2 py-2">
           <div className="col-span-2 rounded-lg bg-color2 p-4">
             <h3 className="text-mutedText">Pool Composition</h3>
-            <AmmCompositionBar
+            <AMMCompositionBar
               amount1={ammInfo?.amount}
               amount2={ammInfo?.amount2}
               livePrices={livePrices}
@@ -355,7 +355,7 @@ export default function DisplayAmmDetails({
         <div className="grid grid-cols-3 gap-2">
           {/* Swap/Add/Withdraw Panel */}
           <div className="col-span-1 rounded-lg bg-color2 p-4">
-            <ManageAmmBalance ammInfo={ammInfo} onChange={fetchAmmInfo} />
+            <ManageAMMBalance ammInfo={ammInfo} onChange={fetchAMMInfo} />
           </div>
           {/* Volume/TVL/Fees Graph */}
           <div className="col-span-2 rounded-lg bg-color2 p-4 text-mutedText">

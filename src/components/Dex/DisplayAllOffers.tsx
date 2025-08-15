@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { RefreshCw } from "lucide-react";
-import { useIssuerWallet } from "../Wallet/IssuerWalletProvider";
+import { useIssuerWallet } from "../wallet/IssuerWalletProvider";
 
 interface ParsedAsset {
   currency: string;

@@ -2,10 +2,10 @@ import { createSupabaseAnonClient } from "@/utils/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import createAmm from "@/utils/xrpl/amm/createAmm";
+import createAMM from "@/utils/xrpl/amm/createAMM";
 import { Wallet } from "xrpl";
 
-interface CreateAmmRequest {
+interface CreateAMMRequest {
   treasuryWallet: {
     classicAddress: string;
   };
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
       assetB,
       amountB,
       fee,
-    }: CreateAmmRequest = await req.json();
+    }: CreateAMMRequest = await req.json();
 
     const supabase = await createSupabaseAnonClient();
     const { data: walletData, error: walletError } = await supabase
@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
     const treasuryXrplWallet = Wallet.fromSeed(walletData.seed);
 
     // Create AMM on the XRPL
-    const ammData = await createAmm(
+    const ammData = await createAMM(
       treasuryXrplWallet,
       issuerWallets,
       assetA,
@@ -69,9 +69,9 @@ export async function POST(req: NextRequest) {
     // Store the new AMM in the database
     const { data, error } = await supabase.from("amms").insert([
       {
-        amm_account: ammData.ammAccount,
-        currency_a: ammData.currency_a,
-        currency_b: ammData.currency_b,
+        account: ammData.ammAccount,
+        currency1: ammData.currency_a,
+        currency2: ammData.currency_b,
         created_at: new Date().toISOString(),
         issuer_address: issuerWallets[0].classicAddress,
         treasury_address: treasuryWallet.classicAddress,
@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     return NextResponse.json(
-      { error: `Error creating AMM: ${errorMessage} [createAmm/route.ts]` },
+      { error: `Error creating AMM: ${errorMessage} [createAMM/route.ts]` },
       { status: 500 },
     );
   }

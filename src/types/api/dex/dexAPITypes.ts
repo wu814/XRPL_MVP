@@ -8,7 +8,6 @@ export interface GetUserOffersAPIRequest {
 export interface GetUserOffersAPIResponse {
   message: string;
   data: EnhancedOffer[];
-  error?: string;
 }
 
 export interface GetCompletedOffersAPIRequest {
@@ -18,5 +17,4 @@ export interface GetCompletedOffersAPIRequest {
 export interface GetCompletedOffersAPIResponse {
   message: string;
   data: EnhancedCompletedOffer[];
-  error?: string;
 }

@@ -2,14 +2,14 @@
 import { useSession } from "next-auth/react";
 import usePageTitle from "@/utils/usePageTitle";
 import { Plus } from "lucide-react";
-import DisplayAdminWallets from "@/components/Wallet/DisplayAdminWallets";
-import DisplayUserWallets from "@/components/Wallet/DisplayUserWallets";
-import DashboardHeader from "@/components/Wallet/DashboardHeader";
+import DisplayAdminWallets from "@/components/wallet/DisplayAdminWallets";
+import DisplayUserWallets from "@/components/wallet/DisplayUserWallets";
+import DashboardHeader from "@/components/wallet/DashboardHeader";
 
-import { useCurrentUserWallet } from "@/components/Wallet/CurrentUserWalletProvider";
-import { useIssuerWallet } from "@/components/Wallet/IssuerWalletProvider";
-import CreateUserWalletBtn from "@/components/Wallet/CreateUserWalletBtn";
-import CreateAdminWalletBtn from "@/components/Wallet/CreateAdminWalletBtn";
+import { useCurrentUserWallet } from "@/components/wallet/CurrentUserWalletProvider";
+import { useIssuerWallet } from "@/components/wallet/IssuerWalletProvider";
+import CreateUserWalletBtn from "@/components/wallet/CreateUserWalletBtn";
+import CreateAdminWalletBtn from "@/components/wallet/CreateAdminWalletBtn";
 
 // Welcome/Dashboard Section Component
 function WelcomeSection() {

@@ -1,8 +1,8 @@
 "use client";
 
-import Sidebar from "@/components/Navigation/Sidebar";
-import Topbar from "@/components/Navigation/Topbar";
-import TradePanel from "@/components/Smart/TradePanel";
+import Sidebar from "@/components/navigation/Sidebar";
+import Topbar from "@/components/navigation/Topbar";
+import TradePanel from "@/components/smart/TradePanel";
 import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 

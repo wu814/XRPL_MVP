@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
-import CurrencyDropDown from "../Currency/CurrencyDropDown";
+import CurrencyDropDown from "../currency/CurrencyDropDown";
 import Button from "../Button";
 import SuccessMdl from "../SuccessMdl";
 import ErrorMdl from "../ErrorMdl";

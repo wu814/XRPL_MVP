@@ -1,11 +1,11 @@
 "use client";
 import { useSession } from "next-auth/react";
 import { Plus } from "lucide-react";
-import AssetTable from "@/components/Wallet/AssetTable";
+import AssetTable from "@/components/wallet/AssetTable";
 import {
   useCurrentUserWallet,
-} from "@/components/Wallet/CurrentUserWalletProvider";
-import CreateUserWalletBtn from "@/components/Wallet/CreateUserWalletBtn";
+} from "@/components/wallet/CurrentUserWalletProvider";
+import CreateUserWalletBtn from "@/components/wallet/CreateUserWalletBtn";
 import { useLivePrices } from "@/utils/currencyUtils";
 import { useWalletAssets } from "@/utils/assetUtils";
 import usePageTitle from "@/utils/usePageTitle";

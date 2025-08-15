@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAmmInfoByCurrencies } from '@/utils/xrpl/amm/ammUtils';
+import { getAMMInfoByCurrencies } from '@/utils/xrpl/amm/ammUtils';
 
-interface GetAmmInfoByCurrenciesRequest {
+interface GetAMMInfoByCurrenciesRequest {
   sellCurrency: string;
   buyCurrency: string;
 }
 
-interface AmmData {
+interface AMMData {
   amm_account: string;
   amount: {
     currency: string;
@@ -18,15 +18,15 @@ interface AmmData {
   };
 }
 
-interface GetAmmInfoByCurrenciesResponse {
+interface GetAMMInfoByCurrenciesResponse {
   success: boolean;
-  data?: AmmData;
+  data?: AMMData;
   error?: string;
 }
 
-export async function POST(request: NextRequest): Promise<NextResponse<GetAmmInfoByCurrenciesResponse>> {
+export async function POST(request: NextRequest): Promise<NextResponse<GetAMMInfoByCurrenciesResponse>> {
   try {
-    const { sellCurrency, buyCurrency }: GetAmmInfoByCurrenciesRequest = await request.json();
+    const { sellCurrency, buyCurrency }: GetAMMInfoByCurrenciesRequest = await request.json();
     
     console.log(`🔍 Getting AMM info for ${sellCurrency}/${buyCurrency}`);
     
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<GetAmmInf
       }, { status: 400 });
     }
     
-    const ammData = await getAmmInfoByCurrencies(sellCurrency, buyCurrency);
+    const ammData = await getAMMInfoByCurrencies(sellCurrency, buyCurrency);
     
     if (!ammData) {
       return NextResponse.json({

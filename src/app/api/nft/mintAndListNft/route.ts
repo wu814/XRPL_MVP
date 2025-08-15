@@ -5,7 +5,7 @@ import { mintAndListNFTUSD } from "@/utils/xrpl/nft/nftManager";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
 import { Wallet } from "xrpl";
 
-interface MintAndListNftRequest {
+interface MintAndListNFTRequest {
   businessWallet: {
     classicAddress: string;
   };
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Parse request body
-    const { businessWallet, issuerWalletAddress, uri, priceUSD, destination, taxon }: MintAndListNftRequest = await req.json();
+    const { businessWallet, issuerWalletAddress, uri, priceUSD, destination, taxon }: MintAndListNFTRequest = await req.json();
     
 
     // Validate required parameters
@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
     }
 
   } catch (error) {
-    console.error(`❌ API Error in mintAndListNft:`, error instanceof Error ? error.message : 'Unknown error');
+    console.error(`❌ API Error in mintAndListNFT:`, error instanceof Error ? error.message : 'Unknown error');
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     return NextResponse.json(
       { 

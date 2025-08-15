@@ -1,32 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAmmInfo } from "@/utils/xrpl/amm/ammUtils";
+import { getAMMInfo } from "@/utils/xrpl/amm/ammUtils";
+import { GetAMMInfoAPIRequest, GetAMMInfoAPIResponse, APIErrorResponse } from "@/types/api/index";
 
-interface GetAmmInfoRequest {
-  ammAccount: string;
-}
-
-interface GetAmmInfoResponse {
-  data: any; // You can replace 'any' with a more specific type if available
-}
-
-export async function POST(req: NextRequest): Promise<NextResponse<GetAmmInfoResponse | { error: string }>> {
+export async function POST(req: NextRequest): Promise<NextResponse<GetAMMInfoAPIResponse | APIErrorResponse>> {
   try {
-    const { ammAccount }: GetAmmInfoRequest = await req.json();
+    const { account }: GetAMMInfoAPIRequest = await req.json();
 
-    if (!ammAccount) {
-      return NextResponse.json(
-        { error: "Missing required parameter: ammAccount" },
+    if (!account) {
+      return NextResponse.json<APIErrorResponse>(
+        { message: "Missing required parameter: account" },
         { status: 400 },
       );
     }
 
-    const ammInfo = await getAmmInfo(ammAccount);
+    const ammInfo = await getAMMInfo(account);
 
-    return NextResponse.json({ data: ammInfo }, { status: 200 });
+    return NextResponse.json<GetAMMInfoAPIResponse>({ message: "AMM info fetched successfully", data: ammInfo }, { status: 200 });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    return NextResponse.json(
-      { error: `getAmmInfo error: ${errorMessage}` },
+    return NextResponse.json<APIErrorResponse>(
+      { message: `getAMMInfo error: ${errorMessage}` },
       { status: 500 },
     );
   }

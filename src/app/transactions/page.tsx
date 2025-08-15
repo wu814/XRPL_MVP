@@ -1,6 +1,6 @@
 "use client";
 
-import TransactionHistory from '@/components/Transaction/TransactionHistory';
+import TransactionHistory from '@/components/transaction/TransactionHistory';
 import usePageTitle from '@/utils/usePageTitle';
 
 export default function TransactionsPage() {

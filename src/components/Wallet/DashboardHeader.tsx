@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { RefreshCw, Loader2 } from "lucide-react";
-import { useCurrentUserWallet } from "@/components/Wallet/CurrentUserWalletProvider";
+import { useCurrentUserWallet } from "@/components/wallet/CurrentUserWalletProvider";
 import {
   fetchUSDPrices,
   getUSDValue,
@@ -11,14 +11,6 @@ import {
 } from "@/utils/currencyUtils";
 import { GetAccountInfoAPIResponse, GetAccountLinesAPIResponse } from "@/types/api/index";
 
-interface AccountLine {
-  balance: string;
-  currency: string;
-}
-
-interface AccountLinesResponse {
-  data?: AccountLine[];
-}
 
 interface DashboardHeaderProps {
   totalBalance?: number;

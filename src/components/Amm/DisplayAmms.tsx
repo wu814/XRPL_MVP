@@ -4,68 +4,26 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import ErrorMdl from "../ErrorMdl";
-import CurrencyIcon from "../Currency/CurrencyIcon";
-import CreateAmmBtn from "./CreateAmmBtn";
+import CurrencyIcon from "../currency/CurrencyIcon";
+import CreateAMMBtn from "./CreateAMMBtn";
 import { fetchUSDPrices, getUSDValue, formatCurrencyValue, PriceInfo } from "@/utils/currencyUtils";
+import { AMMData, AMMInfo } from "@/types/xrpl/index";
+import { APIErrorResponse, GetAllAMMDataAPIResponse, GetAMMInfoAPIResponse } from "@/types/api/index";
 
-// AMM Interface - centralized here for all AMM components to use
-export interface AmmInfo {
-  amm_account: string;
-  trading_fee: number;
-  lp_token: {
-    currency: string;
-    issuer: string;
-    value: string;
-  };
-  amount: {
-    currency: string;
-    issuer: string | null;
-    value: string;
-  };
-  amount2: {
-    currency: string;
-    issuer: string | null;
-    value: string;
-  };
-}
-
-interface AmmData {
-  amm_account: string;
-  currency_a: string;
-  currency_b: string;
-  trading_fee?: number;
-  lp_token?: {
-    currency: string;
-    issuer: string;
-    value: string;
-  };
-  amount?: string | { currency: string; issuer: string; value: string };
-  amount2?: string | { currency: string; issuer: string; value: string };
-}
-
-interface AmmListItem {
+interface AMMListItem {
   ammAccount: string;
   currency_a: string;
   currency_b: string;
 }
 
-interface AmmResponse {
-  data?: AmmData[];
-}
-
-interface AmmInfoResponse {
-  data?: AmmData;
-  error?: string;
-}
-
-interface NewAmmData {
+interface NewAMMData {
   ammAccount: string;
   currency_a?: string;
   currency_b?: string;
 }
 
 // This class is used to parse the AMM data returned from the API
-class AmmInfoParser {
+class AMMInfoParser {
   account: string;
   trading_fee: number;
   lp_token: {
@@ -83,25 +41,13 @@ class AmmInfoParser {
     issuer: string | null;
     value: string;
   };
-
-  constructor(data: AmmData) {
-    this.account = data.amm_account;
-    this.trading_fee = data.trading_fee || 0;
-
-    // LP Token (always IOU format)
-    this.lp_token = {
-      currency: data.lp_token?.currency || "",
-      issuer: data.lp_token?.issuer || "",
-      value: data.lp_token?.value || "0",
-    };
-
-    // Asset 1 and 2 (XRP or IOU)
-    this.amount = this.parseAmount(data.amount);
-    this.amount2 = this.parseAmount(data.amount2);
-  }
-
   // Converts XRP from drops or parses IOU
-  parseAmount(amount: string | { currency: string; issuer: string; value: string } | undefined): {
+  parseAmount(
+    amount:
+      | string
+      | { currency: string; issuer: string; value: string }
+      | undefined,
+  ): {
     currency: string;
     issuer: string | null;
     value: string;
@@ -129,15 +75,15 @@ class AmmInfoParser {
   }
 }
 
-export default function DisplayAmms() {
+export default function DisplayAMMs() {
   const router = useRouter(); // Redirect user to the AMM page when they click on an AMM
   const { data: session, status } = useSession();
-  const [amms, setAmms] = useState<AmmListItem[]>([]);
+  const [ammsDBData, setAMMsDBData] = useState<AMMData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [livePrices, setLivePrices] = useState<PriceInfo[]>([]);
   const [pricesLoading, setPricesLoading] = useState<boolean>(true);
-  const [ammDetails, setAmmDetails] = useState<Record<string, AmmInfoParser>>({});
+  const [ammDetails, setAMMDetails] = useState<Record<string, AMMInfo>>({});
 
   // Helper function to format fee display
   const formatFee = (fee: number | null | undefined): string => {
@@ -158,26 +104,29 @@ export default function DisplayAmms() {
   };
 
   // Function to fetch detailed AMM info for pool value calculation
-  const fetchAmmDetails = async (ammAccount: string) => {
+  const fetchAMMDetails = async (account: string) => {
     try {
-      const res = await fetch("/api/amm/getAmmInfo", {
+      const response = await fetch("/api/amm/getAMMInfo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ammAccount }),
+        body: JSON.stringify({ account }),
       });
 
-      const result: AmmInfoResponse = await res.json();
-      if (!res.ok) throw new Error(result.error || "Failed to fetch AMM info");
-      
+      if (!response.ok) {
+        const errorData: APIErrorResponse = await response.json();
+        setErrorMessage(errorData.message);
+        return;
+      }
+      const result: GetAMMInfoAPIResponse = await response.json();
+
       if (result.data) {
-        const ammInfo = new AmmInfoParser(result.data);
-        setAmmDetails(prev => ({
+        setAMMDetails((prev) => ({
           ...prev,
-          [ammAccount]: ammInfo
+          [account]: result.data,
         }));
       }
-    } catch (error) {
-      console.error(`Error fetching AMM details for ${ammAccount}:`, error);
+    } catch (error: any) {
+      setErrorMessage(error.message);
     }
   };
 
@@ -188,36 +137,45 @@ export default function DisplayAmms() {
       return null;
     }
 
-    const usdValue1 = getUSDValue(ammInfo.amount.currency, parseFloat(ammInfo.amount.value), livePrices);
-    const usdValue2 = getUSDValue(ammInfo.amount2.currency, parseFloat(ammInfo.amount2.value), livePrices);
+    const usdValue1 = getUSDValue(
+      ammInfo.amount.currency,
+      parseFloat(ammInfo.amount.value),
+      livePrices,
+    );
+    const usdValue2 = getUSDValue(
+      ammInfo.amount2.currency,
+      parseFloat(ammInfo.amount2.value),
+      livePrices,
+    );
     const totalUsdValue = usdValue1 + usdValue2;
 
     return totalUsdValue > 0 ? totalUsdValue : null;
   };
 
-  const fetchAmms = async () => {
+  const fetchAMMs = async () => {
     setLoading(true);
     try {
       // Getting amms from the database
-      const res = await fetch("/api/amm/getAllAmms");
-      const result: AmmResponse = await res.json();
-      if (Array.isArray(result.data) && result.data.length > 0) {
-        const ammsData = result.data
-          .map((amm) => ({
-            ammAccount: amm.amm_account,
-            currency_a: amm.currency_a || "Unknown",
-            currency_b: amm.currency_b || "Unknown",
-          }))
-          .sort((a, b) => {
-            const pair1 = `${a.currency_a}/${a.currency_b}`;
-            const pair2 = `${b.currency_a}/${b.currency_b}`;
-            return pair1.localeCompare(pair2);
-          });
-        setAmms(ammsData);
-        
+      const response = await fetch("/api/amm/getAllAMMData");
+
+      if (!response.ok) {
+        const errorData: APIErrorResponse = await response.json();
+        setErrorMessage(errorData.message);
+        return;
+      }
+      const result: GetAllAMMDataAPIResponse = await response.json();
+
+      if (result.data && result.data.length > 0) {
+        const ammsData: AMMData[] = result.data.sort((a, b) => {
+          const pair1 = `${a.currency1}/${a.currency2}`;
+          const pair2 = `${b.currency1}/${b.currency2}`;
+          return pair1.localeCompare(pair2);
+        });
+        setAMMsDBData(ammsData);
+
         // Fetch detailed info for each AMM
-        ammsData.forEach(amm => {
-          fetchAmmDetails(amm.ammAccount);
+        ammsData.forEach((amm) => {
+          fetchAMMDetails(amm.account);
         });
       }
     } catch (error: any) {
@@ -227,25 +185,25 @@ export default function DisplayAmms() {
     }
   };
 
-  const handleAmmCreated = (newAmmData: NewAmmData) => {
-    const newAmm: AmmListItem = {
-      ammAccount: newAmmData.ammAccount,
-      currency_a: newAmmData.currency_a || "Unknown",
-      currency_b: newAmmData.currency_b || "Unknown",
+  const handleAMMCreated = (newAMMData: NewAMMData) => {
+    const newAMM: AMMListItem = {
+      ammAccount: newAMMData.ammAccount,
+      currency_a: newAMMData.currency_a || "Unknown",
+      currency_b: newAMMData.currency_b || "Unknown",
     };
-    setAmms((prevAmms) =>
-      [...prevAmms, newAmm].sort((a, b) => {
-        const pair1 = `${a.currency_a}/${a.currency_b}`;
-        const pair2 = `${b.currency_a}/${b.currency_b}`;
+    setAMMsDBData((prevAMMs) =>
+      [...prevAMMs, newAMM].sort((a, b) => {
+        const pair1 = `${a.currency1}/${a.currency2}`;
+        const pair2 = `${b.currency1}/${b.currency2}`;
         return pair1.localeCompare(pair2);
       }),
     );
     // Fetch details for the new AMM
-    fetchAmmDetails(newAmmData.ammAccount);
+    fetchAMMDetails(newAMMData.ammAccount);
   };
 
   useEffect(() => {
-    fetchAmms();
+    fetchAMMs();
     fetchPrices();
   }, []);
 
@@ -254,7 +212,7 @@ export default function DisplayAmms() {
       <div className="mb-5 flex items-center justify-end">
         {/* Only show the button if the user is an admin and there are issuer wallet and treasury wallet */}
         {session?.user?.role === "ADMIN" && (
-          <CreateAmmBtn onAmmCreated={handleAmmCreated} />
+          <CreateAMMBtn onAMMCreated={handleAMMCreated} />
         )}
       </div>
 
@@ -296,7 +254,7 @@ export default function DisplayAmms() {
             ))}
           </div>
         </div>
-      ) : amms.length === 0 ? (
+      ) : ammsDBData.length === 0 ? (
         <p className="text-center">No AMMs found.</p>
       ) : (
         <div className="flex flex-col rounded-lg bg-color2">
@@ -309,33 +267,38 @@ export default function DisplayAmms() {
           </div>
 
           {/* Data rows */}
-          {amms.map((amm, index) => {
-            const poolValue = calculatePoolValue(amm.ammAccount);
-            
+          {ammsDBData.map((amm, index) => {
+            const poolValue = calculatePoolValue(amm.account);
+
             return (
               <div
                 key={index}
                 className="grid cursor-pointer grid-cols-[2fr_1fr_1fr_1fr] items-center px-4 py-6 hover:bg-color3"
                 onClick={() => {
                   localStorage.setItem("selectedAMM", JSON.stringify(amm));
-                  router.push(`/trade/amm/${amm.ammAccount}`);
+                  router.push(`/trade/amm/${amm.account}`);
                 }}
               >
                 <div className="flex gap-1 pl-2">
-                  <CurrencyIcon symbol={amm.currency_a} iconBg="bg-color4" />
-                  <CurrencyIcon symbol={amm.currency_b} iconBg="bg-color4" />
+                  <CurrencyIcon symbol={amm.currency1} iconBg="bg-color4" />
+                  <CurrencyIcon symbol={amm.currency2} iconBg="bg-color4" />
                 </div>
-                <p className="text-center">{amm.ammAccount}</p>
+                <p className="text-center">{amm.account}</p>
                 <p className="text-center">
-                  {poolValue !== null ? `$${formatCurrencyValue(poolValue)}` : 
-                   pricesLoading || !ammDetails[amm.ammAccount] ? (
-                     <span className="mx-auto h-4 w-16 animate-pulse rounded-lg bg-pulse inline-block" />
-                   ) : "Not Available"}
+                  {poolValue !== null ? (
+                    `$${formatCurrencyValue(poolValue)}`
+                  ) : pricesLoading || !ammDetails[amm.account] ? (
+                    <span className="mx-auto inline-block h-4 w-16 animate-pulse rounded-lg bg-pulse" />
+                  ) : (
+                    "Not Available"
+                  )}
                 </p>
                 <p className="text-center">
-                  {!ammDetails[amm.ammAccount] ? (
-                    <span className="mx-auto h-4 w-12 animate-pulse rounded-lg bg-pulse inline-block" />
-                  ) : formatFee(ammDetails[amm.ammAccount]?.trading_fee)}
+                  {!ammDetails[amm.account] ? (
+                    <span className="mx-auto inline-block h-4 w-12 animate-pulse rounded-lg bg-pulse" />
+                  ) : (
+                    formatFee(ammDetails[amm.account]?.trading_fee)
+                  )}
                 </p>
               </div>
             );
@@ -351,4 +314,4 @@ export default function DisplayAmms() {
       )}
     </div>
   );
-};
+}

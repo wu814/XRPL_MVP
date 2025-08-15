@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { RefreshCw, CheckCircle, XCircle, ExternalLink } from "lucide-react";
-import { useCurrentUserWallet } from "@/components/Wallet/CurrentUserWalletProvider";
+import { useCurrentUserWallet } from "@/components/wallet/CurrentUserWalletProvider";
 import CancelOfferBtn from "./CancelOfferBtn";
 import { EnhancedOffer, EnhancedCompletedOffer } from "@/types/xrpl/index";
 import { GetUserOffersAPIResponse, GetCompletedOffersAPIResponse, APIErrorResponse } from "@/types/api/index";

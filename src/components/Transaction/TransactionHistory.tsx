@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useCurrentUserWallet } from "../Wallet/CurrentUserWalletProvider";
+import { useCurrentUserWallet } from "../wallet/CurrentUserWalletProvider";
 import { YONAWallet } from "@/types/appTypes";
 import { 
   ArrowUpRight, 

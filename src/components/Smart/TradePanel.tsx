@@ -2,15 +2,15 @@
 
 import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import { ArrowUpRight, ArrowDownLeft, ArrowUpDown, Building2, Search, Settings, Loader2 } from "lucide-react";
-import ConvertCurrencyDropDown from "@/components/Currency/ConvertCurrencyDropDown";
-import SendCurrencyDropDown from "@/components/Currency/SendCurrencyDropDown";
-import FavoritesList from "@/components/Smart/FavoritesList";
+import ConvertCurrencyDropDown from "@/components/currency/ConvertCurrencyDropDown";
+import SendCurrencyDropDown from "@/components/currency/SendCurrencyDropDown";
+import FavoritesList from "@/components/smart/FavoritesList";
 import SlippagePanel from "@/components/SlippagePanel";
 import ErrorMdl from "@/components/ErrorMdl";
 import SuccessMdl from "@/components/SuccessMdl";
 import Button from "../Button";
-import { useCurrentUserWallet } from "@/components/Wallet/CurrentUserWalletProvider";
-import { useIssuerWallet } from "@/components/Wallet/IssuerWalletProvider";
+import { useCurrentUserWallet } from "@/components/wallet/CurrentUserWalletProvider";
+import { useIssuerWallet } from "@/components/wallet/IssuerWalletProvider";
 import { availableCurrencies, formatCurrencyValue, Currency } from "@/utils/currencyUtils";
 import { useSession } from "next-auth/react";
 import { calculateExactAMMInput, calculateEstimateOutput } from "@/utils/xrpl/amm/calculations";
@@ -22,7 +22,7 @@ interface WalletBalance {
   [currency: string]: number;
 }
 
-interface AmmDataResponse {
+interface AMMDataResponse {
   success?: boolean;
   data?: any;
   error?: string;
@@ -72,9 +72,9 @@ export default function TradePanel() {
   const [calculationError, setCalculationError] = useState<string | null>(null);
 
   // AMM data states - fetch once when currencies change
-  const [ammData, setAmmData] = useState<any>(null);
-  const [loadingAmmData, setLoadingAmmData] = useState<boolean>(false);
-  const [ammDataError, setAmmDataError] = useState<string | null>(null);
+  const [ammData, setAMMData] = useState<any>(null);
+  const [loadingAMMData, setLoadingAMMData] = useState<boolean>(false);
+  const [ammDataError, setAMMDataError] = useState<string | null>(null);
 
   // Send form states (Enhanced from TransferBtn)
   const [recipientUsername, setRecipientUsername] = useState<string>("");
@@ -141,21 +141,21 @@ export default function TradePanel() {
   useEffect(() => {
     if (activeTab === "Convert") {
       if (sellCurrency && buyCurrency && sellCurrency !== buyCurrency) {
-        fetchAmmData(sellCurrency, buyCurrency);
+        fetchAMMData(sellCurrency, buyCurrency);
       } else {
-        setAmmData(null);
-        setAmmDataError(null);
+        setAMMData(null);
+        setAMMDataError(null);
       }
     } else if (activeTab === "Send" && paymentType === "convertable") {
       if (sendCurrency && receiveCurrency && sendCurrency !== receiveCurrency) {
-        fetchAmmData(sendCurrency, receiveCurrency);
+        fetchAMMData(sendCurrency, receiveCurrency);
       } else {
-        setAmmData(null);
-        setAmmDataError(null);
+        setAMMData(null);
+        setAMMDataError(null);
       }
     } else {
-      setAmmData(null);
-      setAmmDataError(null);
+      setAMMData(null);
+      setAMMDataError(null);
     }
   }, [
     activeTab,
@@ -166,13 +166,13 @@ export default function TradePanel() {
     paymentType,
   ]);
 
-  const fetchAmmData = async (currency1: string, currency2: string): Promise<void> => {
-    setLoadingAmmData(true);
-    setAmmDataError(null);
-    setAmmData(null);
+  const fetchAMMData = async (currency1: string, currency2: string): Promise<void> => {
+    setLoadingAMMData(true);
+    setAMMDataError(null);
+    setAMMData(null);
 
     try {
-      const response = await fetch("/api/amm/getAmmInfoByCurrencies", {
+      const response = await fetch("/api/amm/getAMMInfoByCurrencies", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -181,17 +181,17 @@ export default function TradePanel() {
         }),
       });
 
-      const result: AmmDataResponse = await response.json();
+      const result: AMMDataResponse = await response.json();
 
       if (!response.ok) {
         throw new Error(result.error || "Failed to get AMM data");
       }
 
-      setAmmData(result.data);
+      setAMMData(result.data);
     } catch (error: any) {
-      setAmmDataError(error.message);
+      setAMMDataError(error.message);
     } finally {
-      setLoadingAmmData(false);
+      setLoadingAMMData(false);
     }
   };
 
@@ -683,7 +683,7 @@ export default function TradePanel() {
           {activeTab === "Convert" ? (
             // Convert Layout
             <>
-              {loadingAmmData && (
+              {loadingAMMData && (
                 <div className="mb-4 rounded-full border border-blue-500 bg-blue-900/20 p-3">
                   <div className="flex items-center space-x-2">
                     <Loader2 className="h-4 w-4 animate-spin text-blue-400" />
@@ -708,7 +708,7 @@ export default function TradePanel() {
                 </div>
               )}
 
-              {ammData && !loadingAmmData && (
+              {ammData && !loadingAMMData && (
                 <div className="mb-4 rounded-full border border-green-500 bg-green-900/20 p-3">
                   <p className="text-sm text-green-400">
                     AMM Pool: {ammData.amount.currency}/
@@ -753,7 +753,7 @@ export default function TradePanel() {
                         className={`w-48 bg-transparent text-right text-4xl font-light text-white outline-none ${
                           (!!buyAmount && activeInput === "buy") ||
                           calculatingAmounts ||
-                          loadingAmmData
+                          loadingAMMData
                             ? "cursor-not-allowed opacity-60"
                             : ""
                         }`}
@@ -761,7 +761,7 @@ export default function TradePanel() {
                         disabled={
                           (!!buyAmount && activeInput === "buy") ||
                           calculatingAmounts ||
-                          loadingAmmData
+                          loadingAMMData
                         }
                       />
                     </div>
@@ -773,7 +773,7 @@ export default function TradePanel() {
                           !sellCurrency ||
                           (walletBalances[sellCurrency] || 0) <= 0 ||
                           calculatingAmounts ||
-                          loadingAmmData
+                          loadingAMMData
                         }
                         variant="primary"
                       >
@@ -793,7 +793,7 @@ export default function TradePanel() {
                     !sellCurrency ||
                     !buyCurrency ||
                     calculatingAmounts ||
-                    loadingAmmData
+                    loadingAMMData
                   }
                 >
                   <ArrowUpDown className="h-6 w-6 text-gray-400" />
@@ -826,7 +826,7 @@ export default function TradePanel() {
                       className={`w-48 bg-transparent text-right text-4xl font-light text-white outline-none ${
                         (!!sellAmount && activeInput === "sell") ||
                         calculatingAmounts ||
-                        loadingAmmData
+                        loadingAMMData
                           ? "cursor-not-allowed opacity-60"
                           : ""
                       }`}
@@ -834,7 +834,7 @@ export default function TradePanel() {
                       disabled={
                         (!!sellAmount && activeInput === "sell") ||
                         calculatingAmounts ||
-                        loadingAmmData
+                        loadingAMMData
                       }
                     />
                   </div>
@@ -845,7 +845,7 @@ export default function TradePanel() {
               <Button
                 onClick={handleSmartTrade}
                 disabled={
-                  !canTrade || loading || calculatingAmounts || loadingAmmData
+                  !canTrade || loading || calculatingAmounts || loadingAMMData
                 }
                 className="w-full text-lg"
               >
@@ -854,7 +854,7 @@ export default function TradePanel() {
                     <Loader2 className="h-5 w-5 animate-spin" />
                     <span>Trading...</span>
                   </div>
-                ) : loadingAmmData ? (
+                ) : loadingAMMData ? (
                   <div className="flex items-center justify-center space-x-2">
                     <Loader2 className="h-5 w-5 animate-spin" />
                     <span>Loading Pool...</span>
@@ -912,7 +912,7 @@ export default function TradePanel() {
                 )}
               </div>
 
-              {loadingAmmData && (
+              {loadingAMMData && (
                 <div className="mb-4 rounded-full border border-blue-500 bg-blue-900/20 p-3">
                   <div className="flex items-center space-x-2">
                     <Loader2 className="h-4 w-4 animate-spin text-blue-400" />
@@ -937,7 +937,7 @@ export default function TradePanel() {
                 </div>
               )}
 
-              {ammData && !loadingAmmData && (
+              {ammData && !loadingAMMData && (
                 <div className="mb-4 rounded-full border border-green-500 bg-green-900/20 p-3">
                   <p className="text-sm text-green-400">
                     AMM Pool: {ammData.amount.currency}/

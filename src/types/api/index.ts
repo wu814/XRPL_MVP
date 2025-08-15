@@ -10,5 +10,7 @@ export * from "./user/userAPITypes";
 export * from "./wallet/walletsAPITypes";
 
 export interface APIErrorResponse {
+  code?: string;
   message: string;
+  details?: any;
 };

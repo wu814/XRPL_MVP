@@ -78,7 +78,6 @@ export default async function getUserOffers(wallet: YONAWallet): Promise<Enhance
     return enhancedOffers;
 
   } catch (error: any) {
-    console.error("❌ Error getting user offers:", error.message);
     throw new Error(`Failed to get user offers: ${error.message}`);
   }
 }

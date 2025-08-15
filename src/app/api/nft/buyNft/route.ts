@@ -5,7 +5,7 @@ import { purchaseNFTWithSmartTrade } from "@/utils/xrpl/nft/nftManager";
 import { Wallet } from "xrpl";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
 
-interface BuyNftRequest {
+interface BuyNFTRequest {
   offerID: string;
   paymentCurrency: string;
   issuerWalletAddress: string;
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Parse request body
-    const { offerID, paymentCurrency, issuerWalletAddress, userWallet }: BuyNftRequest =
+    const { offerID, paymentCurrency, issuerWalletAddress, userWallet }: BuyNFTRequest =
       await req.json();
 
     // Validate required parameters
@@ -103,7 +103,7 @@ export async function POST(req: NextRequest) {
       );
     }
   } catch (error) {
-    console.error(`❌ API Error in buyNft:`, error instanceof Error ? error.message : 'Unknown error');
+    console.error(`❌ API Error in buyNFT:`, error instanceof Error ? error.message : 'Unknown error');
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     return NextResponse.json(
       {

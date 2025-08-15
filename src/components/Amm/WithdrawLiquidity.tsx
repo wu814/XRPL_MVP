@@ -6,8 +6,8 @@ import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
 import { useRouter } from "next/navigation";
-import { useCurrentUserWallet } from "../Wallet/CurrentUserWalletProvider";
-import { AmmInfo } from "./DisplayAmms";
+import { useCurrentUserWallet } from "../wallet/CurrentUserWalletProvider";
+import { AMMInfo } from "./DisplayAMMs";
 
 interface WithdrawResponse {
   message?: string;
@@ -16,7 +16,7 @@ interface WithdrawResponse {
 }
 
 interface WithdrawLiquidityProps {
-  ammInfo: AmmInfo;
+  ammInfo: AMMInfo;
   onWithdrawn: () => void;
 }
 

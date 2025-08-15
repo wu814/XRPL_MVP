@@ -13,7 +13,7 @@ interface CurrencyAmount {
   value: string;
 }
 
-interface AmmPoolData {
+interface AMMPoolData {
   amm_account: string;
   currency_a: CurrencyAmount;
   currency_b: CurrencyAmount;
@@ -127,33 +127,33 @@ const formatCurrency = (
   };
 };
 
-const getAmmPoolData = async (
+const getAMMPoolData = async (
   sendCurrency: string, 
   receiveCurrency: string, 
-): Promise<AmmPoolData | null> => {
-  const { getAmmInfoByCurrencies } = await import('../amm/ammUtils.js');
-  const liveAmmInfo = await getAmmInfoByCurrencies(sendCurrency, receiveCurrency);
+): Promise<AMMPoolData | null> => {
+  const { getAMMInfoByCurrencies } = await import('../amm/ammUtils.js');
+  const liveAMMInfo = await getAMMInfoByCurrencies(sendCurrency, receiveCurrency);
   
-  if (!liveAmmInfo) return null;
+  if (!liveAMMInfo) return null;
   
   return {
-    amm_account: liveAmmInfo.amm_account,
+    amm_account: liveAMMInfo.amm_account,
     currency_a: {
-      currency: liveAmmInfo.amount.currency,
-      issuer: liveAmmInfo.amount.issuer,
-      value: liveAmmInfo.amount.value
+      currency: liveAMMInfo.amount.currency,
+      issuer: liveAMMInfo.amount.issuer,
+      value: liveAMMInfo.amount.value
     },
     currency_b: {
-      currency: liveAmmInfo.amount2.currency,
-      issuer: liveAmmInfo.amount2.issuer,
-      value: liveAmmInfo.amount2.value
+      currency: liveAMMInfo.amount2.currency,
+      issuer: liveAMMInfo.amount2.issuer,
+      value: liveAMMInfo.amount2.value
     },
-    trading_fee: liveAmmInfo.trading_fee
+    trading_fee: liveAMMInfo.trading_fee
   };
 };
 
 const mapPoolCurrencies = (
-  pool: AmmPoolData, 
+  pool: AMMPoolData, 
   sendCurrency: string, 
   receiveCurrency: string
 ): PoolCurrencyMapping => {
@@ -198,10 +198,10 @@ const calculatePreciseAmount = async (
     
     // Direct AMM calculation
     try {
-      const liveAmmData = await getAmmPoolData(sendCurrency, receiveCurrency);
-      if (liveAmmData) {
-        const { poolSend, poolReceive } = mapPoolCurrencies(liveAmmData, sendCurrency, receiveCurrency);
-        const tradingFeeBasisPoints = liveAmmData.trading_fee || 0;
+      const liveAMMData = await getAMMPoolData(sendCurrency, receiveCurrency);
+      if (liveAMMData) {
+        const { poolSend, poolReceive } = mapPoolCurrencies(liveAMMData, sendCurrency, receiveCurrency);
+        const tradingFeeBasisPoints = liveAMMData.trading_fee || 0;
         
         if (paymentType === "exact_output") {
           // For exact_output: Calculate how much input is needed for exact output
@@ -275,7 +275,7 @@ const parseTransactionResult = (
   
   try {
     const affectedNodes = response.result.meta.AffectedNodes || [];
-    let hasAmmUsage = false;
+    let hasAMMUsage = false;
     let hasDexOfferUsage = false;
     
     affectedNodes.forEach((node: any) => {
@@ -283,7 +283,7 @@ const parseTransactionResult = (
       if (!nodeData) return;
       
       if (nodeData.LedgerEntryType === "AMM") {
-        hasAmmUsage = true;
+        hasAMMUsage = true;
       }
       
       if (nodeData.LedgerEntryType === "Offer") {
@@ -332,9 +332,9 @@ const parseTransactionResult = (
     }
     
     // Set routing method
-    if (hasAmmUsage && hasDexOfferUsage) {
+    if (hasAMMUsage && hasDexOfferUsage) {
       actualRoutingMethod = "Hybrid (AMM + DEX)";
-    } else if (hasAmmUsage) {
+    } else if (hasAMMUsage) {
       actualRoutingMethod = "AMM";
     } else if (hasDexOfferUsage) {
       actualRoutingMethod = "DEX";
@@ -379,7 +379,7 @@ export async function sendCrossCurrency({
       console.log(`🧮 Calculating required input for ${exactOutputAmount} ${receiveCurrency}...`);
       
       try {
-        const directPool = await getAmmPoolData(sendCurrency, receiveCurrency);
+        const directPool = await getAMMPoolData(sendCurrency, receiveCurrency);
         if (!directPool) {
           throw new Error(`Could not find ${sendCurrency}/${receiveCurrency} AMM pool`);
         }

@@ -1,21 +1,21 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import CurrencyIcon from "../Currency/CurrencyIcon";
+import CurrencyIcon from "../currency/CurrencyIcon";
 import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
 import SlippagePanel from "../SlippagePanel";
 import estimateDepositAmounts from "@/utils/xrpl/amm/estimateDepositAmount";
-import { useCurrentUserWallet } from "../Wallet/CurrentUserWalletProvider";
+import { useCurrentUserWallet } from "../wallet/CurrentUserWalletProvider";
 import { Settings, Loader2 } from "lucide-react";
 import { formatAPICurrencyObj } from "@/utils/currencyUtils";
-import { AmmInfo } from "./DisplayAmms";
+import { AMMInfo } from "./DisplayAMMs";
 
 interface EstimateDepositParams {
-  token1: AmmInfo['amount'];
-  token2: AmmInfo['amount2'];
-  ammInfo: AmmInfo;
+  token1: AMMInfo['amount'];
+  token2: AMMInfo['amount2'];
+  ammInfo: AMMInfo;
   lpAmount: string;
   payWith: string;
   slippage: string;
@@ -54,7 +54,7 @@ interface ApiResponse {
 }
 
 interface AddLiquidityProps {
-  ammInfo: AmmInfo;
+  ammInfo: AMMInfo;
   onAdded: () => void;
 }
 

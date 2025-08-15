@@ -3,13 +3,13 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import BuyNft from "@/components/Nft/BuyNft";
-import MintAndListNft from "@/components/Nft/MintAndListNft";
+import BuyNFT from "@/components/nft/BuyNFT";
+import MintAndListNFT from "@/components/nft/MintAndListNFT";
 // Remove this line: import TradePanel from "@/components/Smart/TradePanel";
 
 import usePageTitle from "@/utils/usePageTitle";
 
-export default function NftPage() {
+export default function NFTPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   
@@ -48,11 +48,11 @@ export default function NftPage() {
           <div className="flex justify-center">
             {isBusiness ? (
               <div className="w-full max-w-lg">
-                <MintAndListNft />
+                <MintAndListNFT />
               </div>
             ) : (
               <div className="w-full max-w-lg">
-                <BuyNft />
+                <BuyNFT />
               </div>
             )}
           </div>

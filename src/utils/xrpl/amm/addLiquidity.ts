@@ -1137,15 +1137,15 @@ export async function addLiquiditySingleAsset(
     Flags: 0x00080000,
   };
   console.log("📊 Fetching AMM info to identify both assets in the pair...");
-  const pairAmmInfoResponse: AMMInfoResponse = await client.request({
+  const pairAMMInfoResponse: AMMInfoResponse = await client.request({
     command: "amm_info",
     amm_account: ammAccount,
     ledger_index: "validated",
   });
-  if (!pairAmmInfoResponse.result.amm) {
+  if (!pairAMMInfoResponse.result.amm) {
     throw new Error("Could not fetch AMM information");
   }
-  const ammInfo = pairAmmInfoResponse.result.amm;
+  const ammInfo = pairAMMInfoResponse.result.amm;
   let asset1: any, asset2: any;
   if (ammInfo.asset && ammInfo.asset.currency) {
     asset1 =
@@ -1556,17 +1556,17 @@ export async function addLiquidityLimitLPToken(
     EPrice: ePrice,
   };
 
-  const pairAmmInfoResponse: AMMInfoResponse = await client.request({
+  const pairAMMInfoResponse: AMMInfoResponse = await client.request({
     command: "amm_info",
     amm_account: ammAccount,
     ledger_index: "validated",
   });
 
-  if (!pairAmmInfoResponse.result.amm) {
+  if (!pairAMMInfoResponse.result.amm) {
     throw new Error("Could not fetch AMM information");
   }
 
-  const ammInfo = pairAmmInfoResponse.result.amm;
+  const ammInfo = pairAMMInfoResponse.result.amm;
 
   let asset1: any, asset2: any;
 

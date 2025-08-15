@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import getUserOffers from "@/utils/xrpl/dex/getUserOffers";
 import { GetUserOffersAPIRequest, GetUserOffersAPIResponse, APIErrorResponse } from "@/types/api/index";
 
-export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest): Promise<NextResponse<GetUserOffersAPIResponse | APIErrorResponse>> {
   try {
     const { sourceWallet }: GetUserOffersAPIRequest = await req.json();
 

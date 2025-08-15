@@ -2,17 +2,17 @@ import { useState } from "react";
 import AddLiquidity from "./AddLiquidity";
 import WithdrawLiquidity from "./WithdrawLiquidity";
 import SwapLiquidity from "./SwapLiquidity";
-import { AmmInfo } from "./DisplayAmms";
+import { AMMInfo } from "./DisplayAMMs";
 
-interface ManageAmmBalanceProps {
-  ammInfo: AmmInfo;
+interface ManageAMMBalanceProps {
+  ammInfo: AMMInfo;
   onChange?: () => void;
 }
 
-export default function ManageAmmBalance({
+export default function ManageAMMBalance({
   ammInfo,
   onChange,
-}: ManageAmmBalanceProps) {
+}: ManageAMMBalanceProps) {
   const [activeTab, setActiveTab] = useState<"swap" | "add" | "withdraw">(
     "swap",
   );

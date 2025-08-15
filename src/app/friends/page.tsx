@@ -1,6 +1,6 @@
 "use client";
-import DisplayPendingFriendRequests from "@/components/Friend/DisplayPendingFriendRequests";
-import DisplayFriends from "@/components/Friend/DisplayFriends";
+import DisplayPendingFriendRequests from "@/components/friend/DisplayPendingFriendRequests";
+import DisplayFriends from "@/components/friend/DisplayFriends";
 import ErrorMdl from "@/components/ErrorMdl";
 import { useState } from "react";
 import usePageTitle from "@/utils/usePageTitle";
