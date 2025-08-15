@@ -10,6 +10,7 @@ import { Settings, Loader2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { calculateExactAMMInput, calculateEstimateOutput } from "@/utils/xrpl/amm/calculations";
 import { YONAWallet } from "@/types/appTypes";
+import { APIErrorResponse, GetFormattedAMMInfoByCurrenciesAPIResponse } from "@/types/api";
 
 interface TransferBtnProps {
   senderWallet: YONAWallet;
@@ -113,7 +114,7 @@ export default function TransferBtn({
     setAMMData(null);
 
     try {
-      const response = await fetch("/api/amm/getAMMInfoByCurrencies", {
+      const response = await fetch("/api/amm/getFormattedAMMInfoByCurrencies", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -122,14 +123,14 @@ export default function TransferBtn({
         }),
       });
 
-      if (!response.ok) throw new Error("Failed to fetch AMM data");
-      
-      const result: AMMDataResponse = await response.json();
-      if (result.success && result.data) {
-        setAMMData(result.data);
-      } else {
-        throw new Error(result.error || "AMM pool not found");
+      if (!response.ok) {
+        const errorData: APIErrorResponse = await response.json();
+        setAMMDataError(errorData.message);
+        return;
       }
+      
+      const result: GetFormattedAMMInfoByCurrenciesAPIResponse = await response.json();
+      setAMMData(result.data);
     } catch (error: any) {
       setAMMDataError(error.message);
     } finally {
@@ -146,16 +147,16 @@ export default function TransferBtn({
     try {      
       // Determine pool balances from cached AMM data
       let poolSend: number, poolReceive: number;
-      if (ammData.amount.currency === sendCurrency) {
-        poolSend = parseFloat(ammData.amount.value);
-        poolReceive = parseFloat(ammData.amount2.value);
+      if (ammData.formattedAmount.currency === sendCurrency) {
+        poolSend = parseFloat(ammData.formattedAmount.value);
+        poolReceive = parseFloat(ammData.formattedAmount2.value);
       } else {
-        poolSend = parseFloat(ammData.amount2.value);
-        poolReceive = parseFloat(ammData.amount.value);
+        poolSend = parseFloat(ammData.formattedAmount2.value);
+        poolReceive = parseFloat(ammData.formattedAmount.value);
       }
 
       // Calculate estimated output
-      const calculation = calculateEstimateOutput(poolSend, poolReceive, sendAmount, ammData.trading_fee || 0);
+      const calculation = calculateEstimateOutput(poolSend, poolReceive, sendAmount, ammData.tradingFee || 0);
       
       if (calculation.success && calculation.estimatedOutput !== undefined) {
         setReceiveAmount(calculation.estimatedOutput.toFixed(6));
@@ -179,12 +180,12 @@ export default function TransferBtn({
     try {
       // Determine pool balances from cached AMM data
       let poolSend: number, poolReceive: number;
-      if (ammData.amount.currency === sendCurrency) {
-        poolSend = parseFloat(ammData.amount.value);
-        poolReceive = parseFloat(ammData.amount2.value);
+      if (ammData.formattedAmount.currency === sendCurrency) {
+        poolSend = parseFloat(ammData.formattedAmount.value);
+        poolReceive = parseFloat(ammData.formattedAmount2.value);
       } else {
-        poolSend = parseFloat(ammData.amount2.value);
-        poolReceive = parseFloat(ammData.amount.value);
+        poolSend = parseFloat(ammData.formattedAmount2.value);
+        poolReceive = parseFloat(ammData.formattedAmount.value);
       }
 
       // Calculate required input
@@ -193,7 +194,7 @@ export default function TransferBtn({
         poolReceive, 
         parseFloat(receiveAmount), 
         parseFloat(slippage) / 100, 
-        ammData.trading_fee || 0
+        ammData.tradingFee || 0
       );
       
       if (calculation.success && calculation.inputWithSlippage !== undefined) {
@@ -421,8 +422,8 @@ export default function TransferBtn({
             {paymentType === "convertable" && ammData && !loadingAMMData && (
               <div className="mb-4 p-3 bg-green-900/20 border border-green-500 rounded-full">
                 <p className="text-green-400 text-sm">
-                  AMM Pool: {ammData.amount.currency}/{ammData.amount2.currency} 
-                  {` (${ammData.trading_fee/1000}% fee)`}
+                  AMM Pool: {ammData.formattedAmount.currency}/{ammData.formattedAmount2.currency} 
+                  {` (${ammData.tradingFee/1000}% fee)`}
                 </p>
               </div>
             )}

@@ -66,7 +66,7 @@ export default async function getUserOffers(wallet: YONAWallet): Promise<Enhance
       return {
         ...offer,
         dateTime: details?.dateTime,
-        creation_hash: details?.hash
+        creationHash: details?.hash
       };
     });
 

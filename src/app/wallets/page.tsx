@@ -2,19 +2,15 @@
 
 import { useSession } from "next-auth/react";
 import AuthRedirect from "@/components/AuthRedirect";
-import AssetTable from "@/components/wallet/AssetTable";
+import AssetTable, { useLivePrices, useWalletAssets } from "@/components/wallet/AssetTable";
 import { Wallet, Loader2 } from "lucide-react";
 import {
   useCurrentUserWallet,
 } from "@/components/wallet/CurrentUserWalletProvider";
-import { 
-  useWalletAssets, 
-  getWalletDisplayName 
-} from "@/utils/assetUtils";
-import { useLivePrices } from "@/utils/currencyUtils";
 import usePageTitle from "@/utils/usePageTitle";
 import { YONAWallet } from "@/types/appTypes";
 import { PriceInfo } from "@/utils/currencyUtils";
+import { getWalletDisplayName } from "@/utils/assetUtils";
 
 // Wallet component that displays individual wallet and its assets
 interface WalletComponentProps {

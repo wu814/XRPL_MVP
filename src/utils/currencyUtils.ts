@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { APIErrorResponse, GetTreasuryWalletAPIResponse } from "@/types/api/index";
 
 // Types
 export interface Currency {
@@ -17,12 +17,6 @@ export interface CurrencyObject {
   currency: string;
   issuer?: string;
   value: string | number;
-}
-
-export interface TreasuryWalletResponse {
-  data: Array<{
-    classic_address: string;
-  }>;
 }
 
 export interface PricesResponse {
@@ -53,21 +47,26 @@ export async function fetchUSDPrices(): Promise<PriceInfo[]> {
   try {
     // Step 1: Get treasury wallet (oracle account)
     const treasuryResponse = await fetch("/api/wallet/getTreasuryWallet");
-    const treasuryData: TreasuryWalletResponse = await treasuryResponse.json();
+    if (!treasuryResponse.ok) {
+      const errorData: APIErrorResponse = await treasuryResponse.json();
+      console.error("Error fetching treasury wallet:", errorData.message);
+      return [];
+    }
+    const treasuryResult: GetTreasuryWalletAPIResponse = await treasuryResponse.json();
 
-    if (!treasuryData.data || treasuryData.data.length === 0) {
+    if (!treasuryResult.data) {
       console.error("No treasury wallet found");
       return [];
     }
 
-    const treasuryWallet = treasuryData.data[0];
+    const treasuryWallet = treasuryResult.data;
 
     // Step 2: Get live prices from oracle
     const pricesResponse = await fetch("/api/oracle/getLivePrices", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        account: treasuryWallet.classic_address,
+        account: treasuryWallet.classicAddress,
         oracleDocumentId: 1,
         ledgerIndex: "validated",
       }),
@@ -198,28 +197,3 @@ export function formatXRPLCurrencyObj(
   };
 }
 
-/**
- * Custom hook for live prices
- * @returns Object with livePrices array and loading boolean
- */
-export function useLivePrices(): UseLivePricesReturn {
-  const [livePrices, setLivePrices] = useState<PriceInfo[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-
-  useEffect(() => {
-    const fetchPrices = async () => {
-      try {
-        const prices = await fetchUSDPrices();
-        setLivePrices(prices);
-      } catch (error) {
-        console.error("Error fetching live prices:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPrices();
-  }, []);
-
-  return { livePrices, loading };
-}

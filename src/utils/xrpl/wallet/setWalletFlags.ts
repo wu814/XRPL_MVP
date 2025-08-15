@@ -1,6 +1,6 @@
 import { client, connectXrplClient } from "../testnet";
 import { AccountSet, Wallet } from "xrpl";
-import { isTransactionSuccessful, getTransactionResult } from "../errorHandler";
+import { isTypedTransactionSuccessful, handleTransactionError } from "../errorHandler";
 import { SetWalletFlagsResult } from "@/types/xrpl/wallet/walletXRPLTypes";
 
 interface FlagConfig {
@@ -63,13 +63,13 @@ export async function setIssuerWalletFlags(wallet: Wallet): Promise<SetWalletFla
         const txResult = await client.submitAndWait(signed.tx_blob);
 
         // RETURN success: false: Expected XRPL business rule violation
-        if (!isTransactionSuccessful(txResult)) {
-          const errorCode = getTransactionResult(txResult);
+        if (!isTypedTransactionSuccessful(txResult)) {
+          const errorInfo = handleTransactionError(txResult, "setIssuerWalletFlags");
           return {
             success: false,
             error: {
-              code: errorCode,
-              message: `Failed to set ${name} flag: ${errorCode}`
+              code: errorInfo.code,
+              message: `Failed to set ${name} flag: ${errorInfo.message}`
             }
           };
         }
@@ -142,13 +142,13 @@ export async function setTreasuryWalletFlags(wallet: Wallet): Promise<SetWalletF
         const txResult = await client.submitAndWait(signed.tx_blob);
 
         // RETURN success: false: Expected XRPL business rule violation
-        if (!isTransactionSuccessful(txResult)) {
-          const errorCode = getTransactionResult(txResult);
+        if (!isTypedTransactionSuccessful(txResult)) {
+          const errorInfo = handleTransactionError(txResult, "setTreasuryWalletFlags");
           return {
             success: false,
             error: {
-              code: errorCode,
-              message: `Failed to set ${name} flag: ${errorCode}`
+              code: errorInfo.code,
+              message: `Failed to set ${name} flag: ${errorInfo.message}`
             }
           };
         }
@@ -219,18 +219,18 @@ export async function setPathfindWalletFlags(wallet: Wallet): Promise<SetWalletF
           Sequence: sequence + i,
         };
 
-        const prepared = await client.autofill(tx);
-        const signed = wallet.sign(prepared);
-        const txResult = await client.submitAndWait(signed.tx_blob);
+        const preparedTx = await client.autofill(tx);
+        const signedTx = wallet.sign(preparedTx);
+        const txResult = await client.submitAndWait<AccountSet>(signedTx.tx_blob);
 
         // RETURN success: false: Expected XRPL business rule violation
-        if (!isTransactionSuccessful(txResult)) {
-          const errorCode = getTransactionResult(txResult);
+        if (!isTypedTransactionSuccessful(txResult)) {
+          const errorInfo = handleTransactionError(txResult, "setPathfindWalletFlags");
           return {
             success: false,
             error: {
-              code: errorCode,
-              message: `Failed to set ${name} flag: ${errorCode}`
+              code: errorInfo.code,
+              message: `Failed to set ${name} flag: ${errorInfo.message}`
             }
           };
         }

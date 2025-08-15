@@ -7,73 +7,10 @@ import ErrorMdl from "../ErrorMdl";
 import CurrencyIcon from "../currency/CurrencyIcon";
 import CreateAMMBtn from "./CreateAMMBtn";
 import { fetchUSDPrices, getUSDValue, formatCurrencyValue, PriceInfo } from "@/utils/currencyUtils";
-import { AMMData, AMMInfo } from "@/types/xrpl/index";
+import { formatAssetForDisplay } from "@/utils/assetUtils";
+import { AMMData, AMMInfo, CreateAMMResult } from "@/types/xrpl/index";
 import { APIErrorResponse, GetAllAMMDataAPIResponse, GetAMMInfoAPIResponse } from "@/types/api/index";
 
-interface AMMListItem {
-  ammAccount: string;
-  currency_a: string;
-  currency_b: string;
-}
-
-interface NewAMMData {
-  ammAccount: string;
-  currency_a?: string;
-  currency_b?: string;
-}
-
-// This class is used to parse the AMM data returned from the API
-class AMMInfoParser {
-  account: string;
-  trading_fee: number;
-  lp_token: {
-    currency: string;
-    issuer: string;
-    value: string;
-  };
-  amount: {
-    currency: string;
-    issuer: string | null;
-    value: string;
-  };
-  amount2: {
-    currency: string;
-    issuer: string | null;
-    value: string;
-  };
-  // Converts XRP from drops or parses IOU
-  parseAmount(
-    amount:
-      | string
-      | { currency: string; issuer: string; value: string }
-      | undefined,
-  ): {
-    currency: string;
-    issuer: string | null;
-    value: string;
-  } {
-    if (!amount) {
-      return { currency: "XRP", issuer: null, value: "0" };
-    }
-
-    if (typeof amount === "string") {
-      // XRP is a string of drops
-      const xrpl = require("xrpl");
-      return {
-        currency: "XRP",
-        issuer: null,
-        value: xrpl.dropsToXrp(amount), // Convert drops to XRP
-      };
-    } else {
-      // IOU is an object
-      return {
-        currency: amount.currency,
-        issuer: amount.issuer,
-        value: amount.value,
-      };
-    }
-  }
-}
 
 export default function DisplayAMMs() {
   const router = useRouter(); // Redirect user to the AMM page when they click on an AMM
@@ -136,15 +73,17 @@ export default function DisplayAMMs() {
     if (!ammInfo || pricesLoading) {
       return null;
     }
+    const amount1 = formatAssetForDisplay(ammInfo.amount);
+    const amount2 = formatAssetForDisplay(ammInfo.amount2);
 
     const usdValue1 = getUSDValue(
-      ammInfo.amount.currency,
-      parseFloat(ammInfo.amount.value),
+      amount1.currency,
+      parseFloat(amount1.value),
       livePrices,
     );
     const usdValue2 = getUSDValue(
-      ammInfo.amount2.currency,
-      parseFloat(ammInfo.amount2.value),
+      amount2.currency,
+      parseFloat(amount2.value),
       livePrices,
     );
     const totalUsdValue = usdValue1 + usdValue2;
@@ -185,11 +124,11 @@ export default function DisplayAMMs() {
     }
   };
 
-  const handleAMMCreated = (newAMMData: NewAMMData) => {
-    const newAMM: AMMListItem = {
-      ammAccount: newAMMData.ammAccount,
-      currency_a: newAMMData.currency_a || "Unknown",
-      currency_b: newAMMData.currency_b || "Unknown",
+  const handleAMMCreated = (newAMMData: CreateAMMResult) => {
+    const newAMM: AMMData = {
+      account: newAMMData.account,
+      currency1: newAMMData.currency1 || "Unknown",
+      currency2: newAMMData.currency2 || "Unknown",
     };
     setAMMsDBData((prevAMMs) =>
       [...prevAMMs, newAMM].sort((a, b) => {
@@ -199,7 +138,7 @@ export default function DisplayAMMs() {
       }),
     );
     // Fetch details for the new AMM
-    fetchAMMDetails(newAMMData.ammAccount);
+    fetchAMMDetails(newAMMData.account);
   };
 
   useEffect(() => {

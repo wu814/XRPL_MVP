@@ -4,7 +4,8 @@ import {
   AMMInfoRequest, 
   AMMInfoResponse, 
 } from "xrpl";
-import { AMMInfo, AMMData } from "@/types/xrpl/index";
+import { AMMInfo, AMMData, FormattedAMMInfo } from "@/types/xrpl/index";
+import { formatAssetForDisplay } from "@/utils/assetUtils";
 
 
 /**
@@ -102,18 +103,30 @@ export async function findAMMAccount(currency1: string, currency2: string): Prom
   return null;
 }
 
-/**
- * Get live AMM info for a currency pair
- * @param currency1 - First currency
- * @param currency2 - Second currency
- * @returns Live AMM data or null
- */
-export async function getAMMInfoByCurrencies(currency1: string, currency2: string): Promise<AMMInfo | null> {
-  const ammAccount = await findAMMAccount(currency1, currency2);
+// Getting live AMM info for a currency pair, returns with formatted amounts
+export async function getFormattedAMMInfoByCurrencies (
+  sendCurrency: string, 
+  receiveCurrency: string, 
+): Promise<FormattedAMMInfo | null> {
+  // Find AMM account by currencies
+  const ammAccount = await findAMMAccount(sendCurrency, receiveCurrency);
   
   if (!ammAccount) {
     return null;
   }
   
-  return await getAMMInfo(ammAccount);
-}
+  // Get live AMM info directly
+  const liveAMMInfo = await getAMMInfo(ammAccount);
+  
+  if (!liveAMMInfo) return null;
+
+  const formattedAmount = formatAssetForDisplay(liveAMMInfo.amount);
+  const formattedAmount2 = formatAssetForDisplay(liveAMMInfo.amount2);
+  
+  return {
+    account: liveAMMInfo.account,
+    formattedAmount: formattedAmount,
+    formattedAmount2: formattedAmount2,
+    tradingFee: liveAMMInfo.trading_fee
+  };
+};

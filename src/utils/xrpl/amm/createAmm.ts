@@ -1,41 +1,29 @@
 import { client, connectXrplClient } from "../testnet";
-import { 
-  AMMCreate, 
-  TxResponse, 
-  Amount, 
-  Wallet
-} from "xrpl";
-import * as xrpl from "xrpl";
-
-interface IssuerWallet {
-  classicAddress: string;
-}
-
-interface CreateAMMResult {
-  ammAccount: string;
-  currency_a: string;
-  currency_b: string;
-}
+import { AMMCreate, Wallet, TxResponse, Amount, TransactionMetadataBase } from "xrpl";
+import { formatAssetForXRPL } from "@/utils/assetUtils";
+import { isTypedTransactionSuccessful, handleTransactionError } from "../errorHandler";
+import { YONAWallet } from "@/types/appTypes";
+import { CreateAMMResult } from "@/types/xrpl/index";
 
 /**
  * Creates an AMM on the XRPL
- * @param treasuryWallet - Treasury Wallet object with .seed
+ * @param treasuryXRPLWallet - Treasury Wallet object with .seed
  * @param issuerWallets - Array of issuer wallet(s)
- * @param assetAType - Asset A (e.g., XRP or token code)
- * @param amountA - Amount for asset A
- * @param assetBType - Asset B (e.g., USD, XRP)
- * @param amountB - Amount for asset B
- * @param fee - Trading fee in basis points
+ * @param currency1 - Currency 1 (e.g., XRP or token code)
+ * @param value1 - Amount for currency 1
+ * @param currency2 - Currency 2 (e.g., USD, XRP)
+ * @param value2 - Amount for currency 2
+ * @param tradingFee - Trading fee in basis points
  * @returns AMM metadata
  */
 export default async function createAMM(
-  treasuryWallet: Wallet,
-  issuerWallets: IssuerWallet[],
-  assetAType: string,
-  amountA: string | number,
-  assetBType: string,
-  amountB: string | number,
-  fee: string | number,
+  treasuryXRPLWallet: Wallet,
+  issuerWallets: YONAWallet[],
+  currency1: string,
+  value1: number,
+  currency2: string,
+  value2: number,
+  tradingFee: number,
 ): Promise<CreateAMMResult> {
   await connectXrplClient();
   console.log("✅ Preparing AMM creation...");
@@ -43,48 +31,27 @@ export default async function createAMM(
   const issuerWallet = issuerWallets?.[0];
   if (!issuerWallet) throw new Error("Missing issuer wallet.");
 
-  const parsedAmountA = parseFloat(amountA.toString());
-  const parsedAmountB = parseFloat(amountB.toString());
-  const tradingFee = parseFloat(fee.toString());
-
-  if (isNaN(parsedAmountA) || parsedAmountA <= 0) {
+  if (isNaN(value1) || value1 <= 0) {
     throw new Error("Invalid or missing amount for Asset A.");
   }
-  if (isNaN(parsedAmountB) || parsedAmountB <= 0) {
+  if (isNaN(value2) || value2 <= 0) {
     throw new Error("Invalid or missing amount for Asset B.");
   }
 
-  // No need to uppercase, assume assetAType and assetBType are already uppercase currency codes
-  const A = assetAType;
-  const B = assetBType;
-
   // Sort currencies alphabetically to ensure consistent ordering
-  const currencies = [A, B].sort();
+  const currencies = [currency1, currency2].sort();
 
   // Prepare assets for transaction
-  const assetA: Amount = A === "XRP"
-    ? xrpl.xrpToDrops(parsedAmountA.toString())
-    : {
-        currency: A,
-        issuer: issuerWallet.classicAddress,
-        value: parsedAmountA.toString(),
-      };
-
-  const assetB: Amount = B === "XRP"
-    ? xrpl.xrpToDrops(parsedAmountB.toString())
-    : {
-        currency: B,
-        issuer: issuerWallet.classicAddress,
-        value: parsedAmountB.toString(),
-      };
+  const amount: Amount = formatAssetForXRPL(currencies[0], issuerWallet.classicAddress, value1);
+  const amount2: Amount = formatAssetForXRPL(currencies[1], issuerWallet.classicAddress, value2);
 
   // change the fee (in drops) to create AMM
   const tx: AMMCreate = {
     TransactionType: "AMMCreate",
-    Account: treasuryWallet.classicAddress,
+    Account: treasuryXRPLWallet.classicAddress,
     TradingFee: tradingFee,
-    Amount: assetA,
-    Amount2: assetB,
+    Amount: amount,
+    Amount2: amount2,
     Fee: "2000000",
     Flags: 0,
   };
@@ -92,32 +59,44 @@ export default async function createAMM(
   console.log("📜 AMM Create transaction:", JSON.stringify(tx, null, 2));
 
   const preparedTx = await client.autofill(tx);
-  preparedTx.Fee = "2000000";
   preparedTx.LastLedgerSequence = (preparedTx.LastLedgerSequence || 0) + 50;
 
   // Submit the transaction
-  const signedTx = treasuryWallet.sign(preparedTx);
-  const submission: TxResponse = await client.submitAndWait(signedTx.tx_blob);
+  const signedTx = treasuryXRPLWallet.sign(preparedTx);
+  const submission: TxResponse<AMMCreate> = await client.submitAndWait<AMMCreate>(signedTx.tx_blob);
 
-  // submitAndWait() throws on failure, so if we reach here, it succeeded
+  // Check if the transaction was successful using the new error handling
+  if (!isTypedTransactionSuccessful(submission)) {
+    const errorInfo = handleTransactionError(submission, "Creating AMM");
+    return {
+      success: false,
+      error: {
+        code: errorInfo.code,
+        message: `AMM creation failed: ${errorInfo.message}`
+      },
+      account: "",
+      currency1: currencies[0],
+      currency2: currencies[1],
+    };
+  }
+
   console.log("✅ AMM created successfully!");
-
 
   // Search for the AMM account by looking at the transaction metadata
   const txHash = submission.result.hash;
-  const txResponse = await client.request({
+  const txResponse: TxResponse = await client.request({
     command: "tx",
     transaction: txHash,
     ledger_index: "validated"
   });
   
   // Extract AMM account from the transaction metadata
-  const meta = txResponse.result.meta as any;
-  let ammAccount: string | undefined;
+  const meta = txResponse.result.meta as TransactionMetadataBase;
+  let ammAccount: string | unknown;
   
   if (meta?.AffectedNodes) {
     for (const node of meta.AffectedNodes) {
-      if (node.CreatedNode?.LedgerEntryType === "AMM") {
+      if ("CreatedNode" in node && node.CreatedNode?.LedgerEntryType === "AMM") {
         ammAccount = node.CreatedNode.NewFields?.Account;
         break;
       }
@@ -125,13 +104,23 @@ export default async function createAMM(
   }
   
   if (!ammAccount) {
-    throw new Error("Could not find AMM account after creation.");
+    return {
+      success: false,
+      error: {
+        code: "AMM_ACCOUNT_NOT_FOUND",
+        message: "Could not find AMM account after creation."
+      },
+      account: "",
+      currency1: currencies[0],
+      currency2: currencies[1],
+    };
   }
 
   // Return the actual AMM account ID
   return {
-    ammAccount,
-    currency_a: currencies[0],
-    currency_b: currencies[1],
+    success: true,
+    account: ammAccount as string,
+    currency1: currencies[0],
+    currency2: currencies[1],
   };
 }

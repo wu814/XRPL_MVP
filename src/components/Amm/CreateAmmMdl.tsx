@@ -4,37 +4,38 @@ import { FormEvent } from "react";
 import Button from "../Button";
 import CurrencyDropDown from "../currency/CurrencyDropDown";
 import { Loader2 } from "lucide-react";
+import { useState } from "react";
 
 interface CreateAMMMdlProps {
   onClose: () => void;
   onSubmit: () => void;
   loading: boolean;
-  assetA: string;
-  setAssetA: (value: string) => void;
-  assetB: string;
-  setAssetB: (value: string) => void;
-  amountA: string;
-  setAmountA: (value: string) => void;
-  amountB: string;
-  setAmountB: (value: string) => void;
-  fee: string;
-  setFee: (value: string) => void;
+  currency1: string;
+  setCurrency1: (value: string) => void;
+  currency2: string;
+  setCurrency2: (value: string) => void;
+  value1: number;
+  setValue1: (value: number) => void;
+  value2: number;
+  setValue2: (value: number) => void;
+  tradingFee: number;
+  setTradingFee: (value: number) => void;
 }
 
 export default function CreateAMMMdl({
   onClose,
   onSubmit,
   loading,
-  assetA,
-  setAssetA,
-  assetB,
-  setAssetB,
-  amountA,
-  setAmountA,
-  amountB,
-  setAmountB,
-  fee,
-  setFee,
+  currency1,
+  setCurrency1,
+  currency2,
+  setCurrency2,
+  value1,
+  setValue1,
+  value2,
+  setValue2,
+  tradingFee,
+  setTradingFee,
 }: CreateAMMMdlProps) {
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -50,9 +51,9 @@ export default function CreateAMMMdl({
           <div>
             <label className="mb-1 block text-mutedText text-sm">Asset A</label>
             <CurrencyDropDown
-              value={assetA}
-              onChange={setAssetA}
-              disabledOptions={[assetB]}
+              value={currency1}
+              onChange={setCurrency1}
+              disabledOptions={[currency2]}
             />
           </div>
 
@@ -62,18 +63,18 @@ export default function CreateAMMMdl({
               type="number"
               step="0.000001"
               className="bg-color4 w-full rounded-lg border border-transparent p-2 hover:border-gray-500 focus:border-primary focus:outline-none"
-              value={amountA}
+              value={value1 ?? ""}
               placeholder="0.00"
-              onChange={(e) => setAmountA(e.target.value)}
+              onChange={(e) => setValue1(e.target.value === "" ? null : Number(e.target.value))}
             />
           </div>
 
           <div>
             <label className="mb-1 block text-mutedText text-sm">Asset B</label>
             <CurrencyDropDown
-              value={assetB}
-              onChange={setAssetB}
-              disabledOptions={[assetA]}
+              value={currency2}
+              onChange={setCurrency2}
+              disabledOptions={[currency1]}
             />
           </div>
 
@@ -83,9 +84,9 @@ export default function CreateAMMMdl({
               type="number"
               step="0.000001"
               className="bg-color4 w-full rounded-lg border border-transparent p-2 hover:border-gray-500 focus:border-primary focus:outline-none"
-              value={amountB}
+              value={value2 ?? ""}
               placeholder="0.00"
-              onChange={(e) => setAmountB(e.target.value)}
+              onChange={(e) => setValue2(e.target.value === "" ? null : Number(e.target.value))}
             />
           </div>
 
@@ -95,10 +96,10 @@ export default function CreateAMMMdl({
               type="number"
               step="0.000001"
               className="bg-color4 w-full rounded-lg border border-transparent p-2 hover:border-gray-500 focus:border-primary focus:outline-none"
-              value={fee}
+              value={tradingFee ?? ""}
               placeholder="0"
-              onChange={(e) => setFee(e.target.value)}
-            />
+              onChange={(e) => setTradingFee(e.target.value === "" ? null : Number(e.target.value))}
+            />  
           </div>
 
           <div className="flex space-x-2 pt-2">

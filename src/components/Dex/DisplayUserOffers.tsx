@@ -197,7 +197,7 @@ export default function DisplayUserOffers() {
                       </div>
                       <div className="">
                         <a
-                          href={getExplorerUrl(offer.creation_hash)}
+                          href={getExplorerUrl(offer.creationHash)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-1 text-primary hover:text-primary/80 transition-colors"
@@ -237,8 +237,8 @@ export default function DisplayUserOffers() {
                   <span>Explorer</span>
                 </div>
                 {completedOffers.map((offer, i) => {
-                  const pays = parseAsset(offer.taker_pays);
-                  const gets = parseAsset(offer.taker_gets);
+                  const pays = parseAsset(offer.takerPays);
+                  const gets = parseAsset(offer.takerGets);
 
                   return (
                     <div

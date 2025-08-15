@@ -3,15 +3,17 @@
 import { useState, useEffect } from "react";
 import { Wallet, ChevronRight, Loader2 } from "lucide-react";
 import Image from "next/image";
-import { formatCurrencyValue, getCurrencyIcon } from "@/utils/currencyUtils";
+import { formatCurrencyValue, getCurrencyIcon, fetchUSDPrices, PriceInfo } from "@/utils/currencyUtils";
 import {
   getAssetKey,
   isLpToken,
   getLpTokenCurrencyPair,
   formatLpTokenDisplay,
   Asset,
-  CurrencyPair, // Import this instead of defining it locally
+  CurrencyPair,
+  fetchWalletAssets,
 } from "@/utils/assetUtils";
+import { YONAWallet } from "@/types/appTypes";
 
 interface WalletInfo {
   classicAddress?: string;
@@ -84,6 +86,51 @@ function LpTokenIcon({ currencyA, currencyB, size = 40 }: LpTokenIconProps) {
     </div>
   );
 };
+
+export function useLivePrices() {
+  const [livePrices, setLivePrices] = useState<PriceInfo[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const fetchPrices = async () => {
+      try {
+        const prices = await fetchUSDPrices();
+        setLivePrices(prices);
+      } catch (error) {
+        console.error("Error fetching live prices:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPrices();
+  }, []);
+
+  return { livePrices, loading };
+}
+
+export function useWalletAssets(
+  wallet: YONAWallet | null,
+  livePrices: PriceInfo[],
+  isIssuer: boolean = false
+) {
+  const [assets, setAssets] = useState<Asset[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!wallet) {
+      setAssets([]);
+      return;
+    }
+
+    setLoading(true);
+    fetchWalletAssets(wallet, livePrices, isIssuer)
+      .then(setAssets)
+      .finally(() => setLoading(false));
+  }, [wallet, livePrices, isIssuer]);
+
+  return { assets, loading };
+}
 
 export default function AssetTable({
   assets = [],

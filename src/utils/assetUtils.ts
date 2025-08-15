@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react";
 import { getUSDValue, fetchUSDPrices, PriceInfo } from "@/utils/currencyUtils";
 import { YONAWallet } from "@/types/appTypes";
 import { GetAccountInfoAPIResponse, GetAccountLinesAPIResponse } from "@/types/api/index";
+import { Amount, IssuedCurrencyAmount, xrpToDrops, dropsToXrp } from "xrpl";
+import { GetAllAMMDataAPIResponse } from "@/types/api/index";
+import { AMMData } from "@/types/xrpl/index";
 
 // Type definitions
 export interface Asset {
@@ -30,15 +32,6 @@ export interface CurrencyPair {
   pair: string;
 }
 
-export interface AMMPool {
-  amm_account: string;
-  currency_a: string;
-  currency_b: string;
-}
-
-export interface AMMData {
-  data?: AMMPool[];
-}
 
 export interface UseWalletAssetsReturn {
   assets: Asset[];
@@ -46,6 +39,34 @@ export interface UseWalletAssetsReturn {
 }
 
 type WalletType = "ISSUER" | "TREASURY" | "PATHFIND" | "USER" | "BUSINESS";
+
+// Format asset for XRPL transaction
+export function formatAssetForXRPL(currency: string, issuer: string, value: number): Amount {
+  if (currency === "XRP") {
+    return xrpToDrops(value);
+  }
+  return {
+    currency,
+    issuer,
+    value: value.toString(),
+  };
+}
+
+// Format asset for display
+export function formatAssetForDisplay(asset: Amount): IssuedCurrencyAmount {
+  if (typeof asset === "string") {
+    return {
+      currency: "XRP",
+      issuer: null,
+      value: dropsToXrp(asset).toString(),
+    };
+  }
+  return {
+    currency: asset.currency,
+    issuer: asset.issuer,
+    value: asset.value,
+  };
+}
 
 /**
  * Generate asset key for identification
@@ -153,39 +174,6 @@ export async function fetchWalletAssets(
 }
 
 /**
- * Custom hook for wallet assets
- */
-export function useWalletAssets(
-  wallet: YONAWallet | null, 
-  livePrices: PriceInfo[], 
-  isIssuer: boolean = false
-): UseWalletAssetsReturn {
-  const [assets, setAssets] = useState<Asset[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-
-  useEffect(() => {
-    const loadAssets = async (): Promise<void> => {
-      if (!wallet) return;
-
-      setLoading(true);
-      try {
-        const walletAssets = await fetchWalletAssets(wallet, livePrices, isIssuer);
-        setAssets(walletAssets);
-      } catch (error) {
-        console.error("Error loading wallet assets:", error);
-        setAssets([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadAssets();
-  }, [wallet, livePrices, isIssuer]);
-
-  return { assets, loading };
-}
-
-/**
  * Get wallet display name based on type
  */
 export function getWalletDisplayName(walletType: string): string {
@@ -213,20 +201,20 @@ export async function getLpTokenCurrencyPair(ammAccount: string): Promise<Curren
   try {
     // Get AMM registry data
     const response = await fetch("/api/amm/getAllAMMData");
-    const ammData: AMMData = await response.json();
+    const ammData: GetAllAMMDataAPIResponse = await response.json();
     
-    if (!ammData.data || !Array.isArray(ammData.data)) {
+    if (!ammData.data) {
       return null;
     }
     
     // Find the AMM pool by account
-    const ammPool = ammData.data.find((pool: AMMPool) => pool.amm_account === ammAccount);
+    const ammPool = ammData.data.find((pool: AMMData) => pool.account === ammAccount);
     
     if (ammPool) {
       return {
-        currencyA: ammPool.currency_a,
-        currencyB: ammPool.currency_b,
-        pair: `${ammPool.currency_a}/${ammPool.currency_b}`
+        currencyA: ammPool.currency1,
+        currencyB: ammPool.currency2,
+        pair: `${ammPool.currency1}/${ammPool.currency2}`
       };
     }
     

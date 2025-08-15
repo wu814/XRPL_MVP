@@ -1,25 +1,29 @@
 import { NextResponse } from "next/server";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
+import { APIErrorResponse, GetTreasuryWalletAPIResponse } from "@/types/api/index";
 
-export async function GET() {
+export async function GET(): Promise<NextResponse<GetTreasuryWalletAPIResponse | APIErrorResponse>> {
   try {
-    const supabase = await createSupabaseAnonClient();
+    const supabase = await createSupabaseAnonClient();  
 
     const { data, error } = await supabase
       .from("wallets")
       .select("classic_address, wallet_type")
       .eq("wallet_type", "TREASURY");
 
-    if (error) throw error;
-
-    return NextResponse.json({ data }, { status: 200 });
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    return NextResponse.json(
-      {
-        error: `Error fetching treasury wallet: ${errorMessage} [getTreasuryWallets/route.ts]`,
-      },
-      { status: 500 },
-    );
+    if (!data) {
+      return NextResponse.json<APIErrorResponse>({ message: "No treasury wallet found" }, { status: 404 });
     }
+
+    if (error) {
+      return NextResponse.json<APIErrorResponse>({ message: `Error fetching treasury wallet: ${error.message}` }, { status: 500 });
+    }
+
+      return NextResponse.json<GetTreasuryWalletAPIResponse>({ message: "Treasury wallet fetched successfully", data: {
+      classicAddress: data[0].classic_address,
+      walletType: data[0].wallet_type,
+    } }, { status: 200 });
+  } catch (error: any) {
+    return NextResponse.json<APIErrorResponse>({ message: `Error fetching treasury wallet: ${error.message} [getTreasuryWallets/route.ts]` }, { status: 500 });
+  }
 }

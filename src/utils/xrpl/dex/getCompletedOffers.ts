@@ -11,8 +11,8 @@ import { YONAWallet } from "@/types/appTypes";
 
 interface OfferCreateInfo {
   sequence: number;
-  taker_pays: Amount;
-  taker_gets: Amount;
+  takerPays: Amount;
+  takerGets: Amount;
   createdAt: Date | null;
   hash: string | null;
 }
@@ -154,8 +154,8 @@ export default async function getCompletedOffers(wallet: YONAWallet): Promise<En
             // Add to completed offers immediately
             completedOffers.push({
               sequence: tx.Sequence,
-              taker_pays: tx.TakerPays,
-              taker_gets: tx.TakerGets,
+              takerPays: tx.TakerPays,
+              takerGets: tx.TakerGets,
               createdAtDateTime: timestamp ? timestamp.toLocaleString() : "Unknown",
               completedAtDateTime: timestamp ? timestamp.toLocaleString() : "Unknown",
               status: finalStatus,
@@ -166,8 +166,8 @@ export default async function getCompletedOffers(wallet: YONAWallet): Promise<En
             // Store for later processing
             offerCreates.set(tx.Sequence, {
               sequence: tx.Sequence,
-              taker_pays: tx.TakerPays,
-              taker_gets: tx.TakerGets,
+              takerPays: tx.TakerPays,
+              takerGets: tx.TakerGets,
               createdAt: timestamp,
               hash: hash
             });
@@ -227,8 +227,8 @@ export default async function getCompletedOffers(wallet: YONAWallet): Promise<En
 
       completedOffers.push({
         sequence,
-        taker_pays: offer.taker_pays,
-        taker_gets: offer.taker_gets,
+        takerPays: offer.takerPays,
+        takerGets: offer.takerGets,
         createdAtDateTime: offer.createdAt ? offer.createdAt.toLocaleString() : "Unknown",
         completedAtDateTime: completedAt ? completedAt.toLocaleString() : "Unknown",
         status,

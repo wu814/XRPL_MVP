@@ -4,20 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import createAMM from "@/utils/xrpl/amm/createAMM";
 import { Wallet } from "xrpl";
-
-interface CreateAMMRequest {
-  treasuryWallet: {
-    classicAddress: string;
-  };
-  issuerWallets: Array<{
-    classicAddress: string;
-  }>;
-  assetA: string;
-  amountA: string;
-  assetB: string;
-  amountB: string;
-  fee: number;
-}
+import { CreateAMMAPIRequest } from "@/types/api/index";
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -28,16 +15,16 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  try {
+  try { 
     const {
       treasuryWallet,
       issuerWallets,
-      assetA,
-      amountA,
-      assetB,
-      amountB,
-      fee,
-    }: CreateAMMRequest = await req.json();
+      currency1,
+      value1,
+      currency2,
+      value2,
+      tradingFee,
+    }: CreateAMMAPIRequest = await req.json();
 
     const supabase = await createSupabaseAnonClient();
     const { data: walletData, error: walletError } = await supabase
@@ -59,19 +46,19 @@ export async function POST(req: NextRequest) {
     const ammData = await createAMM(
       treasuryXrplWallet,
       issuerWallets,
-      assetA,
-      amountA,
-      assetB,
-      amountB,
-      fee,
+      currency1,
+      value1,
+      currency2,
+      value2,
+      tradingFee,
     );
 
     // Store the new AMM in the database
     const { data, error } = await supabase.from("amms").insert([
       {
-        account: ammData.ammAccount,
-        currency1: ammData.currency_a,
-        currency2: ammData.currency_b,
+        account: ammData.account,
+        currency1: ammData.currency1,
+        currency2: ammData.currency2,
         created_at: new Date().toISOString(),
         issuer_address: issuerWallets[0].classicAddress,
         treasury_address: treasuryWallet.classicAddress,
@@ -81,11 +68,11 @@ export async function POST(req: NextRequest) {
     if (error) throw error;
     
     // Create a readable pair string for the message
-    const pairString = `${ammData.currency_a}/${ammData.currency_b}`;
+    const pairString = `${ammData.currency1}/${ammData.currency2}`;
     
     return NextResponse.json(
       {
-        message: `${pairString} AMM created! Address: ${ammData.ammAccount}`,
+        message: `${pairString} AMM created! Address: ${ammData.account}`,
         data: ammData,
       },
       { status: 201 },

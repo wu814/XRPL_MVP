@@ -4,6 +4,8 @@ import * as xrpl from "xrpl";
 import { connectXrplClient, client } from "../testnet";
 import { analyzeMarket } from "../pathfind/corePathfindingEngine";
 import { calculateExactAMMInput, calculateEstimateOutput } from "../amm/calculations.js";
+import { getFormattedAMMInfoByCurrencies } from "../amm/ammUtils.js";
+import { FormattedAMMInfo } from "@/types/xrpl/index";
 import BigNumber from 'bignumber.js';
 
 // Type definitions
@@ -13,12 +15,6 @@ interface CurrencyAmount {
   value: string;
 }
 
-interface AMMPoolData {
-  amm_account: string;
-  currency_a: CurrencyAmount;
-  currency_b: CurrencyAmount;
-  trading_fee: number;
-}
 
 interface PoolCurrencyMapping {
   poolSend: number;
@@ -127,50 +123,26 @@ const formatCurrency = (
   };
 };
 
-const getAMMPoolData = async (
-  sendCurrency: string, 
-  receiveCurrency: string, 
-): Promise<AMMPoolData | null> => {
-  const { getAMMInfoByCurrencies } = await import('../amm/ammUtils.js');
-  const liveAMMInfo = await getAMMInfoByCurrencies(sendCurrency, receiveCurrency);
-  
-  if (!liveAMMInfo) return null;
-  
-  return {
-    amm_account: liveAMMInfo.amm_account,
-    currency_a: {
-      currency: liveAMMInfo.amount.currency,
-      issuer: liveAMMInfo.amount.issuer,
-      value: liveAMMInfo.amount.value
-    },
-    currency_b: {
-      currency: liveAMMInfo.amount2.currency,
-      issuer: liveAMMInfo.amount2.issuer,
-      value: liveAMMInfo.amount2.value
-    },
-    trading_fee: liveAMMInfo.trading_fee
-  };
-};
 
 const mapPoolCurrencies = (
-  pool: AMMPoolData, 
+  pool: FormattedAMMInfo, 
   sendCurrency: string, 
   receiveCurrency: string
 ): PoolCurrencyMapping => {
-  if (pool.currency_a?.currency === sendCurrency && pool.currency_b?.currency === receiveCurrency) {
+  if (pool.formattedAmount?.currency === sendCurrency && pool.formattedAmount2?.currency === receiveCurrency) {
     return {
-      poolSend: parseFloat(pool.currency_a.value),
-      poolReceive: parseFloat(pool.currency_b.value),
+      poolSend: parseFloat(pool.formattedAmount.value),
+      poolReceive: parseFloat(pool.formattedAmount2.value),
       isReversed: false
     };
-  } else if (pool.currency_b?.currency === sendCurrency && pool.currency_a?.currency === receiveCurrency) {
+  } else if (pool.formattedAmount2?.currency === sendCurrency && pool.formattedAmount?.currency === receiveCurrency) {
     return {
-      poolSend: parseFloat(pool.currency_b.value),
-      poolReceive: parseFloat(pool.currency_a.value),
+      poolSend: parseFloat(pool.formattedAmount2.value),
+      poolReceive: parseFloat(pool.formattedAmount.value),
       isReversed: true
     };
   }
-  throw new Error(`Pool currency mismatch: expected ${sendCurrency}/${receiveCurrency}, got ${pool.currency_a?.currency}/${pool.currency_b?.currency}`);
+  throw new Error(`Pool currency mismatch: expected ${sendCurrency}/${receiveCurrency}, got ${pool.formattedAmount?.currency}/${pool.formattedAmount2?.currency}`);
 };
 
 const calculatePreciseAmount = async (
@@ -178,7 +150,6 @@ const calculatePreciseAmount = async (
   sendCurrency: string, 
   receiveCurrency: string, 
   sendAmount: string | number, 
-  issuerAddress: string, 
   slippagePercent: number, 
   paymentType: string
 ): Promise<number> => {
@@ -198,10 +169,10 @@ const calculatePreciseAmount = async (
     
     // Direct AMM calculation
     try {
-      const liveAMMData = await getAMMPoolData(sendCurrency, receiveCurrency);
-      if (liveAMMData) {
-        const { poolSend, poolReceive } = mapPoolCurrencies(liveAMMData, sendCurrency, receiveCurrency);
-        const tradingFeeBasisPoints = liveAMMData.trading_fee || 0;
+      const liveFormattedAMMInfo = await getFormattedAMMInfoByCurrencies(sendCurrency, receiveCurrency);
+      if (liveFormattedAMMInfo) {
+        const { poolSend, poolReceive } = mapPoolCurrencies(liveFormattedAMMInfo, sendCurrency, receiveCurrency);
+        const tradingFeeBasisPoints = liveFormattedAMMInfo.tradingFee || 0;
         
         if (paymentType === "exact_output") {
           // For exact_output: Calculate how much input is needed for exact output
@@ -379,13 +350,13 @@ export async function sendCrossCurrency({
       console.log(`🧮 Calculating required input for ${exactOutputAmount} ${receiveCurrency}...`);
       
       try {
-        const directPool = await getAMMPoolData(sendCurrency, receiveCurrency);
-        if (!directPool) {
+        const liveFormattedAMMInfo = await getFormattedAMMInfoByCurrencies(sendCurrency, receiveCurrency);
+        if (!liveFormattedAMMInfo) {
           throw new Error(`Could not find ${sendCurrency}/${receiveCurrency} AMM pool`);
         }
         
-        const { poolSend, poolReceive } = mapPoolCurrencies(directPool, sendCurrency, receiveCurrency);
-        const tradingFeeBasisPoints = directPool.trading_fee || 0;
+        const { poolSend, poolReceive } = mapPoolCurrencies(liveFormattedAMMInfo, sendCurrency, receiveCurrency);
+        const tradingFeeBasisPoints = liveFormattedAMMInfo.tradingFee || 0;
         
         // Use BigNumber for exact output amount to preserve precision
         const exactOutputBN = new BigNumber(exactOutputAmount!.toString());
@@ -438,7 +409,7 @@ export async function sendCrossCurrency({
     
     // Step 4: Calculate precise amounts
     const preciseInputNeeded = await calculatePreciseAmount(
-      recommendation, sendCurrency, receiveCurrency, sendAmount, issuerAddress, slippagePercent, paymentType
+      recommendation, sendCurrency, receiveCurrency, sendAmount, slippagePercent, paymentType
     );
     
     const sendMax = formatCurrency(preciseInputNeeded, sendCurrency, issuerAddress, true);

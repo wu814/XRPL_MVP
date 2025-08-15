@@ -45,3 +45,8 @@ export interface GetAccountObjectsAPIResponse {
   message: string;
   data: AccountObject[];
 }
+
+export interface GetTreasuryWalletAPIResponse {
+  message: string;
+  data: YONAWallet;
+}

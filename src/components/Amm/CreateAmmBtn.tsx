@@ -8,21 +8,7 @@ import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
 import { useIssuerWallet } from "@/components/wallet/IssuerWalletProvider";
 import { YONAWallet } from "@/types/appTypes";
-
-interface TreasuryWalletData {
-  classic_address: string;
-  wallet_type: string;
-}
-
-interface CreateAMMResponse {
-  data?: any;
-  message?: string;
-  error?: string;
-}
-
-interface TreasuryResponse {
-  data: TreasuryWalletData[];
-}
+import { APIErrorResponse, GetTreasuryWalletAPIResponse, CreateAMMAPIResponse } from "@/types/api/index";
 
 interface CreateAMMBtnProps {
   onAMMCreated?: (data: any) => void;
@@ -38,26 +24,24 @@ export default function CreateAMMBtn({ onAMMCreated }: CreateAMMBtnProps) {
   const { issuerWallets } = useIssuerWallet();
   
   // Persisted form state
-  const [assetA, setAssetA] = useState<string>("");
-  const [assetB, setAssetB] = useState<string>("");
-  const [amountA, setAmountA] = useState<string>("");
-  const [amountB, setAmountB] = useState<string>("");
-  const [fee, setFee] = useState<string>("0");
+  const [currency1, setCurrency1] = useState<string>("");
+  const [currency2, setCurrency2] = useState<string>("");
+  const [value1, setValue1] = useState<number | null>(null);
+  const [value2, setValue2] = useState<number | null>(null);
+  const [tradingFee, setTradingFee] = useState<number | null>(null);
 
   const fetchTreasuryWallet = async () => {
     try {
-      const res = await fetch("/api/wallet/getTreasuryWallet");
-      const result: TreasuryResponse = await res.json();
-      if (Array.isArray(result.data) && result.data.length > 0) {
-        const wallet = result.data[0];
-        const treasuryWalletData: YONAWallet = {
-          classicAddress: wallet.classic_address,
-          walletType: wallet.wallet_type,
-        };
-        setTreasuryWallet(treasuryWalletData);
+      const response = await fetch("/api/wallet/getTreasuryWallet");
+      const result: GetTreasuryWalletAPIResponse = await response.json();
+      if (!response.ok) {
+        const errorData: APIErrorResponse = await response.json();
+        setErrorMessage(errorData.message);
+        return;
       }
-    } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Unknown error");
+      setTreasuryWallet(result.data);
+    } catch (error: any) {
+      setErrorMessage(error.message);
     }
   };
 
@@ -72,22 +56,27 @@ export default function CreateAMMBtn({ onAMMCreated }: CreateAMMBtnProps) {
     setErrorMessage(null);
 
     try {
-      const res = await fetch("/api/amm/createAMM", {
+      const response = await fetch("/api/amm/createAMM", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           treasuryWallet,
           issuerWallets,
-          assetA,
-          amountA,
-          assetB,
-          amountB,
-          fee,
+          currency1,
+          value1,
+          currency2,
+          value2,
+          tradingFee,
         }),
       });
-      const result: CreateAMMResponse = await res.json();
-      if (!res.ok) throw new Error(result.error || "AMM creation failed");
-      if (onAMMCreated) onAMMCreated(result.data);
+      if (!response.ok) {
+        const errorData: APIErrorResponse = await response.json();
+        setErrorMessage(errorData.message);
+        setLoading(false);
+        return;
+      }
+      const result: CreateAMMAPIResponse = await response.json();
+      onAMMCreated(result.data);
       setSuccessMessage(result.message || "AMM created successfully");
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : "Unknown error");
@@ -107,16 +96,16 @@ export default function CreateAMMBtn({ onAMMCreated }: CreateAMMBtnProps) {
           onClose={() => setShowMdl(false)}
           onSubmit={handleCreateAMM}
           loading={loading}
-          assetA={assetA}
-          setAssetA={setAssetA}
-          assetB={assetB}
-          setAssetB={setAssetB}
-          amountA={amountA}
-          setAmountA={setAmountA}
-          amountB={amountB}
-          setAmountB={setAmountB}
-          fee={fee}
-          setFee={setFee}
+          currency1={currency1}
+          setCurrency1={setCurrency1}
+          currency2={currency2}
+          setCurrency2={setCurrency2}
+          value1={value1}
+          setValue1={setValue1}
+          value2={value2}
+          setValue2={setValue2}
+          tradingFee={tradingFee}
+          setTradingFee={setTradingFee}
         />
       )}
 

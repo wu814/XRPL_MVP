@@ -15,28 +15,16 @@ import { availableCurrencies, formatCurrencyValue, Currency } from "@/utils/curr
 import { useSession } from "next-auth/react";
 import { calculateExactAMMInput, calculateEstimateOutput } from "@/utils/xrpl/amm/calculations";
 import { YONAWallet } from "@/types/appTypes";
-import { GetAccountInfoAPIResponse, GetAccountLinesAPIResponse } from "@/types/api/index";
+import { 
+  GetAccountInfoAPIResponse, 
+  GetAccountLinesAPIResponse, 
+  GetFormattedAMMInfoByCurrenciesAPIResponse,
+  APIErrorResponse
+} from "@/types/api/index";
 
 
 interface WalletBalance {
   [currency: string]: number;
-}
-
-interface AMMDataResponse {
-  success?: boolean;
-  data?: any;
-  error?: string;
-}
-
-
-
-interface AccountLinesResponse {
-  data?: {
-    lines?: Array<{
-      currency: string;
-      balance: string;
-    }>;
-  };
 }
 
 interface SmartTradeResponse {
@@ -141,14 +129,14 @@ export default function TradePanel() {
   useEffect(() => {
     if (activeTab === "Convert") {
       if (sellCurrency && buyCurrency && sellCurrency !== buyCurrency) {
-        fetchAMMData(sellCurrency, buyCurrency);
+        fetchAMMInfoByCurrencies(sellCurrency, buyCurrency);
       } else {
         setAMMData(null);
         setAMMDataError(null);
       }
     } else if (activeTab === "Send" && paymentType === "convertable") {
       if (sendCurrency && receiveCurrency && sendCurrency !== receiveCurrency) {
-        fetchAMMData(sendCurrency, receiveCurrency);
+        fetchAMMInfoByCurrencies(sendCurrency, receiveCurrency);
       } else {
         setAMMData(null);
         setAMMDataError(null);
@@ -166,13 +154,13 @@ export default function TradePanel() {
     paymentType,
   ]);
 
-  const fetchAMMData = async (currency1: string, currency2: string): Promise<void> => {
+  const fetchAMMInfoByCurrencies = async (currency1: string, currency2: string): Promise<void> => {
     setLoadingAMMData(true);
     setAMMDataError(null);
     setAMMData(null);
 
     try {
-      const response = await fetch("/api/amm/getAMMInfoByCurrencies", {
+      const response = await fetch("/api/amm/getFormattedAMMInfoByCurrencies", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -181,12 +169,14 @@ export default function TradePanel() {
         }),
       });
 
-      const result: AMMDataResponse = await response.json();
-
       if (!response.ok) {
-        throw new Error(result.error || "Failed to get AMM data");
+        const errorData: APIErrorResponse = await response.json();
+        setAMMDataError(errorData.message);
+        return;
       }
 
+      const result: GetFormattedAMMInfoByCurrenciesAPIResponse = await response.json();
+        
       setAMMData(result.data);
     } catch (error: any) {
       setAMMDataError(error.message);
@@ -212,12 +202,12 @@ export default function TradePanel() {
 
     try {
       let poolInput: number, poolOutput: number;
-      if (ammData.amount.currency === inputCurrency) {
-        poolInput = parseFloat(ammData.amount.value);
-        poolOutput = parseFloat(ammData.amount2.value);
+      if (ammData.formattedAmount.currency === inputCurrency) {
+        poolInput = parseFloat(ammData.formattedAmount.value);
+        poolOutput = parseFloat(ammData.formattedAmount2.value);
       } else {
-        poolInput = parseFloat(ammData.amount2.value);
-        poolOutput = parseFloat(ammData.amount.value);
+        poolInput = parseFloat(ammData.formattedAmount2.value);
+        poolOutput = parseFloat(ammData.formattedAmount.value);
       }
 
       const calculation = calculateEstimateOutput(
@@ -257,12 +247,12 @@ export default function TradePanel() {
 
     try {
       let poolInput: number, poolOutput: number;
-      if (ammData.amount.currency === inputCurrency) {
-        poolInput = parseFloat(ammData.amount.value);
-        poolOutput = parseFloat(ammData.amount2.value);
+      if (ammData.formattedAmount.currency === inputCurrency) {
+        poolInput = parseFloat(ammData.formattedAmount.value);
+        poolOutput = parseFloat(ammData.formattedAmount2.value);
       } else {
-        poolInput = parseFloat(ammData.amount2.value);
-        poolOutput = parseFloat(ammData.amount.value);
+        poolInput = parseFloat(ammData.formattedAmount2.value);
+        poolOutput = parseFloat(ammData.formattedAmount.value);
       }
 
       const calculation = calculateExactAMMInput(
@@ -270,7 +260,7 @@ export default function TradePanel() {
         poolOutput,
         parseFloat(outputAmount),
         parseFloat(slippage) / 100,
-        ammData.trading_fee || 0,
+        ammData.tradingFee || 0,
       );
 
       if (calculation.success) {
@@ -711,9 +701,9 @@ export default function TradePanel() {
               {ammData && !loadingAMMData && (
                 <div className="mb-4 rounded-full border border-green-500 bg-green-900/20 p-3">
                   <p className="text-sm text-green-400">
-                    AMM Pool: {ammData.amount.currency}/
-                    {ammData.amount2.currency}
-                    {` (${ammData.trading_fee / 1000}% fee)`}
+                    AMM Pool: {ammData.formattedAmount.currency}/
+                    {ammData.formattedAmount2.currency}
+                    {` (${ammData.tradingFee / 1000}% fee)`}
                   </p>
                 </div>
               )}
@@ -940,9 +930,9 @@ export default function TradePanel() {
               {ammData && !loadingAMMData && (
                 <div className="mb-4 rounded-full border border-green-500 bg-green-900/20 p-3">
                   <p className="text-sm text-green-400">
-                    AMM Pool: {ammData.amount.currency}/
-                    {ammData.amount2.currency}
-                    {` (${ammData.trading_fee / 1000}% fee)`}
+                    AMM Pool: {ammData.formattedAmount.currency}/
+                    {ammData.formattedAmount2.currency}
+                    {` (${ammData.tradingFee / 1000}% fee)`}
                   </p>
                 </div>
               )}

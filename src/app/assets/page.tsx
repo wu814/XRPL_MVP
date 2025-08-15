@@ -1,13 +1,11 @@
 "use client";
 import { useSession } from "next-auth/react";
 import { Plus } from "lucide-react";
-import AssetTable from "@/components/wallet/AssetTable";
+import AssetTable, { useLivePrices, useWalletAssets } from "@/components/wallet/AssetTable";
 import {
   useCurrentUserWallet,
 } from "@/components/wallet/CurrentUserWalletProvider";
 import CreateUserWalletBtn from "@/components/wallet/CreateUserWalletBtn";
-import { useLivePrices } from "@/utils/currencyUtils";
-import { useWalletAssets } from "@/utils/assetUtils";
 import usePageTitle from "@/utils/usePageTitle";
 
 // AssetTableWrapper component to access wallet context
