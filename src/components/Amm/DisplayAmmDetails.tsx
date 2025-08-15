@@ -13,122 +13,20 @@ import {
   formatCurrencyValue,
   PriceInfo,
 } from "@/utils/currencyUtils";
-import { AMMInfo } from "./DisplayAMMs"; // Import the centralized interface
+import { FormattedAMMInfo } from "@/types/xrpl/index";
+import { APIErrorResponse, GetFormattedAMMInfoAPIResponse } from "@/types/api/index";
 
-interface AMMAmount {
-  currency: string;
-  issuer: string | null;
-  value: string;
-}
-
-interface AMMApiResponse {
-  amm_account: string;
-  trading_fee: number;
-  lp_token: {
-    currency: string;
-    issuer: string;
-    value: string;
-  };
-  amount:
-    | string
-    | {
-        currency: string;
-        issuer: string;
-        value: string;
-      };
-  amount2:
-    | string
-    | {
-        currency: string;
-        issuer: string;
-        value: string;
-      };
-}
-
-interface AMMInfoResponse {
-  data?: AMMApiResponse;
-  error?: string;
-}
-
-interface CachedAMMData {
-  ammAccount?: string;
-  currency_a?: string;
-  currency_b?: string;
-  timestamp?: number;
-  ammDetails?: AMMInfo;
-  livePrices?: PriceInfo[];
-  pricesLoading?: boolean;
-}
 
 interface DisplayAMMDetailsProps {
-  ammAccount: string;
-}
-
-// This class is used to parse the AMM data returned from the API
-class AMMInfoParser implements AMMInfo {
-  amm_account: string;
-  trading_fee: number;
-  lp_token: {
-    currency: string;
-    issuer: string;
-    value: string;
-  };
-  amount: {
-    currency: string;
-    issuer: string | null;
-    value: string;
-  };
-  amount2: {
-    currency: string;
-    issuer: string | null;
-    value: string;
-  };
-
-  constructor(data: AMMApiResponse) {
-    this.amm_account = data.amm_account;
-    this.trading_fee = data.trading_fee;
-
-    // LP Token (always IOU format)
-    this.lp_token = {
-      currency: data.lp_token.currency,
-      issuer: data.lp_token.issuer,
-      value: data.lp_token.value,
-    };
-
-    // Asset 1 and 2 (XRP or IOU)
-    this.amount = this.parseAmount(data.amount);
-    this.amount2 = this.parseAmount(data.amount2);
-  }
-
-  // Converts XRP from drops or parses IOU
-  private parseAmount(
-    amount: string | { currency: string; issuer: string; value: string },
-  ): AMMAmount {
-    if (typeof amount === "string") {
-      const xrpl = require("xrpl");
-      // XRP is a string of drops
-      return {
-        currency: "XRP",
-        issuer: null,
-        value: xrpl.dropsToXrp(amount), // Convert drops to XRP
-      };
-    } else {
-      // IOU is an object
-      return {
-        currency: amount.currency,
-        issuer: amount.issuer,
-        value: amount.value,
-      };
-    }
-  }
+  account: string;
 }
 
 export default function DisplayAMMDetails({
-  ammAccount,
+  account,
 }: DisplayAMMDetailsProps) {
   const router = useRouter();
 
-  const [ammInfo, setAMMInfo] = useState<AMMInfo | null>(null);
+  const [ammInfo, setAMMInfo] = useState<FormattedAMMInfo | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [currency1, setCurrency1] = useState<string>("");
@@ -138,18 +36,21 @@ export default function DisplayAMMDetails({
 
   const fetchAMMInfo = async (): Promise<void> => {
     try {
-      const res = await fetch("/api/amm/getAMMInfo", {
+      const response = await fetch("/api/amm/getFormattedAMMInfo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ammAccount }),
+        body: JSON.stringify({ account }),
       });
 
-      const result: AMMInfoResponse = await res.json();
-      if (!res.ok) throw new Error(result.error || "Failed to fetch AMM info");
+      if (!response.ok) {
+        const errorData: APIErrorResponse = await response.json();
+        setErrorMessage(errorData.message);
+        return;
+      }
+      const result: GetFormattedAMMInfoAPIResponse = await response.json();
 
       if (result.data) {
-        console.log(result.data);
-        setAMMInfo(new AMMInfoParser(result.data));
+        setAMMInfo(result.data);
       }
     } catch (error: any) {
       if (
@@ -160,7 +61,7 @@ export default function DisplayAMMDetails({
         );
         setTimeout(() => {
           router.push("/trade/amm");
-        }, 3500);
+        }, 3000);
       } else {
         setErrorMessage(error.message);
       }
@@ -180,45 +81,24 @@ export default function DisplayAMMDetails({
     }
   };
 
+  // Fetch AMM info and prices when the component mounts
   useEffect(() => {
-    // Check for cached data from DisplayAMMs
-    const cached = localStorage.getItem("selectedAMM");
-    if (cached) {
-      try {
-        const parsed: CachedAMMData = JSON.parse(cached);
-        if (parsed?.ammAccount === ammAccount) {
-          setCurrency1(parsed.currency_a || "Unknown");
-          setCurrency2(parsed.currency_b || "Unknown");
-
-          // Check if we have cached AMM details and prices (and they're recent)
-          const cacheAge = Date.now() - (parsed.timestamp || 0);
-          const cacheValid = cacheAge < 5 * 60 * 1000; // 5 minutes
-
-          if (parsed.ammDetails && parsed.livePrices && cacheValid) {
-            // Use cached data
-            setAMMInfo(parsed.ammDetails);
-            setLivePrices(parsed.livePrices);
-            setPricesLoading(parsed.pricesLoading || false);
-            setLoading(false);
-            return; // Skip API calls
-          }
-        }
-      } catch (e) {
-        console.error("Failed to parse cached AMM", e);
-      }
+    // Get currencies from localStorage
+    const storedCurrencies = localStorage.getItem('ammCurrencies');
+    if (storedCurrencies) {
+      const { currency1: storedCurrency1, currency2: storedCurrency2 } = JSON.parse(storedCurrencies);
+      setCurrency1(storedCurrency1);
+      setCurrency2(storedCurrency2);
+      
+      // Clean up localStorage after retrieving
+      localStorage.removeItem('ammCurrencies');
     }
-
-    // Fallback to API calls if no valid cached data
     fetchAMMInfo();
     fetchPrices();
-  }, [ammAccount]);
+  }, [account]);
 
-  // Delete later
-  useEffect(() => {
-    console.log(ammInfo);
-  }, [ammInfo]);
 
-  const renderPriceInfo = (): React.ReactNode => {
+  const renderPriceInfo = () => {
     return (
       <div>
         <h3 className="mb-2 text-mutedText">Price Information</h3>
@@ -228,8 +108,8 @@ export default function DisplayAMMDetails({
           </div>
         ) : (
           (() => {
-            const a1 = parseFloat(ammInfo?.amount?.value);
-            const a2 = parseFloat(ammInfo?.amount2?.value);
+            const a1 = parseFloat(ammInfo?.formattedAmount?.value);
+            const a2 = parseFloat(ammInfo?.formattedAmount2?.value);
             if (isNaN(a1) || isNaN(a2) || a1 <= 0 || a2 <= 0) {
               return <p className="ml-2 text-lg font-medium">Not Available</p>;
             }
@@ -255,7 +135,7 @@ export default function DisplayAMMDetails({
     );
   };
 
-  const renderTradingFee = (): React.ReactNode => (
+  const renderTradingFee = () => (
     <div>
       <h3 className="mb-2 text-mutedText">Trading Fee</h3>
       {loading || !ammInfo ? (
@@ -264,13 +144,13 @@ export default function DisplayAMMDetails({
         </div>
       ) : (
         <p className="ml-2 text-lg font-medium">
-          {`${(ammInfo?.trading_fee / 1000).toFixed(3)}%`}
+          {`${(ammInfo?.tradingFee / 1000).toFixed(3)}%`}
         </p>
       )}
     </div>
   );
 
-  const renderPoolValue = (): React.ReactNode => {
+  const renderPoolValue = () => {
     return (
       <div>
         <h3 className="mb-2 text-mutedText">Pool Value</h3>
@@ -281,13 +161,13 @@ export default function DisplayAMMDetails({
         ) : (
           (() => {
             const usdValue1 = getUSDValue(
-              ammInfo.amount.currency,
-              ammInfo.amount.value,
+              ammInfo.formattedAmount.currency,
+              ammInfo.formattedAmount.value,
               livePrices,
             );
             const usdValue2 = getUSDValue(
-              ammInfo.amount2.currency,
-              ammInfo.amount2.value,
+              ammInfo.formattedAmount2.currency,
+              ammInfo.formattedAmount2.value,
               livePrices,
             );
             const totalUsdValue = usdValue1 + usdValue2;
@@ -331,8 +211,8 @@ export default function DisplayAMMDetails({
           <div className="col-span-2 rounded-lg bg-color2 p-4">
             <h3 className="text-mutedText">Pool Composition</h3>
             <AMMCompositionBar
-              amount1={ammInfo?.amount}
-              amount2={ammInfo?.amount2}
+              amount1={ammInfo?.formattedAmount}
+              amount2={ammInfo?.formattedAmount2}
               livePrices={livePrices}
               pricesLoading={pricesLoading}
             />

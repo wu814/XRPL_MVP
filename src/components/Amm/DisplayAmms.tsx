@@ -7,9 +7,8 @@ import ErrorMdl from "../ErrorMdl";
 import CurrencyIcon from "../currency/CurrencyIcon";
 import CreateAMMBtn from "./CreateAMMBtn";
 import { fetchUSDPrices, getUSDValue, formatCurrencyValue, PriceInfo } from "@/utils/currencyUtils";
-import { formatAssetForDisplay } from "@/utils/assetUtils";
-import { AMMData, AMMInfo, CreateAMMResult } from "@/types/xrpl/index";
-import { APIErrorResponse, GetAllAMMDataAPIResponse, GetAMMInfoAPIResponse } from "@/types/api/index";
+import { AMMData, CreateAMMResult, FormattedAMMInfo } from "@/types/xrpl/index";
+import { APIErrorResponse, GetAllAMMDataAPIResponse, GetFormattedAMMInfoAPIResponse } from "@/types/api/index";
 
 
 export default function DisplayAMMs() {
@@ -20,7 +19,7 @@ export default function DisplayAMMs() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [livePrices, setLivePrices] = useState<PriceInfo[]>([]);
   const [pricesLoading, setPricesLoading] = useState<boolean>(true);
-  const [ammDetails, setAMMDetails] = useState<Record<string, AMMInfo>>({});
+  const [ammDetails, setAMMDetails] = useState<Record<string, FormattedAMMInfo>>({});
 
   // Helper function to format fee display
   const formatFee = (fee: number | null | undefined): string => {
@@ -43,7 +42,7 @@ export default function DisplayAMMs() {
   // Function to fetch detailed AMM info for pool value calculation
   const fetchAMMDetails = async (account: string) => {
     try {
-      const response = await fetch("/api/amm/getAMMInfo", {
+      const response = await fetch("/api/amm/getFormattedAMMInfo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ account }),
@@ -54,7 +53,7 @@ export default function DisplayAMMs() {
         setErrorMessage(errorData.message);
         return;
       }
-      const result: GetAMMInfoAPIResponse = await response.json();
+      const result: GetFormattedAMMInfoAPIResponse = await response.json();
 
       if (result.data) {
         setAMMDetails((prev) => ({
@@ -73,17 +72,15 @@ export default function DisplayAMMs() {
     if (!ammInfo || pricesLoading) {
       return null;
     }
-    const amount1 = formatAssetForDisplay(ammInfo.amount);
-    const amount2 = formatAssetForDisplay(ammInfo.amount2);
 
     const usdValue1 = getUSDValue(
-      amount1.currency,
-      parseFloat(amount1.value),
+      ammInfo.formattedAmount.currency,
+      parseFloat(ammInfo.formattedAmount.value),
       livePrices,
     );
     const usdValue2 = getUSDValue(
-      amount2.currency,
-      parseFloat(amount2.value),
+      ammInfo.formattedAmount2.currency,
+      parseFloat(ammInfo.formattedAmount2.value),
       livePrices,
     );
     const totalUsdValue = usdValue1 + usdValue2;
@@ -214,7 +211,10 @@ export default function DisplayAMMs() {
                 key={index}
                 className="grid cursor-pointer grid-cols-[2fr_1fr_1fr_1fr] items-center px-4 py-6 hover:bg-color3"
                 onClick={() => {
-                  localStorage.setItem("selectedAMM", JSON.stringify(amm));
+                  localStorage.setItem('ammCurrencies', JSON.stringify({
+                    currency1: amm.currency1,
+                    currency2: amm.currency2
+                  }));
                   router.push(`/trade/amm/${amm.account}`);
                 }}
               >
@@ -236,7 +236,7 @@ export default function DisplayAMMs() {
                   {!ammDetails[amm.account] ? (
                     <span className="mx-auto inline-block h-4 w-12 animate-pulse rounded-lg bg-pulse" />
                   ) : (
-                    formatFee(ammDetails[amm.account]?.trading_fee)
+                    formatFee(ammDetails[amm.account]?.tradingFee)
                   )}
                 </p>
               </div>

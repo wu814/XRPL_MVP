@@ -266,14 +266,14 @@ async function analyzeAMMRoutes(
     }
     
     // Get LIVE AMM data using universal function - NO CACHING for accuracy
-    const { getAllAMMData, getAMMInfo } = await import("../amm/ammUtils.js");
+    const { getAllAMMData, getFormattedAMMInfo } = await import("../amm/ammUtils.js");
     const ammRegistry = await getAllAMMData();
     const ammData: AMMData = {};
     
     // Get live data for each pool using universal function
     for (const [pairKey, poolInfo] of Object.entries(ammRegistry)) {
       try {
-        const liveInfo = await getAMMInfo(poolInfo.amm_account);
+        const liveInfo = await getFormattedAMMInfo(poolInfo.amm_account);
 
         if (liveInfo) {
           ammData[pairKey] = {
@@ -480,14 +480,14 @@ async function analyzeHybridRoutes(
     console.log(`🟣 Hybrid Route Analysis...`);
     
     // Get both AMM and DEX data using universal function
-    const { getAllAMMData, getAMMInfo } = await import("../amm/ammUtils.js");
+    const { getAllAMMData, getFormattedAMMInfo } = await import("../amm/ammUtils.js");
     const ammRegistry = await getAllAMMData();
     const ammData: AMMData = {};
     
     // Get live AMM data for hybrid routes
     for (const [pairKey, poolInfo] of Object.entries(ammRegistry)) {
       try {
-        const liveInfo = await getAMMInfo(poolInfo.amm_account);
+        const liveInfo = await getFormattedAMMInfo(poolInfo.amm_account);
         if (liveInfo) {
           ammData[pairKey] = {
             amm_account: liveInfo.amm_account,

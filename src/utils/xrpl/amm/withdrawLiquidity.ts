@@ -1,7 +1,7 @@
 import * as xrpl from "xrpl";
 import { Wallet } from "xrpl";
 import BigNumber from "bignumber.js";
-import { getAMMInfo, LPToken } from "./ammUtils";
+import { getFormattedAMMInfo, LPToken } from "./ammUtils";
 import { client, connectXrplClient } from "../testnet";
 
 // Type definitions
@@ -158,7 +158,7 @@ export async function withdrawLiquidityTwoAsset(
 ): Promise<WithdrawResult> {
   try {
     await connectXrplClient();
-    const ammData = await getAMMInfo(ammAccount);
+    const ammData = await getFormattedAMMInfo(ammAccount);
     if (!ammData || !ammData.amount || !ammData.amount2 || !ammData.lp_token) {
       throw new Error(`❌ Invalid AMM data for account ${ammAccount}`);
     }
@@ -311,7 +311,7 @@ export async function withdrawLiquidityTwoAsset(
     console.log("🔄 Updating AMM data from ledger...");
     try {
       // Get the updated AMM data
-      const updatedAMMData = await getAMMInfo(ammAccount);
+      const updatedAMMData = await getFormattedAMMInfo(ammAccount);
 
       if (updatedAMMData) {
         // Log updated pool balances
@@ -354,7 +354,7 @@ export async function withdrawLiquidityWithLPToken(
   try {
     await connectXrplClient();
 
-    const ammData = await getAMMInfo(ammAccount);
+    const ammData = await getFormattedAMMInfo(ammAccount);
     if (!ammData || !ammData.amount || !ammData.amount2 || !ammData.lp_token) {
       throw new Error(`❌ Invalid AMM data structure.`);
     }
@@ -468,7 +468,7 @@ export async function withdrawLiquidityWithLPToken(
 
     try {
       // Get the updated AMM data
-      const updatedAMMData = await getAMMInfo(ammAccount);
+      const updatedAMMData = await getFormattedAMMInfo(ammAccount);
 
       if (updatedAMMData) {
         // Log updated pool balances
@@ -507,7 +507,7 @@ export async function withdrawAllLiquidity(
   try {
     await connectXrplClient();
     // Fetch current AMM state
-    const ammData = await getAMMInfo(ammAccount);
+    const ammData = await getFormattedAMMInfo(ammAccount);
 
     if (!ammData || !ammData.amount || !ammData.amount2 || !ammData.lp_token) {
       throw new Error(`❌ Invalid AMM data structure.`);
@@ -623,7 +623,7 @@ export async function withdrawAllLiquidity(
 
     // Refresh and log updated AMM pool state
     try {
-      const updatedAMMData = await getAMMInfo(ammAccount);
+      const updatedAMMData = await getFormattedAMMInfo(ammAccount);
       if (updatedAMMData) {
         message += "\n===== Updated AMM Pool State =====\n";
         message += `LP tokens balance: ${Number(updatedAMMData.lp_token.value).toFixed(2)}\n`;
@@ -665,7 +665,7 @@ export async function withdrawSingleAsset(
     await connectXrplClient();
 
     // Fetch AMM data
-    const ammData = await getAMMInfo(ammAccount);
+    const ammData = await getFormattedAMMInfo(ammAccount);
     if (!ammData || !ammData.amount || !ammData.amount2 || !ammData.lp_token) {
       throw new Error(`❌ Invalid AMM data structure.`);
     }
@@ -875,7 +875,7 @@ export async function withdrawSingleAsset(
     console.log("🔄 Updating AMM data from ledger...");
     try {
       // Get the updated AMM data
-      const updatedAMMData = await getAMMInfo(ammAccount);
+      const updatedAMMData = await getFormattedAMMInfo(ammAccount);
 
       if (updatedAMMData) {
         // Log updated pool balances
@@ -913,7 +913,7 @@ export async function withdrawAllSingleAsset(
 ): Promise<WithdrawAllSingleAssetResult> {
   try {
     await connectXrplClient();
-    const ammData = await getAMMInfo(ammAccount);
+    const ammData = await getFormattedAMMInfo(ammAccount);
     if (!ammData || !ammData.amount || !ammData.amount2 || !ammData.lp_token) {
       throw new Error(`❌ Invalid AMM data for account ${ammAccount}`);
     }
@@ -1067,7 +1067,7 @@ export async function withdrawAllSingleAsset(
 
     try {
       // Get the updated AMM data
-      const updatedAMMData = await getAMMInfo(ammAccount);
+      const updatedAMMData = await getFormattedAMMInfo(ammAccount);
 
       if (updatedAMMData) {
         // Log updated pool balances
@@ -1108,7 +1108,7 @@ export async function withdrawSingleAssetWithLPToken(
 ): Promise<WithdrawSingleAssetLPTokenResult> {
   try {
     await connectXrplClient();
-    const ammData = await getAMMInfo(ammAccount);
+    const ammData = await getFormattedAMMInfo(ammAccount);
     if (!ammData || !ammData.amount || !ammData.amount2 || !ammData.lp_token) {
       throw new Error(`❌ Invalid AMM data for account ${ammAccount}`);
     }
@@ -1254,7 +1254,7 @@ export async function withdrawSingleAssetWithLPToken(
 
     try {
       // Get the updated AMM data
-      const updatedAMMData = await getAMMInfo(ammAccount);
+      const updatedAMMData = await getFormattedAMMInfo(ammAccount);
 
       if (updatedAMMData) {
         // Log updated pool balances

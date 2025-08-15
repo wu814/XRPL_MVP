@@ -7,13 +7,13 @@ export interface GetAllAMMDataAPIResponse {
   data: AMMData[];
 }
 
-export interface GetAMMInfoAPIRequest {
+export interface GetFormattedAMMInfoAPIRequest {
   account: string;
 }
 
-export interface GetAMMInfoAPIResponse {
+export interface GetFormattedAMMInfoAPIResponse {
   message: string;
-  data: AMMInfo;
+  data: FormattedAMMInfo;
 }
 
 export interface CreateAMMAPIRequest {

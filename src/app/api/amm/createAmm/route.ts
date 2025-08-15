@@ -4,13 +4,13 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import createAMM from "@/utils/xrpl/amm/createAMM";
 import { Wallet } from "xrpl";
-import { CreateAMMAPIRequest } from "@/types/api/index";
+import { CreateAMMAPIRequest, CreateAMMAPIResponse, APIErrorResponse } from "@/types/api/index";
 
-export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest): Promise<NextResponse<CreateAMMAPIResponse | APIErrorResponse>> {
   const session = await getServerSession(authOptions);
   if (!session?.user?.role || session.user.role !== "ADMIN") {
-    return NextResponse.json(
-      { error: "Must be an Admin to create AMMs" },
+    return NextResponse.json<APIErrorResponse>(
+      { message: "Must be an Admin to create AMMs" },
       { status: 401 },
     );
   }
@@ -34,8 +34,8 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (walletError || !walletData) {
-      return NextResponse.json(
-        { error: "Wallet not found for the provided classicAddress" },
+      return NextResponse.json<APIErrorResponse>(
+        { message: "Wallet not found for the provided classicAddress" },
         { status: 404 },
       );
     }
@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
     // Create a readable pair string for the message
     const pairString = `${ammData.currency1}/${ammData.currency2}`;
     
-    return NextResponse.json(
+    return NextResponse.json<CreateAMMAPIResponse>(
       {
         message: `${pairString} AMM created! Address: ${ammData.account}`,
         data: ammData,
@@ -79,8 +79,8 @@ export async function POST(req: NextRequest) {
     );
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    return NextResponse.json(
-      { error: `Error creating AMM: ${errorMessage} [createAMM/route.ts]` },
+    return NextResponse.json<APIErrorResponse>(
+      { message: `Error creating AMM: ${errorMessage} [createAMM/route.ts]` },
       { status: 500 },
     );
   }

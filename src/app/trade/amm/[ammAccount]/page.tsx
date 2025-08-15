@@ -13,7 +13,7 @@ export default function AMMDetails() {
 
   return (
     <div className="p-2 ">
-      <DisplayAMMDetails ammAccount={address} />
+      <DisplayAMMDetails account={address} />
     </div>
   );
 }

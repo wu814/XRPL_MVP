@@ -4,7 +4,7 @@ import {
   AMMInfoRequest, 
   AMMInfoResponse, 
 } from "xrpl";
-import { AMMInfo, AMMData, FormattedAMMInfo } from "@/types/xrpl/index";
+import { AMMInfo, FormattedAMMInfo, AMMData } from "@/types/xrpl/index";
 import { formatAssetForDisplay } from "@/utils/assetUtils";
 
 
@@ -13,7 +13,7 @@ import { formatAssetForDisplay } from "@/utils/assetUtils";
  * @param ammAccount - The AMM account address
  * @returns Live AMM data from ledger or null if failed
  */
-export async function getAMMInfo(ammAccount: string): Promise<AMMInfo | null> {
+export async function getFormattedAMMInfo(ammAccount: string): Promise<FormattedAMMInfo | null> {
   try {
     await connectXrplClient();
     
@@ -31,15 +31,15 @@ export async function getAMMInfo(ammAccount: string): Promise<AMMInfo | null> {
       console.warn(`⚠️ No AMM data found for account: ${ammAccount}`);
       return {
         account: ammAccount,
-        amount: { currency: "Unknown", issuer: null, value: "0" },
-        amount2: { currency: "Unknown", issuer: null, value: "0" },
-        lp_token: {
+        formattedAmount: { currency: "Unknown", issuer: null, value: "0" },
+        formattedAmount2: { currency: "Unknown", issuer: null, value: "0" },
+        lpToken: {
           currency: "LP",
           issuer: ammAccount,
           value: "0"
         },
-        trading_fee: 0,
-        auction_slot: null,
+        tradingFee: 0,
+        auctionSlot: null,
       };
     }
     
@@ -47,7 +47,26 @@ export async function getAMMInfo(ammAccount: string): Promise<AMMInfo | null> {
     
     console.log(`✅ Live AMM data: ${ammInfo}`);
     
-    return ammInfo;
+    return {
+      account: ammInfo.account,
+      formattedAmount: formatAssetForDisplay(ammInfo.amount),
+      formattedAmount2: formatAssetForDisplay(ammInfo.amount2),
+      auctionSlot: {
+        account: ammInfo.auction_slot?.account || "",
+        authAccounts: ammInfo.auction_slot?.auth_accounts || [],
+        discountedFee: ammInfo.auction_slot?.discounted_fee || 0,
+        expiration: ammInfo.auction_slot?.expiration || "",
+        price: ammInfo.auction_slot?.price || { currency: "Unknown", issuer: null, value: "0" },
+        timeInterval: ammInfo.auction_slot?.time_interval || 0,
+      },
+      lpToken: ammInfo.lp_token,
+      tradingFee: ammInfo.trading_fee || 0,
+      voteSlots: ammInfo.vote_slots?.map((vote) => ({
+        account: vote.account,
+        tradingFee: vote.trading_fee,
+        voteWeight: vote.vote_weight,
+      })),
+    };
     
   } catch (error: any) {
     console.error(`❌ Error fetching AMM info for ${ammAccount}: ${error.message}`);
@@ -116,17 +135,15 @@ export async function getFormattedAMMInfoByCurrencies (
   }
   
   // Get live AMM info directly
-  const liveAMMInfo = await getAMMInfo(ammAccount);
+  const liveAMMInfo = await getFormattedAMMInfo(ammAccount);
   
   if (!liveAMMInfo) return null;
-
-  const formattedAmount = formatAssetForDisplay(liveAMMInfo.amount);
-  const formattedAmount2 = formatAssetForDisplay(liveAMMInfo.amount2);
   
   return {
     account: liveAMMInfo.account,
-    formattedAmount: formattedAmount,
-    formattedAmount2: formattedAmount2,
-    tradingFee: liveAMMInfo.trading_fee
+    formattedAmount: liveAMMInfo.formattedAmount,
+    formattedAmount2: liveAMMInfo.formattedAmount2,
+    tradingFee: liveAMMInfo.tradingFee,
+    lpToken: liveAMMInfo.lpToken,
   };
 };
