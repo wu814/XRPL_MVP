@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
-import { APIErrorResponse, GetTreasuryWalletAPIResponse } from "@/types/api/index";
+import { APIErrorResponse } from "@/types/api/errorAPITypes";
+import { GetTreasuryWalletAPIResponse } from "@/types/api/walletAPITypes";
 
 export async function GET(): Promise<NextResponse<GetTreasuryWalletAPIResponse | APIErrorResponse>> {
   try {

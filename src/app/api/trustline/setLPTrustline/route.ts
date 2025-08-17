@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { Wallet } from "xrpl";
 import { setLPTrustlineFromAMMData } from "@/utils/xrpl/trustline/setTrustline";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
-import { SetLPTrustlineAPIRequest, APIErrorResponse, SetLPTrustlineAPIResponse } from "@/types/api/index";
+import { SetLPTrustlineAPIRequest, SetLPTrustlineAPIResponse } from "@/types/api/trustlineAPITypes";
+import { APIErrorResponse } from "@/types/api/errorAPITypes";
 
 
 export async function POST(req: NextRequest) {

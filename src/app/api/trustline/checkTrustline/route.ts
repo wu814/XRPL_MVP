@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { checkTrustline } from "@/utils/xrpl/trustline/setTrustline";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
-import { CheckTrustlineAPIRequest, CheckTrustlineAPIResponse, APIErrorResponse } from "@/types/api/index";
+import { CheckTrustlineAPIRequest, CheckTrustlineAPIResponse } from "@/types/api/trustlineAPITypes";
+import { APIErrorResponse } from "@/types/api/errorAPITypes";
+
 
 export async function POST(req: NextRequest): Promise<NextResponse<CheckTrustlineAPIResponse | APIErrorResponse>> {
   try {

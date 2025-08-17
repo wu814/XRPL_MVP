@@ -1,6 +1,7 @@
 import { client, connectXRPLClient } from "../testnet";
 import { dropsToXrp, AccountLinesTrustline, AccountObject } from "xrpl";
-import { AccountInfo } from "@/types/xrpl/index";
+import { AccountInfo } from "@/types/xrpl/walletXRPLTypes";
+
 
 /**
  * Get account information with balance in XRP

@@ -4,7 +4,9 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { setTrustline } from "@/utils/xrpl/trustline/setTrustline";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
 import { Wallet } from "xrpl";
-import { SetWalletTrustlineAPIRequest, APIErrorResponse, SetWalletTrustlineAPIResponse } from "@/types/api/index";
+import { SetWalletTrustlineAPIRequest, SetWalletTrustlineAPIResponse } from "@/types/api/trustlineAPITypes";
+import { APIErrorResponse } from "@/types/api/errorAPITypes";
+
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);

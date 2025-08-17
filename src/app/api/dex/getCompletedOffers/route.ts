@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import getCompletedOffers from "@/utils/xrpl/dex/getCompletedOffers";
-import { GetCompletedOffersAPIRequest, GetCompletedOffersAPIResponse, APIErrorResponse } from "@/types/api/index";
+import { GetCompletedOffersAPIRequest, GetCompletedOffersAPIResponse } from "@/types/api/dexAPITypes";
+import { APIErrorResponse } from "@/types/api/errorAPITypes";
+
 
 export async function POST(req: NextRequest): Promise<NextResponse<GetCompletedOffersAPIResponse | APIErrorResponse>> {
   try {

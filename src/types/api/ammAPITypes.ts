@@ -1,5 +1,5 @@
 import { YONAWallet } from "@/types/appTypes";
-import { AMMData, AMMInfo, CreateAMMResult, FormattedAMMInfo } from "@/types/xrpl/index";
+import { AMMData, CreateAMMResult, FormattedAMMInfo } from "@/types/xrpl/ammXRPLTypes";
 import { IssuedCurrencyAmount } from "xrpl";
 
 

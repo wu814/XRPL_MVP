@@ -6,7 +6,7 @@ import {
   AccountOffersResponse,
   Amount,
 } from "xrpl";
-import { EnhancedCompletedOffer } from "@/types/xrpl/index";
+import { EnhancedCompletedOffer } from "@/types/xrpl/dexXRPLTypes";
 import { YONAWallet } from "@/types/appTypes";
 
 interface OfferCreateInfo {

@@ -3,8 +3,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import createWallet from "@/utils/xrpl/wallet/createWallet";
-import { CreateWalletResult } from "@/types/xrpl/index.js";
-import { APIErrorResponse, CreateWalletAPIRequest, CreateWalletAPIResponse } from "@/types/api/index";
+import { CreateWalletResult } from "@/types/xrpl/walletXRPLTypes";
+import { APIErrorResponse } from "@/types/api/errorAPITypes";
+import { CreateWalletAPIRequest, CreateWalletAPIResponse } from "@/types/api/walletAPITypes";
+
 
 export async function POST(req: NextRequest): Promise<NextResponse<CreateWalletAPIResponse | APIErrorResponse>> {
   const session = await getServerSession(authOptions);

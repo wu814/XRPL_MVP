@@ -6,7 +6,9 @@ import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
 import { useSession } from "next-auth/react";
-import { APIErrorResponse, CreateWalletAPIResponse } from "@/types/api/index";
+import { APIErrorResponse } from "@/types/api/errorAPITypes";
+import { CreateWalletAPIResponse } from "@/types/api/walletAPITypes";
+
 
 interface CreateUserWalletBtnProps {
   onWalletCreated: () => void;

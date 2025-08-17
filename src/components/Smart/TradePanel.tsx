@@ -15,12 +15,10 @@ import { availableCurrencies, formatCurrencyValue, Currency } from "@/utils/curr
 import { useSession } from "next-auth/react";
 import { calculateExactAMMInput, calculateEstimateOutput } from "@/utils/xrpl/amm/calculations";
 import { YONAWallet } from "@/types/appTypes";
-import { 
-  GetAccountInfoAPIResponse, 
-  GetAccountLinesAPIResponse, 
-  GetFormattedAMMInfoByCurrenciesAPIResponse,
-  APIErrorResponse
-} from "@/types/api/index";
+import { APIErrorResponse } from "@/types/api/errorAPITypes";
+import { GetAccountInfoAPIResponse } from "@/types/api/walletAPITypes";
+import { GetAccountLinesAPIResponse } from "@/types/api/walletAPITypes";
+import { GetFormattedAMMInfoByCurrenciesAPIResponse } from "@/types/api/ammAPITypes";
 
 
 interface WalletBalance {

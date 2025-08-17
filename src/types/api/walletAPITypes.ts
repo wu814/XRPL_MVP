@@ -1,5 +1,5 @@
 import { YONAWallet } from "@/types/appTypes";
-import { AccountInfo } from "@/types/xrpl/index";
+import { AccountInfo } from "@/types/xrpl/walletXRPLTypes";
 import { AccountLinesTrustline, AccountObject } from "xrpl";
 
 export interface CreateWalletAPIRequest {

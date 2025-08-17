@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getFormattedAMMInfoByCurrencies } from '@/utils/xrpl/amm/ammUtils';
-import { GetFormattedAMMInfoByCurrenciesAPIRequest, GetFormattedAMMInfoByCurrenciesAPIResponse, APIErrorResponse } from '@/types/api/index';
+import { GetFormattedAMMInfoByCurrenciesAPIRequest, GetFormattedAMMInfoByCurrenciesAPIResponse } from '@/types/api/ammAPITypes';
+import { APIErrorResponse } from '@/types/api/errorAPITypes';
 
 export async function POST(request: NextRequest): Promise<NextResponse<GetFormattedAMMInfoByCurrenciesAPIResponse | APIErrorResponse>> {
   try {

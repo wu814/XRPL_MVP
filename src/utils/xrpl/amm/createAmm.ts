@@ -3,7 +3,8 @@ import { AMMCreate, Wallet, TxResponse, Amount, TransactionMetadataBase } from "
 import { formatAmountForXRPL } from "@/utils/assetUtils";
 import { isTypedTransactionSuccessful, handleTransactionError } from "../errorHandler";
 import { YONAWallet } from "@/types/appTypes";
-import { CreateAMMResult } from "@/types/xrpl/index";
+import { CreateAMMResult } from "@/types/xrpl/ammXRPLTypes";
+
 
 /**
  * Creates an AMM on the XRPL

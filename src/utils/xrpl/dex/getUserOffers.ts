@@ -6,7 +6,8 @@ import {
   AccountTxResponse,
 } from "xrpl";
 import { YONAWallet } from "@/types/appTypes";
-import { EnhancedOffer } from "@/types/xrpl/index";
+import { EnhancedOffer } from "@/types/xrpl/dexXRPLTypes";
+
 
 /**
  * List all direct offers for a specific wallet with creation timestamps

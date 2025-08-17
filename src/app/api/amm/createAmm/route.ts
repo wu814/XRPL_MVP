@@ -4,7 +4,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import createAMM from "@/utils/xrpl/amm/createAMM";
 import { Wallet } from "xrpl";
-import { CreateAMMAPIRequest, CreateAMMAPIResponse, APIErrorResponse } from "@/types/api/index";
+import { CreateAMMAPIRequest, CreateAMMAPIResponse } from "@/types/api/ammAPITypes";
+import { APIErrorResponse } from "@/types/api/errorAPITypes";
 
 export async function POST(req: NextRequest): Promise<NextResponse<CreateAMMAPIResponse | APIErrorResponse>> {
   const session = await getServerSession(authOptions);

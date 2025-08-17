@@ -11,7 +11,8 @@ import { useCurrentUserWallet } from "../wallet/CurrentUserWalletProvider";
 import { useIssuerWallet } from "../wallet/IssuerWalletProvider";
 // Import calculation functions
 import { calculateExactAMMInput, calculateEstimateOutput } from "@/utils/xrpl/amm/calculations";
-import { FormattedAMMInfo } from "@/types/xrpl/index";
+import { FormattedAMMInfo } from "@/types/xrpl/ammXRPLTypes";
+
 
 interface SwapResponse {
   message?: string;

@@ -8,7 +8,7 @@ import {
 } from "@/utils/xrpl/amm/addLiquidity";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
 import { AddLiquidityAPIRequest, AddLiquidityAPIResponse } from "@/types/api/ammAPITypes";
-import { APIErrorResponse } from "@/types/api/index";
+import { APIErrorResponse } from "@/types/api/errorAPITypes";
 import { AddLiquidityResult } from "@/types/xrpl/ammXRPLTypes";
 
 export async function POST(req: NextRequest): Promise<NextResponse<AddLiquidityAPIResponse | APIErrorResponse>>  {

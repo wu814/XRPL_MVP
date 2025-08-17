@@ -1,6 +1,6 @@
 import { IssuedCurrencyAmount, Wallet } from "xrpl";
 import { YONAWallet } from "../appTypes";
-import { ErrorInfo } from "./index";
+import { ErrorInfo } from "./errorXRPLTypes";
 
 export interface CheckTrustlineParams {
   walletAddress: string;

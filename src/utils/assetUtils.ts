@@ -1,9 +1,9 @@
 import { getUSDValue, fetchUSDPrices, PriceInfo } from "@/utils/currencyUtils";
 import { YONAWallet } from "@/types/appTypes";
-import { GetAccountInfoAPIResponse, GetAccountLinesAPIResponse } from "@/types/api/index";
 import { Amount, IssuedCurrencyAmount, xrpToDrops, dropsToXrp } from "xrpl";
-import { GetAllAMMDataAPIResponse } from "@/types/api/index";
-import { AMMData } from "@/types/xrpl/index";
+import { GetAccountInfoAPIResponse, GetAccountLinesAPIResponse } from "@/types/api/walletAPITypes";
+import { GetAllAMMDataAPIResponse } from "@/types/api/ammAPITypes";
+import { AMMData } from "@/types/xrpl/ammXRPLTypes";
 
 // Type definitions
 export interface Asset {

@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectXRPLClient } from "@/utils/xrpl/testnet"; 
 import { getAccountObjects } from "@/utils/xrpl/wallet/getWalletInfo";
-import { GetAccountObjectsAPIRequest, GetAccountObjectsAPIResponse, APIErrorResponse } from "@/types/api/index";
+import { GetAccountObjectsAPIRequest, GetAccountObjectsAPIResponse } from "@/types/api/walletAPITypes";
+import { APIErrorResponse } from "@/types/api/errorAPITypes";
+
 
 export async function POST(req: NextRequest): Promise<NextResponse<GetAccountObjectsAPIResponse | APIErrorResponse>> {
   try {

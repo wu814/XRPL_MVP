@@ -13,8 +13,9 @@ import {
   formatCurrencyValue,
   PriceInfo,
 } from "@/utils/currencyUtils";
-import { FormattedAMMInfo } from "@/types/xrpl/index";
-import { APIErrorResponse, GetFormattedAMMInfoAPIResponse } from "@/types/api/index";
+import { FormattedAMMInfo } from "@/types/xrpl/ammXRPLTypes";
+import { APIErrorResponse } from "@/types/api/errorAPITypes";
+import { GetFormattedAMMInfoAPIResponse } from "@/types/api/ammAPITypes";
 
 
 interface DisplayAMMDetailsProps {

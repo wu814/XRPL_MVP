@@ -4,7 +4,7 @@ import {
   AMMInfoRequest, 
   AMMInfoResponse, 
 } from "xrpl";
-import { AMMInfo, FormattedAMMInfo, AMMData } from "@/types/xrpl/index";
+import { AMMInfo, FormattedAMMInfo, AMMData } from "@/types/xrpl/ammXRPLTypes";
 import { formatAmountForDisplay } from "@/utils/assetUtils";
 
 

@@ -4,8 +4,10 @@ import { useEffect, useState } from "react";
 import { RefreshCw, CheckCircle, XCircle, ExternalLink } from "lucide-react";
 import { useCurrentUserWallet } from "@/components/wallet/CurrentUserWalletProvider";
 import CancelOfferBtn from "./CancelOfferBtn";
-import { EnhancedOffer, EnhancedCompletedOffer } from "@/types/xrpl/index";
-import { GetUserOffersAPIResponse, GetCompletedOffersAPIResponse, APIErrorResponse } from "@/types/api/index";
+import { EnhancedOffer, EnhancedCompletedOffer } from "@/types/xrpl/dexXRPLTypes";
+import { APIErrorResponse } from "@/types/api/errorAPITypes";
+import { GetUserOffersAPIResponse } from "@/types/api/dexAPITypes";
+import { GetCompletedOffersAPIResponse } from "@/types/api/dexAPITypes";
 
 // Helper: Convert XRP drops or IOU object to unified format
 function parseAsset(asset: any) {

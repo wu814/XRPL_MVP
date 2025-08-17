@@ -9,11 +9,11 @@ import SlippagePanel from "../SlippagePanel";
 import estimateDepositAmounts from "@/utils/xrpl/amm/estimateDepositAmount";
 import { useCurrentUserWallet } from "../wallet/CurrentUserWalletProvider";
 import { Settings, Loader2 } from "lucide-react";
-import { FormattedAMMInfo } from "@/types/xrpl/index";
+import { FormattedAMMInfo } from "@/types/xrpl/ammXRPLTypes";
 import { formatAmountForXRPL } from "@/utils/assetUtils";
 import { EstimateDepositAmountsResult } from "@/types/helperTypes";
 import { AddLiquidityAPIResponse } from "@/types/api/ammAPITypes";
-import { APIErrorResponse } from "@/types/api/index";
+import { APIErrorResponse } from "@/types/api/errorAPITypes";
 import { CheckTrustlineAPIResponse, SetLPTrustlineAPIResponse } from "@/types/api/trustlineAPITypes";
 
 

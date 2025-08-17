@@ -5,7 +5,8 @@ import {
   setPathfindWalletFlags,
 } from "@/utils/xrpl/wallet/setWalletFlags";
 import { Wallet } from "xrpl";
-import { APIErrorResponse, SetWalletFlagsAPIRequest, SetWalletFlagsAPIResponse } from "@/types/api/index";
+import { APIErrorResponse } from "@/types/api/errorAPITypes";
+import { SetWalletFlagsAPIRequest, SetWalletFlagsAPIResponse } from "@/types/api/walletAPITypes";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
 import { SetWalletFlagsResult } from "@/types/xrpl/walletXRPLTypes";
 

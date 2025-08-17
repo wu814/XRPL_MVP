@@ -3,7 +3,8 @@ import { useState, useEffect } from "react";
 import { Landmark } from "lucide-react";
 import { ReserveItem } from "@/types/wallet";
 import { YONAWallet } from "@/types/appTypes";
-import { GetAccountObjectsAPIResponse } from "@/types/api/index";
+import { GetAccountObjectsAPIResponse } from "@/types/api/walletAPITypes";
+
 
 interface ViewWalletDetailsProps {
   wallet: YONAWallet;

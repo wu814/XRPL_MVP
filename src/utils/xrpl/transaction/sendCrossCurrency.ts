@@ -5,7 +5,7 @@ import { connectXRPLClient, client } from "../testnet";
 import { analyzeMarket } from "../pathfind/corePathfindingEngine";
 import { calculateExactAMMInput, calculateEstimateOutput } from "../amm/calculations.js";
 import { getFormattedAMMInfoByCurrencies } from "../amm/ammUtils.js";
-import { FormattedAMMInfo } from "@/types/xrpl/index";
+import { FormattedAMMInfo } from "@/types/xrpl/ammXRPLTypes";
 import BigNumber from 'bignumber.js';
 
 // Type definitions

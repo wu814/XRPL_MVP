@@ -1,5 +1,6 @@
 import { client, connectXRPLClient } from "../testnet";
-import { CreateWalletResult, FundWalletResult } from "@/types/xrpl/index";
+import { CreateWalletResult, FundWalletResult } from "@/types/xrpl/walletXRPLTypes";
+
 
 
 /**

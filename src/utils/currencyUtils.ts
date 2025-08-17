@@ -1,4 +1,5 @@
-import { APIErrorResponse, GetTreasuryWalletAPIResponse } from "@/types/api/index";
+import { APIErrorResponse } from "@/types/api/errorAPITypes";
+import { GetTreasuryWalletAPIResponse } from "@/types/api/walletAPITypes";
 import { Currency } from "xrpl";
 
 // Types

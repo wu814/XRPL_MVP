@@ -13,7 +13,8 @@ import Button from "@/components/Button";
 import ViewWalletDetails from "@/components/wallet/ViewWalletDetails";
 import AddFundsBtn from "./AddFunds";
 import { WalletBalance } from "@/types/wallet";
-import { GetAccountInfoAPIResponse } from "@/types/api/index";
+import { GetAccountInfoAPIResponse } from "@/types/api/walletAPITypes";
+
 
 // Additional Welcome Section Component for users with wallets
 function AdditionalWelcomeSection() {

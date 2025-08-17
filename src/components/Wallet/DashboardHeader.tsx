@@ -9,7 +9,7 @@ import {
   formatCurrencyValue,
   PriceInfo,
 } from "@/utils/currencyUtils";
-import { GetAccountInfoAPIResponse, GetAccountLinesAPIResponse } from "@/types/api/index";
+import { GetAccountInfoAPIResponse, GetAccountLinesAPIResponse } from "@/types/api/walletAPITypes";
 
 
 interface DashboardHeaderProps {

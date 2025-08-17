@@ -7,7 +7,8 @@ import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
 import { useRouter } from "next/navigation";
 import { useCurrentUserWallet } from "../wallet/CurrentUserWalletProvider";
-import { FormattedAMMInfo } from "@/types/xrpl/index";
+import { FormattedAMMInfo } from "@/types/xrpl/ammXRPLTypes";
+
 
 interface WithdrawResponse {
   message?: string;

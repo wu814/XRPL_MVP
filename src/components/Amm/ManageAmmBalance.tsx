@@ -2,7 +2,8 @@ import { useState } from "react";
 import AddLiquidity from "./AddLiquidity";
 import WithdrawLiquidity from "./WithdrawLiquidity";
 import SwapLiquidity from "./SwapLiquidity";
-import { FormattedAMMInfo } from "@/types/xrpl/index";
+import { FormattedAMMInfo } from "@/types/xrpl/ammXRPLTypes";
+
 
 interface ManageAMMBalanceProps {
   ammInfo: FormattedAMMInfo;

@@ -1,4 +1,4 @@
-import { EnhancedOffer, EnhancedCompletedOffer } from "@/types/xrpl/index";
+import { EnhancedOffer, EnhancedCompletedOffer } from "@/types/xrpl/dexXRPLTypes";
 import { YONAWallet } from "@/types/appTypes";
 
 export interface GetUserOffersAPIRequest {

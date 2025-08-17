@@ -1,5 +1,5 @@
 import { Wallet, AccountInfoResponse } from "xrpl";
-import { ErrorInfo } from "@/types/xrpl/index";
+import { ErrorInfo } from "@/types/xrpl/errorXRPLTypes";
 
 export interface FundWalletResult {
   balance: number;

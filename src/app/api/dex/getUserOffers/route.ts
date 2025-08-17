@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import getUserOffers from "@/utils/xrpl/dex/getUserOffers";
-import { GetUserOffersAPIRequest, GetUserOffersAPIResponse, APIErrorResponse } from "@/types/api/index";
+import { GetUserOffersAPIRequest, GetUserOffersAPIResponse } from "@/types/api/dexAPITypes";
+import { APIErrorResponse } from "@/types/api/errorAPITypes";
+
 
 export async function POST(req: NextRequest): Promise<NextResponse<GetUserOffersAPIResponse | APIErrorResponse>> {
   try {

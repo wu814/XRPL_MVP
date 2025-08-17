@@ -8,7 +8,9 @@ import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
 import { useIssuerWallet } from "@/components/wallet/IssuerWalletProvider";
 import { YONAWallet } from "@/types/appTypes";
-import { APIErrorResponse, GetTreasuryWalletAPIResponse, CreateAMMAPIResponse } from "@/types/api/index";
+import { APIErrorResponse } from "@/types/api/errorAPITypes";
+import { GetTreasuryWalletAPIResponse } from "@/types/api/walletAPITypes";
+import { CreateAMMAPIResponse } from "@/types/api/ammAPITypes";
 
 interface CreateAMMBtnProps {
   onAMMCreated?: (data: any) => void;

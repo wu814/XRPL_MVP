@@ -14,7 +14,8 @@ import Button from "@/components/Button";
 import ManageOracleBtn from "@/components/wallet/ManageOracleBtn";
 import ViewWalletDetails from "@/components/wallet/ViewWalletDetails";
 import { YONAWallet } from "@/types/appTypes";
-import { GetAccountInfoAPIResponse } from "@/types/api/index";
+import { GetAccountInfoAPIResponse } from "@/types/api/walletAPITypes";
+
 
 export default function DisplayAdminWallets() {
   const { currentUserWallets, fetchCurrentUserWallets } = useCurrentUserWallet();

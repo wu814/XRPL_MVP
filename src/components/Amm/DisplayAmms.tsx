@@ -7,8 +7,9 @@ import ErrorMdl from "../ErrorMdl";
 import CurrencyIcon from "../currency/CurrencyIcon";
 import CreateAMMBtn from "./CreateAMMBtn";
 import { fetchUSDPrices, getUSDValue, formatCurrencyValue, PriceInfo } from "@/utils/currencyUtils";
-import { AMMData, CreateAMMResult, FormattedAMMInfo } from "@/types/xrpl/index";
-import { APIErrorResponse, GetAllAMMDataAPIResponse, GetFormattedAMMInfoAPIResponse } from "@/types/api/index";
+import { AMMData, CreateAMMResult, FormattedAMMInfo } from "@/types/xrpl/ammXRPLTypes";
+import { APIErrorResponse } from "@/types/api/errorAPITypes";
+import { GetAllAMMDataAPIResponse, GetFormattedAMMInfoAPIResponse } from "@/types/api/ammAPITypes";
 
 
 export default function DisplayAMMs() {

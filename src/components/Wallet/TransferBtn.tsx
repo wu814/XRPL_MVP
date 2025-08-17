@@ -10,7 +10,9 @@ import { Settings, Loader2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { calculateExactAMMInput, calculateEstimateOutput } from "@/utils/xrpl/amm/calculations";
 import { YONAWallet } from "@/types/appTypes";
-import { APIErrorResponse, GetFormattedAMMInfoByCurrenciesAPIResponse } from "@/types/api";
+import { APIErrorResponse } from "@/types/api/errorAPITypes";
+import { GetFormattedAMMInfoByCurrenciesAPIResponse } from "@/types/api/ammAPITypes";
+
 
 interface TransferBtnProps {
   senderWallet: YONAWallet;

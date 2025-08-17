@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getFormattedAMMInfo } from "@/utils/xrpl/amm/ammUtils";
-import { GetFormattedAMMInfoAPIRequest, GetFormattedAMMInfoAPIResponse, APIErrorResponse } from "@/types/api/index";
+import { GetFormattedAMMInfoAPIRequest, GetFormattedAMMInfoAPIResponse } from "@/types/api/ammAPITypes";
+import { APIErrorResponse } from "@/types/api/errorAPITypes";
 
 export async function POST(req: NextRequest): Promise<NextResponse<GetFormattedAMMInfoAPIResponse | APIErrorResponse>> {
   try {
