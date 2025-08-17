@@ -1,4 +1,4 @@
-import { connectXrplClient, client } from "../testnet";
+import { connectXRPLClient, client } from "../testnet";
 import { 
   BookOffersRequest, 
   BookOffersResponse, 
@@ -16,7 +16,7 @@ export async function getAllSellOffers(
   takerGets: BookOfferCurrency, 
   takerPays: BookOfferCurrency
 ): Promise<BookOffer[]> {
-  await connectXrplClient();
+  await connectXRPLClient();
 
   const request: BookOffersRequest = {
     command: "book_offers",
@@ -40,7 +40,7 @@ export async function getAllBuyOffers(
   takerGets: BookOfferCurrency, 
   takerPays: BookOfferCurrency
 ): Promise<BookOffer[]> {
-  await connectXrplClient();
+  await connectXRPLClient();
 
   const request: BookOffersRequest = {
     command: "book_offers",

@@ -1,10 +1,10 @@
-export * from "./amm/ammXRPLTypes";
-export * from "./dex/dexXRPLTypes";
-export * from "./nft/nftXRPLTypes";
-export * from "./oracle/oracleXRPLTypes";
-export * from "./transaction/transactionXRPLTypes";
-export * from "./trustline/trustlineXRPLTypes";
-export * from "./wallet/walletXRPLTypes";
+export * from "./ammXRPLTypes";
+export * from "./dexXRPLTypes";
+export * from "./nftXRPLTypes";
+export * from "./oracleXRPLTypes";
+export * from "./transactionXRPLTypes";
+export * from "./trustlineXRPLTypes";
+export * from "./walletXRPLTypes";
 
 export interface ErrorInfo {
   code: string;

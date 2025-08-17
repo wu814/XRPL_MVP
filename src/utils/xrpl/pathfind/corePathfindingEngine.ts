@@ -1,5 +1,5 @@
 import * as xrpl from "xrpl";
-import { connectXrplClient, client } from "../testnet";
+import { connectXRPLClient, client } from "../testnet";
 
 // Type definitions
 interface MarketAnalysisOptions {
@@ -119,7 +119,7 @@ export async function analyzeMarket(
   options: MarketAnalysisOptions = {}
 ): Promise<MarketAnalysis> {
   try {
-    await connectXrplClient();
+    await connectXRPLClient();
     
     const {
       includeAMM = true,
@@ -628,7 +628,7 @@ export async function getOrderBookData(fromCurrency: string, toCurrency: string,
   };
   
   try {
-    await connectXrplClient();
+    await connectXRPLClient();
     
     // Direct order book
     if (fromCurrency !== toCurrency) {

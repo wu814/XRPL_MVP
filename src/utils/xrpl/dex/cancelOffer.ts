@@ -1,4 +1,4 @@
-import { connectXrplClient, client } from "../testnet";
+import { connectXRPLClient, client } from "../testnet";
 import { OfferCancel, TxResponse } from "xrpl";
 
 interface Wallet {
@@ -19,7 +19,7 @@ export default async function cancelOffer(
   offerSequence: string | number
 ): Promise<CancelOfferResult> {
   try {
-    await connectXrplClient();
+    await connectXRPLClient();
 
     // Validate and convert offerSequence to number
     const sequenceNumber = parseInt(offerSequence.toString());

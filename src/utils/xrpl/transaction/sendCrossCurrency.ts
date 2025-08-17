@@ -1,7 +1,7 @@
 "use strict";
 
 import * as xrpl from "xrpl";
-import { connectXrplClient, client } from "../testnet";
+import { connectXRPLClient, client } from "../testnet";
 import { analyzeMarket } from "../pathfind/corePathfindingEngine";
 import { calculateExactAMMInput, calculateEstimateOutput } from "../amm/calculations.js";
 import { getFormattedAMMInfoByCurrencies } from "../amm/ammUtils.js";
@@ -129,20 +129,20 @@ const mapPoolCurrencies = (
   sendCurrency: string, 
   receiveCurrency: string
 ): PoolCurrencyMapping => {
-  if (pool.formattedAmount?.currency === sendCurrency && pool.formattedAmount2?.currency === receiveCurrency) {
+  if (pool.formattedAmount1?.currency === sendCurrency && pool.formattedAmount2?.currency === receiveCurrency) {
     return {
-      poolSend: parseFloat(pool.formattedAmount.value),
+      poolSend: parseFloat(pool.formattedAmount1.value),
       poolReceive: parseFloat(pool.formattedAmount2.value),
       isReversed: false
     };
-  } else if (pool.formattedAmount2?.currency === sendCurrency && pool.formattedAmount?.currency === receiveCurrency) {
+  } else if (pool.formattedAmount2?.currency === sendCurrency && pool.formattedAmount1?.currency === receiveCurrency) {
     return {
       poolSend: parseFloat(pool.formattedAmount2.value),
-      poolReceive: parseFloat(pool.formattedAmount.value),
+      poolReceive: parseFloat(pool.formattedAmount1.value),
       isReversed: true
     };
   }
-  throw new Error(`Pool currency mismatch: expected ${sendCurrency}/${receiveCurrency}, got ${pool.formattedAmount?.currency}/${pool.formattedAmount2?.currency}`);
+  throw new Error(`Pool currency mismatch: expected ${sendCurrency}/${receiveCurrency}, got ${pool.formattedAmount1?.currency}/${pool.formattedAmount2?.currency}`);
 };
 
 const calculatePreciseAmount = async (
@@ -338,7 +338,7 @@ export async function sendCrossCurrency({
   exactOutputAmount = null
 }: SendCrossCurrencyParams): Promise<SendCrossCurrencyResponse> {
   try {
-    await connectXrplClient();
+    await connectXRPLClient();
     
     console.log(`🎯 Smart Cross-Currency Payment: ${senderWallet.classicAddress} → ${destinationAddress}`);
     console.log(`💰 ${paymentType === "exact_input" ? 

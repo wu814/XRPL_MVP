@@ -1,4 +1,4 @@
-import { connectXrplClient, client } from "../testnet";
+import { connectXRPLClient, client } from "../testnet";
 import { 
   AccountTxRequest, 
   AccountTxResponse, 
@@ -65,7 +65,7 @@ const hasAssetExchange = (txData: any, walletAddress: string): boolean => {
  */
 export default async function getCompletedOffers(wallet: YONAWallet): Promise<EnhancedCompletedOffer[]> {
   try {
-    await connectXrplClient();
+    await connectXRPLClient();
 
     // Get transaction history to find OfferCreate and related transactions
     const accountTxRequest: AccountTxRequest = {

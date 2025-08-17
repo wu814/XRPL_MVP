@@ -1,4 +1,4 @@
-import { client, connectXrplClient } from "../testnet";
+import { client, connectXRPLClient } from "../testnet";
 import { Wallet } from "xrpl";
 import axios from "axios";
 
@@ -175,7 +175,7 @@ export async function oracleSetMultiAsset(
   priceDataArray: PriceData[]
 ): Promise<OracleSetResult> {
   try {
-    await connectXrplClient();
+    await connectXRPLClient();
 
     // Convert provider and assetClass to hex encoding
     const providerHex = Buffer.from(provider, 'utf8').toString('hex').toUpperCase();

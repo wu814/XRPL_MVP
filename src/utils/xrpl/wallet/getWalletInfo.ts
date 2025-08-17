@@ -1,4 +1,4 @@
-import { client, connectXrplClient } from "../testnet";
+import { client, connectXRPLClient } from "../testnet";
 import { dropsToXrp, AccountLinesTrustline, AccountObject } from "xrpl";
 import { AccountInfo } from "@/types/xrpl/index";
 
@@ -8,7 +8,7 @@ import { AccountInfo } from "@/types/xrpl/index";
  * @returns Account information with balance converted to XRP
  */
 export async function getAccountInfo(address: string): Promise<AccountInfo> {
-  await connectXrplClient();
+  await connectXRPLClient();
   
   const response = await client.request({
     command: "account_info",
@@ -32,7 +32,7 @@ export async function getAccountInfo(address: string): Promise<AccountInfo> {
  * @returns Account trustlines
  */
 export async function getAccountLines(address: string): Promise<AccountLinesTrustline[]> {
-  await connectXrplClient();
+  await connectXRPLClient();
   
   const response = await client.request({
     command: "account_lines",
@@ -49,7 +49,7 @@ export async function getAccountLines(address: string): Promise<AccountLinesTrus
  * @returns Account objects
  */
 export async function getAccountObjects(address: string): Promise<AccountObject[]> {
-  await connectXrplClient();
+  await connectXRPLClient();
   
   const response = await client.request({
     command: "account_objects",

@@ -1,4 +1,4 @@
-import { client, connectXrplClient } from "../testnet";
+import { client, connectXRPLClient } from "../testnet";
 import { Wallet } from "xrpl";
 
 /**
@@ -25,7 +25,7 @@ export async function oracleDelete(
   oracleDocumentID: number
 ): Promise<OracleDeleteResult> {
   try {
-    await connectXrplClient();
+    await connectXRPLClient();
 
     console.log(`🗑️ Deleting Price Oracle (ID: ${oracleDocumentID})`);
     console.log(`   👤 Owner: ${ownerWallet.classicAddress}`);

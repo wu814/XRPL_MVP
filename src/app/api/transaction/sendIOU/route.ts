@@ -103,10 +103,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const senderXrplWallet = Wallet.fromSeed(walletData.seed);
+    const senderXRPLWallet = Wallet.fromSeed(walletData.seed);
 
     const result = await sendIOU(
-      senderXrplWallet,
+      senderXRPLWallet,
       recipientAddress,
       amount,
       currency,

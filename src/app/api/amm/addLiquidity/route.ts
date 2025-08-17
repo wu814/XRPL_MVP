@@ -1,56 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Wallet, IssuedCurrencyAmount } from "xrpl";
+import { Wallet } from "xrpl";
 import {
   addLiquidityTwoAsset,
-  addLiquidityLPToken,
-  addLiquidityIfEmpty,
   addLiquiditySingleAsset,
   addLiquidityOneAssetLPToken,
+  addLiquidityTwoAssetLPToken,
 } from "@/utils/xrpl/amm/addLiquidity";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
+import { AddLiquidityAPIRequest, AddLiquidityAPIResponse } from "@/types/api/ammAPITypes";
+import { APIErrorResponse } from "@/types/api/index";
+import { AddLiquidityResult } from "@/types/xrpl/ammXRPLTypes";
 
-interface AddLiquidityRequest {
-  depositType: "twoAsset" | "twoAssetLPToken" | "ifEmpty" | "oneAsset" | "oneAssetLPToken";
-  wallet: {
-    classicAddress: string;
-  };
-  ammInfo: {
-    account: string;
-  };
-  assetA?: {
-    currency: string;
-    issuer: string;
-    value: string;
-  };
-  assetB?: {
-    currency: string;
-    issuer: string;
-    value: string;
-  };
-  lpTokenOut?: IssuedCurrencyAmount;
-}
-
-export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest): Promise<NextResponse<AddLiquidityAPIResponse | APIErrorResponse>>  {
   try {
-    const { depositType, wallet, ammInfo, assetA, assetB, lpTokenOut }: AddLiquidityRequest =
+    const { depositType, wallet, ammInfo, formattedAmount1, formattedAmount2, lpTokenOut, emptyAmount }: AddLiquidityAPIRequest =
       await req.json();
 
     if (!depositType) {
-      return NextResponse.json(
-        { error: "Missing deposit type" },
-        { status: 400 },
-      );
+      return NextResponse.json<APIErrorResponse>({ message: "Missing deposit type" }, { status: 400 });
     }
 
     if (!wallet) {
-      return NextResponse.json(
-        { error: "Missing adder wallet" },
-        { status: 400 },
-      );
+      return NextResponse.json<APIErrorResponse>({ message: "Missing adder wallet" }, { status: 400 });
     }
 
     if (!ammInfo) {
-      return NextResponse.json({ error: "Missing amm info" }, { status: 400 });
+      return NextResponse.json<APIErrorResponse>({ message: "Missing amm info" }, { status: 400 });
     }
 
     // Get seed from Supabase using classicAddress
@@ -62,83 +37,83 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (walletError || !walletData) {
-      return NextResponse.json(
-        { error: "Wallet not found for the provided classicAddress" },
-        { status: 404 },
-      );
+      return NextResponse.json<APIErrorResponse>({ message: "Wallet not found for the provided classicAddress" }, { status: 404 });
     }
 
     // Initialize data
     const ammAccount = ammInfo.account;
-    const providerWallet = Wallet.fromSeed(walletData.seed);
-    let result;
+    const providerXRPLWallet = Wallet.fromSeed(walletData.seed);
+    let result: AddLiquidityResult;
 
     switch (depositType) {
       case "twoAsset":
-        if (!assetA || !assetB) throw new Error("Missing assetA or assetB");
-        result = await addLiquidityTwoAsset(
-          providerWallet,
+        if (!formattedAmount1 || !formattedAmount2){
+          return NextResponse.json<APIErrorResponse>({ message: "Missing assetA or assetB" }, { status: 400 });
+        }
+        result = await addLiquidityTwoAsset({
+          providerXRPLWallet,
           ammAccount,
-          assetA,
-          assetB,
-        );
+          formattedAmount1,
+          formattedAmount2,
+        });
         break;
 
       case "twoAssetLPToken":
-        if (!assetA || !assetB || !lpTokenOut)
-          throw new Error("Missing assetA, assetB, or lpTokenOut");
-        result = await addLiquidityLPToken(
-          providerWallet,
+        if (!formattedAmount1 || !formattedAmount2 || !lpTokenOut) {
+          return NextResponse.json<APIErrorResponse>({ message: "Missing assetA, assetB, or lpTokenOut" }, { status: 400 });
+        }
+        result = await addLiquidityTwoAssetLPToken({
+          providerXRPLWallet,
           ammAccount,
-          assetA,
-          assetB,
+          formattedAmount1,
+          formattedAmount2,
           lpTokenOut,
-        );
-        break;
-
-      case "ifEmpty":
-        if (!assetA || !assetB) throw new Error("Missing assetA or assetB");
-        result = await addLiquidityIfEmpty(
-          providerWallet,
-          ammAccount,
-          assetA,
-          assetB,
-        );
+        });
         break;
 
       case "oneAsset":
-        if (!assetA) throw new Error("Missing asset");
-        result = await addLiquiditySingleAsset(
-          providerWallet,
+        if (!formattedAmount1 || !emptyAmount) {
+          return NextResponse.json<APIErrorResponse>({ message: "Missing asset or emptyAmount" }, { status: 400 });
+        }
+        result = await addLiquiditySingleAsset({
+          providerXRPLWallet,
           ammAccount,
-          assetA,
-        );
+          formattedAmount: formattedAmount1,
+          emptyAmount,
+        });
         break;
 
       case "oneAssetLPToken":
-        if (!assetA || !lpTokenOut)
-          throw new Error("Missing asset or lpTokenOut");
-        result = await addLiquidityOneAssetLPToken(
-          providerWallet,
+        if (!formattedAmount1 || !emptyAmount || !lpTokenOut) {
+          return NextResponse.json<APIErrorResponse>({ message: "Missing asset, emptyAmount, or lpTokenOut" }, { status: 400 });
+        }
+        result = await addLiquidityOneAssetLPToken({
+          providerXRPLWallet,
           ammAccount,
-          assetA,
+          formattedAmount: formattedAmount1,
+          emptyAmount,
           lpTokenOut,
-        );
+        });
         break;
 
       default:
-        return NextResponse.json(
-          { error: "Invalid depositType specified." },
-          { status: 400 },
-        );
+        return NextResponse.json<APIErrorResponse>({ message: "Invalid depositType specified." }, { status: 400 });
     }
 
-    return NextResponse.json(result, { status: 200 });
+    if (!result.success) {
+      return NextResponse.json<APIErrorResponse>({ 
+        message: result.error?.message || "Liquidity addition failed" 
+      }, { status: 400 });
+    }
+
+    return NextResponse.json<AddLiquidityAPIResponse>({ 
+      message: result.message || "Liquidity added successfully" 
+    }, { status: 200 });
+
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    return NextResponse.json(
-      { error: errorMessage || "Unexpected error occurred." },
-      { status: 500 },
-    );
+    return NextResponse.json<APIErrorResponse>({ 
+      message: errorMessage || "Unexpected error occurred." 
+    }, { status: 500 });
   }
 }

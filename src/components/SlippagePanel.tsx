@@ -1,25 +1,36 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface SlippagePanelProps {
-  slippage: string | number;
-  setSlippage: (value: string) => void;
+  slippage: number;
+  setSlippage: (value: number) => void;
   onClose?: () => void;
 }
 
 export default function SlippagePanel({ slippage, setSlippage, onClose }: SlippagePanelProps) {
-  // Slippage is now stored as a simple percentage value (e.g., 5 for 5%)
-  const [tempSlippage, setTempSlippage] = useState(
-    parseFloat(slippage.toString()).toFixed(1) // slippage is already in percentage
-  );
+  // Local state for input value that can be empty
+  const [inputValue, setInputValue] = useState(slippage.toString());
+
+  // Update local input when slippage prop changes
+  useEffect(() => {
+    setInputValue(slippage.toString());
+  }, [slippage]);
 
   const handleSave = () => {
-    const parsed = parseFloat(tempSlippage);
-    if (!isNaN(parsed) && parsed >= 0 && parsed <= 100) {
-      setSlippage(parsed.toFixed(1)); // Store as simple percentage
+    const numValue = Number(inputValue);
+    if (!isNaN(numValue) && numValue >= 0 && numValue <= 100) {
+      setSlippage(numValue);
       if (onClose) onClose();
     }
+  };
+
+  const handleClose = () => {
+    // If input is empty, set slippage to 0 before closing
+    if (inputValue === "") {
+      setSlippage(0);
+    }
+    if (onClose) onClose();
   };
 
   return (
@@ -34,15 +45,15 @@ export default function SlippagePanel({ slippage, setSlippage, onClose }: Slippa
           type="number"
           min="0"
           max="100"
-          value={tempSlippage}
-          onChange={(e) => setTempSlippage(e.target.value)}
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
           className="relative w-full rounded-lg border border-border bg-color6 p-2 focus:border-primary focus:outline-none hover:border-primary"
         />
         <p className="absolute right-2 top-2">%</p>
       </div>
       <div className="mt-3 flex justify-end space-x-3">
         <button
-          onClick={onClose}
+          onClick={handleClose}
           className="text-mutedText hover:underline"
         >
           Cancel

@@ -1,5 +1,6 @@
 import { YONAWallet } from "@/types/appTypes";
 import { AMMData, AMMInfo, CreateAMMResult, FormattedAMMInfo } from "@/types/xrpl/index";
+import { IssuedCurrencyAmount } from "xrpl";
 
 
 export interface GetAllAMMDataAPIResponse {
@@ -39,4 +40,18 @@ export interface GetFormattedAMMInfoByCurrenciesAPIRequest {
 export interface GetFormattedAMMInfoByCurrenciesAPIResponse {
   message: string;
   data: FormattedAMMInfo;
+}
+
+export interface AddLiquidityAPIRequest {
+  depositType: "twoAsset" | "twoAssetLPToken" | "oneAsset" | "oneAssetLPToken";
+  wallet: YONAWallet;
+  ammInfo: FormattedAMMInfo;
+  formattedAmount1?: IssuedCurrencyAmount;
+  formattedAmount2?: IssuedCurrencyAmount;
+  emptyAmount?: IssuedCurrencyAmount;
+  lpTokenOut?: IssuedCurrencyAmount;
+}
+
+export interface AddLiquidityAPIResponse {
+  message: string;
 }

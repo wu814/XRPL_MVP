@@ -1,46 +1,47 @@
 import BigNumber from "bignumber.js";
+import { IssuedCurrencyAmount } from "xrpl";
+import { EstimateDepositAmountsParams, EstimateDepositAmountsResult } from "@/types/helperTypes";
 
-interface Token {
-  currency: string;
-  issuer?: string;
-  value: string;
-}
-
-interface AMMInfo {
-  lp_token?: {
-    value: string;
-  };
-  trading_fee?: number;
-}
-
-interface EstimateParams {
-  token1: Token;
-  token2: Token;
-  ammInfo: AMMInfo;
-  lpAmount: string;
-  payWith: string;
-  slippage: number;
-}
-
-interface EstimateResult {
-  assetA: Token | null;
-  assetB: Token | null;
-  singleAsset: Token | null;
-  maxSingleAsset: Token | null;
-}
-
-// Helper function for LP estimation from single asset
+// More precise single-asset deposit formula that accounts for XRPL's internal rounding
 function computeLPFromSingleAsset(
-  B: BigNumber,
-  P: BigNumber,
-  T: BigNumber,
-  F: BigNumber,
-  W: BigNumber
+  B: BigNumber,  // Amount of asset being deposited
+  P: BigNumber,  // Total amount of the deposit asset in the pool
+  T: BigNumber,  // Total outstanding LP Tokens before the deposit
+  F: BigNumber,  // Trading fee as decimal
+  W: BigNumber   // Weight (0.5 for all AMM pools)
 ): BigNumber {
-  const adjustedB = B.minus(F.times(new BigNumber(1).minus(W)).times(B));
-  const base = new BigNumber(1).plus(adjustedB.div(P));
-  const power = new BigNumber(Math.pow(base.toNumber(), 0.5));
-  return T.times(power.minus(1));
+  // Implement the exact formula from the document:
+  // L = T * [ (1 + (B - (F * (1 - W) * B)) / P)^W - 1 ]
+  
+  // Step 1: Calculate F * (1 - W) * B
+  const feeComponent = F.times(new BigNumber(1).minus(W)).times(B);
+  
+  // Step 2: Calculate B - (F * (1 - W) * B)
+  const adjustedAmount = B.minus(feeComponent);
+  
+  // Step 3: Calculate (B - (F * (1 - W) * B)) / P
+  const ratio = adjustedAmount.div(P);
+  
+  // Step 4: Calculate 1 + ratio
+  const base = new BigNumber(1).plus(ratio);
+  
+  // Step 5: Calculate (1 + ratio)^W
+  // Since W = 0.5 for all AMM pools, use sqrt() for better precision
+  // If W ever changes, we can add logic to handle other cases
+  let power: BigNumber;
+  if (W.eq(0.5)) {
+    power = base.sqrt();
+  } else {
+    // For non-0.5 weights, we'd need to handle differently
+    // For now, throw an error as this shouldn't happen with current XRPL
+    throw new Error(`Unsupported weight: ${W}. Only 0.5 is currently supported.`);
+  }
+  
+  // Step 6: Calculate (1 + ratio)^W - 1
+  const result = power.minus(1);
+  
+  // Step 7: Calculate T * result
+  return T.times(result);
 }
 
 // Binary search for deposit estimate
@@ -77,78 +78,91 @@ function solveDepositAmount(
  * Main estimator for LP deposits.
  */
 export default function estimateDepositAmounts({
-  token1,
-  token2,
   ammInfo,
   lpAmount,
   payWith,
-  slippage,
-}: EstimateParams): EstimateResult {
-  const totalLP = new BigNumber(ammInfo?.lp_token?.value || "0");
-  const poolA = new BigNumber(token1?.value || "0");
-  const poolB = new BigNumber(token2?.value || "0");
+  slippagePercentage,
+}: EstimateDepositAmountsParams): EstimateDepositAmountsResult {
+  const totalLP = new BigNumber(ammInfo?.lpToken?.value || "0");
+  const poolA = new BigNumber(ammInfo?.formattedAmount1?.value || "0");
+  const poolB = new BigNumber(ammInfo?.formattedAmount2?.value || "0");
   const desiredLP = new BigNumber(lpAmount);
-  const fee = new BigNumber(ammInfo?.trading_fee || 0).div(1_000_000);
+  const feeDecimal = new BigNumber(ammInfo?.tradingFee || 0).div(1_000_000);
   const weight = new BigNumber(0.5);
-  const slip = new BigNumber(1 + slippage / 100); // Convert slippage to BigNumber safely
+  const slippageDecimal = new BigNumber(1 + slippagePercentage / 100); // Convert slippage to BigNumber safely
 
   if (
     desiredLP.isNaN() ||
     totalLP.isNaN() ||
     poolA.isNaN() ||
     poolB.isNaN() ||
-    slip.isNaN()
+    slippageDecimal.isNaN()
   ) {
     return {
-      assetA: null,
-      assetB: null,
-      singleAsset: null,
-      maxSingleAsset: null,
+      amount1: null,
+      amount2: null,
+      singleAmount: null,
+      maxSingleAmount: null,
+      emptyAmount: null,
     };
   }
 
   const ratio = desiredLP.div(totalLP);
 
-  const assetA: Token = {
-    currency: token1.currency,
-    issuer: token1.issuer,
+  const amount1: IssuedCurrencyAmount = {
+    currency: ammInfo?.formattedAmount1?.currency,
+    issuer: ammInfo?.formattedAmount1?.issuer,
     value: ratio.times(poolA).toFixed(6),
   };
-  const assetB: Token = {
-    currency: token2.currency,
-    issuer: token2.issuer,
+  const amount2: IssuedCurrencyAmount = {
+    currency: ammInfo?.formattedAmount2?.currency,
+    issuer: ammInfo?.formattedAmount2?.issuer,
     value: ratio.times(poolB).toFixed(6),
   };
 
-  let singleAsset: Token | null = null;
-  let maxSingleAsset: Token | null = null;
+  let singleAmount: IssuedCurrencyAmount | null = null;
+  let maxSingleAmount: IssuedCurrencyAmount | null = null;
+  let emptyAmount: IssuedCurrencyAmount | null = null;
 
-  if (payWith === token1.currency) {
-    const value = solveDepositAmount(poolA, totalLP, fee, weight, desiredLP);
-    // Round up to make sure the value is slightly more than the desired amount, singleAssetLpToken will have error if it's less or equal to the desired amount
+  if (payWith === ammInfo?.formattedAmount1?.currency) {
+    // Calculate for first currency
+    const value = solveDepositAmount(poolA, totalLP, feeDecimal, weight, desiredLP);
     const roundedUp = new BigNumber(value).decimalPlaces(6, BigNumber.ROUND_UP);
-    singleAsset = {
-      currency: token1.currency,
-      issuer: token1.issuer,
+    
+    singleAmount = {
+      currency: ammInfo?.formattedAmount1?.currency,
+      issuer: ammInfo?.formattedAmount1?.issuer,
       value: roundedUp.toFixed(6),
     };
-    maxSingleAsset = {
-      ...singleAsset,
-      value: roundedUp.times(slip).toFixed(6),
+    maxSingleAmount = {
+      ...singleAmount,
+      value: roundedUp.times(slippageDecimal).toFixed(6),
     };
-  } else if (payWith === token2.currency) {
-    const value = solveDepositAmount(poolB, totalLP, fee, weight, desiredLP);
+    emptyAmount = {
+      currency: ammInfo?.formattedAmount2?.currency,
+      issuer: ammInfo?.formattedAmount2?.issuer,
+      value: "0",
+    };
+  } else if (payWith === ammInfo?.formattedAmount2?.currency) {
+    // Calculate for second currency
+    const value = solveDepositAmount(poolB, totalLP, feeDecimal, weight, desiredLP);
     const roundedUp = new BigNumber(value).decimalPlaces(6, BigNumber.ROUND_UP);
-    singleAsset = {
-      currency: token2.currency,
-      issuer: token2.issuer,
+    
+    singleAmount = {
+      currency: ammInfo?.formattedAmount2?.currency,
+      issuer: ammInfo?.formattedAmount2?.issuer,
       value: roundedUp.toFixed(6),
     };
-    maxSingleAsset = {
-      ...singleAsset,
-      value: roundedUp.times(slip).toFixed(6),
+    maxSingleAmount = {
+      ...singleAmount,
+      value: roundedUp.times(slippageDecimal).toFixed(6),
+    };
+    emptyAmount = {
+      currency: ammInfo?.formattedAmount1?.currency,
+      issuer: ammInfo?.formattedAmount1?.issuer,
+      value: "0",
     };
   }
 
-  return { assetA, assetB, singleAsset, maxSingleAsset };
+  return { amount1, amount2, singleAmount, maxSingleAmount, emptyAmount };
 }

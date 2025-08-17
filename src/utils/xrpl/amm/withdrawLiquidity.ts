@@ -2,7 +2,7 @@ import * as xrpl from "xrpl";
 import { Wallet } from "xrpl";
 import BigNumber from "bignumber.js";
 import { getFormattedAMMInfo, LPToken } from "./ammUtils";
-import { client, connectXrplClient } from "../testnet";
+import { client, connectXRPLClient } from "../testnet";
 
 // Type definitions
 
@@ -157,7 +157,7 @@ export async function withdrawLiquidityTwoAsset(
   minWithdrawalB: string,
 ): Promise<WithdrawResult> {
   try {
-    await connectXrplClient();
+    await connectXRPLClient();
     const ammData = await getFormattedAMMInfo(ammAccount);
     if (!ammData || !ammData.amount || !ammData.amount2 || !ammData.lp_token) {
       throw new Error(`❌ Invalid AMM data for account ${ammAccount}`);
@@ -352,7 +352,7 @@ export async function withdrawLiquidityWithLPToken(
   lpTokenAmount: string,
 ): Promise<WithdrawLPTokenResult> {
   try {
-    await connectXrplClient();
+    await connectXRPLClient();
 
     const ammData = await getFormattedAMMInfo(ammAccount);
     if (!ammData || !ammData.amount || !ammData.amount2 || !ammData.lp_token) {
@@ -505,7 +505,7 @@ export async function withdrawAllLiquidity(
   ammAccount: string,
 ): Promise<WithdrawLPTokenResult> {
   try {
-    await connectXrplClient();
+    await connectXRPLClient();
     // Fetch current AMM state
     const ammData = await getFormattedAMMInfo(ammAccount);
 
@@ -662,7 +662,7 @@ export async function withdrawSingleAsset(
   withdrawAmount: string,
 ): Promise<WithdrawSingleAssetResult> {
   try {
-    await connectXrplClient();
+    await connectXRPLClient();
 
     // Fetch AMM data
     const ammData = await getFormattedAMMInfo(ammAccount);
@@ -912,7 +912,7 @@ export async function withdrawAllSingleAsset(
   desiredAmount: string | null,
 ): Promise<WithdrawAllSingleAssetResult> {
   try {
-    await connectXrplClient();
+    await connectXRPLClient();
     const ammData = await getFormattedAMMInfo(ammAccount);
     if (!ammData || !ammData.amount || !ammData.amount2 || !ammData.lp_token) {
       throw new Error(`❌ Invalid AMM data for account ${ammAccount}`);
@@ -1107,7 +1107,7 @@ export async function withdrawSingleAssetWithLPToken(
   lpTokenAmount: string,
 ): Promise<WithdrawSingleAssetLPTokenResult> {
   try {
-    await connectXrplClient();
+    await connectXRPLClient();
     const ammData = await getFormattedAMMInfo(ammAccount);
     if (!ammData || !ammData.amount || !ammData.amount2 || !ammData.lp_token) {
       throw new Error(`❌ Invalid AMM data for account ${ammAccount}`);

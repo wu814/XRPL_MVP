@@ -1,4 +1,4 @@
-import { client, connectXrplClient } from "../testnet";
+import { client, connectXRPLClient } from "../testnet";
 import * as xrpl from "xrpl";
 import { Clawback } from "xrpl";
 
@@ -62,7 +62,7 @@ export default async function clawbackTokens(
   amount: string | number,
 ): Promise<ClawbackResponse> {
   try {
-    await connectXrplClient();
+    await connectXRPLClient();
 
     console.log(
       `🔹 Preparing to clawback ${amount} ${currency} from ${account}...`,

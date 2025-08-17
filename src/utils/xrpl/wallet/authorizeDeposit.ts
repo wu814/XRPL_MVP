@@ -1,4 +1,4 @@
-import { client, connectXrplClient } from "../testnet";
+import { client, connectXRPLClient } from "../testnet";
 import * as xrpl from "xrpl";
 
 interface AuthorizeDepositResult {
@@ -15,7 +15,7 @@ export async function authorizeDeposit(
   walletWithDepositAuth: xrpl.Wallet,
   authorizedAddress: string,
 ): Promise<AuthorizeDepositResult> {
-  await connectXrplClient();
+  await connectXRPLClient();
 
   const dpTx: xrpl.DepositPreauth = {
     TransactionType: "DepositPreauth",

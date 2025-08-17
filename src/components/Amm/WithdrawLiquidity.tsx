@@ -7,7 +7,7 @@ import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
 import { useRouter } from "next/navigation";
 import { useCurrentUserWallet } from "../wallet/CurrentUserWalletProvider";
-import { AMMInfo } from "./DisplayAMMs";
+import { FormattedAMMInfo } from "@/types/xrpl/index";
 
 interface WithdrawResponse {
   message?: string;
@@ -16,7 +16,7 @@ interface WithdrawResponse {
 }
 
 interface WithdrawLiquidityProps {
-  ammInfo: AMMInfo;
+  ammInfo: FormattedAMMInfo;
   onWithdrawn: () => void;
 }
 
@@ -32,15 +32,15 @@ export default function WithdrawLiquidity({ ammInfo, onWithdrawn }: WithdrawLiqu
   const [amountA, setAmountA] = useState<string>("");
   const [amountB, setAmountB] = useState<string>("");
   const [lpTokenAmount, setLpTokenAmount] = useState<string>("");
-  const [assetType, setAssetType] = useState<string>(ammInfo?.amount?.currency || "");
+  const [assetType, setAssetType] = useState<string>(ammInfo?.formattedAmount1?.currency || "");
   const [withdrawAmount, setWithdrawAmount] = useState<string>("");
 
   const [loading, setLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const token1 = ammInfo?.amount;
-  const token2 = ammInfo?.amount2;
+  const token1 = ammInfo?.formattedAmount1;
+  const token2 = ammInfo?.formattedAmount2;
 
   // Add validation function to check if required inputs are filled
   const isFormValid = (): boolean => {

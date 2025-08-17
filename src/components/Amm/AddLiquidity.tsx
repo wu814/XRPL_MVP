@@ -9,52 +9,17 @@ import SlippagePanel from "../SlippagePanel";
 import estimateDepositAmounts from "@/utils/xrpl/amm/estimateDepositAmount";
 import { useCurrentUserWallet } from "../wallet/CurrentUserWalletProvider";
 import { Settings, Loader2 } from "lucide-react";
-import { formatAPICurrencyObj } from "@/utils/currencyUtils";
-import { AMMInfo } from "./DisplayAMMs";
+import { FormattedAMMInfo } from "@/types/xrpl/index";
+import { formatAmountForXRPL } from "@/utils/assetUtils";
+import { EstimateDepositAmountsResult } from "@/types/helperTypes";
+import { AddLiquidityAPIResponse } from "@/types/api/ammAPITypes";
+import { APIErrorResponse } from "@/types/api/index";
+import { CheckTrustlineAPIResponse, SetLPTrustlineAPIResponse } from "@/types/api/trustlineAPITypes";
 
-interface EstimateDepositParams {
-  token1: AMMInfo['amount'];
-  token2: AMMInfo['amount2'];
-  ammInfo: AMMInfo;
-  lpAmount: string;
-  payWith: string;
-  slippage: string;
-}
 
-interface EstimatedAmounts {
-  assetA: {
-    currency: string;
-    issuer?: string;
-    value: string;
-  };
-  assetB: {
-    currency: string;
-    issuer?: string;
-    value: string;
-  };
-  singleAsset?: {
-    currency: string;
-    issuer?: string;
-    value: string;
-  };
-  maxSingleAsset?: {
-    currency: string;
-    issuer?: string;
-    value: string;
-  };
-}
-
-interface TrustlineResponse {
-  hasTrustline: boolean;
-}
-
-interface ApiResponse {
-  error?: string;
-  output?: string;
-}
 
 interface AddLiquidityProps {
-  ammInfo: AMMInfo;
+  ammInfo: FormattedAMMInfo;
   onAdded: () => void;
 }
 
@@ -65,19 +30,19 @@ export default function AddLiquidity({ ammInfo, onAdded }: AddLiquidityProps) {
   // Fetch current user wallets from wallet context
   const { currentUserWallets } = useCurrentUserWallet();
 
-  const token1 = ammInfo?.amount;
-  const token2 = ammInfo?.amount2;
+  const currency1 = ammInfo?.formattedAmount1.currency;
+  const currency2 = ammInfo?.formattedAmount2.currency;
 
   // UI State
   const [mode, setMode] = useState<Mode>("quantity"); // 'quantity' or 'lp' mode toggle
-  const [amount1, setAmount1] = useState<string>(""); // User input for token1
-  const [amount2, setAmount2] = useState<string>(""); // User input for token2
-  const [lpAmount, setLpAmount] = useState<string>(""); // Desired LP tokens
+  const [value1, setValue1] = useState<number | null>(null); // User input for amount.value
+  const [value2, setValue2] = useState<number | null>(null); // User input for amount2.value
+  const [lpAmount, setLpAmount] = useState<number | null>(null); // Desired LP tokens
   const [payWith, setPayWith] = useState<PayWith>("both"); // Which asset(s) to pay with
 
   // Slippage tolerance state
   const [showSlippagePanel, setShowSlippagePanel] = useState<boolean>(false);
-  const [slippage, setSlippage] = useState<string>("0"); // Default slippage tolerance 0%
+  const [slippagePercentage, setSlippagePercentage] = useState<number>(0); // Default slippage tolerance 0%
 
   // Feedback/UI flags
   const [loading, setLoading] = useState<boolean>(false);
@@ -89,16 +54,14 @@ export default function AddLiquidity({ ammInfo, onAdded }: AddLiquidityProps) {
    * Calculates estimated required token amounts (for both-asset or one-asset LP deposit)
    * Includes slippage-aware logic for one-asset deposits
    */
-  const estimatedAmounts = useMemo((): EstimatedAmounts => {
+  const estimatedAmounts = useMemo((): EstimateDepositAmountsResult => {
     return estimateDepositAmounts({
-      token1,
-      token2,
       ammInfo,
       lpAmount,
       payWith,
-      slippage: parseFloat(slippage) || 0,
+      slippagePercentage,
     });
-  }, [token1, token2, ammInfo, lpAmount, payWith, slippage]);
+  }, [ammInfo, lpAmount, payWith, slippagePercentage]);
 
   /**
    * Builds the appropriate payload for the deposit API based on:
@@ -118,51 +81,61 @@ export default function AddLiquidity({ ammInfo, onAdded }: AddLiquidityProps) {
       throw new Error("No suitable wallet found for liquidity deposit.");
     }
 
-    const assetA = formatAPICurrencyObj(token1.currency, token1.issuer, amount1);
-    const assetB = formatAPICurrencyObj(token2.currency, token2.issuer, amount2);
-
     const basePayload = { wallet, ammInfo };
 
     if (mode === "quantity") {
-      const val1 = parseFloat(amount1 || "0");
-      const val2 = parseFloat(amount2 || "0");
 
-      if (val1 > 0 && val2 > 0) {
-        return { ...basePayload, depositType: "twoAsset", assetA, assetB };
+      if (value1 && value2) {
+        const formattedAmount1 = formatAmountForXRPL({currency: ammInfo?.formattedAmount1.currency, issuer: ammInfo?.formattedAmount1.issuer, value: value1?.toString()});
+        const formattedAmount2 = formatAmountForXRPL({currency: ammInfo?.formattedAmount2.currency, issuer: ammInfo?.formattedAmount2.issuer, value: value2?.toString()});
+        return { ...basePayload, depositType: "twoAsset", formattedAmount1, formattedAmount2 };
       }
-      if (val1 > 0) {
-        return { ...basePayload, depositType: "oneAsset", assetA };
+      if (value1) {
+        const formattedAmount1 = formatAmountForXRPL({currency: ammInfo?.formattedAmount1.currency, issuer: ammInfo?.formattedAmount1.issuer, value: value1?.toString()});
+        const emptyAmount = formatAmountForXRPL({currency: ammInfo?.formattedAmount2.currency, issuer: ammInfo?.formattedAmount2.issuer, value: "0"});
+        return { ...basePayload, depositType: "oneAsset", formattedAmount1, emptyAmount };
       }
-      if (val2 > 0) {
-        return { ...basePayload, depositType: "oneAsset", assetA: assetB };
+      if (value2) {
+        const formattedAmount1 = formatAmountForXRPL({currency: ammInfo?.formattedAmount2.currency, issuer: ammInfo?.formattedAmount2.issuer, value: value2?.toString()});
+        const emptyAmount = formatAmountForXRPL({currency: ammInfo?.formattedAmount1.currency, issuer: ammInfo?.formattedAmount1.issuer, value: "0"});
+        return { ...basePayload, depositType: "oneAsset", formattedAmount1, emptyAmount };
       }
-      throw new Error("Enter at least one amount greater than 0.");
+      if (!value1 && !value2) {
+        setErrorMessage("Enter at least one amount greater than 0.");
+        return;
+      }
     }
 
-    if (!lpAmount) throw new Error("Enter LP token amount.");
+    else if (mode === "lp") {
+      if (!lpAmount) {
+        setErrorMessage("Enter LP token amount.");
+        return;
+      }
 
-    const lpTokenOut = formatAPICurrencyObj(ammInfo.lp_token.currency, ammInfo.amm_account, lpAmount);
-
-    if (payWith === "both") {
+      const lpTokenOut = formatAmountForXRPL({currency: ammInfo.lpToken.currency, issuer: ammInfo.account, value: lpAmount.toString()});
+  
+      if (payWith === "both") {
+        return {
+          ...basePayload,
+          depositType: "twoAssetLPToken",
+          formattedAmount1: estimatedAmounts.amount1,
+          formattedAmount2: estimatedAmounts.amount2,
+          lpTokenOut,
+        };
+      }
+  
+      // We are sending estimate * slippage for the maximum amount user is willing to send
+      const oneAsset = estimatedAmounts.maxSingleAmount;
+      if (!oneAsset) throw new Error("Unable to estimate one-asset deposit.");
+  
       return {
         ...basePayload,
-        depositType: "twoAssetLPToken",
-        assetA: estimatedAmounts.assetA,
-        assetB: estimatedAmounts.assetB,
+        depositType: "oneAssetLPToken",
+        formattedAmount1: oneAsset,
+        emptyAmount: estimatedAmounts.emptyAmount,
         lpTokenOut,
       };
     }
-
-    // We are sending estimate * slippage for the maximum amount user is willing to send
-    const oneAsset = estimatedAmounts.maxSingleAsset;
-    if (!oneAsset) throw new Error("Unable to estimate one-asset deposit.");
-
-    return {
-      ...basePayload,
-      depositType: "oneAssetLPToken",
-      assetA: oneAsset,
-      lpTokenOut,
-    };
   };
 
   /**
@@ -176,53 +149,62 @@ export default function AddLiquidity({ ammInfo, onAdded }: AddLiquidityProps) {
 
     try {
       const payload = buildPayload();
-      console.log("payload", payload);
 
       // Step 1: Check if trustline exists
-      const checkRes = await fetch("/api/trustline/checkTrustline", {
+      const checkResponse = await fetch("/api/trustline/checkTrustline", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          wallet: payload.wallet,
-          destination: ammInfo.amm_account,
-          currency: ammInfo.lp_token.currency,
+          walletAddress: payload.wallet.classicAddress,
+          destination: ammInfo.account,
+          currency: ammInfo.lpToken.currency,
         }),
       });
+      if (!checkResponse.ok) {
+        const errorData: APIErrorResponse = await checkResponse.json();
+        setErrorMessage(errorData.message);
+        return;
+      }
 
-      const { hasTrustline }: TrustlineResponse = await checkRes.json();
+      const { hasTrustline }: CheckTrustlineAPIResponse = await checkResponse.json();
 
       if (!hasTrustline) {
         setLoadingMessage("Setting up LP trustline...");
 
-        const res = await fetch("/api/trustline/setLPTrustline", {
+        const setTrustlineResponse = await fetch("/api/trustline/setLPTrustline", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             setterWallet: payload.wallet,
-            ammInfo: payload.ammInfo,
+            lpToken: payload.ammInfo.lpToken, 
           }),
         });
 
-        const trustlineResult: ApiResponse = await res.json();
-        if (!res.ok)
-          throw new Error(
-            trustlineResult.error || "Failed to set LP trustline.",
-          );
+        const trustlineResult: SetLPTrustlineAPIResponse = await setTrustlineResponse.json();
+        if (!setTrustlineResponse.ok) {
+          const errorData: APIErrorResponse = await setTrustlineResponse.json();
+          setErrorMessage(errorData.message);
+          return;
+        }
 
-        setLoadingMessage("✅ LP trustline set successfully.");
+        setLoadingMessage(trustlineResult.message);
       }
 
       setLoadingMessage("Adding liquidity...");
       // Step 2: Add liquidity
-      const res = await fetch("/api/amm/addLiquidity", {
+      const addLiquidityResponse = await fetch("/api/amm/addLiquidity", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
-      const result: ApiResponse = await res.json();
-      if (!res.ok) throw new Error(result.error || "Liquidity deposit failed.");
-      setSuccessMessage(result.output || "Liquidity added successfully!");
+      if (!addLiquidityResponse.ok) {
+        const errorData: APIErrorResponse = await addLiquidityResponse.json();
+        setErrorMessage(errorData.message);
+        return;
+      }
+      const addLiquidityResult: AddLiquidityAPIResponse = await addLiquidityResponse.json();
+      setSuccessMessage(addLiquidityResult.message || "Liquidity added successfully!");
 
       onAdded();
     } catch (err: any) {
@@ -237,22 +219,22 @@ export default function AddLiquidity({ ammInfo, onAdded }: AddLiquidityProps) {
   const renderQuantityInputs = () => (
     <>
       {[
-        { value: amount1, setValue: setAmount1, token: token1 },
-        { value: amount2, setValue: setAmount2, token: token2 },
-      ].map(({ value, setValue, token }, idx) => (
+        { value: value1, setValue: setValue1, currency: ammInfo?.formattedAmount1.currency },
+        { value: value2, setValue: setValue2, currency: ammInfo?.formattedAmount2.currency },
+      ].map(({ value, setValue, currency }, idx) => (
         <div
           key={idx}
           className="flex items-center justify-between rounded-lg bg-color3 p-4 border border-transparent hover:border-gray-500 focus-within:!border-primary"
         >
           <div className="flex items-center gap-2">
-            <CurrencyIcon symbol={token?.currency} iconBg="bg-color4" />
+            <CurrencyIcon symbol={currency} iconBg="bg-color4" />
           </div>
           <input
             type="number"
             step="0.000001"
             placeholder="0.00"
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
+            value={value ?? ""}
+            onChange={(e) => setValue(e.target.value === "" ? null : Number(e.target.value))}
             className="bg-transparent text-right focus:outline-none text-xl"
           />
         </div>
@@ -270,8 +252,8 @@ export default function AddLiquidity({ ammInfo, onAdded }: AddLiquidityProps) {
           type="number"
           step="0.000001"
           placeholder="0.00"
-          value={lpAmount}
-          onChange={(e) => setLpAmount(e.target.value)}
+          value={lpAmount ?? ""}
+          onChange={(e) => setLpAmount(e.target.value === "" ? null : Number(e.target.value))}
           className="w-full bg-transparent focus:outline-none text-xl"
         />
       </div>
@@ -282,18 +264,18 @@ export default function AddLiquidity({ ammInfo, onAdded }: AddLiquidityProps) {
           {payWith === "both" ? (
             <>
               <p>
-                Estimated cost: {estimatedAmounts.assetA.value}{" "}
-                {token1.currency} + {estimatedAmounts.assetB.value}{" "}
-                {token2.currency}
+                Estimated cost: {estimatedAmounts.amount1.value}{" "}
+                {currency1} + {estimatedAmounts.amount2.value}{" "}
+                {currency2}
               </p>
             </>
           ) : (
             <>
               <p>
-                Estimated cost: {estimatedAmounts.singleAsset?.value} {payWith}
+                Estimated cost: {estimatedAmounts.singleAmount?.value} {payWith}
               </p>
               <p>
-                Max to send (slippage): {estimatedAmounts.maxSingleAsset?.value}{" "}
+                Max to send ({slippagePercentage}% slippage): {estimatedAmounts.maxSingleAmount?.value}{" "}
                 {payWith}
               </p>
             </>
@@ -305,7 +287,7 @@ export default function AddLiquidity({ ammInfo, onAdded }: AddLiquidityProps) {
       <div className="space-y-2 rounded-lg bg-color3 p-4 border border-transparent hover:border-gray-500 focus-within:!border-primary">
         <label className="mb-2 block text-sm text-mutedText ">Pay with</label>
         <div className="space-x-4">
-          {["both", token1?.currency, token2?.currency].map((option, index) => (
+          {["both", currency1, currency2].map((option, index) => (
             <label key={`${option}-${index}`}>
               <input
                 type="radio"
@@ -322,17 +304,9 @@ export default function AddLiquidity({ ammInfo, onAdded }: AddLiquidityProps) {
     </>
   );
 
-  const isFormValid = useMemo(() => {
-    if (mode === "quantity") {
-      const val1 = parseFloat(amount1 || "0");
-      const val2 = parseFloat(amount2 || "0");
-      return val1 > 0 || val2 > 0;
-    } else {
-      if (!lpAmount) return false;
-      if (payWith === "both") return true;
-      return !!estimatedAmounts.maxSingleAsset;
-    }
-  }, [mode, amount1, amount2, lpAmount, payWith, estimatedAmounts.maxSingleAsset]);
+  const isFormValid = mode === "quantity" 
+    ? (value1 > 0 || value2 > 0)
+    : (lpAmount && (payWith === "both" || estimatedAmounts.maxSingleAmount));
 
   return (
     <div className="space-y-4">
@@ -356,8 +330,8 @@ export default function AddLiquidity({ ammInfo, onAdded }: AddLiquidityProps) {
         </button>
         {showSlippagePanel && (
           <SlippagePanel
-            slippage={slippage}
-            setSlippage={setSlippage}
+            slippage={slippagePercentage}
+            setSlippage={setSlippagePercentage}
             onClose={() => setShowSlippagePanel(false)}
           />
         )}

@@ -1,13 +1,13 @@
-export * from "./amm/ammAPITypes";
-export * from "./dex/dexAPITypes";
-export * from "./friend/friendAPITypes";
-export * from "./nft/nftAPITypes";
-export * from "./oracle/oracleAPITypes";
-export * from "./register/registerAPITypes";
-export * from "./smart/smartAPITypes";
-export * from "./trustline/trustlineAPITypes";
-export * from "./user/userAPITypes";
-export * from "./wallet/walletsAPITypes";
+export * from "./ammAPITypes";
+export * from "./dexAPITypes";
+export * from "./friendAPITypes";
+export * from "./nftAPITypes";
+export * from "./oracleAPITypes";
+export * from "./registerAPITypes";
+export * from "./smartAPITypes";
+export * from "./trustlineAPITypes";
+export * from "./userAPITypes";
+export * from "./walletAPITypes";
 
 export interface APIErrorResponse {
   code?: string;

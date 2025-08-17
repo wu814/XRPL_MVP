@@ -1,4 +1,4 @@
-import { client, connectXrplClient } from "../testnet";
+import { client, connectXRPLClient } from "../testnet";
 import BigNumber from "bignumber.js";
 import * as xrpl from "xrpl";
 import { YONAWallet } from "@/types/appTypes";
@@ -157,7 +157,7 @@ const sendIOU = async (
   issuerWallets: YONAWallet[],
   destinationTag: number | null = null,
 ): Promise<PaymentResponse> => {
-  await connectXrplClient();
+  await connectXRPLClient();
   const issuerAddress = issuerWallets[0].classicAddress;
 
   if (!senderWallet || !destination || !amount || !currency || !issuerAddress) {

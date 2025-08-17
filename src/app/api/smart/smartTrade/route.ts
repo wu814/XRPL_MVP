@@ -59,10 +59,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const senderXrplWallet = Wallet.fromSeed(walletData.seed);
+    const senderXRPLWallet = Wallet.fromSeed(walletData.seed);
 
     const result = await sendCrossCurrency({
-      senderWallet: senderXrplWallet,
+      senderWallet: senderXRPLWallet,
       destinationAddress: recipientAddress,
       sendCurrency,
       sendAmount: sendAmount ?? undefined,

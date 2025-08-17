@@ -1,4 +1,4 @@
-import { client, connectXrplClient } from "../testnet";
+import { client, connectXRPLClient } from "../testnet";
 
 /**
  * Oracle Data Controller - Fetch Price Oracle data from XRPL
@@ -70,7 +70,7 @@ export async function getOracleData(
   ledgerIndex: string | number = "validated"
 ): Promise<OracleDataResult> {
   try {
-    await connectXrplClient();
+    await connectXRPLClient();
 
     console.log(`🔍 Retrieving Price Oracle data...`);
     console.log(`   👤 Account: ${account}`);

@@ -40,31 +40,31 @@ export interface UseWalletAssetsReturn {
 
 type WalletType = "ISSUER" | "TREASURY" | "PATHFIND" | "USER" | "BUSINESS";
 
-// Format asset for XRPL transaction
-export function formatAssetForXRPL(currency: string, issuer: string, value: number): Amount {
-  if (currency === "XRP") {
-    return xrpToDrops(value);
+// Format amount for XRPL transaction
+export function formatAmountForXRPL(amount: IssuedCurrencyAmount): Amount {
+  if (amount.currency === "XRP") {
+    return xrpToDrops(amount.value);
   }
   return {
-    currency,
-    issuer,
-    value: value.toString(),
+    currency: amount.currency,
+    issuer: amount.issuer,
+    value: amount.value.toString(),
   };
 }
 
-// Format asset for display
-export function formatAssetForDisplay(asset: Amount): IssuedCurrencyAmount {
-  if (typeof asset === "string") {
+// Format amount for display
+export function formatAmountForDisplay(amount: Amount): IssuedCurrencyAmount {
+  if (typeof amount === "string") {
     return {
       currency: "XRP",
       issuer: null,
-      value: dropsToXrp(asset).toString(),
+      value: dropsToXrp(amount).toString(),
     };
   }
   return {
-    currency: asset.currency,
-    issuer: asset.issuer,
-    value: asset.value,
+    currency: amount.currency,
+    issuer: amount.issuer,
+    value: amount.value,
   };
 }
 

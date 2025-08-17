@@ -51,6 +51,8 @@ export default function DisplayAMMDetails({
 
       if (result.data) {
         setAMMInfo(result.data);
+        setCurrency1(result.data.formattedAmount1.currency);
+        setCurrency2(result.data.formattedAmount2.currency);
       }
     } catch (error: any) {
       if (
@@ -108,7 +110,7 @@ export default function DisplayAMMDetails({
           </div>
         ) : (
           (() => {
-            const a1 = parseFloat(ammInfo?.formattedAmount?.value);
+            const a1 = parseFloat(ammInfo?.formattedAmount1?.value);
             const a2 = parseFloat(ammInfo?.formattedAmount2?.value);
             if (isNaN(a1) || isNaN(a2) || a1 <= 0 || a2 <= 0) {
               return <p className="ml-2 text-lg font-medium">Not Available</p>;
@@ -161,8 +163,8 @@ export default function DisplayAMMDetails({
         ) : (
           (() => {
             const usdValue1 = getUSDValue(
-              ammInfo.formattedAmount.currency,
-              ammInfo.formattedAmount.value,
+              ammInfo.formattedAmount1.currency,
+              ammInfo.formattedAmount1.value,
               livePrices,
             );
             const usdValue2 = getUSDValue(
@@ -211,7 +213,7 @@ export default function DisplayAMMDetails({
           <div className="col-span-2 rounded-lg bg-color2 p-4">
             <h3 className="text-mutedText">Pool Composition</h3>
             <AMMCompositionBar
-              amount1={ammInfo?.formattedAmount}
+              amount1={ammInfo?.formattedAmount1}
               amount2={ammInfo?.formattedAmount2}
               livePrices={livePrices}
               pricesLoading={pricesLoading}

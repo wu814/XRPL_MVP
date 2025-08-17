@@ -1,7 +1,7 @@
-import { client, connectXrplClient } from "../testnet";
+import { client, connectXRPLClient } from "../testnet";
 import { AccountSet, Wallet } from "xrpl";
 import { isTypedTransactionSuccessful, handleTransactionError } from "../errorHandler";
-import { SetWalletFlagsResult } from "@/types/xrpl/wallet/walletXRPLTypes";
+import { SetWalletFlagsResult } from "@/types/xrpl/walletXRPLTypes";
 
 interface FlagConfig {
   name: string;
@@ -22,7 +22,7 @@ export async function setIssuerWalletFlags(wallet: Wallet): Promise<SetWalletFla
     }
 
     // THROW: Infrastructure
-    await connectXrplClient();
+    await connectXRPLClient();
     
     // THROW: Critical XRPL operation
     const accountInfo = await client.request({
@@ -49,44 +49,36 @@ export async function setIssuerWalletFlags(wallet: Wallet): Promise<SetWalletFla
       const { name, flag, offset } = flags[i];
       console.log(`🔹 Setting ${name} flag for ${wallet.classicAddress}...`);
 
-      try {
-        const tx: AccountSet = {
-          TransactionType: "AccountSet",
-          Account: wallet.classicAddress,
-          SetFlag: flag,
-          LastLedgerSequence: latestLedgerSequence + offset,
-          Sequence: sequence + i,
+      const tx: AccountSet = {
+        TransactionType: "AccountSet",
+        Account: wallet.classicAddress,
+        SetFlag: flag,
+        LastLedgerSequence: latestLedgerSequence + offset,
+        Sequence: sequence + i,
+      };
+
+      const prepared = await client.autofill(tx);
+      const signed = wallet.sign(prepared);
+      const txResult = await client.submitAndWait(signed.tx_blob);
+
+      if (!isTypedTransactionSuccessful(txResult)) {
+        const errorInfo = handleTransactionError(txResult, "setIssuerWalletFlags");
+        return {
+          success: false,
+          error: {
+            code: errorInfo.code,
+            message: errorInfo.message,
+          }
         };
-
-        const prepared = await client.autofill(tx);
-        const signed = wallet.sign(prepared);
-        const txResult = await client.submitAndWait(signed.tx_blob);
-
-        // RETURN success: false: Expected XRPL business rule violation
-        if (!isTypedTransactionSuccessful(txResult)) {
-          const errorInfo = handleTransactionError(txResult, "setIssuerWalletFlags");
-          return {
-            success: false,
-            error: {
-              code: errorInfo.code,
-              message: `Failed to set ${name} flag: ${errorInfo.message}`
-            }
-          };
-        }
-
-        console.log(`✅ ${name} flag set for ${wallet.classicAddress}`);
-
-      } catch (flagError) {
-        // THROW: Unexpected flag operation failure
-        throw new Error(`Unexpected error setting ${name} flag: ${flagError instanceof Error ? flagError.message : 'Unknown error'}`);
       }
+
+      console.log(`✅ ${name} flag set for ${wallet.classicAddress}`);
     }
 
-    // All flags set successfully
     return { success: true };
 
   } catch (error) {
-    // Re-throw system errors with context
+    // This will catch any unexpected errors (network, client, etc.)
     throw new Error(`Failed to set issuer wallet flags: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
@@ -103,7 +95,7 @@ export async function setTreasuryWalletFlags(wallet: Wallet): Promise<SetWalletF
     }
 
     // THROW: Infrastructure
-    await connectXrplClient();
+    await connectXRPLClient();
     
     // THROW: Critical XRPL operation
     const accountInfo = await client.request({
@@ -128,37 +120,31 @@ export async function setTreasuryWalletFlags(wallet: Wallet): Promise<SetWalletF
       const { name, flag, offset } = flags[i];
       console.log(`🔹 Setting ${name} flag for ${wallet.classicAddress}...`);
 
-      try {
-        const tx: AccountSet = {
-          TransactionType: "AccountSet",
-          Account: wallet.classicAddress,
-          SetFlag: flag,
-          LastLedgerSequence: latestLedgerSequence + offset,
-          Sequence: sequence + i,
+      const tx: AccountSet = {
+        TransactionType: "AccountSet",
+        Account: wallet.classicAddress,
+        SetFlag: flag,
+        LastLedgerSequence: latestLedgerSequence + offset,
+        Sequence: sequence + i,
+      };
+
+      const prepared = await client.autofill(tx);
+      const signed = wallet.sign(prepared);
+      const txResult = await client.submitAndWait(signed.tx_blob);
+
+      // RETURN success: false: Expected XRPL business rule violation
+      if (!isTypedTransactionSuccessful(txResult)) {
+        const errorInfo = handleTransactionError(txResult, "setTreasuryWalletFlags");
+        return {
+          success: false,
+          error: {
+            code: errorInfo.code,
+            message: errorInfo.message,
+          }
         };
-
-        const prepared = await client.autofill(tx);
-        const signed = wallet.sign(prepared);
-        const txResult = await client.submitAndWait(signed.tx_blob);
-
-        // RETURN success: false: Expected XRPL business rule violation
-        if (!isTypedTransactionSuccessful(txResult)) {
-          const errorInfo = handleTransactionError(txResult, "setTreasuryWalletFlags");
-          return {
-            success: false,
-            error: {
-              code: errorInfo.code,
-              message: `Failed to set ${name} flag: ${errorInfo.message}`
-            }
-          };
-        }
-
-        console.log(`✅ ${name} flag set for ${wallet.classicAddress}`);
-
-      } catch (flagError) {
-        // THROW: Unexpected flag operation failure
-        throw new Error(`Unexpected error setting ${name} flag: ${flagError instanceof Error ? flagError.message : 'Unknown error'}`);
       }
+
+      console.log(`✅ ${name} flag set for ${wallet.classicAddress}`);
     }
 
     // All flags set successfully
@@ -182,7 +168,7 @@ export async function setPathfindWalletFlags(wallet: Wallet): Promise<SetWalletF
     }
 
     // THROW: Infrastructure
-    await connectXrplClient();
+    await connectXRPLClient();
     
     // THROW: Critical XRPL operation
     const accountInfo = await client.request({
@@ -210,37 +196,31 @@ export async function setPathfindWalletFlags(wallet: Wallet): Promise<SetWalletF
       const { name, flag, offset } = flags[i];
       console.log(`🔹 Setting ${name} flag for ${wallet.classicAddress}...`);
 
-      try {
-        const tx: AccountSet = {
-          TransactionType: "AccountSet",
-          Account: wallet.classicAddress,
-          SetFlag: flag,
-          LastLedgerSequence: latestLedgerSequence + offset,
-          Sequence: sequence + i,
+      const tx: AccountSet = {
+        TransactionType: "AccountSet",
+        Account: wallet.classicAddress,
+        SetFlag: flag,
+        LastLedgerSequence: latestLedgerSequence + offset,
+        Sequence: sequence + i,
+      };
+
+      const preparedTx = await client.autofill(tx);
+      const signedTx = wallet.sign(preparedTx);
+      const txResult = await client.submitAndWait<AccountSet>(signedTx.tx_blob);
+
+      // RETURN success: false: Expected XRPL business rule violation
+      if (!isTypedTransactionSuccessful(txResult)) {
+        const errorInfo = handleTransactionError(txResult, "setPathfindWalletFlags");
+        return {
+          success: false,
+          error: {
+            code: errorInfo.code,
+            message: errorInfo.message,
+          }
         };
-
-        const preparedTx = await client.autofill(tx);
-        const signedTx = wallet.sign(preparedTx);
-        const txResult = await client.submitAndWait<AccountSet>(signedTx.tx_blob);
-
-        // RETURN success: false: Expected XRPL business rule violation
-        if (!isTypedTransactionSuccessful(txResult)) {
-          const errorInfo = handleTransactionError(txResult, "setPathfindWalletFlags");
-          return {
-            success: false,
-            error: {
-              code: errorInfo.code,
-              message: `Failed to set ${name} flag: ${errorInfo.message}`
-            }
-          };
-        }
-
-        console.log(`✅ ${name} flag set for ${wallet.classicAddress}`);
-
-      } catch (flagError) {
-        // THROW: Unexpected flag operation failure
-        throw new Error(`Unexpected error setting ${name} flag: ${flagError instanceof Error ? flagError.message : 'Unknown error'}`);
       }
+
+      console.log(`✅ ${name} flag set for ${wallet.classicAddress}`);
     }
 
     // All flags set successfully

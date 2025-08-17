@@ -1,11 +1,11 @@
-import { connectXrplClient, client } from "../testnet";
+import { connectXRPLClient, client } from "../testnet";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
 import { 
   AMMInfoRequest, 
   AMMInfoResponse, 
 } from "xrpl";
 import { AMMInfo, FormattedAMMInfo, AMMData } from "@/types/xrpl/index";
-import { formatAssetForDisplay } from "@/utils/assetUtils";
+import { formatAmountForDisplay } from "@/utils/assetUtils";
 
 
 /**
@@ -15,7 +15,7 @@ import { formatAssetForDisplay } from "@/utils/assetUtils";
  */
 export async function getFormattedAMMInfo(ammAccount: string): Promise<FormattedAMMInfo | null> {
   try {
-    await connectXrplClient();
+    await connectXRPLClient();
     
     console.log(`🔍 Fetching live AMM info for: ${ammAccount}`);
     
@@ -31,7 +31,7 @@ export async function getFormattedAMMInfo(ammAccount: string): Promise<Formatted
       console.warn(`⚠️ No AMM data found for account: ${ammAccount}`);
       return {
         account: ammAccount,
-        formattedAmount: { currency: "Unknown", issuer: null, value: "0" },
+        formattedAmount1: { currency: "Unknown", issuer: null, value: "0" },
         formattedAmount2: { currency: "Unknown", issuer: null, value: "0" },
         lpToken: {
           currency: "LP",
@@ -49,8 +49,8 @@ export async function getFormattedAMMInfo(ammAccount: string): Promise<Formatted
     
     return {
       account: ammInfo.account,
-      formattedAmount: formatAssetForDisplay(ammInfo.amount),
-      formattedAmount2: formatAssetForDisplay(ammInfo.amount2),
+      formattedAmount1: formatAmountForDisplay(ammInfo.amount),
+      formattedAmount2: formatAmountForDisplay(ammInfo.amount2),
       auctionSlot: {
         account: ammInfo.auction_slot?.account || "",
         authAccounts: ammInfo.auction_slot?.auth_accounts || [],
@@ -141,7 +141,7 @@ export async function getFormattedAMMInfoByCurrencies (
   
   return {
     account: liveAMMInfo.account,
-    formattedAmount: liveAMMInfo.formattedAmount,
+    formattedAmount1: liveAMMInfo.formattedAmount1,
     formattedAmount2: liveAMMInfo.formattedAmount2,
     tradingFee: liveAMMInfo.tradingFee,
     lpToken: liveAMMInfo.lpToken,

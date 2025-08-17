@@ -202,12 +202,12 @@ export default function TradePanel() {
 
     try {
       let poolInput: number, poolOutput: number;
-      if (ammData.formattedAmount.currency === inputCurrency) {
-        poolInput = parseFloat(ammData.formattedAmount.value);
+      if (ammData.formattedAmount1.currency === inputCurrency) {
+        poolInput = parseFloat(ammData.formattedAmount1.value);
         poolOutput = parseFloat(ammData.formattedAmount2.value);
       } else {
         poolInput = parseFloat(ammData.formattedAmount2.value);
-        poolOutput = parseFloat(ammData.formattedAmount.value);
+        poolOutput = parseFloat(ammData.formattedAmount1.value);
       }
 
       const calculation = calculateEstimateOutput(
@@ -247,12 +247,12 @@ export default function TradePanel() {
 
     try {
       let poolInput: number, poolOutput: number;
-      if (ammData.formattedAmount.currency === inputCurrency) {
-        poolInput = parseFloat(ammData.formattedAmount.value);
+      if (ammData.formattedAmount1.currency === inputCurrency) {
+        poolInput = parseFloat(ammData.formattedAmount1.value);
         poolOutput = parseFloat(ammData.formattedAmount2.value);
       } else {
         poolInput = parseFloat(ammData.formattedAmount2.value);
-        poolOutput = parseFloat(ammData.formattedAmount.value);
+        poolOutput = parseFloat(ammData.formattedAmount1.value);
       }
 
       const calculation = calculateExactAMMInput(
@@ -701,7 +701,7 @@ export default function TradePanel() {
               {ammData && !loadingAMMData && (
                 <div className="mb-4 rounded-full border border-green-500 bg-green-900/20 p-3">
                   <p className="text-sm text-green-400">
-                    AMM Pool: {ammData.formattedAmount.currency}/
+                    AMM Pool: {ammData.formattedAmount1.currency}/
                     {ammData.formattedAmount2.currency}
                     {` (${ammData.tradingFee / 1000}% fee)`}
                   </p>
@@ -930,7 +930,7 @@ export default function TradePanel() {
               {ammData && !loadingAMMData && (
                 <div className="mb-4 rounded-full border border-green-500 bg-green-900/20 p-3">
                   <p className="text-sm text-green-400">
-                    AMM Pool: {ammData.formattedAmount.currency}/
+                    AMM Pool: {ammData.formattedAmount1.currency}/
                     {ammData.formattedAmount2.currency}
                     {` (${ammData.tradingFee / 1000}% fee)`}
                   </p>

@@ -1,4 +1,4 @@
-import { client, connectXrplClient } from "../testnet";
+import { client, connectXRPLClient } from "../testnet";
 import { xrpToDrops } from "xrpl";
 import * as xrpl from "xrpl";
 
@@ -59,7 +59,7 @@ const sendXRP = async (
   amount: string | number,
   destinationTag: number | null = null
 ): Promise<PaymentResponse> => {
-  await connectXrplClient();
+  await connectXRPLClient();
 
   // Parse amount as float and convert to drops
   const amountInXRP = parseFloat(amount.toString());

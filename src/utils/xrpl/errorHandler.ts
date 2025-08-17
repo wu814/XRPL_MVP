@@ -323,7 +323,7 @@ function getTransactionErrorInfo(
   transactionType: string,
   resultCode: string,
   operation: string,
-): { message: string; canRetry: boolean } {
+): { message: string } {
   const errorMessages: Record<string, Record<string, string>> = {
     AccountSet: {
       tecNO_PERMISSION: "You do not have permission to perform this operation",
@@ -355,7 +355,7 @@ function getTransactionErrorInfo(
     },
     AMMDeposit: {
       tecAMM_EMPTY: "AMM is empty, use special case deposit",
-      tecAMM_FAILED: "Deposit conditions could not be satisfied",
+      tecAMM_FAILED: "Deposit conditions could not be satisfied, try adding 1% slippage",
       tecFROZEN: "Transaction tried to deposit a frozen token",
       tecINSUF_RESERVE_LINE: "Insufficient reserve for new trust line",
     },
@@ -381,14 +381,12 @@ function getTransactionErrorInfo(
   const transactionErrors = errorMessages[transactionType];
   if (transactionErrors && transactionErrors[resultCode]) {
     return {
-      message: `${operation} failed: ${transactionErrors[resultCode]}`,
-      canRetry: false,
+      message: `${operation} failed with code: ${resultCode} - ${transactionErrors[resultCode]}`,
     };
   }
 
   // Generic error message
   return {
     message: `${operation} failed with code: ${resultCode}`,
-    canRetry: false,
   };
 }

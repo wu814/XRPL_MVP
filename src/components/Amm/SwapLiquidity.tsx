@@ -11,7 +11,7 @@ import { useCurrentUserWallet } from "../wallet/CurrentUserWalletProvider";
 import { useIssuerWallet } from "../wallet/IssuerWalletProvider";
 // Import calculation functions
 import { calculateExactAMMInput, calculateEstimateOutput } from "@/utils/xrpl/amm/calculations";
-import { AMMInfo } from "./DisplayAMMs";
+import { FormattedAMMInfo } from "@/types/xrpl/index";
 
 interface SwapResponse {
   message?: string;
@@ -26,7 +26,7 @@ interface CalculationResult {
 }
 
 interface SwapLiquidityProps {
-  ammInfo: AMMInfo;
+  ammInfo: FormattedAMMInfo;
   onSwapped: () => void;
 }
 
@@ -63,8 +63,8 @@ export default function SwapLiquidity({ ammInfo, onSwapped }: SwapLiquidityProps
 
   // Auto-select currencies when component mounts
   useEffect(() => {
-    setSellCurrency(ammInfo?.amount?.currency || "");
-    setBuyCurrency(ammInfo?.amount2?.currency || "");
+    setSellCurrency(ammInfo?.formattedAmount1?.currency || "");
+    setBuyCurrency(ammInfo?.formattedAmount2?.currency || "");
     console.log(ammInfo);
   }, [ammInfo]);
 
@@ -93,16 +93,16 @@ export default function SwapLiquidity({ ammInfo, onSwapped }: SwapLiquidityProps
     try {      
       // Determine pool balances from passed ammInfo
       let poolSell: number, poolBuy: number;
-      if (ammInfo.amount?.currency === sellCurrency) {
-        poolSell = parseFloat(ammInfo.amount.value);
-        poolBuy = parseFloat(ammInfo.amount2.value);
+      if (ammInfo.formattedAmount1?.currency === sellCurrency) {
+        poolSell = parseFloat(ammInfo.formattedAmount1.value);
+        poolBuy = parseFloat(ammInfo.formattedAmount2.value);
       } else {
-        poolSell = parseFloat(ammInfo.amount2.value);
-        poolBuy = parseFloat(ammInfo.amount.value);
+        poolSell = parseFloat(ammInfo.formattedAmount2.value);
+        poolBuy = parseFloat(ammInfo.formattedAmount1.value);
       }
 
       // Calculate estimated output
-      const calculation = calculateEstimateOutput(poolSell, poolBuy, sellAmount, ammInfo.trading_fee || 0);
+      const calculation = calculateEstimateOutput(poolSell, poolBuy, sellAmount, ammInfo.tradingFee || 0);
       
       if (calculation.success && calculation.estimatedOutput !== undefined) {
         setBuyAmount(calculation.estimatedOutput.toFixed(6));
@@ -126,12 +126,12 @@ export default function SwapLiquidity({ ammInfo, onSwapped }: SwapLiquidityProps
     try {
       // Determine pool balances from passed ammInfo
       let poolSell: number, poolBuy: number;
-      if (ammInfo.amount?.currency === sellCurrency) {
-        poolSell = parseFloat(ammInfo.amount.value);
-        poolBuy = parseFloat(ammInfo.amount2.value);
+      if (ammInfo.formattedAmount1?.currency === sellCurrency) {
+        poolSell = parseFloat(ammInfo.formattedAmount1.value);
+        poolBuy = parseFloat(ammInfo.formattedAmount2.value);
       } else {
-        poolSell = parseFloat(ammInfo.amount2.value);
-        poolBuy = parseFloat(ammInfo.amount.value);
+        poolSell = parseFloat(ammInfo.formattedAmount2.value);
+        poolBuy = parseFloat(ammInfo.formattedAmount1.value);
       }
 
       // Calculate required input
@@ -140,7 +140,7 @@ export default function SwapLiquidity({ ammInfo, onSwapped }: SwapLiquidityProps
         poolBuy, 
         parseFloat(buyAmount), 
         parseFloat(slippage) / 100, 
-        ammInfo.trading_fee || 0
+        ammInfo.tradingFee || 0
       );
       
       if (calculation.success && calculation.inputWithSlippage !== undefined) {

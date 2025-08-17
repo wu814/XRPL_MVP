@@ -1,30 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Wallet } from "xrpl";
 import { checkTrustline } from "@/utils/xrpl/trustline/setTrustline";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
+import { CheckTrustlineAPIRequest, CheckTrustlineAPIResponse, APIErrorResponse } from "@/types/api/index";
 
-interface CheckTrustlineRequest {
-  wallet: {
-    classicAddress: string;
-  };
-  destination: string;
-  currency: string;
-}
-
-export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest): Promise<NextResponse<CheckTrustlineAPIResponse | APIErrorResponse>> {
   try {
-    const { wallet, destination, currency }: CheckTrustlineRequest = await req.json();
+    const { walletAddress, destination, currency }: CheckTrustlineAPIRequest = await req.json();
 
-    if (!wallet) {
-      return NextResponse.json({ error: "Missing wallet" }, { status: 400 });
+    if (!walletAddress) {
+      return NextResponse.json<APIErrorResponse>({ message: "Failed to check trustline: Missing walletAddress" }, { status: 400 });
     }
-
     if (!destination) {
-      return NextResponse.json({ error: "Missing destination" }, { status: 400 });
+      return NextResponse.json<APIErrorResponse>({ message: "Failed to check trustline: Missing destination" }, { status: 400 });
     }
-
     if (!currency) {
-      return NextResponse.json({ error: "Missing currency" }, { status: 400 });
+      return NextResponse.json<APIErrorResponse>({ message: "Failed to check trustline: Missing currency" }, { status: 400 });
     }
 
     // Get seed from Supabase using classicAddress
@@ -32,29 +22,27 @@ export async function POST(req: NextRequest) {
     const { data: walletData, error: walletError } = await supabase
       .from("wallets")
       .select("seed")
-      .eq("classic_address", wallet.classicAddress)
+      .eq("classic_address", walletAddress)
       .single();
 
     if (walletError || !walletData) {
-      return NextResponse.json(
-        { error: "Wallet not found for the provided classicAddress" },
+      return NextResponse.json<APIErrorResponse>(
+        { message: "Failed to check trustline: Wallet not found for the provided classicAddress" },
         { status: 404 },
       );
     }
 
-    const xrplWallet = Wallet.fromSeed(walletData.seed);
-
     const hasTrustline = await checkTrustline(
-      xrplWallet,
+      walletAddress,
       destination,
       currency,
     );
 
-    return NextResponse.json({ hasTrustline }, { status: 200 });
+    return NextResponse.json<CheckTrustlineAPIResponse>({ hasTrustline }, { status: 200 });
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : 'Failed to check trustline.';
-    return NextResponse.json(
-      { error: errorMessage },
+    return NextResponse.json<APIErrorResponse>(
+      { message: errorMessage },
       { status: 500 },
     );
   }

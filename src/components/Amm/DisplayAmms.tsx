@@ -74,8 +74,8 @@ export default function DisplayAMMs() {
     }
 
     const usdValue1 = getUSDValue(
-      ammInfo.formattedAmount.currency,
-      parseFloat(ammInfo.formattedAmount.value),
+      ammInfo.formattedAmount1.currency,
+      parseFloat(ammInfo.formattedAmount1.value),
       livePrices,
     );
     const usdValue2 = getUSDValue(

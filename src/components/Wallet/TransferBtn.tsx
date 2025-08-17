@@ -147,12 +147,12 @@ export default function TransferBtn({
     try {      
       // Determine pool balances from cached AMM data
       let poolSend: number, poolReceive: number;
-      if (ammData.formattedAmount.currency === sendCurrency) {
-        poolSend = parseFloat(ammData.formattedAmount.value);
+      if (ammData.formattedAmount1.currency === sendCurrency) {
+        poolSend = parseFloat(ammData.formattedAmount1.value);
         poolReceive = parseFloat(ammData.formattedAmount2.value);
       } else {
         poolSend = parseFloat(ammData.formattedAmount2.value);
-        poolReceive = parseFloat(ammData.formattedAmount.value);
+        poolReceive = parseFloat(ammData.formattedAmount1.value);
       }
 
       // Calculate estimated output
@@ -180,12 +180,12 @@ export default function TransferBtn({
     try {
       // Determine pool balances from cached AMM data
       let poolSend: number, poolReceive: number;
-      if (ammData.formattedAmount.currency === sendCurrency) {
-        poolSend = parseFloat(ammData.formattedAmount.value);
+      if (ammData.formattedAmount1.currency === sendCurrency) {
+        poolSend = parseFloat(ammData.formattedAmount1.value);
         poolReceive = parseFloat(ammData.formattedAmount2.value);
       } else {
         poolSend = parseFloat(ammData.formattedAmount2.value);
-        poolReceive = parseFloat(ammData.formattedAmount.value);
+        poolReceive = parseFloat(ammData.formattedAmount1.value);
       }
 
       // Calculate required input
@@ -422,7 +422,7 @@ export default function TransferBtn({
             {paymentType === "convertable" && ammData && !loadingAMMData && (
               <div className="mb-4 p-3 bg-green-900/20 border border-green-500 rounded-full">
                 <p className="text-green-400 text-sm">
-                  AMM Pool: {ammData.formattedAmount.currency}/{ammData.formattedAmount2.currency} 
+                  AMM Pool: {ammData.formattedAmount1.currency}/{ammData.formattedAmount2.currency} 
                   {` (${ammData.tradingFee/1000}% fee)`}
                 </p>
               </div>

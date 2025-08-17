@@ -1,4 +1,4 @@
-import { client, connectXrplClient } from "../testnet";
+import { client, connectXRPLClient } from "../testnet";
 import { CreateWalletResult, FundWalletResult } from "@/types/xrpl/index";
 
 
@@ -8,7 +8,7 @@ import { CreateWalletResult, FundWalletResult } from "@/types/xrpl/index";
  */
 export async function createWallet(walletType: string): Promise<CreateWalletResult> {
   try {
-    await connectXrplClient();
+    await connectXRPLClient();
     
     // Fund the wallet on testnet
     const fundResult: FundWalletResult = await client.fundWallet();

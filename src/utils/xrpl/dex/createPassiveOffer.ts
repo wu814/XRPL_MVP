@@ -1,4 +1,4 @@
-import { client, connectXrplClient } from "../testnet";
+import { client, connectXRPLClient } from "../testnet";
 import { OfferCreate, TxResponse, Amount, OfferCreateFlagsInterface } from "xrpl";
 import * as xrpl from "xrpl";
 
@@ -29,7 +29,7 @@ export default async function createPassiveOffer(
   takerGets: Amount,
 ): Promise<CreatePassiveOfferResult> {
   try {
-    await connectXrplClient();
+    await connectXRPLClient();
 
     const offerCreateTx: OfferCreate = {
       TransactionType: "OfferCreate",

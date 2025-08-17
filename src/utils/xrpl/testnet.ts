@@ -3,7 +3,7 @@ import * as xrpl from "xrpl";
 
 export const client = new xrpl.Client("wss://s.altnet.rippletest.net:51233");
 
-export const connectXrplClient = async (): Promise<void> => {
+export const connectXRPLClient = async (): Promise<void> => {
   if (!client.isConnected()) {
     console.log("Connecting to XRPL Testnet...");
     try {

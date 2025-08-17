@@ -1,4 +1,4 @@
-import { connectXrplClient, client } from "../testnet";
+import { connectXRPLClient, client } from "../testnet";
 import { 
   AccountOffersRequest, 
   AccountOffersResponse, 
@@ -16,7 +16,7 @@ import { EnhancedOffer } from "@/types/xrpl/index";
  */
 export default async function getUserOffers(wallet: YONAWallet): Promise<EnhancedOffer[]> {
   try {
-    await connectXrplClient();
+    await connectXRPLClient();
 
     // Fetch direct offers from the account (OfferCreate transactions)
     const accountOffersRequest: AccountOffersRequest = {

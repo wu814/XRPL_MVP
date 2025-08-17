@@ -1,7 +1,8 @@
 import { APIErrorResponse, GetTreasuryWalletAPIResponse } from "@/types/api/index";
+import { Currency } from "xrpl";
 
 // Types
-export interface Currency {
+export interface YONACurrency {
   id: string;
   name: string;
   avatar: string;
@@ -11,12 +12,6 @@ export interface PriceInfo {
   baseAsset: string;
   price: number;
   available: boolean;
-}
-
-export interface CurrencyObject {
-  currency: string;
-  issuer?: string;
-  value: string | number;
 }
 
 export interface PricesResponse {
@@ -30,7 +25,7 @@ export interface UseLivePricesReturn {
   loading: boolean;
 }
 
-export const availableCurrencies: Currency[] = [
+export const availableCurrencies: YONACurrency[] = [
   { id: "USD", name: "USD", avatar: "/icons/USD.png" },
   { id: "XRP", name: "XRP", avatar: "/icons/XRP.png" },
   { id: "EUR", name: "Euro", avatar: "/icons/EUR.png" },
@@ -150,50 +145,19 @@ export function getCurrencyIcon(currency: string): string | null {
  * @param value - The amount value (defaults to "0" if not specified)
  * @returns Currency object - For XRP: {currency, value}, For others: {currency, issuer, value}
  */
-export function formatAPICurrencyObj(
+export function formatCurrencyForXRPL(
   currency: string, 
   issuerAddress: string, 
-  value: string | number = "0"
-): CurrencyObject {  
+): Currency {  
   if (currency === "XRP") {
     return {
-      currency,
-      value: value
+      currency: "XRP",
+      issuer: undefined,
     };
   }
-  
   return {
     currency,
     issuer: issuerAddress,
-    value: value
-  };
-}
-
-/**
- * Format currency object for XRPL transactions (createOffer, AMMDeposit, etc.)
- * Creates currency objects in the format expected by XRPL transactions
- * @param currency - The currency code (e.g., "XRP", "USD", "BTC")
- * @param issuerAddress - The issuer address (ignored for XRP)
- * @param value - The amount value (defaults to "0" if not specified)
- * @returns For XRP: string in drops, For others: {currency, issuer, value}
- */
-export function formatXRPLCurrencyObj(
-  currency: string, 
-  issuerAddress: string, 
-  value: string | number = "0"
-): string | CurrencyObject { 
-  
-  if (currency === "XRP") {
-    // Import xrpl dynamically to avoid issues with SSR
-    const xrpl = require("xrpl");
-    // Convert to float only for xrpToDrops calculation, then return as string
-    return xrpl.xrpToDrops(value.toString());
-  }
-  
-  return {
-    currency,
-    issuer: issuerAddress,
-    value: value
   };
 }
 

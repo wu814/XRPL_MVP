@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectXrplClient } from "@/utils/xrpl/testnet"; 
+import { connectXRPLClient } from "@/utils/xrpl/testnet"; 
 import { getAccountObjects } from "@/utils/xrpl/wallet/getWalletInfo";
 import { GetAccountObjectsAPIRequest, GetAccountObjectsAPIResponse, APIErrorResponse } from "@/types/api/index";
 
@@ -14,7 +14,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<GetAccountObj
       return NextResponse.json<APIErrorResponse>({ message: "Missing address or wallet" }, { status: 400 });
     }
 
-    await connectXrplClient();
+    await connectXRPLClient();
     
     const accountObjects = await getAccountObjects(targetAddress);
 

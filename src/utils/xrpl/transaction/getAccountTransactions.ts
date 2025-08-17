@@ -1,4 +1,4 @@
-import { client, connectXrplClient } from "@/utils/xrpl/testnet";
+import { client, connectXRPLClient } from "@/utils/xrpl/testnet";
 import * as xrpl from "xrpl";
 
 // Type definitions
@@ -389,7 +389,7 @@ export async function getAccountTransactions({
     throw new Error("Missing address or wallet");
   }
 
-  await connectXrplClient();
+  await connectXRPLClient();
   
   const requestParams = {
     command: "account_tx",

@@ -1,4 +1,4 @@
-import { connectXrplClient, client } from '../testnet';
+import { connectXRPLClient, client } from '../testnet';
 import { dropsToXrp } from 'xrpl';
 import { Wallet } from 'xrpl';
 
@@ -163,7 +163,7 @@ const mintReceiptNFT = async (
   taxon: number = RECEIPT_TAXON
 ): Promise<NFTMintResult> => {
   try {
-    await connectXrplClient();
+    await connectXRPLClient();
     
     // Validate URI
     if (!uri || uri.length === 0) {
@@ -265,7 +265,7 @@ export async function createNFTSellOfferUSD(
   destination: string | null = null
 ): Promise<NFTSellOfferResult> {
   try {
-    await connectXrplClient();
+    await connectXRPLClient();
     
     // Validate and sanitize price input
     let validPriceUSD = priceUSD;
@@ -456,7 +456,7 @@ export async function purchaseNFTWithSmartTrade(
   purchaserWallet: Wallet
 ): Promise<NFTPurchaseResult> {
   try {
-    await connectXrplClient();
+    await connectXRPLClient();
     
     console.log(`🛒 Smart NFT Purchase with User Wallet...`);
     console.log(`   🆔 Offer ID: ${offerID}`);

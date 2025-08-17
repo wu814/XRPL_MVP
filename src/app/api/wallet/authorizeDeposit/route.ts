@@ -44,9 +44,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const walletWithDepositAuthXrplWallet = Wallet.fromSeed(walletData.seed);
+    const walletWithDepositAuthXRPLWallet = Wallet.fromSeed(walletData.seed);
 
-    const result = await authorizeDeposit(walletWithDepositAuthXrplWallet, authorizedAddress);
+    const result = await authorizeDeposit(walletWithDepositAuthXRPLWallet, authorizedAddress);
 
     return NextResponse.json({ message: result.message });
   } catch (error) {

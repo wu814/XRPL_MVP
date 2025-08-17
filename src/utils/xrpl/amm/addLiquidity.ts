@@ -1,58 +1,20 @@
-import { client, connectXrplClient } from "../testnet";
-import { Wallet, IssuedCurrencyAmount } from "xrpl";
-import * as xrpl from "xrpl";
-import { checkTrustline } from "@/utils/xrpl/trustline/setTrustline";
+import { client, connectXRPLClient } from "../testnet";
+import { 
+  Wallet, 
+  IssuedCurrencyAmount, 
+  AccountLinesResponse, 
+  dropsToXrp, 
+  AccountInfoResponse, 
+  AMMDeposit,
+  TxResponse } from "xrpl";
 import BigNumber from "bignumber.js";
-import { handleAMMDepositError } from '../errorHandler';
+import { handleTransactionError, isTypedTransactionSuccessful } from '../errorHandler';
+import { AddLiquidityResult, AddLiquidityTwoAssetParams, AddLiquidityLPTokenParams, AddLiquiditySingleAssetParams, AddLiquidityOneAssetLPTokenParams } from "@/types/xrpl/ammXRPLTypes";
+import { formatAmountForXRPL } from "@/utils/assetUtils";
+import { formatCurrencyForXRPL } from "@/utils/currencyUtils";
 
 const BASE_RESERVE_XRP = 1; // Base reserve for an account in XRP
 const OWNER_RESERVE_XRP = 0.2; // Owner reserve for each object in XRP
-
-
-interface Asset {
-  currency: string;
-  issuer?: string;
-  value: string;
-}
-
-
-interface TransactionResult {
-  result: {
-    hash: string;
-    meta: {
-      AffectedNodes: any[];
-    };
-    tx_json?: {
-      Account: string;
-      Fee: string;
-    };
-    AMMAccount?: string;
-  };
-}
-
-interface TransactionDetails {
-  output: string;
-  success: boolean;
-}
-
-interface BalanceResponse {
-  result: {
-    lines: Array<{
-      currency: string;
-      balance: string;
-      account: string;
-    }>;
-  };
-}
-
-interface AccountInfoResponse {
-  result: {
-    account_data: {
-      Balance: string;
-      OwnerCount?: number;
-    };
-  };
-}
 
 interface AMMInfoResponse {
   result: {
@@ -66,42 +28,107 @@ interface AMMInfoResponse {
   };
 }
 
-interface LedgerResponse {
-  result: {
-    ledger_current_index: number;
-  };
+/**
+ * Helper function to check if a wallet has sufficient balance for adding liquidity
+ * @param providerWallet - The wallet providing liquidity
+ * @param amount - The asset to check balance for
+ * @returns Promise<boolean> - Returns true if sufficient balance, false otherwise
+ */
+export async function checkAssetBalanceForAddLiquidity(
+  providerXRPLWallet: Wallet,
+  amount: IssuedCurrencyAmount
+): Promise<boolean> {
+  if (amount.currency !== "XRP") {
+    if (!amount.issuer) {
+      throw new Error(`Issuer not specified for ${amount.currency}`);
+    }
+
+    console.log(`🔍 Checking ${amount.currency} balance...`);
+    const balanceResponse: AccountLinesResponse = await client.request({
+      command: "account_lines",
+      account: providerXRPLWallet.classicAddress,
+      peer: amount.issuer,
+    });
+
+    const assetLine = balanceResponse.result.lines.find(
+      (line) =>
+        line.currency === amount.currency &&
+        line.account === amount.issuer,
+    );
+
+    if (assetLine) {
+      const balance = new BigNumber(assetLine.balance);
+      const depositAmount = new BigNumber(amount.value);
+
+      if (balance.lt(depositAmount)) {
+        console.log(`❌ Insufficient ${amount.currency} balance. Have: ${balance.toFixed(6)}, Need: ${depositAmount.toFixed(6)}`);
+        return false;
+      }
+      
+      console.log(`✅ Sufficient ${amount.currency} balance confirmed.`);
+      return true;
+    } else {
+      console.log(`❌ No trustline found for ${amount.currency} from ${amount.issuer}`);
+      return false;
+    }
+  } else {
+    console.log(`🔍 Checking XRP balance...`);
+    const accountInfoResponse: AccountInfoResponse = await client.request({
+      command: "account_info",
+      account: providerXRPLWallet.classicAddress,
+      ledger_index: "validated",
+    });
+
+    const xrpBalance = new BigNumber(dropsToXrp(
+      accountInfoResponse.result.account_data.Balance,
+    ));
+    const ownerCount = accountInfoResponse.result.account_data.OwnerCount || 0;
+    const reserveXRP = new BigNumber(BASE_RESERVE_XRP).plus(new BigNumber(OWNER_RESERVE_XRP).times(ownerCount));
+    const depositAmount = new BigNumber(amount.value);
+
+    if (xrpBalance.minus(reserveXRP).lt(depositAmount)) {
+      console.log(`❌ Insufficient XRP balance. Need: ${depositAmount.plus(reserveXRP).toFixed(6)} (${depositAmount.toFixed(6)} + ${reserveXRP.toFixed(6)} reserve), Have: ${xrpBalance.toFixed(6)}`);
+      return false;
+    }
+    
+    console.log(`✅ Sufficient XRP balance confirmed.`);
+    return true;
+  }
 }
 
 // Extract and display LP tokens received from transaction metadata
 export async function extractLPTokensReceived(
-  result: TransactionResult,
+  result: TxResponse<AMMDeposit>,
   providerWallet: Wallet,
   ammAccount: string,
 ): Promise<IssuedCurrencyAmount | null> {
   // The LPTokenOut is in the AffectedNodes array
   let lpTokensReceived: IssuedCurrencyAmount | null = null;
+  if (typeof result.result.meta === "string") { // If the transaction is not successful, the meta is a string
+    return null;
+  }
   const nodes = result.result.meta.AffectedNodes || [];
 
   // First pass: Look for trustline modifications to find LP token receipt
   for (const node of nodes) {
     // Check for modified trustlines to find LP token change
     if (
-      node.ModifiedNode &&
+      'ModifiedNode' in node &&
       node.ModifiedNode.LedgerEntryType === "RippleState"
     ) {
       const state = node.ModifiedNode;
 
       // LP tokens typically have a 40-character currency code
       if (
-        !state.FinalFields?.Balance?.currency ||
-        state.FinalFields.Balance.currency.length !== 40
+        !(state.FinalFields?.Balance as any)?.currency ||
+        (state.FinalFields?.Balance as any)?.currency?.length !== 40
       ) {
         continue;
       }
 
       // Check if this trustline involves the AMM account (issuer of LP tokens)
-      const highAccount = state.FinalFields?.HighLimit?.issuer;
-      const lowAccount = state.FinalFields?.LowLimit?.issuer;
+      const highAccount = (state.FinalFields?.HighLimit as any)?.issuer;
+      const lowAccount = (state.FinalFields?.LowLimit as any)?.issuer;
 
       // Check if this involves both the wallet and the AMM account
       const involvesWallet =
@@ -120,8 +147,8 @@ export async function extractLPTokensReceived(
         const prevBalance = state.PreviousFields.Balance;
 
         // Calculate the change in token balance from the perspective of the user
-        let prevValue = parseFloat(prevBalance.value || "0");
-        let finalValue = parseFloat(balance.value || "0");
+        let prevValue = parseFloat((prevBalance as any)?.value || "0");
+        let finalValue = parseFloat((balance as any)?.value || "0");
 
         // Adjust for balance perspective (RippleState Balance is from LowLimit's perspective)
         const isUserLow = lowAccount === providerWallet.classicAddress;
@@ -138,7 +165,7 @@ export async function extractLPTokensReceived(
 
         if (diff > 0) {
           lpTokensReceived = {
-            currency: balance.currency,
+            currency: (balance as any).currency,
             issuer: ammAccount,
             value: diff.toFixed(2),
           };
@@ -156,22 +183,22 @@ export async function extractLPTokensReceived(
   if (!lpTokensReceived) {
     for (const node of nodes) {
       if (
-        node.CreatedNode &&
+        'CreatedNode' in node &&
         node.CreatedNode.LedgerEntryType === "RippleState"
       ) {
         const state = node.CreatedNode;
 
         // LP tokens typically have a 40-character currency code
         if (
-          !state.NewFields?.Balance?.currency ||
-          state.NewFields.Balance.currency.length !== 40
+          !(state.NewFields?.Balance as any)?.currency ||
+          (state.NewFields?.Balance as any)?.currency?.length !== 40
         ) {
           continue;
         }
 
         // Check if this involves the AMM account
-        const highAccount = state.NewFields?.HighLimit?.issuer;
-        const lowAccount = state.NewFields?.LowLimit?.issuer;
+        const highAccount = (state.NewFields?.HighLimit as any)?.issuer;
+        const lowAccount = (state.NewFields?.LowLimit as any)?.issuer;
 
         const involvesWallet =
           highAccount === providerWallet.classicAddress ||
@@ -181,7 +208,7 @@ export async function extractLPTokensReceived(
 
         if (involvesWallet && involvesAMM && state.NewFields?.Balance) {
           const balance = state.NewFields.Balance;
-          let value = parseFloat(balance.value || "0");
+          let value = parseFloat((balance as any)?.value || "0");
 
           // Adjust for balance perspective
           const isUserLow = lowAccount === providerWallet.classicAddress;
@@ -191,10 +218,10 @@ export async function extractLPTokensReceived(
 
           if (value > 0) {
             console.log(
-              `✅ Found newly created LP token trustline: ${value.toFixed(6)} ${balance.currency}`,
+              `✅ Found newly created LP token trustline: ${value.toFixed(6)} ${(balance as any).currency}`,
             );
             lpTokensReceived = {
-              currency: balance.currency,
+              currency: (balance as any).currency,
               issuer: ammAccount,
               value: value.toFixed(6),
             };
@@ -208,53 +235,31 @@ export async function extractLPTokensReceived(
   if (lpTokensReceived) {
     return lpTokensReceived;
   } else {
-    // As a fallback, get current LP token balance and report it
-    const accountLines = await client.request({
-      command: "account_lines",
-      account: providerWallet.classicAddress,
-      peer: ammAccount,
-    });
-
-    const lpTokens = accountLines.result.lines.find(
-      (line: any) =>
-        line.account === ammAccount &&
-        line.currency &&
-        line.currency.length === 40,
-    );
-
-    if (lpTokens) {
-      console.log(
-        `💰 Current LP Token balance: ${lpTokens.balance} ${lpTokens.currency}`,
-      );
-      return {
-        currency: lpTokens.currency,
-        issuer: ammAccount,
-        value: parseFloat(lpTokens.balance).toFixed(6),
-      };
-    } else {
-      throw new Error("Could not find any LP token balance.");
-    }
+    console.warn("Could not extract LP tokens from transaction metadata");
+    return null;
   }
 }
 
 // Extract the actual assets deposited from transaction metadata
-function extractActualAssetsDeposited(result: TransactionResult): Asset[] {
+function extractActualAssetsDeposited(result: TxResponse<AMMDeposit>): IssuedCurrencyAmount[] {
+  // Type guard to ensure meta is not a string, string meta means the transaction is not successful
+  if (typeof result.result.meta === 'string') {
+    return [];
+  }
+  
   const nodes = result.result.meta.AffectedNodes || [];
-  const assetsDeposited: Asset[] = [];
+  const assetsDeposited: IssuedCurrencyAmount[] = [];
   // Track assets we've already added to avoid duplicates
   const addedAssets = new Set<string>();
 
   // Get transaction sender address, make sure this is the exact format result.result.tx_json?.Account
   const senderAddress = result.result.tx_json?.Account;
 
-  // Get AMM account address if present in the transaction
-  const ammAccount = result.result.AMMAccount;
-
   // Look for both token balance changes and XRP balance changes
   for (const node of nodes) {
     // For token deposits (check trustline modifications)
     if (
-      node.ModifiedNode &&
+      'ModifiedNode' in node &&
       node.ModifiedNode.LedgerEntryType === "RippleState"
     ) {
       const state = node.ModifiedNode;
@@ -265,18 +270,9 @@ function extractActualAssetsDeposited(result: TransactionResult): Asset[] {
         state.FinalFields.Balance &&
         state.PreviousFields.Balance
       ) {
-        // Get the previous and current balances
-        const finalBalance = state.FinalFields.Balance;
-        const prevBalance = state.PreviousFields.Balance;
-
-        // Skip if it's not a currency or if it's the LP token (usually has a 40-char currency code)
-        if (!finalBalance.currency || finalBalance.currency.length === 40) {
-          continue;
-        }
-
         // Skip non-transaction related trustlines
-        const highAccount = state.FinalFields.HighLimit?.issuer;
-        const lowAccount = state.FinalFields.LowLimit?.issuer;
+        const highAccount = (state.FinalFields.HighLimit as any)?.issuer;
+        const lowAccount = (state.FinalFields.LowLimit as any)?.issuer;
 
         // Only process entries where one of the accounts is the sender
         if (highAccount !== senderAddress && lowAccount !== senderAddress) {
@@ -286,7 +282,7 @@ function extractActualAssetsDeposited(result: TransactionResult): Asset[] {
         // Create a unique key for this asset to avoid duplicates
         // Include the currency and issuer, but not whose perspective the balance is from
         const issuer = lowAccount === senderAddress ? highAccount : lowAccount;
-        const assetKey = `${finalBalance.currency}:${issuer}`;
+        const assetKey = `${(state.FinalFields.Balance as any).currency}:${issuer}`;
 
         // Skip if we've already added this asset
         if (addedAssets.has(assetKey)) {
@@ -294,8 +290,8 @@ function extractActualAssetsDeposited(result: TransactionResult): Asset[] {
         }
 
         // Check if balance changed
-        const prevValue = parseFloat(prevBalance.value || "0");
-        const finalValue = parseFloat(finalBalance.value || "0");
+        const prevValue = new BigNumber((state.PreviousFields.Balance as any)?.value || "0");
+        const finalValue = new BigNumber((state.FinalFields.Balance as any)?.value || "0");
 
         // Determine if this is an incoming or outgoing balance
         // For the sender, a positive value means a decrease in their balance (outgoing/deposit)
@@ -305,20 +301,20 @@ function extractActualAssetsDeposited(result: TransactionResult): Asset[] {
         // In RippleState, the Balance field is from LowLimit's perspective
         // So if the sender is LowLimit, a lower final value means they sent funds
         // If the sender is HighLimit, a higher final value means they sent funds
-        let diff;
+        let diff: BigNumber;
         if (isFromSenderPerspective) {
-          diff = prevValue - finalValue; // If positive, sender sent funds
+          diff = prevValue.minus(finalValue); // If positive, sender sent funds
         } else {
-          diff = finalValue - prevValue; // If positive, sender sent funds
+          diff = finalValue.minus(prevValue); // If positive, sender sent funds
         }
 
         // Only add if the sender's balance decreased by a significant amount
         // (i.e., they sent funds)
-        if (diff > 0.000001) {
+        if (diff.gt(0.000001)) {
           assetsDeposited.push({
-            currency: finalBalance.currency,
+            currency: (state.FinalFields.Balance as any).currency,
             issuer: issuer,
-            value: diff.toFixed(6),
+            value: diff.toString(),
           });
 
           // Mark this asset as processed
@@ -329,7 +325,7 @@ function extractActualAssetsDeposited(result: TransactionResult): Asset[] {
 
     // For XRP deposits (check AccountRoot modifications)
     else if (
-      node.ModifiedNode &&
+      'ModifiedNode' in node &&
       node.ModifiedNode.LedgerEntryType === "AccountRoot"
     ) {
       const state = node.ModifiedNode;
@@ -346,30 +342,34 @@ function extractActualAssetsDeposited(result: TransactionResult): Asset[] {
         state.PreviousFields.Balance
       ) {
         // Calculate the difference in XRP balance (in drops)
-        const finalDrops = parseInt(state.FinalFields.Balance);
-        const prevDrops = parseInt(state.PreviousFields.Balance);
+        const finalDrops = new BigNumber((state.FinalFields.Balance as any) || "0");
+        const prevDrops = new BigNumber((state.PreviousFields.Balance as any) || "0");
 
         // The fee is directly deducted from the account, we need to consider it
         const fee = parseInt(result.result.tx_json?.Fee) || 0;
 
         // Calculate how much XRP was sent
-        const xrpSent = prevDrops - finalDrops - fee;
+        const xrpSent = prevDrops.minus(finalDrops).minus(fee);
+
+        // Use consistent key format for XRP
+        const xrpKey = "XRP:";
 
         // Skip if we've already added XRP
-        if (addedAssets.has("XRP")) continue;
+        if (addedAssets.has(xrpKey)) continue;
 
         // Only add if a significant amount of XRP was sent (more than just the fee)
-        if (xrpSent > 1000) {
+        if (xrpSent.gt(1000)) {
           // 1000 drops threshold (0.001 XRP)
           // Convert drops to XRP for display
-          const xrpValue = xrpl.dropsToXrp(xrpSent.toString());
+          const xrpValue = dropsToXrp(xrpSent.toString());
           assetsDeposited.push({
-            currency: "XRP",
-            value: xrpValue.toFixed(6),
+            currency: "XRP", 
+            issuer: "", // Empty string for XRP as per your convention
+            value: xrpValue.toString(),
           });
 
-          // Mark XRP as processed
-          addedAssets.add("XRP");
+          // Mark XRP as processed using consistent key format
+          addedAssets.add(xrpKey);
         }
       }
     }
@@ -382,14 +382,14 @@ function extractActualAssetsDeposited(result: TransactionResult): Asset[] {
     return assetsDeposited;
   }
 
-  throw new Error("No assets were detected in the transaction metadata.");
+  return [];
 }
 
 function displayTransactionDetails(
-  result: TransactionResult, 
+  result: TxResponse<AMMDeposit>, 
   lpTokensReceived: IssuedCurrencyAmount | null, 
-  assetsDeposited: Asset[]
-): TransactionDetails {
+  assetsDeposited: IssuedCurrencyAmount[]
+): string {
   let output = "\n===== Transaction Details =====\n";
 
   output += `🔑 Transaction Hash: ${result.result.hash}\n`;
@@ -401,7 +401,7 @@ function displayTransactionDetails(
   if (assetsDeposited && assetsDeposited.length > 0) {
     output += `\n📤 ACTUAL Assets Deposited:\n`;
 
-    const assetsByCurrency: Record<string, Asset[]> = {};
+    const assetsByCurrency: Record<string, IssuedCurrencyAmount[]> = {};
     assetsDeposited.forEach((asset) => {
       const key = asset.currency;
       if (!assetsByCurrency[key]) {
@@ -414,13 +414,15 @@ function displayTransactionDetails(
       const total = assets.reduce((sum, a) => sum + parseFloat(a.value), 0);
       output += `   • ${total.toFixed(6)} ${currency}\n`;
 
+      // Handle empty issuer for XRP consistently
       const uniqueIssuers = new Set(
-        assets.map((a) => a.issuer || "Native XRP"),
+        assets.map((a) => a.issuer === "" ? "Native XRP" : a.issuer),
       );
       if (uniqueIssuers.size > 1) {
         output += `     Breakdown:\n`;
         assets.forEach((asset) => {
-          output += `     - ${asset.value} from issuer: ${asset.issuer || "Native XRP"}\n`;
+          const issuerDisplay = asset.issuer === "" ? "Native XRP" : asset.issuer;
+          output += `     - ${asset.value} from issuer: ${issuerDisplay}\n`;
         });
       }
     });
@@ -429,210 +431,124 @@ function displayTransactionDetails(
   }
 
   if (result.result.tx_json?.Fee) {
-    output += `\n💸 Transaction Cost: ${xrpl.dropsToXrp(result.result.tx_json?.Fee)} XRP\n`;
+    output += `\n💸 Transaction Cost: ${dropsToXrp(result.result.tx_json?.Fee)} XRP\n`;
   }
 
   output += "==============================\n";
-  return {
-    output,
-    success: true,
-  };
+  return output;
 }
 
 // Double-asset deposit: tfTwoAsset (existing, but now with explicit flag)
 export async function addLiquidityTwoAsset(
-  providerWallet: Wallet,
-  ammAccount: string,
-  assetAObj: Asset,
-  assetBObj: Asset,
-): Promise<TransactionDetails> {
-  await connectXrplClient();
+  { providerXRPLWallet, ammAccount, formattedAmount1, formattedAmount2 }: AddLiquidityTwoAssetParams
+): Promise<AddLiquidityResult> {
+  await connectXRPLClient();
 
   console.log(`✅ Adding liquidity to AMM at ${ammAccount}`);
-  console.log(`🔹 Asset A: ${assetAObj.currency} - Amount: ${assetAObj.value}`);
-  console.log(`🔹 Asset B: ${assetBObj.currency} - Amount: ${assetBObj.value}`);
+  console.log(`🔹 Asset A: ${formattedAmount1.currency} - Amount: ${formattedAmount1.value}`);
+  console.log(`🔹 Asset B: ${formattedAmount2.currency} - Amount: ${formattedAmount2.value}`);
 
   // ========== BALANCE CHECKS ==========
 
-  // Asset A
-  if (assetAObj.currency !== "XRP") {
-    if (!assetAObj.issuer)
-      throw new Error(`Issuer not specified for ${assetAObj.currency}`);
-
-    console.log(`🔍 Checking ${assetAObj.currency} balance...`);
-    const balanceResponseA: BalanceResponse = await client.request({
-      command: "account_lines",
-      account: providerWallet.classicAddress,
-      peer: assetAObj.issuer,
-    });
-
-    const assetLineA = balanceResponseA.result.lines.find(
-      (line) =>
-        line.currency === assetAObj.currency &&
-        line.account === assetAObj.issuer,
-    );
-
-    if (assetLineA) {
-      const balance = new BigNumber(assetLineA.balance);
-      const depositAmount = new BigNumber(assetAObj.value);
-
-      if (balance.lt(depositAmount)) {
-        throw new Error(`Insufficient ${assetAObj.currency} balance.`);
+  // Asset 1
+  const asset1BalanceSufficient = await checkAssetBalanceForAddLiquidity(providerXRPLWallet, formattedAmount1);
+  if (!asset1BalanceSufficient) {
+    return {
+      success: false,
+      error: {
+        code: "INSUFFICIENT_BALANCE",
+        message: `Insufficient ${formattedAmount1.currency} balance.`,
       }
-    } else {
-      throw new Error(
-        `No trustline found for ${assetAObj.currency} from ${assetAObj.issuer}`,
-      );
-    }
-  } else {
-    const accountInfoResponseA: AccountInfoResponse = await client.request({
-      command: "account_info",
-      account: providerWallet.classicAddress,
-      ledger_index: "validated",
-    });
-
-    const xrpBalance = xrpl.dropsToXrp(
-      accountInfoResponseA.result.account_data.Balance,
-    );
-    const ownerCount = accountInfoResponseA.result.account_data.OwnerCount || 0;
-    const reserveXRP = BASE_RESERVE_XRP + OWNER_RESERVE_XRP * ownerCount;
-    const depositAmount = Number(assetAObj.value);
-
-    if (xrpBalance - reserveXRP < depositAmount) {
-      throw new Error(
-        `Insufficient XRP balance. Need ${depositAmount + reserveXRP}, have ${xrpBalance}`,
-      );
-    }
+    };
   }
 
-  // Asset B
-  if (assetBObj.currency !== "XRP") {
-    if (!assetBObj.issuer)
-      throw new Error(`Issuer not specified for ${assetBObj.currency}`);
-
-    console.log(`🔍 Checking ${assetBObj.currency} balance...`);
-    const balanceResponseB: BalanceResponse = await client.request({
-      command: "account_lines",
-      account: providerWallet.classicAddress,
-      peer: assetBObj.issuer,
-    });
-
-    const assetLineB = balanceResponseB.result.lines.find(
-      (line) =>
-        line.currency === assetBObj.currency &&
-        line.account === assetBObj.issuer,
-    );
-
-    if (assetLineB) {
-      const balance = new BigNumber(assetLineB.balance);
-      const depositAmount = new BigNumber(assetBObj.value);
-
-      if (balance.lt(depositAmount)) {
-        throw new Error(`Insufficient ${assetBObj.currency} balance.`);
+  // Asset 2
+  const asset2BalanceSufficient = await checkAssetBalanceForAddLiquidity(providerXRPLWallet, formattedAmount2);
+  if (!asset2BalanceSufficient) {
+    return {
+      success: false,
+      error: {
+        code: "INSUFFICIENT_BALANCE",
+        message: `Insufficient ${formattedAmount2.currency} balance.`,
       }
-    } else {
-      throw new Error(
-        `No trustline found for ${assetBObj.currency} from ${assetBObj.issuer}`,
-      );
-    }
-  } else {
-    const accountInfoResponseB: AccountInfoResponse = await client.request({
-      command: "account_info",
-      account: providerWallet.classicAddress,
-      ledger_index: "validated",
-    });
-
-    const xrpBalance = xrpl.dropsToXrp(
-      accountInfoResponseB.result.account_data.Balance,
-    );
-    const ownerCount = accountInfoResponseB.result.account_data.OwnerCount || 0;
-    const reserveXRP = BASE_RESERVE_XRP + OWNER_RESERVE_XRP * ownerCount;
-    const depositAmount = Number(assetBObj.value);
-
-    if (xrpBalance - reserveXRP < depositAmount) {
-      throw new Error(
-        `Insufficient XRP balance. Need ${depositAmount + reserveXRP}, have ${xrpBalance}`,
-      );
-    }
+    };
   }
 
   // ========== BUILD TRANSACTION ==========
 
-  const tx: any = {
+  const amount1 = formatAmountForXRPL(formattedAmount1);
+  const amount2 = formatAmountForXRPL(formattedAmount2);
+  const asset1 = formatCurrencyForXRPL(formattedAmount1.currency, formattedAmount1.issuer);
+  const asset2 = formatCurrencyForXRPL(formattedAmount2.currency, formattedAmount2.issuer);
+
+  const tx: AMMDeposit = {
     TransactionType: "AMMDeposit",
-    Account: providerWallet.classicAddress,
-    AMMAccount: ammAccount,
+    Account: providerXRPLWallet.classicAddress,
     Flags: 0x00100000, // tfTwoAsset
+    Amount: amount1,
+    Amount2: amount2,
+    Asset: asset1,
+    Asset2: asset2,
   };
-
-  if (assetAObj.currency === "XRP") {
-    tx.Asset = { currency: "XRP" };
-    tx.Amount = xrpl.xrpToDrops(assetAObj.value);
-  } else {
-    tx.Asset = {
-      currency: assetAObj.currency,
-      issuer: assetAObj.issuer,
-    };
-    tx.Amount = {
-      currency: assetAObj.currency,
-      issuer: assetAObj.issuer,
-      value: assetAObj.value,
-    };
-  }
-
-  if (assetBObj.currency === "XRP") {
-    tx.Asset2 = { currency: "XRP" };
-    tx.Amount2 = xrpl.xrpToDrops(assetBObj.value);
-  } else {
-    tx.Asset2 = {
-      currency: assetBObj.currency,
-      issuer: assetBObj.issuer,
-      value: assetBObj.value,
-    };
-  }
 
   console.log("🔄 Preparing transaction...");
   const prepared = await client.autofill(tx);
-
   console.log("✍️ Signing transaction...");
-  const signed = providerWallet.sign(prepared);
+  const signed = providerXRPLWallet.sign(prepared);
+  console.log("⏳ Submitting transaction and waiting for validation...");
+  const result = await client.submitAndWait<AMMDeposit>(signed.tx_blob);
 
-  console.log("⏳ Waiting for transaction validation...");
-  const result = await client.submitAndWait(signed.tx_blob);
-
-  // Handle any AMM deposit errors
-  try {
-    handleAMMDepositError(result);
-  } catch (error: any) {
-    console.error(`❌ AMM Deposit error: ${error.message}`);
+  if (!isTypedTransactionSuccessful(result)) {
+    const errorInfo = handleTransactionError(result, "addLiquidityTwoAsset");
+    return {
+      success: false,
+      error: {
+        code: errorInfo.code,
+        message: errorInfo.message,
+      }
+    };
   }
 
   console.log("✅ Successfully added liquidity to AMM");
 
-  const lpTokensReceived = await extractLPTokensReceived(
-    result as TransactionResult,
-    providerWallet,
-    ammAccount,
-  );
-  const assetsDeposited = extractActualAssetsDeposited(result as TransactionResult);
-
-  return displayTransactionDetails(result as TransactionResult, lpTokensReceived, assetsDeposited);
+  // ========== EXTRACT RESULTS ==========
+  const lpTokensReceived = await extractLPTokensReceived(result, providerXRPLWallet, ammAccount);
+  if (!lpTokensReceived) {
+    return {
+      success: false,
+      error: {
+        code: "LP_TOKEN_EXTRACTION_FAILED",
+        message: "Could not determine LP tokens received from transaction"
+      }
+    };
+  }
+  const assetsDeposited = extractActualAssetsDeposited(result);
+  if (assetsDeposited.length === 0) {
+    return {
+      success: false,
+      error: {
+        code: "ASSETS_EXTRACTION_FAILED",
+        message: "Could not determine assets deposited from transaction"
+      }
+    };
+  }
+  const output = displayTransactionDetails(result, lpTokensReceived, assetsDeposited);
+  return {
+    success: true,
+    message: output
+  };
 }
 
-export async function addLiquidityLPToken(
-  providerWallet: Wallet,
-  ammAccount: string,
-  assetAObj: Asset,
-  assetBObj: Asset,
-  lpTokenOut: IssuedCurrencyAmount,
-): Promise<TransactionDetails> {
-  await connectXrplClient();
+export async function addLiquidityTwoAssetLPToken(
+  { providerXRPLWallet, ammAccount, formattedAmount1, formattedAmount2, lpTokenOut }: AddLiquidityLPTokenParams
+): Promise<AddLiquidityResult> {
+  await connectXRPLClient();
   console.log(`✅ Adding liquidity (LPToken) to AMM at ${ammAccount}`);
   console.log(
-    `🔹 Asset A: ${assetAObj.currency} - Max Amount: ${assetAObj.value}`,
+    `🔹 Asset A: ${formattedAmount1.currency} - Max Amount: ${formattedAmount1.value}`,
   );
   console.log(
-    `🔹 Asset B: ${assetBObj.currency} - Max Amount: ${assetBObj.value}`,
+    `🔹 Asset B: ${formattedAmount2.currency} - Max Amount: ${formattedAmount2.value}`,
   );
   console.log(`🔹 LPTokenOut: ${JSON.stringify(lpTokenOut)}`);
 
@@ -642,1018 +558,283 @@ export async function addLiquidityLPToken(
     ledger_index: "validated",
   });
   if (!ammInfoResponse.result.amm || !ammInfoResponse.result.amm.lp_token) {
-    throw new Error("Could not retrieve LP token information from AMM");
-  }
-
-  // Check asset A
-  if (assetAObj.currency !== "XRP") {
-    if (!assetAObj.issuer)
-      throw new Error(`Issuer not specified for ${assetAObj.currency}`);
-    const balanceResponseA: BalanceResponse = await client.request({
-      command: "account_lines",
-      account: providerWallet.classicAddress,
-      peer: assetAObj.issuer,
-    });
-    const assetLineA = balanceResponseA.result.lines.find(
-      (line) => line.currency === assetAObj.currency,
-    );
-    if (assetLineA) {
-      const balance = new BigNumber(assetLineA.balance);
-      const depositBN = new BigNumber(assetAObj.value);
-      if (balance.lt(depositBN)) {
-        throw new Error(
-          `Insufficient balance of ${assetAObj.currency}. Have: ${balance.toFixed(6)}, Need: ${depositBN.toFixed(6)}`,
-        );
+    return {
+      success: false,
+      error: {
+        code: "AMM_INFO_ERROR",
+        message: "Could not retrieve LP token information from AMM"
       }
-    } else {
-      throw new Error(
-        `Cannot find balance information for ${assetAObj.currency}`,
-      );
-    }
-  } else {
-    const accountInfoResponseA: AccountInfoResponse = await client.request({
-      command: "account_info",
-      account: providerWallet.classicAddress,
-      ledger_index: "validated",
-    });
-    if (!accountInfoResponseA.result?.account_data) {
-      throw new Error("Cannot find balance information for XRP");
-    }
-    const xrpBalance = xrpl.dropsToXrp(
-      accountInfoResponseA.result.account_data.Balance,
-    );
-    const ownerCount = accountInfoResponseA.result.account_data.OwnerCount || 0;
-    const reserveXRP = BASE_RESERVE_XRP + OWNER_RESERVE_XRP * ownerCount;
-    const depositAmount = parseFloat(assetAObj.value);
-    if (xrpBalance - reserveXRP < depositAmount) {
-      throw new Error(
-        `Insufficient XRP balance. Need ${depositAmount + reserveXRP}, have ${xrpBalance}`,
-      );
-    }
-  }
-
-  // Check asset B
-  if (assetBObj.currency !== "XRP") {
-    if (!assetBObj.issuer)
-      throw new Error(`Issuer not specified for ${assetBObj.currency}`);
-    const balanceResponseB: BalanceResponse = await client.request({
-      command: "account_lines",
-      account: providerWallet.classicAddress,
-      peer: assetBObj.issuer,
-    });
-    const assetLineB = balanceResponseB.result.lines.find(
-      (line) => line.currency === assetBObj.currency,
-    );
-    if (assetLineB) {
-      const balance = new BigNumber(assetLineB.balance);
-      const depositBN = new BigNumber(assetBObj.value);
-      if (balance.lt(depositBN)) {
-        throw new Error(
-          `Insufficient balance of ${assetBObj.currency}. Have: ${balance.toFixed(6)}, Need: ${depositBN.toFixed(6)}`,
-        );
-      }
-    } else {
-      throw new Error(
-        `Cannot find balance information for ${assetBObj.currency}`,
-      );
-    }
-  } else {
-    const accountInfoResponse: AccountInfoResponse = await client.request({
-      command: "account_info",
-      account: providerWallet.classicAddress,
-      ledger_index: "validated",
-    });
-    if (!accountInfoResponse.result?.account_data) {
-      throw new Error("Cannot find balance information for XRP");
-    }
-    const xrpBalance = xrpl.dropsToXrp(
-      accountInfoResponse.result.account_data.Balance,
-    );
-    const ownerCount = accountInfoResponse.result.account_data.OwnerCount || 0;
-    const reserveXRP = BASE_RESERVE_XRP + OWNER_RESERVE_XRP * ownerCount;
-    const depositAmount = parseFloat(assetBObj.value);
-    if (xrpBalance - reserveXRP < depositAmount) {
-      throw new Error(
-        `Insufficient XRP balance. Need ${depositAmount + reserveXRP}, have ${xrpBalance}`,
-      );
-    }
-  }
-
-  const poolInfo = ammInfoResponse.result.amm;
-  if (!poolInfo) {
-    throw new Error("Could not retrieve AMM pool information");
-  }
-
-  const isPoolEmpty = poolInfo.amount === "0" || poolInfo.amount2 === "0";
-  if (isPoolEmpty) {
-    throw new Error(
-      "The AMM pool appears to be empty or nearly empty. Use the 'Two Asset If Empty' option instead.",
-    );
-  }
-
-  const tx: any = {
-    TransactionType: "AMMDeposit",
-    Account: providerWallet.classicAddress,
-    AMMAccount: ammAccount,
-    Flags: 0x00010000, // tfLPToken
-    LPTokenOut: {
-      currency: lpTokenOut.currency,
-      issuer: lpTokenOut.issuer,
-      value: lpTokenOut.value,
-    },
-  };
-
-  tx.Asset =
-    assetAObj.currency === "XRP"
-      ? { currency: "XRP" }
-      : { currency: assetAObj.currency, issuer: assetAObj.issuer };
-
-  tx.Asset2 =
-    assetBObj.currency === "XRP"
-      ? { currency: assetBObj.currency, issuer: assetBObj.issuer }
-      : { currency: assetBObj.currency, issuer: assetBObj.issuer };
-
-  const asset1Amount =
-    typeof poolInfo.amount === "object"
-      ? parseFloat(poolInfo.amount.value)
-      : xrpl.dropsToXrp(String(poolInfo.amount));
-
-  const asset2Amount =
-    typeof poolInfo.amount2 === "object"
-      ? parseFloat(poolInfo.amount2.value)
-      : xrpl.dropsToXrp(String(poolInfo.amount2));
-
-  const lpTokenSupply = parseFloat(poolInfo.lp_token.value);
-
-  if (lpTokenSupply > 0) {
-    const lpTokenRatio = parseFloat(lpTokenOut.value) / lpTokenSupply;
-    const requiredAsset1 = asset1Amount * lpTokenRatio;
-    const requiredAsset2 = asset2Amount * lpTokenRatio;
-
-    console.log(`💡 Based on the LP token ratio, you need approximately:`);
-    console.log(`   - ${requiredAsset1.toFixed(6)} of ${assetAObj.currency}`);
-    console.log(`   - ${requiredAsset2.toFixed(6)} of ${assetBObj.currency}`);
-    console.log(`   Maximum amounts you're willing to provide:`);
-    console.log(`   - ${assetAObj.value} of ${assetAObj.currency}`);
-    console.log(`   - ${assetBObj.value} of ${assetBObj.currency}`);
-
-    const asset1Sufficient = new BigNumber(assetAObj.value)
-      .decimalPlaces(6)
-      .gte(new BigNumber(requiredAsset1.toString()).decimalPlaces(6));
-    const asset2Sufficient = new BigNumber(assetBObj.value)
-      .decimalPlaces(6)
-      .gte(new BigNumber(requiredAsset2.toString()).decimalPlaces(6));
-
-    if (!asset1Sufficient || !asset2Sufficient) {
-      console.log(
-        "⚠️ Warning: The maximum amounts you're providing may not be sufficient for the requested LP tokens.",
-      );
-    }
-  }
-
-  console.log(
-    "📃 Transaction fields (LPToken):",
-    JSON.stringify(
-      {
-        TransactionType: tx.TransactionType,
-        Asset: tx.Asset,
-        Asset2: tx.Asset2,
-        LPTokenOut: tx.LPTokenOut,
-        AMMAccount: tx.AMMAccount,
-        Flags: tx.Flags,
-      },
-      null,
-      2,
-    ),
-  );
-
-  const prepared = await client.autofill(tx);
-  console.log("🔄 Transaction prepared, signing...");
-  const signed = providerWallet.sign(prepared);
-  console.log("⏳ Submitting transaction and waiting for validation...");
-  const result = await client.submitAndWait(signed.tx_blob);
-
-  // Handle any AMM deposit errors
-  try {
-    handleAMMDepositError(result);
-  } catch (error: any) {
-    console.error(`❌ AMM Deposit error: ${error.message}`);
-  }
-
-  console.log("✅ Successfully added liquidity to AMM (LPToken)");
-
-  const lpTokensReceived = await extractLPTokensReceived(
-    result as TransactionResult,
-    providerWallet,
-    ammAccount,
-  );
-  const assetsDeposited = extractActualAssetsDeposited(result as TransactionResult);
-
-  return displayTransactionDetails(result as TransactionResult, lpTokensReceived, assetsDeposited);
-}
-
-export async function addLiquidityIfEmpty(
-  providerWallet: Wallet,
-  ammAccount: string,
-  assetAObj: Asset,
-  assetBObj: Asset,
-): Promise<TransactionDetails> {
-  await connectXrplClient();
-  console.log(`✅ Adding liquidity (IfEmpty) to AMM at ${ammAccount}`);
-
-  // Check AMM status
-  const ammInfoResponse: AMMInfoResponse = await client.request({
-    command: "amm_info",
-    amm_account: ammAccount,
-    ledger_index: "validated",
-  });
-
-  if (ammInfoResponse.result && ammInfoResponse.result.amm) {
-    const ammInfo = ammInfoResponse.result.amm;
-    const asset1 = ammInfo.amount && typeof ammInfo.amount === 'object' && 'currency' in ammInfo.amount
-      ? ammInfo.amount
-      : { value: xrpl.dropsToXrp(String(ammInfo.amount)) };
-    const asset2 = ammInfo.amount2 && typeof ammInfo.amount2 === 'object' && 'currency' in ammInfo.amount2
-      ? ammInfo.amount2
-      : { value: xrpl.dropsToXrp(String(ammInfo.amount2)) };
-
-    const hasLiquidity =
-      (('currency' in asset1 && parseFloat(String(asset1.value)) > 0) ||
-        (!('currency' in asset1) && parseFloat(String(asset1.value)) > 0)) &&
-      (('currency' in asset2 && parseFloat(String(asset2.value)) > 0) ||
-        (!('currency' in asset2) && parseFloat(String(asset2.value)) > 0));
-
-    if (hasLiquidity) {
-      console.log(
-        "⚠️ The AMM pool already has liquidity. The 'IfEmpty' option is designed for empty pools.",
-      );
-      console.log(
-        `   Current pool balances: ${asset1.value} ${('currency' in asset1) ? asset1.currency : "XRP"}, ${asset2.value} ${('currency' in asset2) ? asset2.currency : "XRP"}`,
-      );
-      console.log(
-        "   You can still proceed, but the 'Two Asset Quantity' option might be more appropriate.",
-      );
-    }
-  }
-
-  let amount1: any, amount2: any;
-
-  if (assetAObj.currency === "XRP") {
-    amount1 = xrpl.xrpToDrops(assetAObj.value);
-    console.log(`🔹 Asset A: XRP - Amount: ${assetAObj.value}`);
-  } else {
-    amount1 = {
-      currency: assetAObj.currency,
-      issuer: assetAObj.issuer,
-      value: assetAObj.value,
     };
-    console.log(
-      `🔹 Asset A: ${assetAObj.currency} - Amount: ${assetAObj.value} - Issuer: ${assetAObj.issuer}`,
-    );
-  }
-
-  if (assetBObj.currency === "XRP") {
-    amount2 = xrpl.xrpToDrops(assetBObj.value);
-    console.log(`🔹 Asset B: XRP - Amount: ${assetBObj.value}`);
-  } else {
-    amount2 = {
-      currency: assetBObj.currency,
-      issuer: assetBObj.issuer,
-      value: assetBObj.value,
-    };
-    console.log(
-      `🔹 Asset B: ${assetBObj.currency} - Amount: ${assetBObj.value} - Issuer: ${assetBObj.issuer}`,
-    );
-  }
-
-  // Asset A balance check
-  if (assetAObj.currency !== "XRP") {
-    const balanceResponseA: BalanceResponse = await client.request({
-      command: "account_lines",
-      account: providerWallet.classicAddress,
-      peer: assetAObj.issuer!,
-    });
-    const assetLineA = balanceResponseA.result.lines.find(
-      (line) => line.currency === assetAObj.currency,
-    );
-    if (!assetLineA) {
-      throw new Error(`No trustline found for ${assetAObj.currency}`);
-    }
-    const balance = parseFloat(assetLineA.balance);
-    const deposit = parseFloat(assetAObj.value);
-    if (balance < deposit) {
-      throw new Error(
-        `Insufficient balance of ${assetAObj.currency}. Have: ${balance.toFixed(6)}, Need: ${deposit.toFixed(6)}`,
-      );
-    }
-  } else {
-    const accountInfoResponseA: AccountInfoResponse = await client.request({
-      command: "account_info",
-      account: providerWallet.classicAddress,
-      ledger_index: "validated",
-    });
-    const xrpBalance = xrpl.dropsToXrp(
-      accountInfoResponseA.result.account_data.Balance,
-    );
-    const ownerCount = accountInfoResponseA.result.account_data.OwnerCount || 0;
-    const reserveXRP = BASE_RESERVE_XRP + OWNER_RESERVE_XRP * ownerCount;
-    const deposit = parseFloat(assetAObj.value);
-    if (xrpBalance - reserveXRP < deposit) {
-      throw new Error(
-        `Insufficient balance of XRP. Have: ${xrpBalance.toFixed(6)}, Need: ${deposit.toFixed(6)} + reserve`,
-      );
-    }
-  }
-
-  // Asset B balance check
-  if (assetBObj.currency !== "XRP") {
-    const balanceResponseB: BalanceResponse = await client.request({
-      command: "account_lines",
-      account: providerWallet.classicAddress,
-      peer: assetBObj.issuer!,
-    });
-    const assetLineB = balanceResponseB.result.lines.find(
-      (line) => line.currency === assetBObj.currency,
-    );
-    if (!assetLineB) {
-      throw new Error(`No trustline found for ${assetBObj.currency}`);
-    }
-    const balance = parseFloat(assetLineB.balance);
-    const deposit = parseFloat(assetBObj.value);
-    if (balance < deposit) {
-      throw new Error(
-        `Insufficient balance of ${assetBObj.currency}. Have: ${balance.toFixed(6)}, Need: ${deposit.toFixed(6)}`,
-      );
-    }
-  } else {
-    const accountInfoResponseB: AccountInfoResponse = await client.request({
-      command: "account_info",
-      account: providerWallet.classicAddress,
-      ledger_index: "validated",
-    });
-    const xrpBalance = xrpl.dropsToXrp(
-      accountInfoResponseB.result.account_data.Balance,
-    );
-    const ownerCount = accountInfoResponseB.result.account_data.OwnerCount || 0;
-    const reserveXRP = BASE_RESERVE_XRP + OWNER_RESERVE_XRP * ownerCount;
-    const deposit = parseFloat(assetBObj.value);
-    if (xrpBalance - reserveXRP < deposit) {
-      throw new Error(
-        `Insufficient balance of XRP. Have: ${xrpBalance.toFixed(6)}, Need: ${deposit.toFixed(6)} + reserve`,
-      );
-    }
-  }
-
-  const tx: any = {
-    TransactionType: "AMMDeposit",
-    Account: providerWallet.classicAddress,
-    AMMAccount: ammAccount,
-    Flags: 0x00080000, // tfTwoAssetIfEmpty
-    Amount: amount1,
-    Amount2: amount2,
-  };
-
-  console.log(
-    "📃 Transaction fields (IfEmpty):",
-    JSON.stringify(
-      {
-        TransactionType: tx.TransactionType,
-        Amount: tx.Amount,
-        Amount2: tx.Amount2,
-        AMMAccount: tx.AMMAccount,
-        Flags: tx.Flags,
-      },
-      null,
-      2,
-    ),
-  );
-
-  console.log("🔄 Preparing transaction...");
-  const prepared = await client.autofill(tx);
-  console.log("✍️ Signing transaction...");
-  const signed = providerWallet.sign(prepared);
-  console.log("⏳ Submitting transaction and waiting for validation...");
-  const result = await client.submitAndWait(signed.tx_blob);
-
-  // Handle any AMM deposit errors
-  try {
-    handleAMMDepositError(result);
-  } catch (error: any) {
-    console.error(`❌ AMM Deposit error: ${error.message}`);
-  }
-
-  console.log("✅ Successfully added liquidity to AMM (IfEmpty)");
-
-  const lpTokensReceived = await extractLPTokensReceived(
-    result as TransactionResult,
-    providerWallet,
-    ammAccount,
-  );
-  const assetsDeposited = extractActualAssetsDeposited(result as TransactionResult);
-
-  return displayTransactionDetails(result as TransactionResult, lpTokensReceived, assetsDeposited);
-}
-
-export async function addLiquiditySingleAsset(
-  providerWallet: Wallet,
-  ammAccount: string,
-  assetObj: Asset,
-): Promise<TransactionDetails> {
-  await connectXrplClient();
-  console.log(`✅ Adding single-asset liquidity to AMM at ${ammAccount}`);
-  const ammInfoResponse: AMMInfoResponse = await client.request({
-    command: "amm_info",
-    amm_account: ammAccount,
-    ledger_index: "validated",
-  });
-  if (!ammInfoResponse.result.amm || !ammInfoResponse.result.amm.lp_token) {
-    throw new Error("Could not retrieve LP token information from AMM");
   }
 
   // ========== BALANCE CHECKS ==========
-  if (assetObj.currency !== "XRP") {
-    if (!assetObj.issuer) {
-      throw new Error(`Issuer not specified for ${assetObj.currency}`);
-    }
-    const balanceResponse: BalanceResponse = await client.request({
-      command: "account_lines",
-      account: providerWallet.classicAddress,
-      peer: assetObj.issuer,
-    });
-    const assetLine = balanceResponse.result.lines.find(
-      (line) => line.currency === assetObj.currency,
-    );
-    if (assetLine) {
-      const balance = new BigNumber(assetLine.balance);
-      const depositBN = new BigNumber(assetObj.value);
-      console.log(
-        `💰 Current ${assetObj.currency} balance: ${balance.toFixed(6)}`,
-      );
-      console.log(
-        `📊 Required ${assetObj.currency} amount: ${depositBN.toFixed(6)}`,
-      );
-      if (balance.lt(depositBN)) {
-        throw new Error(
-          `Insufficient balance of ${assetObj.currency}. Have: ${balance.toFixed(6)}, Need: ${depositBN.toFixed(6)}`,
-        );
+  // Check asset A
+  const assetABalanceSufficient = await checkAssetBalanceForAddLiquidity(providerXRPLWallet, formattedAmount1);
+  if (!assetABalanceSufficient) {
+    return {
+      success: false,
+      error: {
+        code: "INSUFFICIENT_BALANCE",
+        message: `Insufficient ${formattedAmount1.currency} balance.`
       }
-      console.log(`✅ Sufficient ${assetObj.currency} balance confirmed.`);
-    } else {
-      throw new Error(
-        `Cannot find balance information for ${assetObj.currency}`,
-      );
-    }
-  } else {
-    const accountInfoResponse: AccountInfoResponse = await client.request({
-      command: "account_info",
-      account: providerWallet.classicAddress,
-      ledger_index: "validated",
-    });
-    if (accountInfoResponse.result && accountInfoResponse.result.account_data) {
-      const xrpBalance = xrpl.dropsToXrp(
-        accountInfoResponse.result.account_data.Balance,
-      );
-      const ownerCount = accountInfoResponse.result.account_data.OwnerCount || 0;
-      const reserveXRP =  BASE_RESERVE_XRP + OWNER_RESERVE_XRP * ownerCount;
-      const deposit = parseFloat(assetObj.value);
-      console.log(`💰 Current XRP balance: ${xrpBalance.toFixed(6)}`);
-      console.log(
-        `📊 Required XRP amount: ${deposit.toFixed(6)} + ${reserveXRP.toFixed(6)} reserve`,
-      );
-      if (xrpBalance - reserveXRP < deposit) {
-        throw new Error(
-          `Insufficient balance of XRP. Have: ${xrpBalance.toFixed(6)}, Need: ${deposit.toFixed(6)} + reserve`,
-        );
-      }
-      console.log(`✅ Sufficient XRP balance confirmed.`);
-    } else {
-      throw new Error("Cannot find balance information for XRP");
-    }
+    };
   }
-  const tx: any = {
+
+  // Check asset B
+  const assetBBalanceSufficient = await checkAssetBalanceForAddLiquidity(providerXRPLWallet, formattedAmount2);
+  if (!assetBBalanceSufficient) {
+    return {
+      success: false,
+      error: {
+        code: "INSUFFICIENT_BALANCE",
+        message: `Insufficient ${formattedAmount2.currency} balance.`
+      }
+    };
+  }
+
+  // ========== BUILD TRANSACTION ==========
+  const amount1 = formatAmountForXRPL(formattedAmount1);
+  const amount2 = formatAmountForXRPL(formattedAmount2);
+  const asset1 = formatCurrencyForXRPL(formattedAmount1.currency, formattedAmount1.issuer);
+  const asset2 = formatCurrencyForXRPL(formattedAmount2.currency, formattedAmount2.issuer);
+
+  const tx: AMMDeposit = {
     TransactionType: "AMMDeposit",
-    Account: providerWallet.classicAddress,
-    AMMAccount: ammAccount,
-    Flags: 0x00080000,
+    Account: providerXRPLWallet.classicAddress,
+    Flags: 0x00010000, // tfLPToken
+    Asset: asset1,
+    Asset2: asset2,
+    LPTokenOut: lpTokenOut,
   };
-  console.log("📊 Fetching AMM info to identify both assets in the pair...");
-  const pairAMMInfoResponse: AMMInfoResponse = await client.request({
+
+  console.log("🔄 Preparing transaction...");
+  const prepared = await client.autofill(tx);
+  console.log("✍️ Signing transaction...");
+  const signed = providerXRPLWallet.sign(prepared);
+  console.log("⏳ Submitting transaction and waiting for validation...");
+  const result = await client.submitAndWait<AMMDeposit>(signed.tx_blob);
+
+  if (!isTypedTransactionSuccessful(result)) {
+    const errorInfo = handleTransactionError(result, "addLiquidityTwoAssetLPToken");
+    return {
+      success: false,
+      error: {
+        code: errorInfo.code,
+        message: errorInfo.message,
+      }
+    };
+  }
+
+  // ========== EXTRACT RESULTS ==========
+  const lpTokensReceived = await extractLPTokensReceived(result, providerXRPLWallet, ammAccount);
+  if (!lpTokensReceived) {
+    return {
+      success: false,
+      error: {
+        code: "LP_TOKENS_EXTRACTION_FAILED",
+        message: "Could not determine LP tokens received from transaction"
+      }
+    };
+  }
+
+  const assetsDeposited = extractActualAssetsDeposited(result);
+  if (assetsDeposited.length === 0) {
+    return {
+      success: false,
+      error: {
+        code: "ASSETS_EXTRACTION_FAILED",
+        message: "Could not determine assets deposited from transaction"
+      }
+    };
+  }
+
+  const output = displayTransactionDetails(result, lpTokensReceived, assetsDeposited);
+  return {
+    success: true,
+    message: output
+  };
+}
+
+export async function addLiquiditySingleAsset(
+  { providerXRPLWallet, ammAccount, formattedAmount, emptyAmount }: AddLiquiditySingleAssetParams
+): Promise<AddLiquidityResult> {
+  await connectXRPLClient();
+  console.log(`✅ Adding single-asset liquidity to AMM at ${ammAccount}`);
+  
+  const ammInfoResponse: AMMInfoResponse = await client.request({
     command: "amm_info",
     amm_account: ammAccount,
     ledger_index: "validated",
   });
-  if (!pairAMMInfoResponse.result.amm) {
-    throw new Error("Could not fetch AMM information");
-  }
-  const ammInfo = pairAMMInfoResponse.result.amm;
-  let asset1: any, asset2: any;
-  if (ammInfo.asset && ammInfo.asset.currency) {
-    asset1 =
-      ammInfo.asset.currency === "XRP" ? { currency: "XRP" } : ammInfo.asset;
-  } else if (ammInfo.amount) {
-    asset1 =
-      typeof ammInfo.amount === "object" && ammInfo.amount.currency
-        ? { currency: ammInfo.amount.currency, issuer: ammInfo.amount.issuer }
-        : { currency: "XRP" };
-  } else {
-    throw new Error("Cannot determine first asset in the AMM pool");
-  }
-  if (ammInfo.asset2 && ammInfo.asset2.currency) {
-    asset2 =
-      ammInfo.asset2.currency === "XRP" ? { currency: "XRP" } : ammInfo.asset2;
-  } else if (ammInfo.amount2) {
-    asset2 =
-      typeof ammInfo.amount2 === "object" && ammInfo.amount2.currency
-        ? {
-            currency: ammInfo.amount2.currency,
-            issuer: ammInfo.amount2.issuer,
-          }
-        : { currency: "XRP" };
-  } else {
-    throw new Error("Cannot determine second asset in the AMM pool");
-  }
-  console.log(`🔹 AMM Assets: ${asset1.currency}/${asset2.currency}`);
-  let isFirstAsset = false;
-  if (
-    asset1.currency === assetObj.currency &&
-    (asset1.currency === "XRP" ||
-      (asset1.issuer && asset1.issuer === assetObj.issuer))
-  ) {
-    isFirstAsset = true;
-  }
-  let isSecondAsset = false;
-  if (
-    asset2.currency === assetObj.currency &&
-    (asset2.currency === "XRP" ||
-      (asset2.issuer && asset2.issuer === assetObj.issuer))
-  ) {
-    isSecondAsset = true;
-  }
-  if (!isFirstAsset && !isSecondAsset) {
-    throw new Error(
-      `Selected asset ${assetObj.currency} does not match any asset in this AMM pool.`,
-    );
-  }
-  if (assetObj.currency === "XRP") {
-    tx.Asset = { currency: "XRP" };
-    tx.Amount = xrpl.xrpToDrops(assetObj.value);
-  } else {
-    tx.Asset = {
-      currency: assetObj.currency,
-      issuer: assetObj.issuer,
-    };
-    tx.Amount = {
-      currency: assetObj.currency,
-      issuer: assetObj.issuer,
-      value: assetObj.value,
+  if (!ammInfoResponse.result.amm || !ammInfoResponse.result.amm.lp_token) {
+    return {
+      success: false,
+      error: {
+        code: "AMM_INFO_ERROR",
+        message: "Could not retrieve LP token information from AMM"
+      }
     };
   }
-  const otherAsset = isFirstAsset ? asset2 : asset1;
-  if (otherAsset.currency === "XRP") {
-    tx.Asset2 = { currency: "XRP" };
-  } else {
-    tx.Asset2 = {
-      currency: otherAsset.currency,
-      issuer: otherAsset.issuer,
+
+  // ========== BALANCE CHECKS ==========
+  const assetBalanceSufficient = await checkAssetBalanceForAddLiquidity(providerXRPLWallet, formattedAmount);
+  if (!assetBalanceSufficient) {
+    return {
+      success: false,
+      error: {
+        code: "INSUFFICIENT_BALANCE",
+        message: `Insufficient ${formattedAmount.currency} balance.`
+      }
     };
   }
-  console.log(
-    "📃 Transaction fields (SingleAsset):",
-    JSON.stringify(
-      {
-        TransactionType: tx.TransactionType,
-        Asset: tx.Asset,
-        Asset2: tx.Asset2,
-        Amount: tx.Amount,
-        AMMAccount: tx.AMMAccount,
-        Flags: tx.Flags,
-      },
-      null,
-      2,
-    ),
-  );
+
+  // ========== BUILD TRANSACTION ==========
+  const tx: AMMDeposit = {
+    TransactionType: "AMMDeposit",
+    Account: providerXRPLWallet.classicAddress,
+    Flags: 0x00080000, // tfSingleAsset
+    Asset: formatCurrencyForXRPL(formattedAmount.currency, formattedAmount.issuer),
+    Asset2: formatCurrencyForXRPL(emptyAmount.currency, emptyAmount.issuer),
+    Amount: formatAmountForXRPL(formattedAmount),
+  };
+
   console.log("🔄 Preparing transaction...");
   const prepared = await client.autofill(tx);
-  const ledgerResponse: LedgerResponse = await client.request({ command: "ledger_current" });
-  const currentLedger = ledgerResponse.result.ledger_current_index;
-  prepared.LastLedgerSequence = currentLedger + 50;
   console.log("✍️ Signing transaction...");
-  const signed = providerWallet.sign(prepared);
+  const signed = providerXRPLWallet.sign(prepared);
   console.log("⏳ Submitting transaction and waiting for validation...");
-  const result = await client.submitAndWait(signed.tx_blob);
+  const result = await client.submitAndWait<AMMDeposit>(signed.tx_blob);
 
-  // Handle any AMM deposit errors
-  try {
-    handleAMMDepositError(result);
-  } catch (error: any) {
-    console.error(`❌ AMM Deposit error: ${error.message}`);
+  if (!isTypedTransactionSuccessful(result)) {
+    const errorInfo = handleTransactionError(result, "addLiquiditySingleAsset");
+    return {
+      success: false,
+      error: {
+        code: errorInfo.code,
+        message: errorInfo.message,
+      }
+    };
   }
 
-  console.log("✅ Successfully added single-asset liquidity to AMM");
+  // ========== EXTRACT RESULTS ==========
+  const lpTokensReceived = await extractLPTokensReceived(result, providerXRPLWallet, ammAccount);
+  if (!lpTokensReceived) {
+    return {
+      success: false,
+      error: {
+        code: "LP_TOKENS_EXTRACTION_FAILED",
+        message: "Could not determine LP tokens received from transaction"
+      }
+    };
+  }
 
-  const lpTokensReceived = await extractLPTokensReceived(
-    result as TransactionResult,
-    providerWallet,
-    ammAccount,
-  );
-  const assetsDeposited = extractActualAssetsDeposited(result as TransactionResult);
-  return displayTransactionDetails(result as TransactionResult, lpTokensReceived, assetsDeposited);
+  const assetsDeposited = extractActualAssetsDeposited(result);
+  if (assetsDeposited.length === 0) {
+    return {
+      success: false,
+      error: {
+        code: "ASSETS_EXTRACTION_FAILED",
+        message: "Could not determine assets deposited from transaction"
+      }
+    };
+  }
+
+  const output = displayTransactionDetails(result, lpTokensReceived, assetsDeposited);
+  return {
+    success: true,
+    message: output
+  };
 }
 
 export async function addLiquidityOneAssetLPToken(
-  providerWallet: Wallet,
-  ammAccount: string,
-  assetObj: Asset,
-  lpTokenOut: IssuedCurrencyAmount,
-): Promise<TransactionDetails> {
-  await connectXrplClient();
+  { providerXRPLWallet, ammAccount, formattedAmount, emptyAmount, lpTokenOut }: AddLiquidityOneAssetLPTokenParams
+): Promise<AddLiquidityResult> {
+  await connectXRPLClient();
   console.log(`✅ Adding one-asset LPToken liquidity to AMM at ${ammAccount}`);
-  console.log(
-    `🔹 Asset: ${assetObj.currency} - Max Amount: ${assetObj.value} - Issuer: ${assetObj.issuer || "XRP"}`,
-  );
-  console.log(`🔹 LPTokenOut: ${JSON.stringify(lpTokenOut)}`);
+  console.log(`🔹 Asset to deposit: ${formattedAmount.currency} - Amount: ${formattedAmount.value}`);
+  console.log(`🔹 Other asset in pool: ${emptyAmount.currency} - Amount: ${emptyAmount.value}`);
+  console.log(` LPTokenOut: ${JSON.stringify(lpTokenOut)}`);
 
-  if (assetObj.currency !== "XRP") {
-    const balanceResponse: BalanceResponse = await client.request({
-      command: "account_lines",
-      account: providerWallet.classicAddress,
-      peer: assetObj.issuer!,
-    });
+  // Validate that only one asset has a non-zero value
+  if (parseFloat(formattedAmount.value) <= 0) {
+    return {
+      success: false,
+      error: {
+        code: "INVALID_AMOUNTS",
+        message: "At least one asset must have a non-zero value"
+      }
+    };
+  }
+  
 
-    const assetLine = balanceResponse.result.lines.find(
-      (line) =>
-        line.currency === assetObj.currency && line.account === assetObj.issuer,
-    );
-
-    if (!assetLine) {
-      throw new Error(
-        `Could not find trustline for ${assetObj.currency} issued by ${assetObj.issuer}.`,
-      );
-    }
-
-    if (parseFloat(assetLine.balance) < parseFloat(assetObj.value)) {
-      throw new Error(
-        `Insufficient ${assetObj.currency} balance. Need: ${assetObj.value}, Have: ${assetLine.balance}`,
-      );
-    }
-  } else {
-    const accountInfoResponse: AccountInfoResponse = await client.request({
-      command: "account_info",
-      account: providerWallet.classicAddress,
-      ledger_index: "validated",
-    });
-
-    const xrpBalance = xrpl.dropsToXrp(
-      accountInfoResponse.result.account_data.Balance,
-    );
-    const ownerCount = accountInfoResponse.result.account_data.OwnerCount || 0;
-    const reserveXRP = BASE_RESERVE_XRP + OWNER_RESERVE_XRP * ownerCount;
-    const depositAmount = parseFloat(assetObj.value);
-
-    if (xrpBalance - reserveXRP < depositAmount) {
-      throw new Error(
-        `Insufficient XRP balance. Need ${depositAmount + reserveXRP}, have ${xrpBalance}`,
-      );
-    }
+  // ========== BALANCE CHECKS ==========
+  // Only check balance for the asset that has a non-zero value
+  const assetBalanceSufficient = await checkAssetBalanceForAddLiquidity(providerXRPLWallet, formattedAmount);
+  if (!assetBalanceSufficient) {
+    return {
+      success: false,
+      error: {
+        code: "INSUFFICIENT_BALANCE",
+        message: `Insufficient ${formattedAmount.currency} balance.`
+      }
+    };
   }
 
-  const ammInfoResponse: AMMInfoResponse = await client.request({
-    command: "amm_info",
-    amm_account: ammAccount,
-    ledger_index: "validated",
-  });
-
-  if (!ammInfoResponse.result.amm) {
-    throw new Error(`Could not retrieve AMM information for ${ammAccount}`);
-  }
-
-  const ammInfo = ammInfoResponse.result.amm;
-
-  let asset1: any, asset2: any;
-
-  if (ammInfo.asset && ammInfo.asset.currency) {
-    asset1 =
-      ammInfo.asset.currency === "XRP" ? { currency: "XRP" } : ammInfo.asset;
-  } else if (ammInfo.amount) {
-    asset1 =
-      typeof ammInfo.amount === "object" && ammInfo.amount.currency
-        ? { currency: ammInfo.amount.currency, issuer: ammInfo.amount.issuer }
-        : { currency: "XRP" };
-  } else {
-    throw new Error("Cannot determine first asset in the AMM pool");
-  }
-
-  if (ammInfo.asset2 && ammInfo.asset2.currency) {
-    asset2 =
-      ammInfo.asset2.currency === "XRP" ? { currency: "XRP" } : ammInfo.asset2;
-  } else if (ammInfo.amount2) {
-    asset2 =
-      typeof ammInfo.amount2 === "object" && ammInfo.amount2.currency
-        ? {
-            currency: ammInfo.amount2.currency,
-            issuer: ammInfo.amount2.issuer,
-          }
-        : { currency: "XRP" };
-  } else {
-    throw new Error("Cannot determine second asset in the AMM pool");
-  }
-
-  let tx: any = {
+  // ========== BUILD TRANSACTION ==========
+  const tx: AMMDeposit = {
     TransactionType: "AMMDeposit",
-    Account: providerWallet.classicAddress,
-    AMMAccount: ammAccount,
-    Asset: asset1,
-    Asset2: asset2,
+    Account: providerXRPLWallet.classicAddress,
     Flags: 0x00200000, // tfOneAssetLPToken
-    LPTokenOut: {
-      currency: lpTokenOut.currency,
-      issuer: lpTokenOut.issuer,
-      value: lpTokenOut.value,
-    },
+    Asset: formatCurrencyForXRPL(formattedAmount.currency, formattedAmount.issuer),
+    Asset2: formatCurrencyForXRPL(emptyAmount.currency, emptyAmount.issuer),
+    Amount: formatAmountForXRPL(formattedAmount),
+    LPTokenOut: lpTokenOut,
   };
 
-  const isFirstAsset =
-    asset1.currency === assetObj.currency &&
-    (asset1.currency === "XRP" ||
-      (asset1.issuer && asset1.issuer === assetObj.issuer));
-
-  const isSecondAsset =
-    asset2.currency === assetObj.currency &&
-    (asset2.currency === "XRP" ||
-      (asset2.issuer && asset2.issuer === assetObj.issuer));
-
-  if (!isFirstAsset && !isSecondAsset) {
-    throw new Error(
-      `Selected asset ${assetObj.currency} does not match any asset in this AMM pool.`,
-    );
-  }
-
-  tx.Amount =
-    assetObj.currency === "XRP"
-      ? xrpl.xrpToDrops(assetObj.value)
-      : {
-          currency: assetObj.currency,
-          issuer: assetObj.issuer,
-          value: assetObj.value,
-        };
-
-  const asset1Amount =
-    typeof ammInfo.amount === "object"
-      ? parseFloat(ammInfo.amount.value)
-      : xrpl.dropsToXrp(String(ammInfo.amount));
-
-  const asset2Amount =
-    typeof ammInfo.amount2 === "object"
-      ? parseFloat(ammInfo.amount2.value)
-      : xrpl.dropsToXrp(String(ammInfo.amount2));
-
-  const lpTokenSupply = parseFloat(ammInfo.lp_token.value);
-
-  if (lpTokenSupply > 0) {
-    const lpTokenRatio = parseFloat(lpTokenOut.value) / lpTokenSupply;
-    const selectedAssetAmount = isFirstAsset ? asset1Amount : asset2Amount;
-    const requiredAssetAmount = selectedAssetAmount * lpTokenRatio;
-
-    const assetSufficient = new BigNumber(assetObj.value)
-      .decimalPlaces(6)
-      .gte(new BigNumber(requiredAssetAmount.toString()).decimalPlaces(6));
-
-    if (!assetSufficient) {
-      console.warn(
-        `⚠️ Warning: The maximum amount you're providing may not be sufficient for the requested LP tokens.`,
-      );
-    }
-
-    const lpPercentage = (parseFloat(lpTokenOut.value) / lpTokenSupply) * 100;
-
-    if (lpPercentage > 20) {
-      console.warn(
-        `⚠️ Warning: You're requesting ${lpPercentage.toFixed(2)}% of the total LP token supply.`,
-      );
-    }
-  }
-
+  console.log("🔄 Preparing transaction...");
   const prepared = await client.autofill(tx);
-  const signed = providerWallet.sign(prepared);
-  const result = await client.submitAndWait(signed.tx_blob);
+  console.log("✍️ Signing transaction...");
+  const signed = providerXRPLWallet.sign(prepared);
+  console.log("⏳ Submitting transaction and waiting for validation...");
+  const result = await client.submitAndWait<AMMDeposit>(signed.tx_blob);
 
-  // Handle any AMM deposit errors
-  try {
-    handleAMMDepositError(result);
-  } catch (error: any) {
-    console.error(`❌ AMM Deposit error: ${error.message}`);
-  }
-
-  const lpTokensReceived = await extractLPTokensReceived(
-    result as TransactionResult,
-    providerWallet,
-    ammAccount,
-  );
-
-  const assetsDeposited = extractActualAssetsDeposited(result as TransactionResult);
-
-  return displayTransactionDetails(result as TransactionResult, lpTokensReceived, assetsDeposited);
-}
-
-export async function addLiquidityLimitLPToken(
-  providerWallet: Wallet,
-  ammAccount: string,
-  assetObj: Asset,
-  ePrice: string,
-): Promise<TransactionDetails> {
-  await connectXrplClient();
-  console.log(`✅ Adding limit LPToken liquidity to AMM at ${ammAccount}`);
-
-  const ammInfoResponse: AMMInfoResponse = await client.request({
-    command: "amm_info",
-    amm_account: ammAccount,
-    ledger_index: "validated",
-  });
-
-  if (!ammInfoResponse.result.amm || !ammInfoResponse.result.amm.lp_token) {
-    throw new Error("Could not retrieve LP token information from AMM");
-  }
-
-  const lpToken = ammInfoResponse.result.amm.lp_token;
-  const lpTokenIssuer = ammAccount;
-
-  const hasLPTrustline = await checkTrustline(
-    providerWallet,
-    lpTokenIssuer,
-    lpToken.currency,
-  );
-
-  if (!hasLPTrustline) {
-    throw new Error(
-      `Trustline for LP token (${lpToken.currency}) with issuer (${lpTokenIssuer}) not found.`,
-    );
-  }
-
-  // Balance checks
-  if (assetObj.currency !== "XRP") {
-    if (!assetObj.issuer) {
-      throw new Error(`Issuer not specified for ${assetObj.currency}`);
-    }
-
-    const balanceResponse: BalanceResponse = await client.request({
-      command: "account_lines",
-      account: providerWallet.classicAddress,
-      peer: assetObj.issuer,
-    });
-
-    const assetLine = balanceResponse.result.lines.find(
-      (line) => line.currency === assetObj.currency,
-    );
-
-    if (!assetLine) {
-      throw new Error(
-        `Cannot find balance information for ${assetObj.currency}`,
-      );
-    }
-
-    const balance = new BigNumber(assetLine.balance);
-    const depositBN = new BigNumber(assetObj.value);
-
-    if (balance.lt(depositBN)) {
-      throw new Error(
-        `Insufficient balance of ${assetObj.currency}. Have: ${balance.toFixed(6)}, Need: ${depositBN.toFixed(6)}`,
-      );
-    }
-  } else {
-    const accountInfoResponse: AccountInfoResponse = await client.request({
-      command: "account_info",
-      account: providerWallet.classicAddress,
-      ledger_index: "validated",
-    });
-
-    if (!accountInfoResponse.result.account_data) {
-      throw new Error("Cannot find balance information for XRP");
-    }
-
-    const xrpBalance = xrpl.dropsToXrp(
-      accountInfoResponse.result.account_data.Balance,
-    );
-    const ownerCount = accountInfoResponse.result.account_data.OwnerCount || 0;
-    const reserveXRP = new BigNumber(
-      BASE_RESERVE_XRP + OWNER_RESERVE_XRP * ownerCount,
-    );
-    const balance = new BigNumber(xrpBalance);
-    const depositBN = new BigNumber(assetObj.value);
-
-    if (balance.minus(reserveXRP).lt(depositBN)) {
-      throw new Error(
-        `Insufficient balance of XRP. Have: ${balance.toFixed(6)}, Need: ${depositBN.toFixed(6)} + 10 XRP reserve`,
-      );
-    }
-  }
-
-  // Prepare the transaction
-  const tx: any = {
-    TransactionType: "AMMDeposit",
-    Account: providerWallet.classicAddress,
-    AMMAccount: ammAccount,
-    Flags: 0x00400000, // tfLimitLPToken
-    EPrice: ePrice,
-  };
-
-  const pairAMMInfoResponse: AMMInfoResponse = await client.request({
-    command: "amm_info",
-    amm_account: ammAccount,
-    ledger_index: "validated",
-  });
-
-  if (!pairAMMInfoResponse.result.amm) {
-    throw new Error("Could not fetch AMM information");
-  }
-
-  const ammInfo = pairAMMInfoResponse.result.amm;
-
-  let asset1: any, asset2: any;
-
-  if (ammInfo.asset && ammInfo.asset.currency) {
-    asset1 =
-      ammInfo.asset.currency === "XRP" ? { currency: "XRP" } : ammInfo.asset;
-  } else if (ammInfo.amount) {
-    asset1 =
-      typeof ammInfo.amount === "object" && ammInfo.amount.currency
-        ? { currency: ammInfo.amount.currency, issuer: ammInfo.amount.issuer }
-        : { currency: "XRP" };
-  } else {
-    throw new Error("Cannot determine first asset in the AMM pool");
-  }
-
-  if (ammInfo.asset2 && ammInfo.asset2.currency) {
-    asset2 =
-      ammInfo.asset2.currency === "XRP" ? { currency: "XRP" } : ammInfo.asset2;
-  } else if (ammInfo.amount2) {
-    asset2 =
-      typeof ammInfo.amount2 === "object" && ammInfo.amount2.currency
-        ? {
-            currency: ammInfo.amount2.currency,
-            issuer: ammInfo.asset2.issuer,
-          }
-        : { currency: "XRP" };
-  } else {
-    throw new Error("Cannot determine second asset in the AMM pool");
-  }
-
-  const isFirstAsset =
-    asset1.currency === assetObj.currency &&
-    (asset1.currency === "XRP" ||
-      (asset1.issuer && asset1.issuer === assetObj.issuer));
-
-  const isSecondAsset =
-    asset2.currency === assetObj.currency &&
-    (asset2.currency === "XRP" ||
-      (asset2.issuer && asset2.issuer === assetObj.issuer));
-
-  if (!isFirstAsset && !isSecondAsset) {
-    throw new Error(`Asset ${assetObj.currency} is not part of this AMM pair.`);
-  }
-
-  // Add Asset and Amount fields
-  if (assetObj.currency === "XRP") {
-    tx.Asset = { currency: "XRP" };
-    tx.Amount = xrpl.xrpToDrops(assetObj.value);
-  } else {
-    tx.Asset = {
-      currency: assetObj.currency,
-      issuer: assetObj.issuer,
-    };
-    tx.Amount = {
-      currency: assetObj.currency,
-      issuer: assetObj.issuer,
-      value: assetObj.value,
+  if (!isTypedTransactionSuccessful(result)) {
+    const errorInfo = handleTransactionError(result, "addLiquidityOneAssetLPToken");
+    return {
+      success: false,
+      error: {
+        code: errorInfo.code,
+        message: errorInfo.message,
+      }
     };
   }
 
-  const otherAsset = isFirstAsset ? asset2 : asset1;
-  tx.Asset2 =
-    otherAsset.currency === "XRP"
-      ? { currency: "XRP" }
-      : {
-          currency: otherAsset.currency,
-          issuer: otherAsset.issuer,
-        };
-
-  const prepared = await client.autofill(tx);
-  const signed = providerWallet.sign(prepared);
-  const result = await client.submitAndWait(signed.tx_blob);
-
-  // Handle any AMM deposit errors
-  try {
-    handleAMMDepositError(result);
-  } catch (error: any) {
-    console.error(`❌ AMM Deposit error: ${error.message}`);
+  // ========== EXTRACT RESULTS ==========
+  const lpTokensReceived = await extractLPTokensReceived(result, providerXRPLWallet, ammAccount);
+  if (!lpTokensReceived) {
+    return {
+      success: false,
+      error: {
+        code: "LP_TOKENS_EXTRACTION_FAILED",
+        message: "Could not determine LP tokens received from transaction"
+      }
+    };
   }
 
-  const lpTokensReceived = await extractLPTokensReceived(
-    result as TransactionResult,
-    providerWallet,
-    ammAccount,
-  );
+  const assetsDeposited = extractActualAssetsDeposited(result);
+  if (assetsDeposited.length === 0) {
+    return {
+      success: false,
+      error: {
+        code: "ASSETS_EXTRACTION_FAILED",
+        message: "Could not determine assets deposited from transaction"
+      }
+    };
+  }
 
-  const assetsDeposited = extractActualAssetsDeposited(result as TransactionResult);
-
-  return displayTransactionDetails(result as TransactionResult, lpTokensReceived, assetsDeposited);
+  const output = displayTransactionDetails(result, lpTokensReceived, assetsDeposited);
+  return {
+    success: true,
+    message: output
+  };
 }

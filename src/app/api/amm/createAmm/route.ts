@@ -40,11 +40,11 @@ export async function POST(req: NextRequest): Promise<NextResponse<CreateAMMAPIR
       );
     }
 
-    const treasuryXrplWallet = Wallet.fromSeed(walletData.seed);
+    const treasuryXRPLWallet = Wallet.fromSeed(walletData.seed);
 
     // Create AMM on the XRPL
     const ammData = await createAMM(
-      treasuryXrplWallet,
+      treasuryXRPLWallet,
       issuerWallets,
       currency1,
       value1,

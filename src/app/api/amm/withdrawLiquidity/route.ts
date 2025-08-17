@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
 
     // Initialize data
     const ammAccount = ammInfo.account;
-    const withdrawerXrplWallet: Wallet = Wallet.fromSeed(walletData.seed);
+    const withdrawerXRPLWallet: Wallet = Wallet.fromSeed(walletData.seed);
     let result: WithdrawLiquidityResponse;
 
     switch (mode) {
@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
           );
         }
         result = await withdrawLiquidityTwoAsset(
-          withdrawerXrplWallet,
+          withdrawerXRPLWallet,
           ammAccount,
           minA,
           minB,
@@ -99,14 +99,14 @@ export async function POST(req: NextRequest) {
           );
         }
         result = await withdrawLiquidityWithLPToken(
-          withdrawerXrplWallet,
+          withdrawerXRPLWallet,
           ammAccount,
           lpTokenAmount,
         );
         break;
 
       case "all":
-        result = await withdrawAllLiquidity(withdrawerXrplWallet, ammAccount);
+        result = await withdrawAllLiquidity(withdrawerXRPLWallet, ammAccount);
         break;
 
       case "singleAsset":
@@ -117,7 +117,7 @@ export async function POST(req: NextRequest) {
           );
         }
         result = await withdrawSingleAsset(
-          withdrawerXrplWallet,
+          withdrawerXRPLWallet,
           ammAccount,
           assetType,
           withdrawAmount,
@@ -132,7 +132,7 @@ export async function POST(req: NextRequest) {
           );
         }
         result = await withdrawAllSingleAsset(
-          withdrawerXrplWallet,
+          withdrawerXRPLWallet,
           ammAccount,
           assetType,
           withdrawAmount,
@@ -147,7 +147,7 @@ export async function POST(req: NextRequest) {
           );
         }
         result = await withdrawSingleAssetWithLPToken(
-          withdrawerXrplWallet,
+          withdrawerXRPLWallet,
           ammAccount,
           assetType,
           lpTokenAmount,
