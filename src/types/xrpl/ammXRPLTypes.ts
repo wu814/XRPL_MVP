@@ -1,4 +1,4 @@
-import { AMMInfoResponse, IssuedCurrencyAmount, Wallet } from "xrpl";
+import { AMMInfoResponse, IssuedCurrencyAmount, Wallet, Currency } from "xrpl";
 
 export type AMMInfo = AMMInfoResponse["result"]["amm"];
 
@@ -25,7 +25,7 @@ export type CreateAMMResult = {
 
 // amount field is the same for XRP and other currencies, {currency, issuer, value}
 export interface FormattedAMMInfo {
-  account: string;
+  account: string | null;
   formattedAmount1: IssuedCurrencyAmount;
   formattedAmount2: IssuedCurrencyAmount;
   assetFrozen?: boolean;
@@ -79,6 +79,15 @@ export interface AddLiquidityOneAssetLPTokenParams {
 
 // General Add Liquidity Result
 export interface AddLiquidityResult {
+  success: boolean;
+  error?: {
+    code: string;
+    message: string;
+  };
+  message?: string;
+}
+
+export interface WithdrawLiquidityResult {
   success: boolean;
   error?: {
     code: string;

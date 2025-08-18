@@ -8,40 +8,43 @@ import SuccessMdl from "../SuccessMdl";
 import { useRouter } from "next/navigation";
 import { useCurrentUserWallet } from "../wallet/CurrentUserWalletProvider";
 import { FormattedAMMInfo } from "@/types/xrpl/ammXRPLTypes";
-
-
-interface WithdrawResponse {
-  message?: string;
-  error?: string;
-  poolDeleted?: boolean;
-}
+import { WithdrawLiquidityAPIResponse } from "@/types/api/ammAPITypes";
+import { APIErrorResponse } from "@/types/api/errorAPITypes";
 
 interface WithdrawLiquidityProps {
   ammInfo: FormattedAMMInfo;
   onWithdrawn: () => void;
 }
 
-type WithdrawMode = "twoAsset" | "lpToken" | "all" | "singleAsset" | "singleAssetAll" | "singleAssetLp";
+type WithdrawMode =
+  | "twoAsset"
+  | "lpToken"
+  | "all"
+  | "singleAsset"
+  | "singleAssetAll"
+  | "singleAssetLp";
 
-export default function WithdrawLiquidity({ ammInfo, onWithdrawn }: WithdrawLiquidityProps) {
+export default function WithdrawLiquidity({
+  ammInfo,
+  onWithdrawn,
+}: WithdrawLiquidityProps) {
   // Fetch current user wallets from wallet context
   const { currentUserWallets } = useCurrentUserWallet();
 
   const router = useRouter();
 
   const [mode, setMode] = useState<WithdrawMode>("twoAsset");
-  const [amountA, setAmountA] = useState<string>("");
-  const [amountB, setAmountB] = useState<string>("");
-  const [lpTokenAmount, setLpTokenAmount] = useState<string>("");
-  const [assetType, setAssetType] = useState<string>(ammInfo?.formattedAmount1?.currency || "");
-  const [withdrawAmount, setWithdrawAmount] = useState<string>("");
-
+  const [withdrawValue1, setWithdrawValue1] = useState<number | null>(null);
+  const [withdrawValue2, setWithdrawValue2] = useState<number | null>(null);
+  const [lpTokenValue, setLPTokenValue] = useState<number | null>(null);
+  const [singleWithdrawCurrency, setSingleWithdrawCurrency] = useState<string>(ammInfo?.formattedAmount1?.currency || "");
+  const [singleWithdrawValue, setSingleWithdrawValue] = useState<number | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const token1 = ammInfo?.formattedAmount1;
-  const token2 = ammInfo?.formattedAmount2;
+  const currency1 = ammInfo?.formattedAmount1?.currency;
+  const currency2 = ammInfo?.formattedAmount2?.currency;
 
   // Add validation function to check if required inputs are filled
   const isFormValid = (): boolean => {
@@ -52,23 +55,23 @@ export default function WithdrawLiquidity({ ammInfo, onWithdrawn }: WithdrawLiqu
         wallet.walletType === "BUSINESS" ||
         wallet.walletType === "TREASURY",
     );
-    
+
     if (!hasValidWallet) return false;
 
     // Validate based on mode
     switch (mode) {
       case "twoAsset":
-        return amountA.trim() !== "" && amountB.trim() !== "";
+        return withdrawValue1 !== null && withdrawValue2 !== null;
       case "lpToken":
-        return lpTokenAmount.trim() !== "";
+        return lpTokenValue !== null;
       case "all":
         return true; // No additional inputs required
       case "singleAsset":
-        return assetType && withdrawAmount.trim() !== "";
+        return singleWithdrawCurrency && singleWithdrawValue !== null;
       case "singleAssetAll":
-        return !!assetType; // Only asset type selection required
+        return !!singleWithdrawCurrency; // Only asset type selection required
       case "singleAssetLp":
-        return assetType && lpTokenAmount.trim() !== "";
+        return singleWithdrawCurrency && lpTokenValue !== null;
       default:
         return false;
     }
@@ -91,22 +94,30 @@ export default function WithdrawLiquidity({ ammInfo, onWithdrawn }: WithdrawLiqu
     };
 
     if (mode === "twoAsset") {
-      return { ...payload, minA: amountA, minB: amountB };
+      return {
+        ...payload,
+        withdrawValue1: withdrawValue1?.toString(),
+        withdrawValue2: withdrawValue2?.toString(),
+      };
     }
     if (mode === "lpToken") {
-      return { ...payload, lpTokenAmount };
+      return { ...payload, lpTokenValue: lpTokenValue?.toString() };
     }
     if (mode === "all") {
       return payload;
     }
     if (mode === "singleAsset") {
-      return { ...payload, assetType, withdrawAmount };
+      return {
+        ...payload,
+        singleWithdrawCurrency,
+        singleWithdrawValue: singleWithdrawValue?.toString(),
+      };
     }
     if (mode === "singleAssetAll") {
-      return { ...payload, assetType, withdrawAmount: null };
+      return { ...payload, singleWithdrawCurrency, singleWithdrawValue: null };
     }
     if (mode === "singleAssetLp") {
-      return { ...payload, assetType, lpTokenAmount };
+      return { ...payload, singleWithdrawCurrency, lpTokenValue: lpTokenValue?.toString() };
     }
     throw new Error("Unsupported mode selected");
   };
@@ -118,16 +129,18 @@ export default function WithdrawLiquidity({ ammInfo, onWithdrawn }: WithdrawLiqu
     try {
       const payload = buildPayload();
 
-      const res = await fetch("/api/amm/withdrawLiquidity", {
+      const response = await fetch("/api/amm/withdrawLiquidity", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
-      const result: WithdrawResponse = await res.json();
-      if (!res.ok) {
-        throw new Error(result.error || "Transaction failed");
+      if (!response.ok) {
+        const error: APIErrorResponse = await response.json();
+        setErrorMessage(error.message || "Transaction failed");
+        return;
       }
+      const result: WithdrawLiquidityAPIResponse = await response.json();
       setSuccessMessage(result.message || "Liquidity withdrawn successfully!");
 
       if (result.poolDeleted) {
@@ -159,7 +172,7 @@ export default function WithdrawLiquidity({ ammInfo, onWithdrawn }: WithdrawLiqu
 
   return (
     <div>
-      <div className="text-lg space-y-4">
+      <div className="space-y-4 text-lg">
         <select
           value={mode}
           onChange={(e) => setMode(e.target.value as WithdrawMode)}
@@ -178,18 +191,26 @@ export default function WithdrawLiquidity({ ammInfo, onWithdrawn }: WithdrawLiqu
             <input
               type="number"
               step="0.000001"
-              value={amountA}
-              onChange={(e) => setAmountA(e.target.value)}
-              placeholder={`Desire ${token1?.currency || "Token A"} amount`}
-              className="bg-color3 w-full rounded-lg border border-transparent p-2 hover:border-gray-500 focus:border-primary focus:outline-none"
+              value={withdrawValue1 ?? ""}
+              onChange={(e) =>
+                setWithdrawValue1(
+                  e.target.value === "" ? null : Number(e.target.value),
+                )
+              }
+              placeholder={`Desire ${currency1 || "Token A"} amount`}
+              className="w-full rounded-lg border border-transparent bg-color3 p-2 hover:border-gray-500 focus:border-primary focus:outline-none"
             />
             <input
               type="number"
               step="0.000001"
-              value={amountB}
-              onChange={(e) => setAmountB(e.target.value)}
-              placeholder={`Desire ${token2?.currency || "Token B"} amount`}
-              className="bg-color3 w-full rounded-lg border border-transparent p-2 hover:border-gray-500 focus:border-primary focus:outline-none"
+              value={withdrawValue2 ?? ""}
+              onChange={(e) =>
+                setWithdrawValue2(
+                  e.target.value === "" ? null : Number(e.target.value),
+                )
+              }
+              placeholder={`Desire ${currency2 || "Token B"} amount`}
+              className="w-full rounded-lg border border-transparent bg-color3 p-2 hover:border-gray-500 focus:border-primary focus:outline-none"
             />
           </>
         )}
@@ -197,19 +218,25 @@ export default function WithdrawLiquidity({ ammInfo, onWithdrawn }: WithdrawLiqu
         {mode.includes("singleAsset") && (
           <>
             <select
-              value={assetType}
-              onChange={(e) => setAssetType(e.target.value)}
+              value={singleWithdrawCurrency}
+              onChange={(e) => setSingleWithdrawCurrency(e.target.value)}
               className="mt-1 w-full rounded-lg border border-transparent bg-color3 p-2 hover:border-gray-500 focus:border-primary focus:outline-none"
             >
-              <option value={token1?.currency}>{token1?.currency}</option>
-              <option value={token2?.currency}>{token2?.currency}</option>
+              <option value={currency1}>{currency1}</option>
+              <option value={currency2}>{currency2}</option>
             </select>
             {mode !== "singleAssetAll" && mode !== "singleAssetLp" && (
               <input
-                value={withdrawAmount}
-                onChange={(e) => setWithdrawAmount(e.target.value)}
+                type="number"
+                step="0.000001"
+                value={singleWithdrawValue ?? ""}
+                onChange={(e) =>
+                  setSingleWithdrawValue(
+                    e.target.value === "" ? null : Number(e.target.value),
+                  )
+                }
                 placeholder="Withdraw Amount"
-                className="bg-color3 w-full rounded-lg border border-transparent p-2 hover:border-gray-500 focus:border-primary focus:outline-none"
+                className="w-full rounded-lg border border-transparent bg-color3 p-2 hover:border-gray-500 focus:border-primary focus:outline-none"
               />
             )}
           </>
@@ -219,23 +246,27 @@ export default function WithdrawLiquidity({ ammInfo, onWithdrawn }: WithdrawLiqu
           <input
             type="number"
             step="0.000001"
-            value={lpTokenAmount}
-            onChange={(e) => setLpTokenAmount(e.target.value)}
+            value={lpTokenValue ?? ""}
+            onChange={(e) =>
+              setLPTokenValue(
+                e.target.value === "" ? null : Number(e.target.value),
+              )
+            }
             placeholder="LP Token Amount"
-            className="bg-color3 w-full rounded-lg border border-transparent p-2 hover:border-gray-500 focus:border-primary focus:outline-none"
+            className="w-full rounded-lg border border-transparent bg-color3 p-2 hover:border-gray-500 focus:border-primary focus:outline-none"
           />
         )}
 
         <div className="flex">
-          <Button 
-            variant="primary" 
-            onClick={handleSubmit} 
-            disabled={loading || !isFormValid()} 
+          <Button
+            variant="primary"
+            onClick={handleSubmit}
+            disabled={loading || !isFormValid()}
             className="w-full"
           >
             {loading ? (
               <div className="flex items-center justify-center space-x-2">
-                <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                 Withdrawing Liquidity...
               </div>
             ) : (
@@ -259,4 +290,4 @@ export default function WithdrawLiquidity({ ammInfo, onWithdrawn }: WithdrawLiqu
       )}
     </div>
   );
-};
+}

@@ -55,3 +55,20 @@ export interface AddLiquidityAPIRequest {
 export interface AddLiquidityAPIResponse {
   message: string;
 }
+
+export interface WithdrawLiquidityAPIRequest {
+  mode: "twoAsset" | "lpToken" | "all" | "singleAsset" | "singleAssetAll" | "singleAssetLp";
+  withdrawerWallet: YONAWallet;
+  ammInfo: FormattedAMMInfo;
+  withdrawValue1?: string;
+  withdrawValue2?: string;
+  singleWithdrawCurrency?: string;
+  singleWithdrawValue?: string;
+  lpTokenValue?: string;
+}
+
+export interface WithdrawLiquidityAPIResponse {
+  success: boolean;
+  message: string;
+  poolDeleted?: boolean;
+}

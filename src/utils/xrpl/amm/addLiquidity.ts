@@ -16,17 +16,6 @@ import { formatCurrencyForXRPL } from "@/utils/currencyUtils";
 const BASE_RESERVE_XRP = 1; // Base reserve for an account in XRP
 const OWNER_RESERVE_XRP = 0.2; // Owner reserve for each object in XRP
 
-interface AMMInfoResponse {
-  result: {
-    amm?: {
-      amount: string | { currency: string; issuer: string; value: string };
-      amount2: string | { currency: string; issuer: string; value: string };
-      lp_token: { currency: string; value: string };
-      asset?: { currency: string; issuer: string };
-      asset2?: { currency: string; issuer: string };
-    };
-  };
-}
 
 /**
  * Helper function to check if a wallet has sufficient balance for adding liquidity
@@ -552,21 +541,6 @@ export async function addLiquidityTwoAssetLPToken(
   );
   console.log(`🔹 LPTokenOut: ${JSON.stringify(lpTokenOut)}`);
 
-  const ammInfoResponse: AMMInfoResponse = await client.request({
-    command: "amm_info",
-    amm_account: ammAccount,
-    ledger_index: "validated",
-  });
-  if (!ammInfoResponse.result.amm || !ammInfoResponse.result.amm.lp_token) {
-    return {
-      success: false,
-      error: {
-        code: "AMM_INFO_ERROR",
-        message: "Could not retrieve LP token information from AMM"
-      }
-    };
-  }
-
   // ========== BALANCE CHECKS ==========
   // Check asset A
   const assetABalanceSufficient = await checkAssetBalanceForAddLiquidity(providerXRPLWallet, formattedAmount1);
@@ -660,21 +634,6 @@ export async function addLiquiditySingleAsset(
 ): Promise<AddLiquidityResult> {
   await connectXRPLClient();
   console.log(`✅ Adding single-asset liquidity to AMM at ${ammAccount}`);
-  
-  const ammInfoResponse: AMMInfoResponse = await client.request({
-    command: "amm_info",
-    amm_account: ammAccount,
-    ledger_index: "validated",
-  });
-  if (!ammInfoResponse.result.amm || !ammInfoResponse.result.amm.lp_token) {
-    return {
-      success: false,
-      error: {
-        code: "AMM_INFO_ERROR",
-        message: "Could not retrieve LP token information from AMM"
-      }
-    };
-  }
 
   // ========== BALANCE CHECKS ==========
   const assetBalanceSufficient = await checkAssetBalanceForAddLiquidity(providerXRPLWallet, formattedAmount);

@@ -30,7 +30,7 @@ export async function getFormattedAMMInfo(ammAccount: string): Promise<Formatted
     if (!response.result || !response.result.amm) {
       console.warn(`⚠️ No AMM data found for account: ${ammAccount}`);
       return {
-        account: ammAccount,
+        account: null,
         formattedAmount1: { currency: "Unknown", issuer: null, value: "0" },
         formattedAmount2: { currency: "Unknown", issuer: null, value: "0" },
         lpToken: {
