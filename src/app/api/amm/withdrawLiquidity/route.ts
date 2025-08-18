@@ -173,13 +173,13 @@ export async function POST(
       // ✅ Check if the AMM still exists on ledger
       const ammStillExists = await getFormattedAMMInfo(ammAccount);
 
-      if (!ammStillExists || !ammStillExists.account) {
+      if (!ammStillExists) {
         // 🧹 Delete from Supabase if AMM no longer exists
         const supabase = await createSupabaseAnonClient();
         const { error: deleteError } = await supabase
           .from("amms")
           .delete()
-          .eq("amm_account", ammAccount);
+          .eq("account", ammAccount);
 
         if (deleteError) {
           console.error("❌ Failed to delete AMM record:", deleteError.message);

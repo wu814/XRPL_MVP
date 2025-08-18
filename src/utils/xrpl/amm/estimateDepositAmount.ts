@@ -1,6 +1,7 @@
 import BigNumber from "bignumber.js";
 import { IssuedCurrencyAmount } from "xrpl";
-import { EstimateDepositAmountsParams, EstimateDepositAmountsResult } from "@/types/helperTypes";
+import { FormattedAMMInfo } from "@/types/xrpl/ammXRPLTypes";
+import { EstimateDepositAmountsResult } from "@/types/helperTypes";
 
 // More precise single-asset deposit formula that accounts for XRPL's internal rounding
 function computeLPFromSingleAsset(
@@ -77,16 +78,16 @@ function solveDepositAmount(
 /**
  * Main estimator for LP deposits.
  */
-export default function estimateDepositAmounts({
-  ammInfo,
-  lpAmount,
-  payWith,
-  slippagePercentage,
-}: EstimateDepositAmountsParams): EstimateDepositAmountsResult {
+export default function estimateDepositAmounts(
+  ammInfo: FormattedAMMInfo,
+  lpTokenValue: number,
+  payWith: string,
+  slippagePercentage: number,
+): EstimateDepositAmountsResult {
   const totalLP = new BigNumber(ammInfo?.lpToken?.value || "0");
   const poolA = new BigNumber(ammInfo?.formattedAmount1?.value || "0");
   const poolB = new BigNumber(ammInfo?.formattedAmount2?.value || "0");
-  const desiredLP = new BigNumber(lpAmount);
+  const desiredLP = new BigNumber(lpTokenValue);
   const feeDecimal = new BigNumber(ammInfo?.tradingFee || 0).div(1_000_000);
   const weight = new BigNumber(0.5);
   const slippageDecimal = new BigNumber(1 + slippagePercentage / 100); // Convert slippage to BigNumber safely

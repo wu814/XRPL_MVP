@@ -46,10 +46,10 @@ export interface AddLiquidityAPIRequest {
   depositType: "twoAsset" | "twoAssetLPToken" | "oneAsset" | "oneAssetLPToken";
   wallet: YONAWallet;
   ammInfo: FormattedAMMInfo;
-  formattedAmount1?: IssuedCurrencyAmount;
-  formattedAmount2?: IssuedCurrencyAmount;
-  emptyAmount?: IssuedCurrencyAmount;
-  lpTokenOut?: IssuedCurrencyAmount;
+  addValue1?: string;
+  addValue2?: string;
+  lpTokenValue?: string;
+  selectedCurrency?: string;
 }
 
 export interface AddLiquidityAPIResponse {

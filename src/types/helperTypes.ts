@@ -1,13 +1,4 @@
 import { IssuedCurrencyAmount } from "xrpl";
-import { FormattedAMMInfo } from "./xrpl/ammXRPLTypes";
-
-// Estimate deposit amounts (estimateDepositAmounts.ts)
-export interface EstimateDepositAmountsParams {
-  ammInfo: FormattedAMMInfo;
-  lpAmount: number;
-  payWith: string;
-  slippagePercentage: number;
-}
 
 export interface EstimateDepositAmountsResult {
   amount1: IssuedCurrencyAmount | null;

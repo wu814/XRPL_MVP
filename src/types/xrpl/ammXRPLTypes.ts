@@ -47,20 +47,6 @@ export interface FormattedAMMInfo {
   }[];
 }
 
-export interface AddLiquidityTwoAssetParams {
-  providerXRPLWallet: Wallet;
-  ammAccount: string;
-  formattedAmount1: IssuedCurrencyAmount;
-  formattedAmount2: IssuedCurrencyAmount;
-}
-
-export interface AddLiquidityLPTokenParams {
-  providerXRPLWallet: Wallet;
-  ammAccount: string;
-  formattedAmount1: IssuedCurrencyAmount;
-  formattedAmount2: IssuedCurrencyAmount;
-  lpTokenOut: IssuedCurrencyAmount;
-}
 
 export interface AddLiquiditySingleAssetParams {
   providerXRPLWallet: Wallet;

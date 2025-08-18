@@ -152,8 +152,7 @@ export function formatCurrencyForXRPL(
 ): Currency {  
   if (currency === "XRP") {
     return {
-      currency: "XRP",
-      issuer: undefined,
+      currency: "XRP"
     };
   }
   return {

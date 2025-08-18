@@ -535,11 +535,7 @@ export async function withdrawAllSingleAsset(
   let message = `\n===== Withdraw All Single Asset Summary =====\n`;
   message += `🔹 Transaction Hash: ${result.result.hash}\n`;
   message += `📤 Asset Withdrawn: ${withdrawAsset.currency}\n`;
-  if (actualWithdrawValue1 && withdrawAsset.currency === ammInfo.formattedAmount1.currency) {
-    message += `📤 Amount Withdrawn: ${actualWithdrawValue1} ${withdrawAsset.currency}\n`;
-  } else if (actualWithdrawValue2 && withdrawAsset.currency === ammInfo.formattedAmount2.currency) {
-    message += `📤 Amount Withdrawn: ${actualWithdrawValue2} ${withdrawAsset.currency}\n`;
-  }
+  message += `📤 Amount Withdrawn: ${actualWithdrawValue1} ${withdrawAsset.currency}\n`;
   message += `\n LP Tokens Used: ${lpTokensUsed}\n`;
   if (result.result.tx_json?.Fee)
     message += `\n💸 Fee: ${dropsToXrp(result.result.tx_json?.Fee)} XRP\n`;

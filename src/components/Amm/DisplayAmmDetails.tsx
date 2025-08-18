@@ -49,6 +49,7 @@ export default function DisplayAMMDetails({
         return;
       }
       const result: GetFormattedAMMInfoAPIResponse = await response.json();
+      console.log("🔹 AMM Info:", result.data);
 
       if (result.data) {
         setAMMInfo(result.data);

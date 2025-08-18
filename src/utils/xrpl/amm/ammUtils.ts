@@ -47,10 +47,18 @@ export async function getFormattedAMMInfo(ammAccount: string): Promise<Formatted
     
     console.log(`✅ Live AMM data: ${ammInfo}`);
     
+    // Format the amounts first
+    const amount1 = formatAmountForDisplay(ammInfo.amount);
+    const amount2 = formatAmountForDisplay(ammInfo.amount2);
+    
+    // Sort amounts so that formattedAmount1 has the lexicographically smaller currency code
+    const [formattedAmount1, formattedAmount2] = 
+      amount1.currency < amount2.currency ? [amount1, amount2] : [amount2, amount1];
+    
     return {
       account: ammInfo.account,
-      formattedAmount1: formatAmountForDisplay(ammInfo.amount),
-      formattedAmount2: formatAmountForDisplay(ammInfo.amount2),
+      formattedAmount1,
+      formattedAmount2,
       auctionSlot: {
         account: ammInfo.auction_slot?.account || "",
         authAccounts: ammInfo.auction_slot?.auth_accounts || [],

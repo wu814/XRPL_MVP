@@ -10,7 +10,6 @@ import estimateDepositAmounts from "@/utils/xrpl/amm/estimateDepositAmount";
 import { useCurrentUserWallet } from "../wallet/CurrentUserWalletProvider";
 import { Settings, Loader2 } from "lucide-react";
 import { FormattedAMMInfo } from "@/types/xrpl/ammXRPLTypes";
-import { formatAmountForXRPL } from "@/utils/assetUtils";
 import { EstimateDepositAmountsResult } from "@/types/helperTypes";
 import { AddLiquidityAPIResponse } from "@/types/api/ammAPITypes";
 import { APIErrorResponse } from "@/types/api/errorAPITypes";
@@ -35,9 +34,9 @@ export default function AddLiquidity({ ammInfo, onAdded }: AddLiquidityProps) {
 
   // UI State
   const [mode, setMode] = useState<Mode>("quantity"); // 'quantity' or 'lp' mode toggle
-  const [value1, setValue1] = useState<number | null>(null); // User input for amount.value
-  const [value2, setValue2] = useState<number | null>(null); // User input for amount2.value
-  const [lpAmount, setLpAmount] = useState<number | null>(null); // Desired LP tokens
+  const [addValue1, setAddValue1] = useState<number | null>(null); // User input for amount.value
+  const [addValue2, setAddValue2] = useState<number | null>(null); // User input for amount2.value
+  const [lpTokenValue, setLPTokenValue] = useState<number | null>(null); // Desired LP tokens
   const [payWith, setPayWith] = useState<PayWith>("both"); // Which asset(s) to pay with
 
   // Slippage tolerance state
@@ -55,13 +54,13 @@ export default function AddLiquidity({ ammInfo, onAdded }: AddLiquidityProps) {
    * Includes slippage-aware logic for one-asset deposits
    */
   const estimatedAmounts = useMemo((): EstimateDepositAmountsResult => {
-    return estimateDepositAmounts({
+    return estimateDepositAmounts(
       ammInfo,
-      lpAmount,
+      lpTokenValue,
       payWith,
       slippagePercentage,
-    });
-  }, [ammInfo, lpAmount, payWith, slippagePercentage]);
+    );
+  }, [ammInfo, lpTokenValue, payWith, slippagePercentage]);
 
   /**
    * Builds the appropriate payload for the deposit API based on:
@@ -85,42 +84,34 @@ export default function AddLiquidity({ ammInfo, onAdded }: AddLiquidityProps) {
 
     if (mode === "quantity") {
 
-      if (value1 && value2) {
-        const formattedAmount1 = formatAmountForXRPL({currency: ammInfo?.formattedAmount1.currency, issuer: ammInfo?.formattedAmount1.issuer, value: value1?.toString()});
-        const formattedAmount2 = formatAmountForXRPL({currency: ammInfo?.formattedAmount2.currency, issuer: ammInfo?.formattedAmount2.issuer, value: value2?.toString()});
-        return { ...basePayload, depositType: "twoAsset", formattedAmount1, formattedAmount2 };
+      if (addValue1 && addValue2) {
+        return { ...basePayload, depositType: "twoAsset", addValue1: addValue1.toString(), addValue2: addValue2.toString() };
       }
-      if (value1) {
-        const formattedAmount1 = formatAmountForXRPL({currency: ammInfo?.formattedAmount1.currency, issuer: ammInfo?.formattedAmount1.issuer, value: value1?.toString()});
-        const emptyAmount = formatAmountForXRPL({currency: ammInfo?.formattedAmount2.currency, issuer: ammInfo?.formattedAmount2.issuer, value: "0"});
-        return { ...basePayload, depositType: "oneAsset", formattedAmount1, emptyAmount };
+      if (addValue1) {
+        return { ...basePayload, depositType: "oneAsset", addValue1: addValue1.toString(), selectedCurrency: ammInfo?.formattedAmount1.currency };
       }
-      if (value2) {
-        const formattedAmount1 = formatAmountForXRPL({currency: ammInfo?.formattedAmount2.currency, issuer: ammInfo?.formattedAmount2.issuer, value: value2?.toString()});
-        const emptyAmount = formatAmountForXRPL({currency: ammInfo?.formattedAmount1.currency, issuer: ammInfo?.formattedAmount1.issuer, value: "0"});
-        return { ...basePayload, depositType: "oneAsset", formattedAmount1, emptyAmount };
+      if (addValue2) {
+        return { ...basePayload, depositType: "oneAsset", addValue1: addValue2.toString(), selectedCurrency: ammInfo?.formattedAmount2.currency };
       }
-      if (!value1 && !value2) {
+      if (!addValue1 && !addValue2) {
         setErrorMessage("Enter at least one amount greater than 0.");
         return;
       }
     }
 
     else if (mode === "lp") {
-      if (!lpAmount) {
+      if (!lpTokenValue) {
         setErrorMessage("Enter LP token amount.");
         return;
       }
-
-      const lpTokenOut = formatAmountForXRPL({currency: ammInfo.lpToken.currency, issuer: ammInfo.account, value: lpAmount.toString()});
   
       if (payWith === "both") {
         return {
           ...basePayload,
           depositType: "twoAssetLPToken",
-          formattedAmount1: estimatedAmounts.amount1,
-          formattedAmount2: estimatedAmounts.amount2,
-          lpTokenOut,
+          addValue1: estimatedAmounts.amount1?.value,
+          addValue2: estimatedAmounts.amount2?.value,
+          lpTokenValue: lpTokenValue.toString(),
         };
       }
   
@@ -131,9 +122,9 @@ export default function AddLiquidity({ ammInfo, onAdded }: AddLiquidityProps) {
       return {
         ...basePayload,
         depositType: "oneAssetLPToken",
-        formattedAmount1: oneAsset,
-        emptyAmount: estimatedAmounts.emptyAmount,
-        lpTokenOut,
+        addValue1: oneAsset.value,
+        selectedCurrency: payWith,
+        lpTokenValue: lpTokenValue.toString(),
       };
     }
   };
@@ -219,8 +210,8 @@ export default function AddLiquidity({ ammInfo, onAdded }: AddLiquidityProps) {
   const renderQuantityInputs = () => (
     <>
       {[
-        { value: value1, setValue: setValue1, currency: ammInfo?.formattedAmount1.currency },
-        { value: value2, setValue: setValue2, currency: ammInfo?.formattedAmount2.currency },
+        { value: addValue1, setValue: setAddValue1, currency: ammInfo?.formattedAmount1.currency },
+        { value: addValue2, setValue: setAddValue2, currency: ammInfo?.formattedAmount2.currency },
       ].map(({ value, setValue, currency }, idx) => (
         <div
           key={idx}
@@ -252,20 +243,20 @@ export default function AddLiquidity({ ammInfo, onAdded }: AddLiquidityProps) {
           type="number"
           step="0.000001"
           placeholder="0.00"
-          value={lpAmount ?? ""}
-          onChange={(e) => setLpAmount(e.target.value === "" ? null : Number(e.target.value))}
+          value={lpTokenValue ?? ""}
+          onChange={(e) => setLPTokenValue(e.target.value === "" ? null : Number(e.target.value))}
           className="w-full bg-transparent focus:outline-none text-xl"
         />
       </div>
 
       {/* Estimated deposit value(s) display */}
-      {lpAmount && (
+      {lpTokenValue && (
         <div className="space-y-1 rounded-lg bg-color3 p-4 text-sm text-mutedText">
           {payWith === "both" ? (
             <>
               <p>
-                Estimated cost: {estimatedAmounts.amount1.value}{" "}
-                {currency1} + {estimatedAmounts.amount2.value}{" "}
+                Estimated cost: {estimatedAmounts.amount1?.value}{" "}
+                {currency1} + {estimatedAmounts.amount2?.value}{" "}
                 {currency2}
               </p>
             </>
@@ -305,8 +296,8 @@ export default function AddLiquidity({ ammInfo, onAdded }: AddLiquidityProps) {
   );
 
   const isFormValid = mode === "quantity" 
-    ? (value1 > 0 || value2 > 0)
-    : (lpAmount && (payWith === "both" || estimatedAmounts.maxSingleAmount));
+    ? (addValue1 > 0 || addValue2 > 0)
+    : (lpTokenValue && (payWith === "both" || estimatedAmounts.maxSingleAmount));
 
   return (
     <div className="space-y-4">

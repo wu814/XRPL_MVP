@@ -9,8 +9,8 @@ import {
   TxResponse } from "xrpl";
 import BigNumber from "bignumber.js";
 import { handleTransactionError, isTypedTransactionSuccessful } from '../errorHandler';
-import { AddLiquidityResult, AddLiquidityTwoAssetParams, AddLiquidityLPTokenParams, AddLiquiditySingleAssetParams, AddLiquidityOneAssetLPTokenParams } from "@/types/xrpl/ammXRPLTypes";
-import { formatAmountForXRPL } from "@/utils/assetUtils";
+import { AddLiquidityResult, FormattedAMMInfo } from "@/types/xrpl/ammXRPLTypes";
+import { formatAmountForXRPL, formatAmountForDisplay } from "@/utils/assetUtils";
 import { formatCurrencyForXRPL } from "@/utils/currencyUtils";
 
 const BASE_RESERVE_XRP = 1; // Base reserve for an account in XRP
@@ -429,46 +429,52 @@ function displayTransactionDetails(
 
 // Double-asset deposit: tfTwoAsset (existing, but now with explicit flag)
 export async function addLiquidityTwoAsset(
-  { providerXRPLWallet, ammAccount, formattedAmount1, formattedAmount2 }: AddLiquidityTwoAssetParams
+  providerXRPLWallet: Wallet,
+  ammInfo: FormattedAMMInfo,
+  addValue1: string,
+  addValue2: string
 ): Promise<AddLiquidityResult> {
   await connectXRPLClient();
+  const ammAccount = ammInfo.account;
+  const displayFormattedAmount1 = formatAmountForDisplay({currency: ammInfo.formattedAmount1.currency, issuer: ammInfo.formattedAmount1.issuer, value: addValue1});
+  const displayFormattedAmount2 = formatAmountForDisplay({currency: ammInfo.formattedAmount2.currency, issuer: ammInfo.formattedAmount2.issuer, value: addValue2});
 
   console.log(`✅ Adding liquidity to AMM at ${ammAccount}`);
-  console.log(`🔹 Asset A: ${formattedAmount1.currency} - Amount: ${formattedAmount1.value}`);
-  console.log(`🔹 Asset B: ${formattedAmount2.currency} - Amount: ${formattedAmount2.value}`);
+  console.log(`🔹 Asset A: ${displayFormattedAmount1.currency} - Amount: ${displayFormattedAmount1.value}`);
+  console.log(`🔹 Asset B: ${displayFormattedAmount2.currency} - Amount: ${displayFormattedAmount2.value}`);
 
   // ========== BALANCE CHECKS ==========
 
   // Asset 1
-  const asset1BalanceSufficient = await checkAssetBalanceForAddLiquidity(providerXRPLWallet, formattedAmount1);
+  const asset1BalanceSufficient = await checkAssetBalanceForAddLiquidity(providerXRPLWallet, displayFormattedAmount1);
   if (!asset1BalanceSufficient) {
     return {
       success: false,
       error: {
         code: "INSUFFICIENT_BALANCE",
-        message: `Insufficient ${formattedAmount1.currency} balance.`,
+        message: `Insufficient ${displayFormattedAmount1.currency} balance.`,
       }
     };
   }
 
   // Asset 2
-  const asset2BalanceSufficient = await checkAssetBalanceForAddLiquidity(providerXRPLWallet, formattedAmount2);
+  const asset2BalanceSufficient = await checkAssetBalanceForAddLiquidity(providerXRPLWallet, displayFormattedAmount2);
   if (!asset2BalanceSufficient) {
     return {
       success: false,
       error: {
         code: "INSUFFICIENT_BALANCE",
-        message: `Insufficient ${formattedAmount2.currency} balance.`,
+        message: `Insufficient ${displayFormattedAmount2.currency} balance.`,
       }
     };
   }
 
   // ========== BUILD TRANSACTION ==========
 
-  const amount1 = formatAmountForXRPL(formattedAmount1);
-  const amount2 = formatAmountForXRPL(formattedAmount2);
-  const asset1 = formatCurrencyForXRPL(formattedAmount1.currency, formattedAmount1.issuer);
-  const asset2 = formatCurrencyForXRPL(formattedAmount2.currency, formattedAmount2.issuer);
+  const amount1 = formatAmountForXRPL(displayFormattedAmount1);
+  const amount2 = formatAmountForXRPL(displayFormattedAmount2);
+  const asset1 = formatCurrencyForXRPL(displayFormattedAmount1.currency, displayFormattedAmount1.issuer);
+  const asset2 = formatCurrencyForXRPL(displayFormattedAmount2.currency, displayFormattedAmount2.issuer);
 
   const tx: AMMDeposit = {
     TransactionType: "AMMDeposit",
@@ -529,48 +535,56 @@ export async function addLiquidityTwoAsset(
 }
 
 export async function addLiquidityTwoAssetLPToken(
-  { providerXRPLWallet, ammAccount, formattedAmount1, formattedAmount2, lpTokenOut }: AddLiquidityLPTokenParams
+  providerXRPLWallet: Wallet,
+  ammInfo: FormattedAMMInfo,
+  addValue1: string,
+  addValue2: string,
+  lpTokenValue: string
 ): Promise<AddLiquidityResult> {
   await connectXRPLClient();
+  const ammAccount = ammInfo.account;
+  const displayFormattedAmount1 = formatAmountForDisplay({currency: ammInfo.formattedAmount1.currency, issuer: ammInfo.formattedAmount1.issuer, value: addValue1});
+  const displayFormattedAmount2 = formatAmountForDisplay({currency: ammInfo.formattedAmount2.currency, issuer: ammInfo.formattedAmount2.issuer, value: addValue2});
+  const lpTokenOut = formatAmountForDisplay({currency: ammInfo.lpToken.currency, issuer: ammInfo.account, value: lpTokenValue});
   console.log(`✅ Adding liquidity (LPToken) to AMM at ${ammAccount}`);
   console.log(
-    `🔹 Asset A: ${formattedAmount1.currency} - Max Amount: ${formattedAmount1.value}`,
+    `🔹 Asset A: ${displayFormattedAmount1.currency} - Max Amount: ${displayFormattedAmount1.value}`,
   );
   console.log(
-    `🔹 Asset B: ${formattedAmount2.currency} - Max Amount: ${formattedAmount2.value}`,
+    `🔹 Asset B: ${displayFormattedAmount2.currency} - Max Amount: ${displayFormattedAmount2.value}`,
   );
   console.log(`🔹 LPTokenOut: ${JSON.stringify(lpTokenOut)}`);
 
   // ========== BALANCE CHECKS ==========
   // Check asset A
-  const assetABalanceSufficient = await checkAssetBalanceForAddLiquidity(providerXRPLWallet, formattedAmount1);
+  const assetABalanceSufficient = await checkAssetBalanceForAddLiquidity(providerXRPLWallet, displayFormattedAmount1);
   if (!assetABalanceSufficient) {
     return {
       success: false,
       error: {
         code: "INSUFFICIENT_BALANCE",
-        message: `Insufficient ${formattedAmount1.currency} balance.`
+        message: `Insufficient ${displayFormattedAmount1.currency} balance.`
       }
     };
   }
 
   // Check asset B
-  const assetBBalanceSufficient = await checkAssetBalanceForAddLiquidity(providerXRPLWallet, formattedAmount2);
+  const assetBBalanceSufficient = await checkAssetBalanceForAddLiquidity(providerXRPLWallet, displayFormattedAmount2);
   if (!assetBBalanceSufficient) {
     return {
       success: false,
       error: {
         code: "INSUFFICIENT_BALANCE",
-        message: `Insufficient ${formattedAmount2.currency} balance.`
+        message: `Insufficient ${displayFormattedAmount2.currency} balance.`
       }
     };
   }
 
   // ========== BUILD TRANSACTION ==========
-  const amount1 = formatAmountForXRPL(formattedAmount1);
-  const amount2 = formatAmountForXRPL(formattedAmount2);
-  const asset1 = formatCurrencyForXRPL(formattedAmount1.currency, formattedAmount1.issuer);
-  const asset2 = formatCurrencyForXRPL(formattedAmount2.currency, formattedAmount2.issuer);
+  const amount1 = formatAmountForXRPL(displayFormattedAmount1);
+  const amount2 = formatAmountForXRPL(displayFormattedAmount2);
+  const asset1 = formatCurrencyForXRPL(displayFormattedAmount1.currency, displayFormattedAmount1.issuer);
+  const asset2 = formatCurrencyForXRPL(displayFormattedAmount2.currency, displayFormattedAmount2.issuer);
 
   const tx: AMMDeposit = {
     TransactionType: "AMMDeposit",
@@ -630,10 +644,16 @@ export async function addLiquidityTwoAssetLPToken(
 }
 
 export async function addLiquiditySingleAsset(
-  { providerXRPLWallet, ammAccount, formattedAmount, emptyAmount }: AddLiquiditySingleAssetParams
+  providerXRPLWallet: Wallet,
+  ammInfo: FormattedAMMInfo,
+  addValue1: string,
+  selectedCurrency: string
 ): Promise<AddLiquidityResult> {
   await connectXRPLClient();
+  const ammAccount = ammInfo.account;
   console.log(`✅ Adding single-asset liquidity to AMM at ${ammAccount}`);
+
+  const formattedAmount = formatAmountForDisplay({currency: selectedCurrency, issuer: ammInfo.formattedAmount1.issuer, value: addValue1});
 
   // ========== BALANCE CHECKS ==========
   const assetBalanceSufficient = await checkAssetBalanceForAddLiquidity(providerXRPLWallet, formattedAmount);
@@ -647,13 +667,30 @@ export async function addLiquiditySingleAsset(
     };
   }
 
+  // Determine which asset to deposit and which is the other asset (copying logic from withdrawSingleAsset)
+  const isAsset1 = selectedCurrency === ammInfo.formattedAmount1.currency;
+  const isAsset2 = selectedCurrency === ammInfo.formattedAmount2.currency;
+  
+  if (!isAsset1 && !isAsset2) {
+    return {
+      success: false,
+      error: {
+        code: "INVALID_CURRENCY",
+        message: `Currency ${selectedCurrency} not found in AMM pool`,
+      }
+    };
+  }
+
+  const depositAsset = isAsset1 ? ammInfo.formattedAmount1 : ammInfo.formattedAmount2;
+  const otherAsset = isAsset1 ? ammInfo.formattedAmount2 : ammInfo.formattedAmount1;
+
   // ========== BUILD TRANSACTION ==========
   const tx: AMMDeposit = {
     TransactionType: "AMMDeposit",
     Account: providerXRPLWallet.classicAddress,
     Flags: 0x00080000, // tfSingleAsset
-    Asset: formatCurrencyForXRPL(formattedAmount.currency, formattedAmount.issuer),
-    Asset2: formatCurrencyForXRPL(emptyAmount.currency, emptyAmount.issuer),
+    Asset: formatCurrencyForXRPL(depositAsset.currency, depositAsset.issuer),
+    Asset2: formatCurrencyForXRPL(otherAsset.currency, otherAsset.issuer),
     Amount: formatAmountForXRPL(formattedAmount),
   };
 
@@ -706,28 +743,34 @@ export async function addLiquiditySingleAsset(
 }
 
 export async function addLiquidityOneAssetLPToken(
-  { providerXRPLWallet, ammAccount, formattedAmount, emptyAmount, lpTokenOut }: AddLiquidityOneAssetLPTokenParams
+  providerXRPLWallet: Wallet,
+  ammInfo: FormattedAMMInfo,
+  addValue1: string,
+  selectedCurrency: string,
+  lpTokenValue: string
 ): Promise<AddLiquidityResult> {
   await connectXRPLClient();
+  const ammAccount = ammInfo.account;
   console.log(`✅ Adding one-asset LPToken liquidity to AMM at ${ammAccount}`);
-  console.log(`🔹 Asset to deposit: ${formattedAmount.currency} - Amount: ${formattedAmount.value}`);
-  console.log(`🔹 Other asset in pool: ${emptyAmount.currency} - Amount: ${emptyAmount.value}`);
-  console.log(` LPTokenOut: ${JSON.stringify(lpTokenOut)}`);
 
-  // Validate that only one asset has a non-zero value
-  if (parseFloat(formattedAmount.value) <= 0) {
+  // Create formattedAmount from the parameters
+  const formattedAmount = formatAmountForDisplay({currency: selectedCurrency, issuer: ammInfo.formattedAmount1.issuer, value: addValue1});
+
+  console.log(`🔹 Asset to deposit: ${formattedAmount.currency} - Amount: ${formattedAmount.value}`);
+  console.log(`🔹 Desired LP token amount: ${lpTokenValue}`);
+
+  // Validate that the amount has a non-zero value
+  if (parseFloat(addValue1) <= 0) {
     return {
       success: false,
       error: {
         code: "INVALID_AMOUNTS",
-        message: "At least one asset must have a non-zero value"
+        message: "Amount must have a non-zero value"
       }
     };
   }
-  
 
   // ========== BALANCE CHECKS ==========
-  // Only check balance for the asset that has a non-zero value
   const assetBalanceSufficient = await checkAssetBalanceForAddLiquidity(providerXRPLWallet, formattedAmount);
   if (!assetBalanceSufficient) {
     return {
@@ -739,15 +782,36 @@ export async function addLiquidityOneAssetLPToken(
     };
   }
 
+  // Determine which asset to deposit and which is the other asset (copying logic from withdrawSingleAsset)
+  const isAsset1 = selectedCurrency === ammInfo.formattedAmount1.currency;
+  const isAsset2 = selectedCurrency === ammInfo.formattedAmount2.currency;
+  
+  if (!isAsset1 && !isAsset2) {
+    return {
+      success: false,
+      error: {
+        code: "INVALID_CURRENCY",
+        message: `Currency ${selectedCurrency} not found in AMM pool`,
+      }
+    };
+  }
+
+  const depositAsset = isAsset1 ? ammInfo.formattedAmount1 : ammInfo.formattedAmount2;
+  const otherAsset = isAsset1 ? ammInfo.formattedAmount2 : ammInfo.formattedAmount1;
+
   // ========== BUILD TRANSACTION ==========
   const tx: AMMDeposit = {
     TransactionType: "AMMDeposit",
     Account: providerXRPLWallet.classicAddress,
     Flags: 0x00200000, // tfOneAssetLPToken
-    Asset: formatCurrencyForXRPL(formattedAmount.currency, formattedAmount.issuer),
-    Asset2: formatCurrencyForXRPL(emptyAmount.currency, emptyAmount.issuer),
+    Asset: formatCurrencyForXRPL(depositAsset.currency, depositAsset.issuer),
+    Asset2: formatCurrencyForXRPL(otherAsset.currency, otherAsset.issuer),
     Amount: formatAmountForXRPL(formattedAmount),
-    LPTokenOut: lpTokenOut,
+    LPTokenOut: {
+      currency: ammInfo.lpToken.currency,
+      issuer: ammInfo.lpToken.issuer,
+      value: lpTokenValue
+    },
   };
 
   console.log("🔄 Preparing transaction...");

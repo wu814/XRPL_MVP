@@ -13,7 +13,7 @@ import { AddLiquidityResult } from "@/types/xrpl/ammXRPLTypes";
 
 export async function POST(req: NextRequest): Promise<NextResponse<AddLiquidityAPIResponse | APIErrorResponse>>  {
   try {
-    const { depositType, wallet, ammInfo, formattedAmount1, formattedAmount2, lpTokenOut, emptyAmount }: AddLiquidityAPIRequest =
+    const { depositType, wallet, ammInfo, addValue1, addValue2, lpTokenValue, selectedCurrency }: AddLiquidityAPIRequest =
       await req.json();
 
     if (!depositType) {
@@ -41,59 +41,58 @@ export async function POST(req: NextRequest): Promise<NextResponse<AddLiquidityA
     }
 
     // Initialize data
-    const ammAccount = ammInfo.account;
     const providerXRPLWallet = Wallet.fromSeed(walletData.seed);
     let result: AddLiquidityResult;
 
     switch (depositType) {
       case "twoAsset":
-        if (!formattedAmount1 || !formattedAmount2){
-          return NextResponse.json<APIErrorResponse>({ message: "Missing assetA or assetB" }, { status: 400 });
+        if (!addValue1 || !addValue2){
+          return NextResponse.json<APIErrorResponse>({ message: "Missing asset1 or asset2" }, { status: 400 });
         }
-        result = await addLiquidityTwoAsset({
+        result = await addLiquidityTwoAsset(
           providerXRPLWallet,
-          ammAccount,
-          formattedAmount1,
-          formattedAmount2,
-        });
+          ammInfo,
+          addValue1,
+          addValue2,
+        );
         break;
 
       case "twoAssetLPToken":
-        if (!formattedAmount1 || !formattedAmount2 || !lpTokenOut) {
-          return NextResponse.json<APIErrorResponse>({ message: "Missing assetA, assetB, or lpTokenOut" }, { status: 400 });
+        if (!addValue1 || !addValue2 || !lpTokenValue) {
+          return NextResponse.json<APIErrorResponse>({ message: "Missing asset1, asset2, or lpTokenValue" }, { status: 400 });
         }
-        result = await addLiquidityTwoAssetLPToken({
+        result = await addLiquidityTwoAssetLPToken(
           providerXRPLWallet,
-          ammAccount,
-          formattedAmount1,
-          formattedAmount2,
-          lpTokenOut,
-        });
+          ammInfo,
+          addValue1,
+          addValue2,
+          lpTokenValue,
+        );
         break;
 
       case "oneAsset":
-        if (!formattedAmount1 || !emptyAmount) {
-          return NextResponse.json<APIErrorResponse>({ message: "Missing asset or emptyAmount" }, { status: 400 });
+        if (!addValue1 || !selectedCurrency) {
+          return NextResponse.json<APIErrorResponse>({ message: "Missing asset or selectedCurrency" }, { status: 400 });
         }
-        result = await addLiquiditySingleAsset({
+        result = await addLiquiditySingleAsset(
           providerXRPLWallet,
-          ammAccount,
-          formattedAmount: formattedAmount1,
-          emptyAmount,
-        });
+          ammInfo,
+          addValue1,
+          selectedCurrency
+        );
         break;
 
       case "oneAssetLPToken":
-        if (!formattedAmount1 || !emptyAmount || !lpTokenOut) {
-          return NextResponse.json<APIErrorResponse>({ message: "Missing asset, emptyAmount, or lpTokenOut" }, { status: 400 });
+        if (!addValue1 || !lpTokenValue || !selectedCurrency) {
+          return NextResponse.json<APIErrorResponse>({ message: "Missing asset, selectedCurrency, or lpTokenValue" }, { status: 400 });
         }
-        result = await addLiquidityOneAssetLPToken({
+        result = await addLiquidityOneAssetLPToken(
           providerXRPLWallet,
-          ammAccount,
-          formattedAmount: formattedAmount1,
-          emptyAmount,
-          lpTokenOut,
-        });
+          ammInfo,
+          addValue1,
+          selectedCurrency,
+          lpTokenValue,
+        );
         break;
 
       default:
