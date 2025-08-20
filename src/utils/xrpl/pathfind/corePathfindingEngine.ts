@@ -1,5 +1,6 @@
 import * as xrpl from "xrpl";
 import { connectXRPLClient, client } from "../testnet";
+import { FormattedAMMInfo } from "@/types/xrpl/ammXRPLTypes";
 
 // Type definitions
 interface MarketAnalysisOptions {
@@ -63,7 +64,7 @@ interface PathInfo {
   orderBookDepth?: number;
   fromBalance?: number;
   toBalance?: number;
-  tradingFee?: number;
+  tradingFeeDecimal?: number;
   feeAmount?: number;
   theoreticalOutput?: number;
   priceImpact?: number;
@@ -75,23 +76,6 @@ interface BestRoute {
   rate: number;
   estimatedOutput: string;
   path: PathInfo;
-}
-
-interface AMMData {
-  [key: string]: {
-    amm_account: string;
-    currency_a: {
-      currency: string;
-      issuer: string;
-      value: string;
-    };
-    currency_b: {
-      currency: string;
-      issuer: string;
-      value: string;
-    };
-    trading_fee: number;
-  };
 }
 
 interface OrderBookData {
@@ -125,8 +109,6 @@ export async function analyzeMarket(
       includeAMM = true,
       includeDEX = true,
       includeHybrid = true,
-      slippageBuffer = 0.00,
-      maxHops = 3,
       purpose = 'analysis',
       targetOutput = null
     } = options;
@@ -266,33 +248,20 @@ async function analyzeAMMRoutes(
     }
     
     // Get LIVE AMM data using universal function - NO CACHING for accuracy
-    const { getAllAMMData, getFormattedAMMInfo } = await import("../amm/ammUtils.js");
+    const { getAllAMMData, getFormattedAMMInfo } = await import("../amm/ammUtils");
     const ammRegistry = await getAllAMMData();
-    const ammData: AMMData = {};
+    const formattedAMMInfos: FormattedAMMInfo[] = [];
     
     // Get live data for each pool using universal function
-    for (const [pairKey, poolInfo] of Object.entries(ammRegistry)) {
+    for (const poolInfo of ammRegistry) {
       try {
-        const liveInfo = await getFormattedAMMInfo(poolInfo.amm_account);
+        const liveInfo = await getFormattedAMMInfo(poolInfo.account);
 
         if (liveInfo) {
-          ammData[pairKey] = {
-            amm_account: liveInfo.amm_account,
-            currency_a: {
-              currency: liveInfo.amount.currency,
-              issuer: liveInfo.amount.issuer,
-              value: liveInfo.amount.value
-            },
-            currency_b: {
-              currency: liveInfo.amount2.currency,
-              issuer: liveInfo.amount2.issuer,
-              value: liveInfo.amount2.value
-            },
-            trading_fee: liveInfo.trading_fee
-          };
+          formattedAMMInfos.push(liveInfo);
         }
       } catch (error) {
-        console.warn(`⚠️ Failed to get live data for ${pairKey}: ${error instanceof Error ? error.message : String(error)}`);
+        console.warn(`⚠️ Failed to get live data for ${poolInfo.account}: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
     
@@ -300,28 +269,28 @@ async function analyzeAMMRoutes(
     let bestRate = 0;
     let bestPath: PathInfo | null = null;
     
-    console.log(`📊 Analyzing ${Object.keys(ammData).length} AMM pools`);
+    console.log(`📊 Analyzing ${formattedAMMInfos.length} AMM pools`);
     
     // Direct AMM routes
-    for (const [ammId, amm] of Object.entries(ammData)) {
+    for (const ammInfo of formattedAMMInfos) {
       let directRoute: PathInfo | null = null;
       
       if (isExactOutput && targetOutput) {
         // Calculate exact input needed for target output
-        const requiredInput = calculateAMMInputForOutput(amm, fromCurrency, toCurrency, targetOutput);
+        const requiredInput = calculateAMMInputForOutput(ammInfo, fromCurrency, toCurrency, targetOutput);
         if (requiredInput && requiredInput > 0) {
           const rate = targetOutput / requiredInput;
           directRoute = {
             rate: rate,
             amountOut: targetOutput,
             requiredInput: requiredInput,
-            liquidityRatio: calculateLiquidityRatio(amm, fromCurrency, requiredInput),
+            liquidityRatio: calculateLiquidityRatio(ammInfo, fromCurrency, requiredInput),
             path: `${fromCurrency} → ${toCurrency} (AMM)`,
-            ammAccount: amm.amm_account
+            ammAccount: ammInfo.account || ""
           };
         }
       } else {
-        directRoute = analyzeDirectAMMRoute(amm, fromCurrency, toCurrency, fromAmount);
+        directRoute = analyzeDirectAMMRoute(ammInfo, fromCurrency, toCurrency, fromAmount);
       }
       
       if (directRoute && directRoute.rate > 0) {
@@ -334,7 +303,7 @@ async function analyzeAMMRoutes(
     }
     
     // Multi-hop AMM routes
-    const multiHopRoutes = analyzeMultiHopAMMRoutes(ammData, fromCurrency, toCurrency, fromAmount, issuerAddress, isExactOutput, targetOutput);
+    const multiHopRoutes = analyzeMultiHopAMMRoutes(formattedAMMInfos, fromCurrency, toCurrency, fromAmount, issuerAddress, isExactOutput, targetOutput);
     if (multiHopRoutes.success && multiHopRoutes.allRoutes) {
       routes.push(...multiHopRoutes.allRoutes);
       
@@ -480,32 +449,19 @@ async function analyzeHybridRoutes(
     console.log(`🟣 Hybrid Route Analysis...`);
     
     // Get both AMM and DEX data using universal function
-    const { getAllAMMData, getFormattedAMMInfo } = await import("../amm/ammUtils.js");
+    const { getAllAMMData, getFormattedAMMInfo } = await import("../amm/ammUtils");
     const ammRegistry = await getAllAMMData();
-    const ammData: AMMData = {};
+    const formattedAMMInfos: FormattedAMMInfo[] = [];
     
     // Get live AMM data for hybrid routes
-    for (const [pairKey, poolInfo] of Object.entries(ammRegistry)) {
+    for (const poolInfo of ammRegistry) {
       try {
-        const liveInfo = await getFormattedAMMInfo(poolInfo.amm_account);
+        const liveInfo = await getFormattedAMMInfo(poolInfo.account);
         if (liveInfo) {
-          ammData[pairKey] = {
-            amm_account: liveInfo.amm_account,
-            currency_a: {
-              currency: liveInfo.amount.currency,
-              issuer: liveInfo.amount.issuer,
-              value: liveInfo.amount.value
-            },
-            currency_b: {
-              currency: liveInfo.amount2.currency,
-              issuer: liveInfo.amount2.issuer,
-              value: liveInfo.amount2.value
-            },
-            trading_fee: liveInfo.trading_fee
-          };
+          formattedAMMInfos.push(liveInfo);
         }
       } catch (error) {
-        console.warn(`⚠️ Failed to get live data for ${pairKey}: ${error instanceof Error ? error.message : String(error)}`);
+        console.warn(`⚠️ Failed to get live data for ${poolInfo.account}: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
     
@@ -517,9 +473,9 @@ async function analyzeHybridRoutes(
     
     // Find intermediate currencies available in both AMM and DEX
     const ammCurrencies = new Set(['XRP']);
-    Object.values(ammData).forEach(amm => {
-      if (amm.currency_a?.currency) ammCurrencies.add(amm.currency_a.currency);
-      if (amm.currency_b?.currency) ammCurrencies.add(amm.currency_b.currency);
+    formattedAMMInfos.forEach(amm => {
+      if (amm.formattedAmount1?.currency) ammCurrencies.add(amm.formattedAmount1.currency);
+      if (amm.formattedAmount2?.currency) ammCurrencies.add(amm.formattedAmount2.currency);
     });
     
     // Try hybrid routes through each intermediate currency
@@ -534,7 +490,7 @@ async function analyzeHybridRoutes(
         toCurrency, 
         fromAmount, 
         orderBooks, 
-        ammData, 
+        formattedAMMInfos, 
         issuerAddress
       );
       
@@ -554,7 +510,7 @@ async function analyzeHybridRoutes(
         toCurrency, 
         fromAmount, 
         orderBooks, 
-        ammData, 
+        formattedAMMInfos, 
         issuerAddress
       );
       
@@ -776,16 +732,30 @@ export function analyzeOrderBookDepth(orderBooks: OrderBookData): OrderBookAnaly
 
 /**
  * Analyze direct AMM route between two currencies
- * @param {any} amm - AMM data
+ * @param {FormattedAMMInfo} amm - AMM data
  * @param {string} fromCurrency - Source currency
  * @param {string} toCurrency - Target currency
  * @param {string} fromAmount - Amount to trade
  * @returns {PathInfo} Route information
  */
-export function analyzeDirectAMMRoute(amm: any, fromCurrency: string, toCurrency: string, fromAmount: string): PathInfo {
+export function analyzeDirectAMMRoute(amm: FormattedAMMInfo, fromCurrency: string, toCurrency: string, fromAmount: string): PathInfo {
   try {
-    const fromBalance = parseFloat(amm.currency_a.currency === fromCurrency ? amm.currency_a.value : amm.currency_b.value);
-    const toBalance = parseFloat(amm.currency_a.currency === toCurrency ? amm.currency_a.value : amm.currency_b.value);
+    // Validate that this AMM pool actually contains both currencies
+    const hasFromCurrency = amm.formattedAmount1.currency === fromCurrency || amm.formattedAmount2.currency === fromCurrency;
+    const hasToCurrency = amm.formattedAmount1.currency === toCurrency || amm.formattedAmount2.currency === toCurrency;
+    
+    if (!hasFromCurrency || !hasToCurrency) {
+      // This pool doesn't contain both currencies, return invalid route
+      return {
+        rate: 0,
+        amountOut: 0,
+        path: `${fromCurrency} → ${toCurrency}`,
+        error: `Pool does not contain both ${fromCurrency} and ${toCurrency}`
+      };
+    }
+    
+    const fromBalance = parseFloat(amm.formattedAmount1.currency === fromCurrency ? amm.formattedAmount1.value : amm.formattedAmount2.value);
+    const toBalance = parseFloat(amm.formattedAmount1.currency === toCurrency ? amm.formattedAmount1.value : amm.formattedAmount2.value);
     
     // Calculate output using constant product formula
     const k = fromBalance * toBalance;
@@ -796,9 +766,9 @@ export function analyzeDirectAMMRoute(amm: any, fromCurrency: string, toCurrency
     // Calculate rate
     const rate = amountOut / parseFloat(fromAmount);
     
-    // Calculate trading fee
-    const tradingFee = amm.trading_fee || 0.003; // Default 0.3%
-    const feeAmount = amountOut * tradingFee;
+    // Calculate trading fee - fix the logic for zero fees
+    const tradingFeeDecimal = amm.tradingFee > 0 ? amm.tradingFee / 100000 : 0;
+    const feeAmount = amountOut * tradingFeeDecimal;
     const finalOutput = amountOut - feeAmount;
     
     // Calculate price impact
@@ -809,10 +779,10 @@ export function analyzeDirectAMMRoute(amm: any, fromCurrency: string, toCurrency
       rate,
       amountOut: finalOutput,
       path: `${fromCurrency} → ${toCurrency}`,
-      ammAccount: amm.amm_account,
+      ammAccount: amm.account || "",
       fromBalance,
       toBalance,
-      tradingFee,
+      tradingFeeDecimal: tradingFeeDecimal,
       feeAmount,
       theoreticalOutput,
       priceImpact,
@@ -830,7 +800,7 @@ export function analyzeDirectAMMRoute(amm: any, fromCurrency: string, toCurrency
 
 /**
  * Analyze multi-hop AMM routes
- * @param {AMMData} ammData - AMM data for all pools
+ * @param {FormattedAMMInfo[]} ammData - AMM data for all pools
  * @param {string} fromCurrency - Source currency
  * @param {string} toCurrency - Target currency
  * @param {string} fromAmount - Amount to trade
@@ -840,7 +810,7 @@ export function analyzeDirectAMMRoute(amm: any, fromCurrency: string, toCurrency
  * @returns {RouteAnalysis} Route analysis
  */
 export function analyzeMultiHopAMMRoutes(
-  ammData: AMMData, 
+  ammData: FormattedAMMInfo[], 
   fromCurrency: string, 
   toCurrency: string, 
   fromAmount: string, 
@@ -852,29 +822,29 @@ export function analyzeMultiHopAMMRoutes(
     const routes: PathInfo[] = [];
     
     // Find pools that contain the from currency
-    const fromPools = Object.values(ammData).filter(amm => 
-      amm.currency_a.currency === fromCurrency || amm.currency_b.currency === fromCurrency
+    const fromPools = ammData.filter(amm => 
+      amm.formattedAmount1.currency === fromCurrency || amm.formattedAmount2.currency === fromCurrency
     );
     
     // Find pools that contain the to currency
-    const toPools = Object.values(ammData).filter(amm => 
-      amm.currency_a.currency === toCurrency || amm.currency_b.currency === toCurrency
+    const toPools = ammData.filter(amm => 
+      amm.formattedAmount1.currency === toCurrency || amm.formattedAmount2.currency === toCurrency
     );
     
     // Find intermediate currencies (currencies that appear in both from and to pools)
     const intermediateCurrencies = new Set<string>();
     
     fromPools.forEach(fromPool => {
-      const otherCurrency = fromPool.currency_a.currency === fromCurrency ? 
-        fromPool.currency_b.currency : fromPool.currency_a.currency;
+      const otherCurrency = fromPool.formattedAmount1.currency === fromCurrency ? 
+        fromPool.formattedAmount2.currency : fromPool.formattedAmount1.currency;
       if (otherCurrency !== fromCurrency && otherCurrency !== toCurrency) {
         intermediateCurrencies.add(otherCurrency);
       }
     });
     
     toPools.forEach(toPool => {
-      const otherCurrency = toPool.currency_a.currency === toCurrency ? 
-        toPool.currency_b.currency : toPool.currency_a.currency;
+      const otherCurrency = toPool.formattedAmount1.currency === toCurrency ? 
+        toPool.formattedAmount2.currency : toPool.formattedAmount1.currency;
       if (otherCurrency !== fromCurrency && otherCurrency !== toCurrency) {
         intermediateCurrencies.add(otherCurrency);
       }
@@ -883,13 +853,13 @@ export function analyzeMultiHopAMMRoutes(
     // Generate routes through intermediate currencies
     Array.from(intermediateCurrencies).forEach(intermediateCurrency => {
       const fromPool = fromPools.find(amm => 
-        (amm.currency_a.currency === fromCurrency && amm.currency_b.currency === intermediateCurrency) ||
-        (amm.currency_b.currency === fromCurrency && amm.currency_a.currency === intermediateCurrency)
+        (amm.formattedAmount1.currency === fromCurrency && amm.formattedAmount2.currency === intermediateCurrency) ||
+        (amm.formattedAmount2.currency === fromCurrency && amm.formattedAmount1.currency === intermediateCurrency)
       );
       
       const toPool = toPools.find(amm => 
-        (amm.currency_a.currency === intermediateCurrency && amm.currency_b.currency === toCurrency) ||
-        (amm.currency_b.currency === intermediateCurrency && amm.currency_a.currency === toCurrency)
+        (amm.formattedAmount1.currency === intermediateCurrency && amm.formattedAmount2.currency === toCurrency) ||
+        (amm.formattedAmount2.currency === intermediateCurrency && amm.formattedAmount1.currency === toCurrency)
       );
       
       if (fromPool && toPool) {
@@ -908,11 +878,11 @@ export function analyzeMultiHopAMMRoutes(
               amountOut: secondHop.amountOut,
               path: `${fromCurrency} → ${intermediateCurrency} → ${toCurrency}`,
               intermediateCurrency,
-              pools: [fromPool.amm_account, toPool.amm_account],
+              pools: [fromPool.account, toPool.account],
               hops: [firstHop, secondHop],
               fromBalance: firstHop.fromBalance,
               toBalance: secondHop.toBalance,
-              tradingFee: (firstHop.tradingFee || 0) + (secondHop.tradingFee || 0),
+              tradingFeeDecimal: (firstHop.tradingFeeDecimal || 0) + (secondHop.tradingFeeDecimal || 0),
               feeAmount: (firstHop.feeAmount || 0) + (secondHop.feeAmount || 0),
               theoreticalOutput: secondHop.theoreticalOutput,
               priceImpact: Math.max(firstHop.priceImpact || 0, secondHop.priceImpact || 0)
@@ -969,16 +939,16 @@ export function analyzeMultiHopAMMRoutes(
 
 /**
  * Calculate required input for a target output in AMM
- * @param {any} amm - AMM data
+ * @param {FormattedAMMInfo} amm - AMM data
  * @param {string} fromCurrency - Source currency
  * @param {string} toCurrency - Target currency
  * @param {number} targetOutput - Target output amount
  * @returns {number} Required input amount
  */
-export function calculateAMMInputForOutput(amm: any, fromCurrency: string, toCurrency: string, targetOutput: number): number {
+export function calculateAMMInputForOutput(amm: FormattedAMMInfo, fromCurrency: string, toCurrency: string, targetOutput: number): number {
   try {
-    const fromBalance = parseFloat(amm.currency_a.currency === fromCurrency ? amm.currency_a.value : amm.currency_b.value);
-    const toBalance = parseFloat(amm.currency_a.currency === toCurrency ? amm.currency_a.value : amm.currency_b.value);
+    const fromBalance = parseFloat(amm.formattedAmount1.currency === fromCurrency ? amm.formattedAmount1.value : amm.formattedAmount2.value);
+    const toBalance = parseFloat(amm.formattedAmount1.currency === toCurrency ? amm.formattedAmount1.value : amm.formattedAmount2.value);
     
     // Using constant product formula: (x + dx) * (y - dy) = k
     // where k = x * y, and we want dy = targetOutput
@@ -988,8 +958,8 @@ export function calculateAMMInputForOutput(amm: any, fromCurrency: string, toCur
     const requiredInput = newFromBalance - fromBalance;
     
     // Add trading fee
-    const tradingFee = amm.trading_fee || 0.003;
-    const feeAdjustedInput = requiredInput / (1 - tradingFee);
+    const tradingFeeDecimal = amm.tradingFee > 0 ? amm.tradingFee / 100000 : 0;
+    const feeAdjustedInput = requiredInput / (1 - tradingFeeDecimal);
     
     return Math.max(0, feeAdjustedInput);
   } catch (error) {
@@ -999,14 +969,14 @@ export function calculateAMMInputForOutput(amm: any, fromCurrency: string, toCur
 
 /**
  * Calculate liquidity ratio for an AMM
- * @param {any} amm - AMM data
+ * @param {FormattedAMMInfo} amm - AMM data
  * @param {string} fromCurrency - Source currency
  * @param {number} tradeAmount - Trade amount
  * @returns {number} Liquidity ratio
  */
-export function calculateLiquidityRatio(amm: any, fromCurrency: string, tradeAmount: number): number {
+export function calculateLiquidityRatio(amm: FormattedAMMInfo, fromCurrency: string, tradeAmount: number): number {
   try {
-    const fromBalance = parseFloat(amm.currency_a.currency === fromCurrency ? amm.currency_a.value : amm.currency_b.value);
+    const fromBalance = parseFloat(amm.formattedAmount1.currency === fromCurrency ? amm.formattedAmount1.value : amm.formattedAmount2.value);
     return fromBalance / (fromBalance + tradeAmount);
   } catch (error) {
     return 0;
@@ -1179,7 +1149,7 @@ export function analyzeHybridRoute(
   toCurrency: string, 
   fromAmount: string, 
   orderBooks: any, 
-  ammData: any, 
+  ammData: FormattedAMMInfo[], 
   issuerAddress: string
 ): PathInfo {
   try {
@@ -1188,9 +1158,9 @@ export function analyzeHybridRoute(
     
     if (routeType === 'AMM_DEX') {
       // First hop: AMM (fromCurrency → intermediateCurrency)
-      const amm = Object.values(ammData).find((amm: any) => 
-        (amm.currency_a.currency === fromCurrency && amm.currency_b.currency === intermediateCurrency) ||
-        (amm.currency_b.currency === fromCurrency && amm.currency_a.currency === intermediateCurrency)
+      const amm = ammData.find((amm: FormattedAMMInfo) => 
+        (amm.formattedAmount1.currency === fromCurrency && amm.formattedAmount2.currency === intermediateCurrency) ||
+        (amm.formattedAmount2.currency === fromCurrency && amm.formattedAmount1.currency === intermediateCurrency)
       );
       
       if (!amm) {
@@ -1232,9 +1202,9 @@ export function analyzeHybridRoute(
       }
       
       // Second hop: AMM (intermediateCurrency → toCurrency)
-      const amm = Object.values(ammData).find((amm: any) => 
-        (amm.currency_a.currency === intermediateCurrency && amm.currency_b.currency === toCurrency) ||
-        (amm.currency_b.currency === intermediateCurrency && amm.currency_a.currency === toCurrency)
+      const amm = ammData.find((amm: FormattedAMMInfo) => 
+        (amm.formattedAmount1.currency === intermediateCurrency && amm.formattedAmount2.currency === toCurrency) ||
+        (amm.formattedAmount2.currency === intermediateCurrency && amm.formattedAmount1.currency === toCurrency)
       );
       
       if (!amm) {

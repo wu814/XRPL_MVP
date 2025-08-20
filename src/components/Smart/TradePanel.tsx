@@ -11,7 +11,7 @@ import SuccessMdl from "@/components/SuccessMdl";
 import Button from "../Button";
 import { useCurrentUserWallet } from "@/components/wallet/CurrentUserWalletProvider";
 import { useIssuerWallet } from "@/components/wallet/IssuerWalletProvider";
-import { availableCurrencies, formatCurrencyValue, Currency } from "@/utils/currencyUtils";
+import { availableCurrencies, formatCurrencyValue, YONACurrency } from "@/utils/currencyUtils";
 import { useSession } from "next-auth/react";
 import { calculateExactAMMInput, calculateEstimateOutput } from "@/utils/xrpl/amm/calculations";
 import { YONAWallet } from "@/types/appTypes";
@@ -19,6 +19,7 @@ import { APIErrorResponse } from "@/types/api/errorAPITypes";
 import { GetAccountInfoAPIResponse } from "@/types/api/walletAPITypes";
 import { GetAccountLinesAPIResponse } from "@/types/api/walletAPITypes";
 import { GetFormattedAMMInfoByCurrenciesAPIResponse } from "@/types/api/ammAPITypes";
+import { FormattedAMMInfo } from "@/types/xrpl/ammXRPLTypes";
 
 
 interface WalletBalance {
@@ -48,8 +49,8 @@ export default function TradePanel() {
   // Convert states (integrated from SmartTradeMenu)
   const [sellCurrency, setSellCurrency] = useState<string>("USD");
   const [buyCurrency, setBuyCurrency] = useState<string>("XRP");
-  const [sellAmount, setSellAmount] = useState<string>("");
-  const [buyAmount, setBuyAmount] = useState<string>("");
+  const [sellAmount, setSellAmount] = useState<number | null>(null);
+  const [buyAmount, setBuyAmount] = useState<number | null>(null);
   const [activeInput, setActiveInput] = useState<ActiveInput>("sell");
   const [tradeInputType, setTradeInputType] = useState<TradeInputType>("exact_input");
 
@@ -58,7 +59,7 @@ export default function TradePanel() {
   const [calculationError, setCalculationError] = useState<string | null>(null);
 
   // AMM data states - fetch once when currencies change
-  const [ammData, setAMMData] = useState<any>(null);
+  const [ammData, setAMMData] = useState<FormattedAMMInfo>(null);
   const [loadingAMMData, setLoadingAMMData] = useState<boolean>(false);
   const [ammDataError, setAMMDataError] = useState<string | null>(null);
 
@@ -66,18 +67,18 @@ export default function TradePanel() {
   const [recipientUsername, setRecipientUsername] = useState<string>("");
   const [recipientAddress, setRecipientAddress] = useState<string>("");
   const [useUsername, setUseUsername] = useState<boolean>(true);
-  const [amount, setAmount] = useState<string>("");
+  const [amount, setAmount] = useState<number | null>(null);
   const [currency, setCurrency] = useState<string>("USD");
   const [destinationTag, setDestinationTag] = useState<string>("");
   const [paymentType, setPaymentType] = useState<PaymentType>("direct");
   const [convertInputType, setConvertInputType] = useState<ConvertInputType>(null);
   const [sendCurrency, setSendCurrency] = useState<string>("USD");
   const [receiveCurrency, setReceiveCurrency] = useState<string>("XRP");
-  const [sendAmount, setSendAmount] = useState<string>("");
-  const [receiveAmount, setReceiveAmount] = useState<string>("");
+  const [sendAmount, setSendAmount] = useState<number | null>(null);
+  const [receiveAmount, setReceiveAmount] = useState<number | null>(null);
 
   // Common states
-  const [slippage, setSlippage] = useState<string>("0");
+  const [slippage, setSlippage] = useState<number>(0);
   const [showSlippagePanel, setShowSlippagePanel] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -102,15 +103,15 @@ export default function TradePanel() {
   // Convert functionality integration
   const handleSellAmountChange = (e: ChangeEvent<HTMLInputElement>): void => {
     setActiveInput("sell");
-    setSellAmount(e.target.value);
-    setBuyAmount("");
+    setSellAmount(Number(e.target.value));
+    setBuyAmount(null);
     setTradeInputType("exact_input");
   };
 
   const handleBuyAmountChange = (e: ChangeEvent<HTMLInputElement>): void => {
     setActiveInput("buy");
-    setBuyAmount(e.target.value);
-    setSellAmount("");
+    setBuyAmount(Number(e.target.value));
+    setSellAmount(null);
     setTradeInputType("exact_output");
   };
 
@@ -185,10 +186,10 @@ export default function TradePanel() {
 
   // Generic calculation function for output
   const calculateOutputAmount = async (
-    inputAmount: string,
+    inputAmount: number,
     inputCurrency: string,
     outputCurrency: string,
-    setOutputAmount: (amount: string) => void,
+    setOutputAmount: (amount: number) => void,
   ): Promise<void> => {
     if (!ammData) {
       console.log("⚠️ No AMM data available for output calculation");
@@ -211,18 +212,18 @@ export default function TradePanel() {
       const calculation = calculateEstimateOutput(
         poolInput,
         poolOutput,
-        parseFloat(inputAmount),
-        ammData.trading_fee || 0,
+        inputAmount,
+        ammData.tradingFee / 100000 || 0,
       );
 
       if (calculation.success) {
-        setOutputAmount(calculation.estimatedOutput.toFixed(6));
+        setOutputAmount(Number((calculation.estimatedOutput).toFixed(6)));
       } else {
         throw new Error(calculation.error);
       }
     } catch (error: any) {
       setCalculationError(error.message);
-      setOutputAmount("");
+      setOutputAmount(null);
     } finally {
       setCalculatingAmounts(false);
     }
@@ -230,10 +231,10 @@ export default function TradePanel() {
 
   // Generic calculation function for input
   const calculateInputAmount = async (
-    outputAmount: string,
+    outputAmount: number,
     inputCurrency: string,
     outputCurrency: string,
-    setInputAmount: (amount: string) => void,
+    setInputAmount: (amount: number) => void,
   ): Promise<void> => {
     if (!ammData) {
       console.log("⚠️ No AMM data available for input calculation");
@@ -256,19 +257,19 @@ export default function TradePanel() {
       const calculation = calculateExactAMMInput(
         poolInput,
         poolOutput,
-        parseFloat(outputAmount),
-        parseFloat(slippage) / 100,
-        ammData.tradingFee || 0,
+        outputAmount,
+        slippage / 100,
+        ammData.tradingFee / 100000 || 0,
       );
 
       if (calculation.success) {
-        setInputAmount(calculation.inputWithSlippage.toFixed(6));
+        setInputAmount(Number((calculation.inputWithSlippage).toFixed(6)));
       } else {
         throw new Error(calculation.error);
       }
     } catch (error: any) {
       setCalculationError(error.message);
-      setInputAmount("");
+      setInputAmount(null);
     } finally {
       setCalculatingAmounts(false);
     }
@@ -278,13 +279,13 @@ export default function TradePanel() {
   useEffect(() => {
     if (
       sellAmount &&
-      parseFloat(sellAmount) > 0 &&
+      (sellAmount > 0 &&
       sellCurrency &&
       buyCurrency &&
       sellCurrency !== buyCurrency &&
       activeInput === "sell" &&
       ammData
-    ) {
+    )) {
       calculateOutputAmount(
         sellAmount,
         sellCurrency,
@@ -293,16 +294,16 @@ export default function TradePanel() {
       );
     } else if (
       activeInput === "sell" &&
-      (!sellAmount || parseFloat(sellAmount) <= 0)
+      (!sellAmount || sellAmount <= 0)
     ) {
-      setBuyAmount("");
+      setBuyAmount(null);
     }
   }, [sellAmount, sellCurrency, buyCurrency, activeInput, ammData]);
 
   useEffect(() => {
     if (
       buyAmount &&
-      parseFloat(buyAmount) > 0 &&
+      buyAmount > 0 &&
       sellCurrency &&
       buyCurrency &&
       sellCurrency !== buyCurrency &&
@@ -312,16 +313,16 @@ export default function TradePanel() {
       calculateInputAmount(buyAmount, sellCurrency, buyCurrency, setSellAmount);
     } else if (
       activeInput === "buy" &&
-      (!buyAmount || parseFloat(buyAmount) <= 0)
+      (!buyAmount || buyAmount <= 0)
     ) {
-      setSellAmount("");
+      setSellAmount(null);
     }
   }, [buyAmount, sellCurrency, buyCurrency, activeInput, slippage, ammData]);
 
   useEffect(() => {
     if (
       sendAmount &&
-      parseFloat(sendAmount) > 0 &&
+      sendAmount > 0 &&
       sendCurrency &&
       receiveCurrency &&
       sendCurrency !== receiveCurrency &&
@@ -336,16 +337,16 @@ export default function TradePanel() {
       );
     } else if (
       convertInputType === "exact_input" &&
-      (!sendAmount || parseFloat(sendAmount) <= 0)
+      (!sendAmount || sendAmount <= 0)
     ) {
-      setReceiveAmount("");
+      setReceiveAmount(null);
     }
   }, [sendAmount, sendCurrency, receiveCurrency, convertInputType, ammData]);
 
   useEffect(() => {
     if (
       receiveAmount &&
-      parseFloat(receiveAmount) > 0 &&
+      receiveAmount > 0 &&
       sendCurrency &&
       receiveCurrency &&
       sendCurrency !== receiveCurrency &&
@@ -360,9 +361,9 @@ export default function TradePanel() {
       );
     } else if (
       convertInputType === "exact_output" &&
-      (!receiveAmount || parseFloat(receiveAmount) <= 0)
+      (!receiveAmount || receiveAmount <= 0)
     ) {
-      setSendAmount("");
+      setSendAmount(null);
     }
   }, [
     receiveAmount,
@@ -396,7 +397,7 @@ export default function TradePanel() {
           sendAmount: sellAmount,
           receiveCurrency: buyCurrency,
           issuerAddress: issuerWallets[0].classicAddress,
-          slippagePercent: parseFloat(slippage),
+          slippagePercent: slippage,
           paymentType: tradeInputType,
           exactOutputAmount:
             tradeInputType === "exact_output" ? buyAmount : undefined,
@@ -415,8 +416,8 @@ export default function TradePanel() {
       fetchWalletBalances();
 
       // Reset form
-      setSellAmount("");
-      setBuyAmount("");
+      setSellAmount(null);
+      setBuyAmount(null);
     } catch (error: any) {
       setErrorMessage(error.message);
     } finally {
@@ -427,22 +428,22 @@ export default function TradePanel() {
   const handlePaymentTypeChange = (type: PaymentType): void => {
     setPaymentType(type);
     setConvertInputType(null);
-    setSendAmount("");
-    setReceiveAmount("");
-    setAmount("");
+    setSendAmount(null);
+    setReceiveAmount(null);
+    setAmount(null);
   };
 
   const handleSendAmountChangeForPayment = (e: ChangeEvent<HTMLInputElement>): void => {
     const value = e.target.value;
-    setSendAmount(value);
-    setReceiveAmount("");
+    setSendAmount(Number(value));
+    setReceiveAmount(null);
     setConvertInputType(value ? "exact_input" : null);
   };
 
   const handleReceiveAmountChangeForPayment = (e: ChangeEvent<HTMLInputElement>): void => {
     const value = e.target.value;
-    setReceiveAmount(value);
-    setSendAmount("");
+    setReceiveAmount(Number(value));
+    setSendAmount(null);
     setConvertInputType(value ? "exact_output" : null);
   };
 
@@ -463,7 +464,7 @@ export default function TradePanel() {
           sendAmount: sendAmount,
           receiveCurrency,
           issuerAddress: issuerWallets[0].classicAddress,
-          slippagePercent: parseFloat(slippage),
+          slippagePercent: slippage,
           destinationTag: tag,
           useUsername,
           recipient: useUsername ? recipientUsername : recipientAddress,
@@ -500,10 +501,10 @@ export default function TradePanel() {
       // Reset form
       if (!recipientUsername) setRecipientUsername("");
       setRecipientAddress("");
-      setAmount("");
+      setAmount(null);
       setDestinationTag("");
-      setSendAmount("");
-      setReceiveAmount("");
+      setSendAmount(null);
+      setReceiveAmount(null);
     } catch (err: any) {
       setErrorMessage(err.message);
     } finally {
@@ -520,14 +521,14 @@ export default function TradePanel() {
   const handleMax = (): void => {
     if (activeTab === "Convert" && sellCurrency) {
       const maxBalance = walletBalances[sellCurrency] || 0;
-      setSellAmount(maxBalance.toFixed(2));
-      setBuyAmount("");
+      setSellAmount(Number(maxBalance.toFixed(2)));
+      setBuyAmount(null);
       setActiveInput("sell");
       setTradeInputType("exact_input");
     }
   };
 
-  const getCurrencyData = (currencyId: string): Currency => {
+  const getCurrencyData = (currencyId: string): YONACurrency => {
     return (
       availableCurrencies.find((c) => c.id === currencyId) ||
       availableCurrencies[0]
@@ -551,8 +552,8 @@ export default function TradePanel() {
     sellCurrency &&
     buyCurrency &&
     sellCurrency !== buyCurrency &&
-    ((sellAmount && parseFloat(sellAmount) > 0) ||
-      (buyAmount && parseFloat(buyAmount) > 0));
+    ((sellAmount && sellAmount > 0) ||
+      (buyAmount && buyAmount > 0));
 
   const fetchWalletBalances = async (): Promise<void> => {
     if (!senderWallet) return;
@@ -613,14 +614,14 @@ export default function TradePanel() {
 
   // Reset amounts when currencies change
   useEffect(() => {
-    setSellAmount("");
-    setBuyAmount("");
+    setSellAmount(null);
+    setBuyAmount(null);
     setCalculationError(null);
   }, [sellCurrency]);
 
   useEffect(() => {
-    setSellAmount("");
-    setBuyAmount("");
+    setSellAmount(null);
+    setBuyAmount(null);
     setCalculationError(null);
   }, [buyCurrency]);
 
@@ -735,7 +736,7 @@ export default function TradePanel() {
                       <input
                         type="number"
                         step="0.000001"
-                        value={sellAmount}
+                        value={sellAmount ?? ""}
                         onChange={handleSellAmountChange}
                         placeholder="0.00"
                         className={`w-48 bg-transparent text-right text-4xl font-light text-white outline-none ${
@@ -808,7 +809,7 @@ export default function TradePanel() {
                     <input
                       type="number"
                       step="0.000001"
-                      value={buyAmount}
+                      value={buyAmount ?? ""}
                       onChange={handleBuyAmountChange}
                       placeholder="0.00"
                       className={`w-48 bg-transparent text-right text-4xl font-light text-white outline-none ${
@@ -1014,7 +1015,7 @@ export default function TradePanel() {
                           type="number"
                           step="0.000001"
                           min="0"
-                          value={sendAmount}
+                          value={sendAmount ?? ""}
                           onChange={handleSendAmountChangeForPayment}
                           className={`w-full rounded-lg border border-transparent bg-color3 px-4 py-3 outline-none hover:border-gray-500 focus:border-primary ${convertInputType === "exact_output" ? "cursor-not-allowed opacity-60" : ""}`}
                           placeholder="0.00"
@@ -1029,7 +1030,7 @@ export default function TradePanel() {
                           type="number"
                           step="0.000001"
                           min="0"
-                          value={receiveAmount}
+                          value={receiveAmount ?? ""}
                           onChange={handleReceiveAmountChangeForPayment}
                           className={`w-full rounded-lg border border-transparent bg-color3 px-4 py-3 outline-none hover:border-gray-500 focus:border-primary ${convertInputType === "exact_input" ? "cursor-not-allowed opacity-60" : ""}`}
                           placeholder="0.00"
@@ -1062,8 +1063,8 @@ export default function TradePanel() {
                         type="number"
                         step="0.000001"
                         min="0"
-                        value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
+                        value={amount ?? ""}
+                        onChange={(e) => setAmount(e.target.value === "" ? null : Number(e.target.value))}
                         className="w-full rounded-lg border border-transparent bg-color3 px-4 py-3 outline-none hover:border-gray-500 focus:border-primary"
                         placeholder="0.00"
                         required

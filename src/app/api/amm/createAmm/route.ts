@@ -54,6 +54,13 @@ export async function POST(req: NextRequest): Promise<NextResponse<CreateAMMAPIR
       tradingFee,
     );
 
+    if (!ammData.success) {
+      return NextResponse.json<APIErrorResponse>(
+        { message: ammData.error?.message || "AMM creation failed" },
+        { status: 400 },
+      );
+    }
+
     // Store the new AMM in the database
     const { data, error } = await supabase.from("amms").insert([
       {

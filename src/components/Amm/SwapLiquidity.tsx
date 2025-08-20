@@ -48,7 +48,7 @@ export default function SwapLiquidity({ ammInfo, onSwapped }: SwapLiquidityProps
 
   // Slippage tolerance state
   const [showSlippagePanel, setShowSlippagePanel] = useState<boolean>(false);
-  const [slippage, setSlippage] = useState<string>("0"); // Default slippage tolerance 0%
+  const [slippage, setSlippage] = useState<number>(0); // Default slippage tolerance 0%
 
   // Feedback/UI flags
   const [loading, setLoading] = useState<boolean>(false);
@@ -103,7 +103,7 @@ export default function SwapLiquidity({ ammInfo, onSwapped }: SwapLiquidityProps
       }
 
       // Calculate estimated output
-      const calculation = calculateEstimateOutput(poolSell, poolBuy, sellAmount, ammInfo.tradingFee || 0);
+      const calculation = calculateEstimateOutput(poolSell, poolBuy, sellAmount, (ammInfo.tradingFee || 0) / 100000);
       
       if (calculation.success && calculation.estimatedOutput !== undefined) {
         setBuyAmount(calculation.estimatedOutput.toFixed(6));
@@ -140,7 +140,7 @@ export default function SwapLiquidity({ ammInfo, onSwapped }: SwapLiquidityProps
         poolSell, 
         poolBuy, 
         parseFloat(buyAmount), 
-        parseFloat(slippage) / 100, 
+        slippage / 100, 
         ammInfo.tradingFee || 0
       );
       
@@ -216,7 +216,7 @@ export default function SwapLiquidity({ ammInfo, onSwapped }: SwapLiquidityProps
           sendAmount: sellAmount,
           receiveCurrency: buyCurrency,
           issuerAddress: issuerWallets[0].classicAddress,
-          slippagePercent: parseFloat(slippage),
+          slippagePercent: slippage,
           paymentType: swapInputType,
           exactOutputAmount: swapInputType === "exact_output" ? buyAmount : undefined,
         }),

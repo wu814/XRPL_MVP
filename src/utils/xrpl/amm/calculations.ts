@@ -6,28 +6,27 @@
 // Import BigNumber for precise decimal calculations
 import BigNumber from 'bignumber.js';
 
-// Type definitions
+// Type definitions - Updated to use BigNumber for precision
 export interface AMMCalculationResult {
   success: boolean;
-  exactInput?: number;
-  inputWithSlippage?: number;
-  pricePerUnit?: number;
-  newPoolX?: number;
-  newPoolY?: number;
-  slippageAmount?: number;
-  tradingFeeAdjustment?: number;
-  adjustedOutput?: number;
+  exactInput?: BigNumber;
+  inputWithSlippage?: BigNumber;
+  pricePerUnit?: BigNumber;
+  newPoolX?: BigNumber;
+  newPoolY?: BigNumber;
+  slippageAmount?: BigNumber;
+  tradingFeeAdjustment?: BigNumber;
+  adjustedOutput?: BigNumber;
   error?: string;
 }
 
 export interface OutputCalculationResult {
   success: boolean;
-  estimatedOutput?: number;
-  grossOutput?: number;
-  tradingFeeAmount?: number;
-  newPoolX?: number;
-  newPoolY?: number;
-  pricePerUnit?: number;
+  estimatedOutput?: BigNumber;
+  tradingFeeAmount?: BigNumber;
+  newPoolX?: BigNumber;
+  newPoolY?: BigNumber;
+  pricePerUnit?: BigNumber;
   error?: string;
 }
 
@@ -36,44 +35,62 @@ export interface OutputCalculationResult {
  * @param poolX - Input asset pool balance (accepts string or number)
  * @param poolY - Output asset pool balance (accepts string or number)
  * @param desiredOutput - Desired output amount (accepts string or number)
- * @param slippageTolerance - Slippage tolerance (default 0.01 = 1%, accepts string or number)
+ * @param slippageDecimal - Slippage tolerance (default 0.01 = 1%, accepts string or number)
  * @param tradingFeeUnits - Trading fee in XRPL units (1 unit = 0.001%, max 1000 = 1%, accepts string or number)
- * @returns Calculation result with exact input needed
+ * @returns Calculation result with exact input needed as BigNumber for precision
  */
 export function calculateExactAMMInput(
   poolX: string | number, 
   poolY: string | number, 
   desiredOutput: string | number, 
-  slippageTolerance: string | number = 0, 
-  tradingFeeUnits: string | number = 0
+  slippageDecimal: string | number = 0, 
+  tradingFeeDecimal: string | number = 0
 ): AMMCalculationResult {
   try {
     console.log(`🧮 AMM Constant Product Calculation (High Precision):`);
     console.log(`   Initial Pool: ${poolX} (input) / ${poolY} (output)`);
     console.log(`   Desired Output: ${desiredOutput}`);
-    console.log(`   Trading Fee: ${tradingFeeUnits} XRPL fee units (${(Number(tradingFeeUnits)/1000).toFixed(3)}%)`);
+    console.log(`   Trading Fee: ${Number(tradingFeeDecimal) * 100}%`);
+    
+    // Validate inputs
+    if (!poolX || !poolY || !desiredOutput) {
+      throw new Error("Invalid input: pool balances and desired output must be positive numbers");
+    }
+    
+    if (Number(desiredOutput) <= 0) {
+      throw new Error("Desired output must be greater than 0");
+    }
+    
+    if (Number(poolX) <= 0 || Number(poolY) <= 0) {
+      throw new Error("Pool balances must be greater than 0");
+    }
     
     // Use BigNumber for precise calculations
     const poolXBN = new BigNumber(poolX);
     const poolYBN = new BigNumber(poolY);
     const desiredOutputBN = new BigNumber(desiredOutput);
-    const slippageToleranceBN = new BigNumber(slippageTolerance);
+    const slippageDecimalBN = new BigNumber(slippageDecimal);
+    
+    // Validate that desired output doesn't exceed pool liquidity
+    if (desiredOutputBN.gte(poolYBN)) {
+      throw new Error(`Desired output ${desiredOutput} exceeds available pool liquidity ${poolY}`);
+    }
     
     console.log(`   Constant k = ${poolXBN.multipliedBy(poolYBN).toFixed()}`);
     
     // Convert XRPL trading fee units to decimal with high precision
     // Per XRPL docs: fee units are in 1/100,000; value of 1 = 0.001%, max 1000 = 1%
-    const tradingFeeDecimalBN = new BigNumber(tradingFeeUnits).dividedBy(100000);
+    const tradingFeeDecimalBN = new BigNumber(tradingFeeDecimal);
     
     // If there's a trading fee, we need to account for it in our calculation
     let adjustedDesiredOutputBN = desiredOutputBN;
     
-    if (Number(tradingFeeUnits) > 0) {
+    if (Number(tradingFeeDecimal) > 0) {
       // Calculate how much extra we need to request to account for the fee
       // If fee is 1% and we want 100, we need to request ~101.01 so that after 1% fee we get 100
       const oneMinusFee = new BigNumber(1).minus(tradingFeeDecimalBN);
       adjustedDesiredOutputBN = desiredOutputBN.dividedBy(oneMinusFee);
-      console.log(`   Fee Adjustment: Requesting ${adjustedDesiredOutputBN.toFixed(6)} to get ${desiredOutput} after ${tradingFeeUnits} fee units`);
+      console.log(`   Fee Adjustment: Requesting ${adjustedDesiredOutputBN.toFixed(6)} to get ${desiredOutput} after ${Number(tradingFeeDecimal) * 100}% fee`);
     }
     
     // Constant product formula: X * Y = k
@@ -94,24 +111,35 @@ export function calculateExactAMMInput(
     // Input needed = newPoolX - poolX
     const exactInputNeededBN = newPoolXBN.minus(poolXBN);
     
+    // Validate the calculated input is reasonable
+    if (exactInputNeededBN.lte(0)) {
+      throw new Error("Calculated input amount is invalid (zero or negative)");
+    }
+    
     // Apply slippage tolerance
-    const inputWithSlippageBN = exactInputNeededBN.multipliedBy(new BigNumber(1).plus(slippageToleranceBN));
+    const inputWithSlippageBN = exactInputNeededBN.multipliedBy(new BigNumber(1).plus(slippageDecimalBN));
+    
+    // Round to reasonable precision to avoid XRPL precision errors
+    // For IOU tokens, use 15 decimal places; for XRP, use 6
+    const maxPrecision = 15;
+    const roundedInputWithSlippage = inputWithSlippageBN.toFixed(maxPrecision);
+    const roundedExactInput = exactInputNeededBN.toFixed(maxPrecision);
     
     console.log(`   After withdrawal: ${newPoolXBN.toFixed(6)} / ${newPoolYBN.toFixed(6)}`);
-    console.log(`   Exact input needed: ${exactInputNeededBN.toFixed(6)}`);
-    console.log(`   With ${Number(slippageTolerance) * 100}% slippage: ${inputWithSlippageBN.toFixed(6)}`);
+    console.log(`   Exact input needed: ${roundedExactInput}`);
+    console.log(`   With ${Number(slippageDecimal) * 100}% slippage: ${roundedInputWithSlippage}`);
     console.log(`   Price per unit: ${exactInputNeededBN.dividedBy(desiredOutputBN).toFixed(6)}`);
     
     return {
       success: true,
-      exactInput: exactInputNeededBN.toNumber(),
-      inputWithSlippage: inputWithSlippageBN.toNumber(),
-      pricePerUnit: exactInputNeededBN.dividedBy(desiredOutputBN).toNumber(),
-      newPoolX: newPoolXBN.toNumber(),
-      newPoolY: newPoolYBN.toNumber(),
-      slippageAmount: inputWithSlippageBN.minus(exactInputNeededBN).toNumber(),
-      tradingFeeAdjustment: adjustedDesiredOutputBN.minus(desiredOutputBN).toNumber(),
-      adjustedOutput: adjustedDesiredOutputBN.toNumber()
+      exactInput: new BigNumber(roundedExactInput),
+      inputWithSlippage: new BigNumber(roundedInputWithSlippage),
+      pricePerUnit: exactInputNeededBN.dividedBy(desiredOutputBN),
+      newPoolX: newPoolXBN,
+      newPoolY: newPoolYBN,
+      slippageAmount: inputWithSlippageBN.minus(exactInputNeededBN),
+      tradingFeeAdjustment: adjustedDesiredOutputBN.minus(desiredOutputBN),
+      adjustedOutput: adjustedDesiredOutputBN
     };
     
   } catch (error: any) {
@@ -129,49 +157,45 @@ export function calculateExactAMMInput(
  * @param poolY - Output asset pool balance (accepts string or number)
  * @param input - Input amount (accepts string or number)
  * @param tradingFeeUnits - Trading fee in XRPL units (1 unit = 0.001%, max 1000 = 1%, accepts string or number)
- * @returns Calculation result with estimated output
+ * @returns Calculation result with estimated output as BigNumber for precision
  */
 export function calculateEstimateOutput(
   poolX: string | number, 
   poolY: string | number, 
   input: string | number, 
-  tradingFeeUnits: string | number = 0
+  tradingFeeDecimal: string | number = 0
 ): OutputCalculationResult {
   try {
     console.log(`🧮 Calculating estimated output:`);
     console.log(`   Pool: ${poolX} (input) / ${poolY} (output)`);
     console.log(`   Input: ${input}`);
-    console.log(`   Trading Fee: ${tradingFeeUnits} XRPL fee units (${(Number(tradingFeeUnits)/1000).toFixed(3)}%)`);
+    console.log(`   Trading Fee: ${Number(tradingFeeDecimal) * 100}%`);
     
-    // Use BigNumber for precise calculations (unlike original which mixed BigNumber and native math)
+    // Use BigNumber for precise calculations
     const poolXBN = new BigNumber(poolX);
     const poolYBN = new BigNumber(poolY);
     const inputBN = new BigNumber(input);
-    const tradingFeeUnitsBN = new BigNumber(tradingFeeUnits);
+    const tradingFeeDecimalBN = new BigNumber(tradingFeeDecimal);
     
-    // Constant product formula with BigNumber precision
+    // Calculate output without fee first
     const k = poolXBN.multipliedBy(poolYBN);
-    const newPoolXBN = poolXBN.plus(inputBN);
+    const newPoolXBN = poolXBN.plus(inputBN); // Use full input
     const newPoolYBN = k.dividedBy(newPoolXBN);
     const grossOutputBN = poolYBN.minus(newPoolYBN);
-    
-    // Apply trading fee (fee is deducted from output)
-    // Per XRPL docs: fee units are in 1/100,000; value of 1 = 0.001%, max 1000 = 1%
-    const tradingFeeDecimalBN = tradingFeeUnitsBN.dividedBy(100000);
+
+    // Then deduct fee from the output
     const netOutputBN = grossOutputBN.multipliedBy(new BigNumber(1).minus(tradingFeeDecimalBN));
-    const tradingFeeAmountBN = grossOutputBN.minus(netOutputBN);
     
-    console.log(`   Gross output: ${grossOutputBN.toFixed(6)}`);
-    console.log(`   Net output (after ${tradingFeeUnits} fee units): ${netOutputBN.toFixed(6)}`);
+    console.log(`   Fee amount: ${inputBN.multipliedBy(tradingFeeDecimalBN).toFixed(6)}`);
+    console.log(`   Net output (fee already applied): ${netOutputBN.toFixed(6)}`);
     
     return {
       success: true,
-      estimatedOutput: netOutputBN.toNumber(),
-      grossOutput: grossOutputBN.toNumber(),
-      tradingFeeAmount: tradingFeeAmountBN.toNumber(),
-      newPoolX: newPoolXBN.toNumber(),
-      newPoolY: newPoolYBN.toNumber(),
-      pricePerUnit: inputBN.dividedBy(netOutputBN).toNumber()
+      estimatedOutput: netOutputBN,
+      tradingFeeAmount: inputBN.multipliedBy(tradingFeeDecimalBN),
+      newPoolX: newPoolXBN,
+      newPoolY: newPoolYBN,
+      pricePerUnit: inputBN.dividedBy(netOutputBN)
     };
   } catch (error: any) {
     console.error(`❌ Output calculation error: ${error.message}`);

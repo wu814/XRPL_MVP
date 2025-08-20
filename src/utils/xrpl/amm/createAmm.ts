@@ -41,10 +41,20 @@ export default async function createAMM(
 
   // Sort currencies alphabetically to ensure consistent ordering
   const currencies = [currency1, currency2].sort();
+  
+  // Swap amounts if currency order changed
+  let amount1Value = value1;
+  let amount2Value = value2;
+  
+  if (currencies[0] !== currency1) {
+    // Currency order changed, swap the amounts
+    amount1Value = value2;
+    amount2Value = value1;
+  }
 
   // Prepare assets for transaction
-  const amount1: Amount = formatAmountForXRPL({currency: currencies[0], issuer: issuerWallet.classicAddress, value: value1.toString()});
-  const amount2: Amount = formatAmountForXRPL({currency: currencies[1], issuer: issuerWallet.classicAddress, value: value2.toString()});
+  const amount1: Amount = formatAmountForXRPL({currency: currencies[0], issuer: issuerWallet.classicAddress, value: amount1Value.toString()});
+  const amount2: Amount = formatAmountForXRPL({currency: currencies[1], issuer: issuerWallet.classicAddress, value: amount2Value.toString()});
 
   // change the fee (in drops) to create AMM
   const tx: AMMCreate = {

@@ -21,11 +21,6 @@ interface TransferBtnProps {
   onSuccess?: () => void; // Made optional
 }
 
-interface AMMDataResponse {
-  success: boolean;
-  data?: any;
-  error?: string;
-}
 
 interface TransactionResponse {
   success?: boolean;
@@ -56,7 +51,7 @@ export default function TransferBtn({
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Slippage state
-  const [slippage, setSlippage] = useState<string>("0");
+  const [slippage, setSlippage] = useState<number>(0);
   const [showSlippagePanel, setShowSlippagePanel] = useState<boolean>(false);
 
   const [paymentType, setPaymentType] = useState<PaymentType>("direct");
@@ -158,7 +153,7 @@ export default function TransferBtn({
       }
 
       // Calculate estimated output
-      const calculation = calculateEstimateOutput(poolSend, poolReceive, sendAmount, ammData.tradingFee || 0);
+      const calculation = calculateEstimateOutput(poolSend, poolReceive, sendAmount, (ammData.tradingFee || 0) / 100000);
       
       if (calculation.success && calculation.estimatedOutput !== undefined) {
         setReceiveAmount(calculation.estimatedOutput.toFixed(6));
@@ -195,7 +190,7 @@ export default function TransferBtn({
         poolSend, 
         poolReceive, 
         parseFloat(receiveAmount), 
-        parseFloat(slippage) / 100, 
+        slippage / 100, 
         ammData.tradingFee || 0
       );
       
@@ -275,7 +270,7 @@ export default function TransferBtn({
           sendAmount: sendAmount,
           receiveCurrency,
           issuerAddress: issuerWallets[0]?.classicAddress,
-          slippagePercent: parseFloat(slippage),
+          slippagePercent: slippage,
           destinationTag: tag,
           useUsername,
           recipient: useUsername ? recipientUsername : recipientAddress,
