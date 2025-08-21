@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Button from "@/components/Button";
 import ErrorMdl from "@/components/ErrorMdl";
 import SuccessMdl from "@/components/SuccessMdl";
-import CurrencyDropDown from "@/components/Currency/CurrencyDropDown";
+import CurrencyDropDown from "@/components/currency/CurrencyDropDown";
 import SlippagePanel from "../SlippagePanel";
 import { Settings, Loader2 } from "lucide-react";
 import { useSession } from "next-auth/react";

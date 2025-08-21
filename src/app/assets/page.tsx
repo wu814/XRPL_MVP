@@ -2,9 +2,7 @@
 import { useSession } from "next-auth/react";
 import { Plus } from "lucide-react";
 import AssetTable, { useLivePrices, useWalletAssets } from "@/components/wallet/AssetTable";
-import {
-  useCurrentUserWallet,
-} from "@/components/wallet/CurrentUserWalletProvider";
+import { useCurrentUserWallet } from "@/components/wallet/CurrentUserWalletProvider";
 import CreateUserWalletBtn from "@/components/wallet/CreateUserWalletBtn";
 import usePageTitle from "@/utils/usePageTitle";
 

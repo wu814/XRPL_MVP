@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import BuyNFT from "@/components/nft/BuyNFT";
 import MintAndListNFT from "@/components/nft/MintAndListNFT";
-// Remove this line: import TradePanel from "@/components/Smart/TradePanel";
+// Remove this line: import TradePanel from "@/components/smart/TradePanel";
 
 import usePageTitle from "@/utils/usePageTitle";
 
