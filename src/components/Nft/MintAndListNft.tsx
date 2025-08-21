@@ -7,12 +7,8 @@ import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
 import { useCurrentUserWallet } from "../wallet/CurrentUserWalletProvider";
 import { useIssuerWallet } from "../wallet/IssuerWalletProvider";
-
-interface MintAndListResponse {
-  success?: boolean;
-  message?: string;
-  error?: string;
-}
+import { MintAndListNFTAPIResponse } from "@/types/api/nftAPITypes";
+import { APIErrorResponse } from "@/types/api/errorAPITypes";
 
 export default function MintAndListNFT() {
   const [uri, setUri] = useState<string>("");
@@ -26,15 +22,18 @@ export default function MintAndListNFT() {
   const { currentUserWallets } = useCurrentUserWallet();
   const { issuerWallets } = useIssuerWallet();
 
-  const businessWallet = currentUserWallets?.find(
-    (wallet) => wallet.walletType === "BUSINESS"
+  const userWallet = currentUserWallets?.find(
+    (wallet) =>
+      wallet.walletType === "USER" ||
+      wallet.walletType === "BUSINESS" ||
+      wallet.walletType === "PATHFIND"
   );
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    if (!businessWallet) {
-      setErrorMessage("No business wallet found. Please create a wallet first.");
+    if (!userWallet) {
+      setErrorMessage("No user wallet found. Please create a wallet first.");
       return;
     }
 
@@ -59,7 +58,7 @@ export default function MintAndListNFT() {
 
     try {
       const payload = {
-        businessWallet,
+        userWallet,
         issuerWalletAddress: issuerWallets[0].classicAddress,
         uri: uri.trim(),
         priceUSD: parseFloat(priceUSD),
@@ -77,25 +76,26 @@ export default function MintAndListNFT() {
         body: JSON.stringify(payload),
       });
 
-      const result: MintAndListResponse = await response.json();
-
       if (!response.ok) {
-        throw new Error(result.error || "Mint and list failed");
+        const errorData: APIErrorResponse = await response.json();
+        setErrorMessage(errorData.message);
+        return;
       }
 
-      if (result.success) {
-        setSuccessMessage(result.message || "NFT minted and listed successfully!");
+      const result: MintAndListNFTAPIResponse = await response.json();
+
+      if (result.message) {
+        setSuccessMessage(result.message);
         
         // Clear form on success
         setUri("");
         setPriceUSD("");
         setDestination("");
         setTaxon("1001");
-      } else {
-        throw new Error(result.error || "Operation failed");
       }
     } catch (error: any) {
-      setErrorMessage(error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      setErrorMessage(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -181,7 +181,7 @@ export default function MintAndListNFT() {
           {/* Submit Button */}
           <Button
             type="submit"
-            disabled={loading}
+            disabled={loading || !uri || !priceUSD || !taxon}
             className="w-full"
           >
             {loading ? (
@@ -193,11 +193,6 @@ export default function MintAndListNFT() {
               "Mint & List NFT"
             )}
           </Button>
-
-          {/* Info Text */}
-          <div className="text-xs text-mutedText text-center">
-            <p>Business wallets mint NFTs and list them on DEX for USD</p>
-          </div>
         </form>
       </div>
 

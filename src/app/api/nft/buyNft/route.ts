@@ -4,57 +4,49 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { purchaseNFTWithSmartTrade } from "@/utils/xrpl/nft/nftManager";
 import { Wallet } from "xrpl";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
+import { BuyNFTAPIRequest, BuyNFTAPIResponse } from "@/types/api/nftAPITypes";
+import { APIErrorResponse } from "@/types/api/errorAPITypes";
 
-interface BuyNFTRequest {
-  offerID: string;
-  paymentCurrency: string;
-  issuerWalletAddress: string;
-  userWallet: {
-    classicAddress: string;
-  };
-}
-
-export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest): Promise<NextResponse<BuyNFTAPIResponse | APIErrorResponse>> {
   try {
     // Check authentication
     const session = await getServerSession(authOptions);
     if (!session) {
-      return NextResponse.json(
-        { error: "Authentication required" },
-        { status: 401 },
+      return NextResponse.json<APIErrorResponse>(
+        { message: "Authentication required" },
+        { status: 401 }
       );
     }
 
     // Parse request body
-    const { offerID, paymentCurrency, issuerWalletAddress, userWallet }: BuyNFTRequest =
-      await req.json();
+    const { offerID, paymentCurrency, issuerWalletAddress, userWallet }: BuyNFTAPIRequest = await req.json();
 
     // Validate required parameters
     if (!offerID) {
-      return NextResponse.json(
-        { error: "Offer ID is required" },
-        { status: 400 },
+      return NextResponse.json<APIErrorResponse>(
+        { message: "Offer ID is required" },
+        { status: 400 }
       );
     }
 
     if (!paymentCurrency) {
-      return NextResponse.json(
-        { error: "Payment currency is required" },
-        { status: 400 },
+      return NextResponse.json<APIErrorResponse>(
+        { message: "Payment currency is required" },
+        { status: 400 }
       );
     }
 
     if (!issuerWalletAddress) {
-      return NextResponse.json(
-        { error: "Issuer wallet address is required" },
-        { status: 400 },
+      return NextResponse.json<APIErrorResponse>(
+        { message: "Issuer wallet address is required" },
+        { status: 400 }
       );
     }
 
     if (!userWallet) {
-      return NextResponse.json(
-        { error: "User wallet is required" },
-        { status: 400 },
+      return NextResponse.json<APIErrorResponse>(
+        { message: "User wallet is required" },
+        { status: 400 }
       );
     }
 
@@ -67,48 +59,45 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (walletError || !walletData) {
-      return NextResponse.json(
-        { error: "Wallet not found for the provided classicAddress" },
-        { status: 404 },
+      return NextResponse.json<APIErrorResponse>(
+        { message: "Wallet not found for the provided classicAddress" },
+        { status: 404 }
       );
     }
 
-    const purchaserWallet = Wallet.fromSeed(walletData.seed);
+    const purchaserXRPLWallet = Wallet.fromSeed(walletData.seed);
 
     // Call the purchase function
     const result = await purchaseNFTWithSmartTrade(
       issuerWalletAddress,
       offerID,
       paymentCurrency,
-      purchaserWallet,
+      purchaserXRPLWallet,
     );
 
     if (result.success) {
       console.log(`✅ NFT purchase successful!`);
-      return NextResponse.json(
+      return NextResponse.json<BuyNFTAPIResponse>(
         {
-          success: true,
           message: result.message,
         },
         { status: 200 },
       );
     } else {
       console.log(`❌ NFT purchase failed: ${result.error}`);
-      return NextResponse.json(
+      return NextResponse.json<APIErrorResponse>(
         {
-          success: false,
-          error: result.error || "NFT purchase failed",
+          message: result.message,
         },
         { status: 400 },
       );
     }
   } catch (error) {
-    console.error(`❌ API Error in buyNFT:`, error instanceof Error ? error.message : 'Unknown error');
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    return NextResponse.json(
+    console.error(`❌ API Error in buyNFT:`, error instanceof Error ? error.message : "Unknown error");
+    const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+    return NextResponse.json<APIErrorResponse>(
       {
-        success: false,
-        error: `Server error: ${errorMessage}`,
+        message: `Server error: ${errorMessage}`,
       },
       { status: 500 },
     );

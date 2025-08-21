@@ -1,4 +1,5 @@
 import { AMMInfoResponse, IssuedCurrencyAmount, Wallet, Currency } from "xrpl";
+import { ErrorInfo } from "@/types/xrpl/errorXRPLTypes";
 
 export type AMMInfo = AMMInfoResponse["result"]["amm"];
 
@@ -14,10 +15,7 @@ export type AMMData = {
 
 export type CreateAMMResult = {
   success: boolean;
-  error?: {
-    code: string;
-    message: string;
-  };
+  error?: ErrorInfo;
   account: string;
   currency1: string;
   currency2: string;
@@ -66,18 +64,12 @@ export interface AddLiquidityOneAssetLPTokenParams {
 // General Add Liquidity Result
 export interface AddLiquidityResult {
   success: boolean;
-  error?: {
-    code: string;
-    message: string;
-  };
+  error?: ErrorInfo;
   message?: string;
 }
 
 export interface WithdrawLiquidityResult {
   success: boolean;
-  error?: {
-    code: string;
-    message: string;
-  };
+  error?: ErrorInfo;
   message?: string;
 }

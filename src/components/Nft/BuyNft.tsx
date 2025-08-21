@@ -8,13 +8,8 @@ import SuccessMdl from "../SuccessMdl";
 import CurrencyDropDown from "../currency/CurrencyDropDown";
 import { useCurrentUserWallet } from "../wallet/CurrentUserWalletProvider";
 import { useIssuerWallet } from "../wallet/IssuerWalletProvider";
-
-
-interface BuyNFTResponse {
-  success?: boolean;
-  message?: string;
-  error?: string;
-}
+import { BuyNFTAPIResponse } from "@/types/api/nftAPITypes";
+import { APIErrorResponse } from "@/types/api/errorAPITypes";
 
 export default function BuyNFT() {
   const { currentUserWallets } = useCurrentUserWallet();
@@ -77,17 +72,17 @@ export default function BuyNFT() {
         body: JSON.stringify(payload),
       });
 
-      const result: BuyNFTResponse = await response.json();
+      const result: BuyNFTAPIResponse | APIErrorResponse = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || "Purchase failed");
+        throw new Error(result.message || "Purchase failed");
       }
 
-      if (result.success) {
+      if (result.message) {
         setSuccessMessage(result.message || "NFT purchased successfully!");
         setOfferID(""); // Clear form on success
       } else {
-        throw new Error(result.error || "Purchase failed");
+        throw new Error(result.message || "Purchase failed");
       }
     } catch (error: any) {
       console.error("❌ Purchase error:", error);

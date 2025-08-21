@@ -38,23 +38,12 @@ export default function NFTPage() {
   if (!session) {
     return null; // Will redirect
   }
-
-  const isBusiness = session.user.role === "BUSINESS";
-
   return (
     <div className="min-h-screen bg-color1">          
         <div className="max-w-4xl mx-auto pt-10">
-          {/* Role-based Content */}
-          <div className="flex justify-center">
-            {isBusiness ? (
-              <div className="w-full max-w-lg">
-                <MintAndListNFT />
-              </div>
-            ) : (
-              <div className="w-full max-w-lg">
-                <BuyNFT />
-              </div>
-            )}
+          <div className="flex flex-row gap-4">
+            <MintAndListNFT />
+            <BuyNFT />
           </div>
         </div>
     </div>

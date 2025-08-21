@@ -63,7 +63,7 @@ export default function Sidebar() {
       path: "/trade",
     },
     {
-      name: user.role === "BUSINESS" ? "Mint NFT" : "Buy NFT",
+      name: "NFT Marketplace",
       icon: ImageIcon,
       path: "/nft",
     },

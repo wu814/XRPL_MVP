@@ -202,7 +202,6 @@ export async function POST(
 
     return NextResponse.json<WithdrawLiquidityAPIResponse>(
       {
-        success: result.success,
         message: result.message,
         poolDeleted: poolDeleted,
       },

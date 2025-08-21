@@ -68,7 +68,6 @@ export interface WithdrawLiquidityAPIRequest {
 }
 
 export interface WithdrawLiquidityAPIResponse {
-  success: boolean;
   message: string;
   poolDeleted?: boolean;
 }
