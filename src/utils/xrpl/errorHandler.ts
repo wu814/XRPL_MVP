@@ -336,7 +336,7 @@ function getTransactionErrorInfo(
     },
     Payment: {
       tecPATH_DRY: "The transaction failed because the provided paths did not have enough liquidity to send anything at all. This could mean that the source and destination accounts are not linked by trust lines.",
-      tecPATH_PARTIAL: "Path could not send full amount",
+      tecPATH_PARTIAL: "Path could not send full amount, try adding 1% slippage",
       tecUNFUNDED_PAYMENT: "Insufficient funds for payment",
       tecNO_LINE: "No trust line for this asset",
       tecFROZEN: "Asset is frozen",

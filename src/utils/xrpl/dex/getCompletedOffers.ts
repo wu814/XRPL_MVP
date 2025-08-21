@@ -114,7 +114,7 @@ export default async function getCompletedOffers(wallet: YONAWallet): Promise<En
         // Extract hash using the same logic as active offers
         const hash: string | null = tx.hash || (txData as any).hash || tx.Hash || (txData as any).Hash || null;
 
-        if (tx.TransactionType === "OfferCreate") {
+        if (tx.TransactionType === "OfferCreate" && tx.Account === wallet.classicAddress) {
           // Check if the offer was immediately filled/killed by looking at metadata
           const meta = (txData as any).meta;
           let wasImmediatelyFilled = false;

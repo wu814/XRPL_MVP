@@ -5,12 +5,7 @@ export interface YONAWallet {
   walletType: string;
 }
 
-export interface WalletBalance {
-  balance: number;
-  ownerCount: number;
-  totalReserve: number;
-  availableBalance: number;
-}
+
 
 export interface WalletApiResponse {
   data?: Array<{

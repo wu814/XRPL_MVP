@@ -2,33 +2,21 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
 import sendXRP from "@/utils/xrpl/transaction/sendXRP";
 import { Wallet } from "xrpl";
+import { APIErrorResponse } from "@/types/api/errorAPITypes";
+import { sendXRPAPIResponse, sendXRPAPIRequest } from "@/types/api/transactionAPITypes";
 
-interface SendXRPRequest {
-  senderWallet: {
-    classicAddress: string;
-  };
-  recipientUsername?: string;
-  recipientAddress?: string;
-  recipient?: string;
-  amount: string | number;
-  destinationTag?: number;
-  useUsername?: boolean;
-}
 
-export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest): Promise<NextResponse<sendXRPAPIResponse | APIErrorResponse>> {
   try {
-    const { senderWallet, recipientUsername, recipientAddress, recipient, amount, destinationTag, useUsername }: SendXRPRequest =
+    const { senderWallet, recipientUsername, recipientAddress, recipient, amount, destinationTag, useUsername }: sendXRPAPIRequest =
       await req.json();
 
     if (!senderWallet) {
-      return NextResponse.json(
-        { error: "Missing sender wallet" },
-        { status: 400 },
-      );
+      return NextResponse.json<APIErrorResponse>({ message: "Missing sender wallet" }, { status: 400 });
     }
 
     if (!amount) {
-      return NextResponse.json({ error: "Missing amount" }, { status: 400 });
+      return NextResponse.json<APIErrorResponse>({ message: "Missing amount" }, { status: 400 });
     }
 
     let recipientAddressFinal: string;
@@ -38,10 +26,7 @@ export async function POST(req: NextRequest) {
       // Username-based transfer
       const username = recipientUsername || recipient;
       if (!username) {
-        return NextResponse.json(
-          { error: "Missing recipient username" },
-          { status: 400 },
-        );
+        return NextResponse.json<APIErrorResponse>({ message: "Missing recipient username" }, { status: 400 });
       }
 
       // fetching recipient's wallet address by username
@@ -71,10 +56,7 @@ export async function POST(req: NextRequest) {
       // Direct address transfer
       recipientAddressFinal = recipientAddress || recipient;
       if (!recipientAddressFinal) {
-        return NextResponse.json(
-          { error: "Missing recipient address" },
-          { status: 400 },
-        );
+        return NextResponse.json<APIErrorResponse>({ message: "Missing recipient address" }, { status: 400 });
       }
     }
 
@@ -87,10 +69,7 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (walletError || !walletData) {
-      return NextResponse.json(
-        { error: "Wallet not found for the provided classicAddress" },
-        { status: 404 },
-      );
+      return NextResponse.json<APIErrorResponse>({ message: "Wallet not found for the provided classicAddress" }, { status: 404 });
     }
 
     const senderXRPLWallet = Wallet.fromSeed(walletData.seed);
@@ -101,10 +80,14 @@ export async function POST(req: NextRequest) {
       amount,
       destinationTag,
     );
-    return NextResponse.json({ message: result.message }, { status: 200 });
+    if (!result.success) {
+      return NextResponse.json<APIErrorResponse>({ message: result.message }, { status: 400 });
+    }
+
+    return NextResponse.json<sendXRPAPIResponse>({ message: result.message }, { status: 200 });
   } catch (error) {
     console.error("❌ XRP transfer error:", error instanceof Error ? error.message : 'Unknown error');
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    return NextResponse.json<APIErrorResponse>({ message: `sendXRP failed: ${errorMessage}` }, { status: 500 });
   }
 }

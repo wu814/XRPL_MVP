@@ -2,19 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
 import sendIOU from "@/utils/xrpl/transaction/sendIOU";
 import { Wallet } from "xrpl";
-import { YONAWallet } from "@/types/appTypes";
-
-interface SendIOURequest {
-  senderWallet: {
-    classicAddress: string;
-  };
-  recipient: string;
-  amount: string | number;
-  currency: string;
-  issuerWallets: YONAWallet[];
-  destinationTag?: number | null;
-  useUsername?: boolean;
-}
+import { sendIOUAPIRequest, sendIOUAPIResponse } from "@/types/api/transactionAPITypes";
+import { APIErrorResponse } from "@/types/api/errorAPITypes";
 
 export async function POST(req: NextRequest) {
   try {
@@ -26,33 +15,27 @@ export async function POST(req: NextRequest) {
       issuerWallets,
       destinationTag,
       useUsername,
-    }: SendIOURequest = await req.json();
+    }: sendIOUAPIRequest = await req.json();
 
     // Validate required parameters
     if (!senderWallet) {
-      return NextResponse.json(
-        { error: "Missing sender wallet" },
-        { status: 400 },
-      );
+      return NextResponse.json<APIErrorResponse>({ message: "Missing sender wallet" }, { status: 400 });
     }
 
     if (!recipient) {
-      return NextResponse.json({ error: "Missing recipient" }, { status: 400 });
+      return NextResponse.json<APIErrorResponse>({ message: "Missing recipient" }, { status: 400 });
     }
 
     if (!amount) {
-      return NextResponse.json({ error: "Missing amount" }, { status: 400 });
+      return NextResponse.json<APIErrorResponse>({ message: "Missing amount" }, { status: 400 });
     }
 
     if (!currency) {
-      return NextResponse.json({ error: "Missing currency" }, { status: 400 });
+      return NextResponse.json<APIErrorResponse>({ message: "Missing currency" }, { status: 400 });
     }
 
     if (!issuerWallets) {
-      return NextResponse.json(
-        { error: "Missing issuer wallets" },
-        { status: 400 },
-      );
+      return NextResponse.json<APIErrorResponse>({ message: "Missing issuer wallets" }, { status: 400 });
     }
 
     let recipientAddress: string;
@@ -97,10 +80,7 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (walletError || !walletData) {
-      return NextResponse.json(
-        { error: "Wallet not found for the provided classicAddress" },
-        { status: 404 },
-      );
+      return NextResponse.json<APIErrorResponse>({ message: "Wallet not found for the provided classicAddress" }, { status: 404 });
     }
 
     const senderXRPLWallet = Wallet.fromSeed(walletData.seed);
@@ -113,14 +93,14 @@ export async function POST(req: NextRequest) {
       issuerWallets,
       destinationTag ?? null,
     );
+    if (!result.success) {
+      return NextResponse.json<APIErrorResponse>({ message: result.message }, { status: 400 });
+    }
 
-    return NextResponse.json({ message: result.message }, { status: 200 });
+    return NextResponse.json<sendIOUAPIResponse>({ message: result.message }, { status: 200 });
   } catch (error) {
     console.error("Error in /api/transaction/sendIOU:", error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    return NextResponse.json(
-      { error: `sendIOU failed: ${errorMessage}` },
-      { status: 500 },
-    );
+    return NextResponse.json<APIErrorResponse>({ message: `sendIOU failed: ${errorMessage}` }, { status: 500 });
   }
 }

@@ -61,18 +61,25 @@ export async function POST(req: NextRequest) {
 
     const senderXRPLWallet: Wallet = Wallet.fromSeed(walletData.seed);
 
-    const result = await sendCrossCurrency({
-      senderWallet: senderXRPLWallet,
-      destinationAddress: recipientAddress,
+    const result = await sendCrossCurrency(
+      senderXRPLWallet,
+      recipientAddress,
       sendCurrency,
-      sendAmount: sendAmount ?? undefined,
+      sendAmount ?? undefined,
       receiveCurrency,
       issuerAddress,
-      slippagePercent: slippagePercent ?? 0,
-      destinationTag: null,
-      paymentType: paymentType ?? "exact_input",
-      exactOutputAmount: exactOutputAmount ?? null
-    });
+      slippagePercent ?? 0,
+      null,
+      paymentType ?? "exact_input",
+      exactOutputAmount ?? null
+    );
+
+    if (!result.success) {
+      return NextResponse.json(
+        { error: result.message },
+        { status: 400 },
+      );
+    }
 
     return NextResponse.json({ 
         success: result.success,

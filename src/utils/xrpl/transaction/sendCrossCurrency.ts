@@ -8,8 +8,8 @@ import { FormattedAMMInfo } from "@/types/xrpl/ammXRPLTypes";
 import BigNumber from 'bignumber.js';
 import { formatAmountForXRPL } from "@/utils/assetUtils";
 import { isTypedTransactionSuccessful, handleTransactionError } from "../errorHandler";
-import { Payment, TxResponse, Wallet, dropsToXrp, Amount, OfferCreate } from "xrpl";
-import { ErrorInfo } from "@/types/xrpl/errorXRPLTypes";
+import { Payment, TxResponse, Wallet, dropsToXrp, Amount, OfferCreate, AccountLinesResponse, AccountInfoResponse } from "xrpl";
+import { SendCrossCurrencyResult } from "@/types/xrpl/transactionXRPLTypes";
 
 
 interface PoolCurrencyMapping {
@@ -35,21 +35,79 @@ interface TransactionResult {
   actualRoutingMethod: string;
 }
 
-interface SendCrossCurrencyResponse {
-  success: boolean;
-  txHash?: string;
-  ledgerIndex?: number;
-  amountSent?: number;
-  amountDelivered?: number;
-  routingMethod?: string;
-  exchangeRate?: number;
-  pathfindingResult?: any;
-  response?: any;
-  message?: string;
-  error?: ErrorInfo;
+const BASE_RESERVE_XRP = 1; // Base reserve for an account in XRP
+const OWNER_RESERVE_XRP = 0.2; // Owner reserve for each object in XRP
+
+/**
+ * Helper function to check if a wallet has sufficient balance for cross-currency payment
+ * @param senderWallet - The wallet sending the payment
+ * @param sendCurrency - The currency being sent
+ * @param sendAmount - The amount to send
+ * @param issuerAddress - The issuer address for the currency (if not XRP)
+ * @returns Promise<boolean> - Returns true if sufficient balance, false otherwise
+ */
+async function checkAssetBalanceForCrossCurrencyPayment(
+  senderWallet: Wallet,
+  sendCurrency: string,
+  sendAmount: string | number,
+  issuerAddress: string
+): Promise<boolean> {
+  if (sendCurrency !== "XRP") {
+    console.log(`🔍 Checking ${sendCurrency} balance...`);
+    const balanceResponse: AccountLinesResponse = await client.request({
+      command: "account_lines",
+      account: senderWallet.classicAddress,
+      peer: issuerAddress,
+    });
+
+    const assetLine = balanceResponse.result.lines.find(
+      (line) =>
+        line.currency === sendCurrency &&
+        line.account === issuerAddress,
+    );
+
+    if (assetLine) {
+      const balance = new BigNumber(assetLine.balance);
+      const paymentAmount = new BigNumber(sendAmount.toString());
+
+      if (balance.lt(paymentAmount)) {
+        console.log(`❌ Insufficient ${sendCurrency} balance. Have: ${balance.toFixed(6)}, Need: ${paymentAmount.toFixed(6)}`);
+        return false;
+      }
+      
+      console.log(`✅ Sufficient ${sendCurrency} balance confirmed.`);
+      return true;
+    } else {
+      console.log(`❌ No trustline found for ${sendCurrency} from ${issuerAddress}`);
+      return false;
+    }
+  } else {
+    console.log(`🔍 Checking XRP balance...`);
+    const accountInfoResponse: AccountInfoResponse = await client.request({
+      command: "account_info",
+      account: senderWallet.classicAddress,
+      ledger_index: "validated",
+    });
+
+    const xrpBalance = new BigNumber(dropsToXrp(
+      accountInfoResponse.result.account_data.Balance,
+    ));
+    const ownerCount = accountInfoResponse.result.account_data.OwnerCount || 0;
+    const reserveXRP = new BigNumber(BASE_RESERVE_XRP).plus(new BigNumber(OWNER_RESERVE_XRP).times(ownerCount));
+    const paymentAmount = new BigNumber(sendAmount.toString());
+    const transactionFee = new BigNumber("0.000012"); // Standard transaction fee
+
+    const totalRequired = paymentAmount.plus(reserveXRP).plus(transactionFee);
+
+    if (xrpBalance.lt(totalRequired)) {
+      console.log(`❌ Insufficient XRP balance. Need: ${totalRequired.toFixed(6)} (${paymentAmount.toFixed(6)} + ${reserveXRP.toFixed(6)} reserve + ${transactionFee.toFixed(6)} fee), Have: ${xrpBalance.toFixed(6)}`);
+      return false;
+    }
+    
+    console.log(`✅ Sufficient XRP balance confirmed.`);
+    return true;
+  }
 }
-
-
 
 const mapPoolCurrencies = (
   pool: FormattedAMMInfo, 
@@ -267,7 +325,7 @@ export async function sendCrossCurrency(
   destinationTag: number | null = null,
   paymentType: "exact_input" | "exact_output" = "exact_input",
   exactOutputAmount: string | number | null = null
-): Promise<SendCrossCurrencyResponse> {
+): Promise<SendCrossCurrencyResult> {
   try {
     
     await connectXRPLClient();
@@ -344,6 +402,27 @@ export async function sendCrossCurrency(
       recommendation, sendCurrency, receiveCurrency, sendAmount, slippagePercent, paymentType
     );
 
+    // ========== BALANCE CHECK ==========
+    console.log(`🔍 Checking if user has sufficient ${sendCurrency} balance...`);
+    const balanceSufficient = await checkAssetBalanceForCrossCurrencyPayment(
+      senderXRPLWallet,
+      sendCurrency,
+      preciseInputNeeded.toString(),
+      issuerAddress
+    );
+    
+    if (!balanceSufficient) {
+      return {
+        success: false,
+        message: `Insufficient ${sendCurrency} balance for this transaction.`,
+        error: {
+          code: "INSUFFICIENT_BALANCE",
+          message: `Insufficient ${sendCurrency} balance.`
+        }
+      };
+    }
+    console.log(`✅ Balance check passed!`);
+
     // Step 5: Handle DEX routing via counter-offer
     if (recommendation.type === 'DEX') {
       console.log("🔧 Executing DEX trade via counter-offer...");
@@ -362,13 +441,6 @@ export async function sendCrossCurrency(
         console.log("✅ DEX trade completed via counter-offer!");
         return {
           success: true,
-          txHash: counterResult.transactionHash!,
-          ledgerIndex: counterResult.ledgerIndex!,
-          amountSent: counterResult.sentAmount!,
-          amountDelivered: counterResult.deliveredAmount!,
-          routingMethod: counterResult.routingMethod!,
-          exchangeRate: counterResult.exchangeRate!,
-          pathfindingResult: pathfindingResult,
           message: counterResult.message!
         };
       }
@@ -485,14 +557,6 @@ export async function sendCrossCurrency(
     
     return {
       success: true,
-      txHash: response.result.hash,
-      ledgerIndex: response.result.ledger_index,
-      amountSent: actualAmountSent,
-      amountDelivered: actualAmountDelivered,
-      routingMethod: actualRoutingMethod,
-      exchangeRate: recommendation.rate,
-      pathfindingResult: pathfindingResult,
-      response: response,
       message: message
     };
   } catch (error) {

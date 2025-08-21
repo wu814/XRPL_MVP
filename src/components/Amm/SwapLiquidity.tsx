@@ -141,7 +141,7 @@ export default function SwapLiquidity({ ammInfo, onSwapped }: SwapLiquidityProps
         poolBuy, 
         parseFloat(buyAmount), 
         slippage / 100, 
-        ammInfo.tradingFee || 0
+        ammInfo.tradingFee / 100000 || 0
       );
       
       if (calculation.success && calculation.inputWithSlippage !== undefined) {

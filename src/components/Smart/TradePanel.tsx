@@ -103,14 +103,16 @@ export default function TradePanel() {
   // Convert functionality integration
   const handleSellAmountChange = (e: ChangeEvent<HTMLInputElement>): void => {
     setActiveInput("sell");
-    setSellAmount(Number(e.target.value));
+    const value = e.target.value;
+    setSellAmount(value === "" ? null : Number(value));
     setBuyAmount(null);
     setTradeInputType("exact_input");
   };
 
   const handleBuyAmountChange = (e: ChangeEvent<HTMLInputElement>): void => {
     setActiveInput("buy");
-    setBuyAmount(Number(e.target.value));
+    const value = e.target.value;
+    setBuyAmount(value === "" ? null : Number(value));
     setSellAmount(null);
     setTradeInputType("exact_output");
   };
@@ -435,14 +437,14 @@ export default function TradePanel() {
 
   const handleSendAmountChangeForPayment = (e: ChangeEvent<HTMLInputElement>): void => {
     const value = e.target.value;
-    setSendAmount(Number(value));
+    setSendAmount(value === "" ? null : Number(value));
     setReceiveAmount(null);
     setConvertInputType(value ? "exact_input" : null);
   };
 
   const handleReceiveAmountChangeForPayment = (e: ChangeEvent<HTMLInputElement>): void => {
     const value = e.target.value;
-    setReceiveAmount(Number(value));
+    setReceiveAmount(value === "" ? null : Number(value));
     setSendAmount(null);
     setConvertInputType(value ? "exact_output" : null);
   };

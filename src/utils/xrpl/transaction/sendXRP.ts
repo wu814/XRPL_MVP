@@ -1,48 +1,7 @@
 import { client, connectXRPLClient } from "../testnet";
-import { xrpToDrops } from "xrpl";
-import * as xrpl from "xrpl";
-
-// Type definitions
-interface PaymentTransaction {
-  TransactionType: "Payment";
-  Account: string;
-  Destination: string;
-  Amount: string;
-  DestinationTag?: number;
-}
-
-interface PaymentResponse {
-  message: string;
-}
-
-interface XRPLResponse {
-  result: {
-    meta: {
-      TransactionResult: string;
-    };
-    hash: string;
-  };
-}
-
-// Error handling function with proper typing
-const handlePaymentError = (errorCode: string, errorMessage: string = ""): never => {
-  const errorMap: Record<string, string> = {
-    tecDST_TAG_NEEDED:
-      "Destination tag required: The destination account requires a destination tag to distinguish incoming payments.",
-    tecUNFUNDED_PAYMENT: "Unfunded payment: The sender has insufficient XRP.",
-    tecINSUFF_FEE:
-      "Insufficient fee: The transaction fee is too low. Increase the fee to reflect network load.",
-    tecEXPIRED:
-      "Transaction expired: The transaction was submitted after its `LastLedgerSequence` was passed. Try again with a higher value.",
-    tecFAILED_PROCESSING:
-      "Unknown error: The transaction failed during processing. Double-check the transaction format and values.",
-  };
-
-  const fallback = `Payment failed with code ${errorCode}: ${errorMessage || "Unknown error."}`;
-  const error = errorMap[errorCode] || fallback;
-
-  throw new Error(error);
-};
+import { xrpToDrops, Wallet, Payment } from "xrpl";
+import { SendXRPResult } from "@/types/xrpl/transactionXRPLTypes";
+import { handleTransactionError, isTypedTransactionSuccessful } from "../errorHandler";
 
 /**
  * Sends XRP from one account to another
@@ -54,11 +13,11 @@ const handlePaymentError = (errorCode: string, errorMessage: string = ""): never
  * @returns Promise<PaymentResponse> - Success message with transaction details
  */
 const sendXRP = async (
-  senderWallet: xrpl.Wallet,
+  senderWallet: Wallet,
   destination: string,
   amount: string | number,
   destinationTag: number | null = null
-): Promise<PaymentResponse> => {
+): Promise<SendXRPResult> => {
   await connectXRPLClient();
 
   // Parse amount as float and convert to drops
@@ -67,7 +26,7 @@ const sendXRP = async (
     throw new Error("Invalid XRP amount. Must be a positive number.");
   }
 
-  const paymentTx: PaymentTransaction = {
+  const paymentTx: Payment = {
     TransactionType: "Payment",
     Account: senderWallet.classicAddress,
     Destination: destination,
@@ -78,22 +37,27 @@ const sendXRP = async (
 
   const preparedTx = await client.autofill(paymentTx);
   const signedTx = senderWallet.sign(preparedTx);
-  const response = await client.submitAndWait(signedTx.tx_blob) as XRPLResponse;
-  const resultCode = response.result.meta.TransactionResult;
+  const result = await client.submitAndWait<Payment>(signedTx.tx_blob);
 
-  if (resultCode === "tesSUCCESS") {
+  if (!isTypedTransactionSuccessful(result)) {
+    const errorInfo = handleTransactionError(result, "sendXRP");
+    return {
+      success: false,
+      message: errorInfo.message,
+      error: errorInfo,
+    };
+  }
+
     const msg = `Sender: ${senderWallet.classicAddress}
 Recipient: ${destination}
 Amount: ${amountInXRP} XRP
-Transaction Hash: ${response.result.hash}
+Transaction Hash: ${result.result.hash}
 Destination Tag: ${destinationTag !== null && destinationTag !== 0 ? destinationTag : "N/A"}`;
 
-    return {
-      message: msg,
-    };
-  }
-  
-  handlePaymentError(resultCode, "Transaction failed");
+  return {
+    success: true,
+    message: msg,
+  };
 };
 
 export default sendXRP;

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { WalletBalance } from "@/types/wallet";
 import { useCurrentUserWallet } from "@/components/wallet/CurrentUserWalletProvider";
 import { useIssuerWallet } from "@/components/wallet/IssuerWalletProvider";
 import DeleteWalletBtn from "@/components/wallet/DeleteWalletBtn";
@@ -13,7 +12,7 @@ import CreateAdminWalletBtn from "@/components/wallet/CreateAdminWalletBtn";
 import Button from "@/components/Button";
 import ManageOracleBtn from "@/components/wallet/ManageOracleBtn";
 import ViewWalletDetails from "@/components/wallet/ViewWalletDetails";
-import { YONAWallet } from "@/types/appTypes";
+import { YONAWallet, WalletBalance } from "@/types/appTypes";
 import { GetAccountInfoAPIResponse } from "@/types/api/walletAPITypes";
 
 

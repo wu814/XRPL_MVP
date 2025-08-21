@@ -2,24 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
 import { sendCrossCurrency } from "@/utils/xrpl/transaction/sendCrossCurrency";
 import { Wallet } from "xrpl";
+import { sendCrossCurrencyAPIRequest, sendCrossCurrencyAPIResponse } from "@/types/api/transactionAPITypes";
+import { APIErrorResponse } from "@/types/api/errorAPITypes";
 
-interface SendCrossCurrencyRequest {
-  senderWallet: {
-    classicAddress: string;
-  };
-  recipient: string;
-  sendCurrency: string;
-  sendAmount?: string | number;
-  receiveCurrency: string;
-  issuerAddress: string;
-  slippagePercent?: number;
-  destinationTag?: number | null;
-  useUsername?: boolean;
-  paymentType?: "exact_input" | "exact_output";
-  exactOutputAmount?: string | number;
-}
-
-export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest): Promise<NextResponse<sendCrossCurrencyAPIResponse | APIErrorResponse>> {
   try {
     const {
       senderWallet,
@@ -33,7 +19,7 @@ export async function POST(req: NextRequest) {
       useUsername,
       paymentType,
       exactOutputAmount,
-    }: SendCrossCurrencyRequest = await req.json();
+    }: sendCrossCurrencyAPIRequest = await req.json();
 
     if (
       !senderWallet ||
@@ -43,8 +29,8 @@ export async function POST(req: NextRequest) {
       !receiveCurrency ||
       !issuerAddress
     ) {
-      return NextResponse.json(
-        { error: "Missing required parameters" },
+      return NextResponse.json<APIErrorResponse>(
+        { message: "Missing required parameters" },
         { status: 400 }
       );
     }
@@ -85,36 +71,42 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (walletError || !walletData) {
-      return NextResponse.json(
-        { error: "Wallet not found for the provided classicAddress" },
+      return NextResponse.json<APIErrorResponse>(
+        { message: "Wallet not found for the provided classicAddress" },
         { status: 404 },
       );
     }
 
     const senderXRPLWallet = Wallet.fromSeed(walletData.seed);
 
-    const result = await sendCrossCurrency({
-      senderWallet: senderXRPLWallet,
-      destinationAddress: recipientAddress,
+    const result = await sendCrossCurrency(
+      senderXRPLWallet,
+      recipientAddress,
       sendCurrency,
-      sendAmount: sendAmount ?? undefined,
+      sendAmount ?? undefined,
       receiveCurrency,
       issuerAddress,
-      slippagePercent: slippagePercent ?? 0,
-      destinationTag: destinationTag ?? null,
-      paymentType: paymentType ?? "exact_input",
-      exactOutputAmount: exactOutputAmount ?? null
-    });
+      slippagePercent ?? 0,
+      destinationTag ?? null,
+      paymentType ?? "exact_input",
+      exactOutputAmount ?? null
+    );
 
-    return NextResponse.json({ 
-      success: result.success,
+    if (!result.success) {
+      return NextResponse.json<APIErrorResponse>(
+        { message: result.message },
+        { status: 400 },
+      );
+    }
+
+    return NextResponse.json<sendCrossCurrencyAPIResponse>({ 
       message: result.message,
      }, { status: 200 });
   } catch (error) {
     console.error("Error in /api/transaction/sendCrossCurrency:", error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    return NextResponse.json(
-      { error: `sendCrossCurrency failed: ${errorMessage}` },
+    return NextResponse.json<APIErrorResponse>(
+      { message: `sendCrossCurrency failed: ${errorMessage}` },
       { status: 500 }
     );
   }

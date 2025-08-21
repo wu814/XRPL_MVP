@@ -6,8 +6,7 @@ import { useCurrentUserWallet } from "@/components/wallet/CurrentUserWalletProvi
 import CancelOfferBtn from "./CancelOfferBtn";
 import { EnhancedOffer, EnhancedCompletedOffer } from "@/types/xrpl/dexXRPLTypes";
 import { APIErrorResponse } from "@/types/api/errorAPITypes";
-import { GetUserOffersAPIResponse } from "@/types/api/dexAPITypes";
-import { GetCompletedOffersAPIResponse } from "@/types/api/dexAPITypes";
+import { GetUserOffersAPIResponse, GetCompletedOffersAPIResponse } from "@/types/api/dexAPITypes";
 
 // Helper: Convert XRP drops or IOU object to unified format
 function parseAsset(asset: any) {

@@ -72,17 +72,19 @@ export default function BuyNFT() {
         body: JSON.stringify(payload),
       });
 
-      const result: BuyNFTAPIResponse | APIErrorResponse = await response.json();
-
       if (!response.ok) {
-        throw new Error(result.message || "Purchase failed");
+        const errorData: APIErrorResponse = await response.json();
+        setErrorMessage(errorData.message);
+        return;
       }
+      const result: BuyNFTAPIResponse = await response.json();
 
       if (result.message) {
         setSuccessMessage(result.message || "NFT purchased successfully!");
         setOfferID(""); // Clear form on success
       } else {
-        throw new Error(result.message || "Purchase failed");
+        setErrorMessage(result.message || "Purchase failed");
+        return;
       }
     } catch (error: any) {
       console.error("❌ Purchase error:", error);

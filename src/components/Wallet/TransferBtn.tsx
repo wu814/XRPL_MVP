@@ -12,6 +12,7 @@ import { calculateExactAMMInput, calculateEstimateOutput } from "@/utils/xrpl/am
 import { YONAWallet } from "@/types/appTypes";
 import { APIErrorResponse } from "@/types/api/errorAPITypes";
 import { GetFormattedAMMInfoByCurrenciesAPIResponse } from "@/types/api/ammAPITypes";
+import { sendCrossCurrencyAPIResponse, sendIOUAPIResponse, sendXRPAPIResponse } from "@/types/api/transactionAPITypes";
 
 
 interface TransferBtnProps {
@@ -19,13 +20,6 @@ interface TransferBtnProps {
   issuerWallets: YONAWallet[];
   presetRecipientUsername?: string;
   onSuccess?: () => void; // Made optional
-}
-
-
-interface TransactionResponse {
-  success?: boolean;
-  message?: string;
-  error?: string;
 }
 
 type PaymentType = "direct" | "convertable";
@@ -43,7 +37,7 @@ export default function TransferBtn({
   const [recipientUsername, setRecipientUsername] = useState<string>("");
   const [recipientAddress, setRecipientAddress] = useState<string>("");
   const [useUsername, setUseUsername] = useState<boolean>(true);
-  const [amount, setAmount] = useState<string>("");
+  const [amount, setAmount] = useState<number | null>(null);
   const [currency, setCurrency] = useState<string>("USD");
   const [destinationTag, setDestinationTag] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
@@ -59,8 +53,8 @@ export default function TransferBtn({
   const [sendCurrency, setSendCurrency] = useState<string>("USD");
   const [receiveCurrency, setReceiveCurrency] = useState<string>("XRP");
 
-  const [sendAmount, setSendAmount] = useState<string>("");
-  const [receiveAmount, setReceiveAmount] = useState<string>("");
+  const [sendAmount, setSendAmount] = useState<number | null>(null);
+  const [receiveAmount, setReceiveAmount] = useState<number | null>(null);
 
   // Add calculation states
   const [calculatingAmounts, setCalculatingAmounts] = useState<boolean>(false);
@@ -89,7 +83,7 @@ export default function TransferBtn({
 
   // Calculate output when send amount changes
   useEffect(() => {
-    if (paymentType === "convertable" && sendAmount && parseFloat(sendAmount) > 0 && 
+    if (paymentType === "convertable" && sendAmount && sendAmount > 0 && 
         sendCurrency && receiveCurrency && sendCurrency !== receiveCurrency && 
         convertInputType === "exact_input" && ammData) {
       calculateOutput();
@@ -98,7 +92,7 @@ export default function TransferBtn({
 
   // Calculate input when receive amount changes
   useEffect(() => {
-    if (paymentType === "convertable" && receiveAmount && parseFloat(receiveAmount) > 0 && 
+    if (paymentType === "convertable" && receiveAmount && receiveAmount > 0 && 
         sendCurrency && receiveCurrency && sendCurrency !== receiveCurrency && 
         convertInputType === "exact_output" && ammData) {
       calculateInput();
@@ -156,13 +150,13 @@ export default function TransferBtn({
       const calculation = calculateEstimateOutput(poolSend, poolReceive, sendAmount, (ammData.tradingFee || 0) / 100000);
       
       if (calculation.success && calculation.estimatedOutput !== undefined) {
-        setReceiveAmount(calculation.estimatedOutput.toFixed(6));
+        setReceiveAmount(Number(calculation.estimatedOutput.toFixed(6)));
       } else {
         throw new Error(calculation.error || "Calculation failed");
       }
     } catch (error: any) {
       setCalculationError(error.message);
-      setReceiveAmount("");
+      setReceiveAmount(null);
     } finally {
       setCalculatingAmounts(false);
     }
@@ -189,19 +183,19 @@ export default function TransferBtn({
       const calculation = calculateExactAMMInput(
         poolSend, 
         poolReceive, 
-        parseFloat(receiveAmount), 
+        receiveAmount, 
         slippage / 100, 
-        ammData.tradingFee || 0
+        ammData.tradingFee / 100000 || 0
       );
       
       if (calculation.success && calculation.inputWithSlippage !== undefined) {
-        setSendAmount(calculation.inputWithSlippage.toFixed(6));
+        setSendAmount(Number(calculation.inputWithSlippage.toFixed(6)));
       } else {
         throw new Error(calculation.error || "Calculation failed");
       }
     } catch (error: any) {
       setCalculationError(error.message);
-      setSendAmount("");
+      setSendAmount(null);
     } finally {
       setCalculatingAmounts(false);
     }
@@ -211,31 +205,31 @@ export default function TransferBtn({
   const handlePaymentTypeChange = (type: PaymentType) => {
     setPaymentType(type);
     setConvertInputType(null);
-    setSendAmount("");
-    setReceiveAmount("");
-    setAmount("");
+    setSendAmount(null);
+    setReceiveAmount(null);
+    setAmount(null);
     setCalculationError(null);
   };
 
   const handleSendAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    setSendAmount(value);
-    setReceiveAmount("");
+    setSendAmount(value === "" ? null : parseFloat(value));
+    setReceiveAmount(null);
     setConvertInputType(value ? "exact_input" : null);
   };
 
   const handleReceiveAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    setReceiveAmount(value);
-    setSendAmount("");
+    setReceiveAmount(value === "" ? null : parseFloat(value));
+    setSendAmount(null);
     setConvertInputType(value ? "exact_output" : null);
   };
 
   // Reset amounts when send currency changes
   useEffect(() => {
     if (paymentType === "convertable") {
-      setSendAmount("");
-      setReceiveAmount("");
+      setSendAmount(null);
+      setReceiveAmount(null);
       setCalculationError(null);
     }
   }, [sendCurrency, paymentType]);
@@ -243,8 +237,8 @@ export default function TransferBtn({
   // Reset amounts when receive currency changes  
   useEffect(() => {
     if (paymentType === "convertable") {
-      setSendAmount("");
-      setReceiveAmount("");
+      setSendAmount(null);
+      setReceiveAmount(null);
       setCalculationError(null);
     }
   }, [receiveCurrency, paymentType]);
@@ -293,15 +287,19 @@ export default function TransferBtn({
         };
       }
 
-      const res = await fetch(endpoint, {
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestBody),
       });
+      if (!response.ok) {
+        const errorData: APIErrorResponse = await response.json();
+        setErrorMessage(errorData.message);
+        return;
+      }
 
-      const result: TransactionResponse = await res.json();
-      if (!res.ok) throw new Error(result.error);
-      setSuccessMessage(result.message || "Payment sent!");
+      const result: sendIOUAPIResponse | sendXRPAPIResponse | sendCrossCurrencyAPIResponse = await response.json();
+      setSuccessMessage(result.message);
 
       // Call the onSuccess callback if provided
       if (onSuccess) {
@@ -314,9 +312,9 @@ export default function TransferBtn({
       setShowMdl(false);
       if (!presetRecipientUsername) setRecipientUsername("");
       setRecipientAddress("");
-      setAmount("");
-      setSendAmount("");
-      setReceiveAmount("");
+      setAmount(null);
+      setSendAmount(null);
+      setReceiveAmount(null);
       setDestinationTag("");
     }
   };
@@ -487,7 +485,7 @@ export default function TransferBtn({
                       type="number"
                       step="0.000001"
                       min="0"
-                      value={sendAmount}
+                      value={sendAmount ?? ""}
                       onChange={handleSendAmountChange}
                       className={`mt-1 w-full rounded-lg border border-transparent bg-color4 p-2 hover:border-gray-500 focus:border-primary focus:outline-none ${
                         convertInputType === "exact_output" || calculatingAmounts || loadingAMMData ? "cursor-not-allowed opacity-60" : ""
@@ -504,7 +502,7 @@ export default function TransferBtn({
                       type="number"
                       step="0.000001"
                       min="0"
-                      value={receiveAmount}
+                      value={receiveAmount ?? ""}
                       onChange={handleReceiveAmountChange}
                       className={`mt-1 w-full rounded-lg border border-transparent bg-color4 p-2 hover:border-gray-500 focus:border-primary focus:outline-none ${
                         convertInputType === "exact_input" || calculatingAmounts || loadingAMMData ? "cursor-not-allowed opacity-60" : ""
@@ -533,8 +531,8 @@ export default function TransferBtn({
                     type="number"
                     step="0.000001"
                     min="0"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
+                    value={amount ?? ""}
+                    onChange={(e) => setAmount(e.target.value === "" ? null : Number(e.target.value))}
                     className="mt-1 w-full rounded-lg border border-transparent bg-color4 p-2 hover:border-gray-500 focus:border-primary focus:outline-none"
                     placeholder="0.00"
                   />

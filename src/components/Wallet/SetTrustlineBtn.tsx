@@ -7,11 +7,8 @@ import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
 import CurrencyDropDown from "../currency/CurrencyDropDown";
 import { YONAWallet } from "@/types/appTypes";
-
-interface SetTrustlineResponse {
-  message?: string;
-  error?: string;
-}
+import { SetWalletTrustlineAPIResponse } from "@/types/api/trustlineAPITypes";
+import { APIErrorResponse } from "@/types/api/errorAPITypes";
 
 interface SetTrustlineBtnProps {
   setterWallet: YONAWallet;
@@ -33,7 +30,7 @@ export default function SetTrustlineBtn({ setterWallet, issuerWallets, onSuccess
     setLoading(true);
     setErrorMessage(null);
     try {
-      const res = await fetch("/api/trustline/setWalletTrustline", {
+      const response = await fetch("/api/trustline/setWalletTrustline", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -43,9 +40,13 @@ export default function SetTrustlineBtn({ setterWallet, issuerWallets, onSuccess
         }),
       });
 
-      const result: SetTrustlineResponse = await res.json();
-      if (!res.ok) throw new Error(result.error || "Failed to set trustline");
-
+      if (!response.ok) {
+        const errorData: APIErrorResponse = await response.json();
+        setErrorMessage(errorData.message);
+        return;
+      }
+      const result: SetWalletTrustlineAPIResponse = await response.json();
+      
       setSuccessMessage(result.message || "Trustline set successfully");
       
       // Call the onSuccess callback if provided
