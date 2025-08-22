@@ -1,7 +1,8 @@
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/utils/auth/authOptions";
+
 import createWallet from "@/utils/xrpl/wallet/createWallet";
 import { CreateWalletResult } from "@/types/xrpl/walletXRPLTypes";
 import { APIErrorResponse } from "@/types/api/errorAPITypes";

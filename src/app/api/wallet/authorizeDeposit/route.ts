@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/utils/auth/authOptions";
+
 import authorizeDeposit from "@/utils/xrpl/wallet/authorizeDeposit";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
 import { Wallet } from "xrpl";

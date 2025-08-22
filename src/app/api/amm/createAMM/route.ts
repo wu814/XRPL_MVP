@@ -1,7 +1,8 @@
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/utils/auth/authOptions";
+
 import createAMM from "@/utils/xrpl/amm/createAMM";
 import { Wallet } from "xrpl";
 import { CreateAMMAPIRequest, CreateAMMAPIResponse } from "@/types/api/ammAPITypes";

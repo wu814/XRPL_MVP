@@ -3,7 +3,8 @@ import cancelOffer from "@/utils/xrpl/dex/cancelOffer";
 import { Wallet } from "xrpl";
 import bcrypt from "bcryptjs";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/utils/auth/authOptions";
+
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
 
 interface CancelOfferRequest {
