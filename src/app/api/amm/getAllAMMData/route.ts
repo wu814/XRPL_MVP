@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAllAMMData } from "@/utils/xrpl/amm/ammUtils";
-import { GetAllAMMDataAPIResponse, APIErrorResponse } from "@/types/api/errorAPITypes";
+import { GetAllAMMDataAPIResponse } from "@/types/api/ammAPITypes";
+import { APIErrorResponse } from "@/types/api/errorAPITypes";
 
 export async function GET(): Promise<NextResponse<GetAllAMMDataAPIResponse | APIErrorResponse>> {
   try {
