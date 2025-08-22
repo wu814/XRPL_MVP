@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
-import { Currency } from "@/utils/currencyUtils";
+import { YONACurrency } from "@/utils/currencyUtils";
 
 
 interface ConvertCurrencyDropDownProps {
-  asset: Currency;
+  asset: YONACurrency;
   onSelect: (currencyId: string) => void;
   label: string;
   availableAmount?: string | number;
-  currencies: Currency[];
+  currencies: YONACurrency[];
 }
 
 export default function ConvertCurrencyDropDown({ 

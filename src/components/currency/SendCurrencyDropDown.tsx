@@ -1,10 +1,10 @@
 import { ChevronDown } from "lucide-react";
-import { Currency } from "@/utils/currencyUtils";
+import { YONACurrency } from "@/utils/currencyUtils";
 
 interface SendCurrencyDropDownProps {
   value: string;
   onChange: (value: string) => void;
-  currencies: Currency[];
+  currencies: YONACurrency[];
   className?: string;
   isOpen: boolean;
   onToggle: (dropdownId: string | null) => void;
