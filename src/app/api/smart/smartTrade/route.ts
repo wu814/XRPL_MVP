@@ -2,20 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
 import { sendCrossCurrency } from "@/utils/xrpl/transaction/sendCrossCurrency";
 import { Wallet } from "xrpl";
-import { YONAWallet } from "@/types/appTypes";
+import { SmartTradeAPIRequest, SmartTradeAPIResponse } from "@/types/api/smartAPITypes";
+import { APIErrorResponse } from "@/types/api/errorAPITypes";
 
-interface SmartTradeRequest {
-  senderWallet: YONAWallet;
-  sendCurrency: string;
-  sendAmount?: string | number;
-  receiveCurrency: string;
-  issuerAddress: string;
-  slippagePercent?: number;
-  paymentType?: "exact_input" | "exact_output";
-  exactOutputAmount?: string | number;
-}
-
-export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest): Promise<NextResponse<SmartTradeAPIResponse | APIErrorResponse>> {
   try {
     const {
       senderWallet,
@@ -26,7 +16,7 @@ export async function POST(req: NextRequest) {
       slippagePercent,
       paymentType,
       exactOutputAmount,
-    }: SmartTradeRequest = await req.json();
+    }: SmartTradeAPIRequest = await req.json();
 
     if (
       !senderWallet ||
@@ -35,8 +25,8 @@ export async function POST(req: NextRequest) {
       !receiveCurrency ||
       !issuerAddress
     ) {
-      return NextResponse.json(
-        { error: "Missing required parameters" },
+      return NextResponse.json<APIErrorResponse>(
+        { message: "Missing required parameters" },
         { status: 400 }
       );
     }
@@ -52,8 +42,8 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (walletError || !walletData) {
-      return NextResponse.json(
-        { error: "Wallet not found for the provided classicAddress" },
+      return NextResponse.json<APIErrorResponse>(
+        { message: "Wallet not found for the provided classicAddress" },
         { status: 404 },
       );
     }
@@ -73,15 +63,22 @@ export async function POST(req: NextRequest) {
       exactOutputAmount ?? null
     );
 
-    return NextResponse.json({ 
+    if (!result.success) {
+      return NextResponse.json<APIErrorResponse>({ 
+        message: result.message,
+      }, { status: 400 });
+    }
+
+    return NextResponse.json<SmartTradeAPIResponse>({ 
       success: result.success,
       message: result.message,
      }, { status: 200 });
   } catch (error) {
     console.error("Error in /api/smart/smartTrade:", error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    return NextResponse.json(
-      { error: `Smart trade failed: ${errorMessage}` },
+    return NextResponse.json<APIErrorResponse>({ 
+      message: `Smart trade failed: ${errorMessage}`,
+    },
       { status: 500 }
     );
   }
