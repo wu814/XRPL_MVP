@@ -70,7 +70,6 @@ export async function POST(req: NextRequest): Promise<NextResponse<SmartTradeAPI
     }
 
     return NextResponse.json<SmartTradeAPIResponse>({ 
-      success: result.success,
       message: result.message,
      }, { status: 200 });
   } catch (error) {

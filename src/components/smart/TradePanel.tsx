@@ -15,11 +15,12 @@ import { availableCurrencies, formatCurrencyValue, YONACurrency } from "@/utils/
 import { useSession } from "next-auth/react";
 import { calculateExactAMMInput, calculateEstimateOutput } from "@/utils/xrpl/amm/calculations";
 import { YONAWallet } from "@/types/appTypes";
-import { APIErrorResponse } from "@/types/api/errorAPITypes";
 import { GetAccountInfoAPIResponse } from "@/types/api/walletAPITypes";
 import { GetAccountLinesAPIResponse } from "@/types/api/walletAPITypes";
 import { GetFormattedAMMInfoByCurrenciesAPIResponse } from "@/types/api/ammAPITypes";
 import { FormattedAMMInfo } from "@/types/xrpl/ammXRPLTypes";
+import { SmartTradeAPIResponse } from "@/types/api/smartAPITypes";
+import { APIErrorResponse } from "@/types/api/errorAPITypes";
 
 
 interface WalletBalance {
@@ -406,12 +407,13 @@ export default function TradePanel() {
         }),
       });
 
-      const result: SmartTradeResponse = await response.json();
-
       if (!response.ok) {
-        throw new Error(result.error || "Smart trade failed");
+        const errorData: APIErrorResponse = await response.json();
+        setErrorMessage(errorData.message);
+        return;
       }
 
+      const result: SmartTradeAPIResponse | APIErrorResponse = await response.json();
       setSuccessMessage(
         result.message || "Smart trade completed successfully!",
       );

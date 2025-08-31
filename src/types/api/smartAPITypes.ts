@@ -12,6 +12,5 @@ export interface SmartTradeAPIRequest {
 }
 
 export interface SmartTradeAPIResponse {
-  success: boolean;
   message: string;
 }
