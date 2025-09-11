@@ -2,8 +2,14 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { useSession } from "next-auth/react";
-import { WalletApiResponse, CurrentUserWalletContextType } from "@/types/wallet";
 import { YONAWallet } from "@/types/appTypes";
+
+interface CurrentUserWalletContextType {
+  currentUserWallets: YONAWallet[];
+  loading: boolean;
+  errorMessage: string | null;
+  fetchCurrentUserWallets: () => Promise<void>;
+}
 
 const CurrentUserWalletContext = createContext<CurrentUserWalletContextType | undefined>(undefined);
 
@@ -33,7 +39,7 @@ export default function CurrentUserWalletProvider({ children }: CurrentUserWalle
         headers: { "Content-Type": "application/json" },
       });
 
-      const data: WalletApiResponse = await response.json();
+      const data = await response.json();
       
       if (data.data) {
         const wallets: YONAWallet[] = data.data.map((wallet) => ({
