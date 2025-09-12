@@ -6,8 +6,8 @@ import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
 import { useSession } from "next-auth/react";
-import { APIErrorResponse } from "@/types/api/errorAPITypes";
-import { CreateWalletAPIResponse } from "@/types/api/walletAPITypes";
+import { APIResponse } from "@/types/apiTypes";
+import { YONAWallet } from "@/types/appTypes";
 
 
 interface CreateUserWalletBtnProps {
@@ -34,12 +34,12 @@ export default function CreateUserWalletBtn({ onWalletCreated }: CreateUserWalle
         body: JSON.stringify({ walletType: session?.user.role }),
       });
 
-      const result: CreateWalletAPIResponse = await response.json();
       if (!response.ok) {
-        const errorData: APIErrorResponse = await response.json();
+        const errorData: APIResponse<never> = await response.json();
         setErrorMessage(errorData.message);
         return;
       }
+      const result: APIResponse<YONAWallet> = await response.json();
 
       setSuccessMessage(result.message || "Wallet created successfully");
       

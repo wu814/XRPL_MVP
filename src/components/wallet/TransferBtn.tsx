@@ -10,9 +10,8 @@ import { Settings, Loader2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { calculateExactAMMInput, calculateEstimateOutput } from "@/utils/xrpl/amm/calculations";
 import { YONAWallet } from "@/types/appTypes";
-import { APIErrorResponse } from "@/types/api/errorAPITypes";
-import { GetFormattedAMMInfoByCurrenciesAPIResponse } from "@/types/api/ammAPITypes";
-import { sendCrossCurrencyAPIResponse, sendIOUAPIResponse, sendXRPAPIResponse } from "@/types/api/transactionAPITypes";
+import { APIResponse } from "@/types/apiTypes";
+import { FormattedAMMInfo } from "@/types/xrpl/ammXRPLTypes";
 
 
 interface TransferBtnProps {
@@ -115,12 +114,12 @@ export default function TransferBtn({
       });
 
       if (!response.ok) {
-        const errorData: APIErrorResponse = await response.json();
+        const errorData: APIResponse<never> = await response.json();
         setAMMDataError(errorData.message);
         return;
       }
       
-      const result: GetFormattedAMMInfoByCurrenciesAPIResponse = await response.json();
+      const result: APIResponse<FormattedAMMInfo> = await response.json();
       setAMMData(result.data);
     } catch (error: any) {
       setAMMDataError(error.message);
@@ -293,12 +292,12 @@ export default function TransferBtn({
         body: JSON.stringify(requestBody),
       });
       if (!response.ok) {
-        const errorData: APIErrorResponse = await response.json();
+        const errorData: APIResponse<never> = await response.json();
         setErrorMessage(errorData.message);
         return;
       }
 
-      const result: sendIOUAPIResponse | sendXRPAPIResponse | sendCrossCurrencyAPIResponse = await response.json();
+      const result: APIResponse<never> = await response.json();
       setSuccessMessage(result.message);
 
       // Call the onSuccess callback if provided

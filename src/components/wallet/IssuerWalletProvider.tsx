@@ -28,13 +28,9 @@ export default function IssuerWalletProvider({ children }: IssuerWalletProviderP
         headers: { "Content-Type": "application/json" },
       });
 
-      const data = await response.json();
-      if (data.data) {
-        const wallets: YONAWallet[] = data.data.map((wallet) => ({
-          classicAddress: wallet.classic_address,
-          walletType: wallet.wallet_type,
-        }));
-        setIssuerWallets(wallets);
+      const walletResult = await response.json();
+      if (walletResult.data) {
+        setIssuerWallets(walletResult.data);
       } else {
         setIssuerWallets([]);
       }

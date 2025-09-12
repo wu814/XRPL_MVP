@@ -12,8 +12,8 @@ import CreateUserWalletBtn from "@/components/wallet/CreateUserWalletBtn";
 import Button from "@/components/Button";
 import ViewWalletDetails from "@/components/wallet/ViewWalletDetails";
 import AddFundsBtn from "./AddFunds";
-import { GetAccountInfoAPIResponse } from "@/types/api/walletAPITypes";
-
+import { APIResponse } from "@/types/apiTypes";
+import { AccountInfo } from "@/types/xrpl/walletXRPLTypes";
 
 // Additional Welcome Section Component for users with wallets
 function AdditionalWelcomeSection() {
@@ -87,7 +87,7 @@ export default function DisplayUserWallets() {
             body: JSON.stringify({ wallet }),
           });
 
-          const data: GetAccountInfoAPIResponse = await response.json();
+          const data: APIResponse<AccountInfo> = await response.json();
           if (data.data) {
             const balance = parseFloat(data.data.Balance); // Already converted from drops
             const ownerCount = data.data.OwnerCount || 0;

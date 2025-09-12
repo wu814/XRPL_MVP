@@ -10,16 +10,14 @@ import {
 import { getFormattedAMMInfo } from "@/utils/xrpl/amm/ammUtils";
 import { Wallet } from "xrpl";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
-import {
-  WithdrawLiquidityAPIRequest,
-  WithdrawLiquidityAPIResponse,
-} from "@/types/api/ammAPITypes";
-import { APIErrorResponse } from "@/types/api/errorAPITypes";
+import { APIResponse, WithdrawLiquidityAPIRequest } from "@/types/apiTypes";
 import { WithdrawLiquidityResult } from "@/types/xrpl/ammXRPLTypes";
+
 
 export async function POST(
   req: NextRequest,
-): Promise<NextResponse<WithdrawLiquidityAPIResponse | APIErrorResponse>> {
+): Promise<NextResponse<APIResponse<{ poolDeleted: boolean }>>> {
+
   try {
     const {
       mode,
@@ -33,22 +31,22 @@ export async function POST(
     }: WithdrawLiquidityAPIRequest = await req.json();
 
     if (!mode) {
-      return NextResponse.json<APIErrorResponse>(
-        { message: "Missing mode" },
+      return NextResponse.json<APIResponse<never>>(
+        { success: false, message: "Missing mode" },
         { status: 400 },
       );
     }
 
     if (!withdrawerWallet) {
-      return NextResponse.json<APIErrorResponse>(
-        { message: "Missing withdrawerWallet" },
+      return NextResponse.json<APIResponse<never>>(
+        { success: false, message: "Missing withdrawerWallet"},
         { status: 400 },
       );
     }
 
     if (!ammInfo) {
-      return NextResponse.json<APIErrorResponse>(
-        { message: "Missing ammInfo" },
+      return NextResponse.json<APIResponse<never>>(
+        { success: false, message: "Missing ammInfo"},
         { status: 400 },
       );
     }
@@ -62,8 +60,8 @@ export async function POST(
       .single();
 
     if (walletError || !walletData) {
-      return NextResponse.json<APIErrorResponse>(
-        { message: "Wallet not found for the provided classicAddress" },
+      return NextResponse.json<APIResponse<never>>(
+        { success: false, message: "Wallet not found for the provided classicAddress"},
         { status: 404 },
       );
     }
@@ -76,10 +74,11 @@ export async function POST(
     switch (mode) {
       case "twoAsset":
         if (!withdrawValue1 || !withdrawValue2) {
-          return NextResponse.json<APIErrorResponse>(
+          return NextResponse.json<APIResponse<never>>(
             {
               message:
                 "Missing withdrawValue1 or withdrawValue2 for twoAsset mode",
+              success: false,
             },
             { status: 400 },
           );
@@ -94,8 +93,8 @@ export async function POST(
 
       case "lpToken":
         if (!lpTokenValue) {
-          return NextResponse.json<APIErrorResponse>(
-            { message: "Missing lpTokenValue for lpToken mode" },
+          return NextResponse.json<APIResponse<never>>(
+            { success: false, message: "Missing lpTokenValue for lpToken mode"},
             { status: 400 },
           );
         }
@@ -112,10 +111,11 @@ export async function POST(
 
       case "singleAsset":
         if (!singleWithdrawCurrency || !singleWithdrawValue) {
-          return NextResponse.json<APIErrorResponse>(
+          return NextResponse.json<APIResponse<never>>(
             {
               message:
                 "Missing singleWithdrawCurrency or singleWithdrawValue for singleAsset mode",
+              success: false,
             },
             { status: 400 },
           );
@@ -130,9 +130,10 @@ export async function POST(
 
       case "singleAssetAll":
         if (!singleWithdrawCurrency) {
-          return NextResponse.json<APIErrorResponse>(
+          return NextResponse.json<APIResponse<never>>(
             {
               message: "Missing singleWithdrawCurrency for singleAssetAll mode",
+              success: false,
             },
             { status: 400 },
           );
@@ -146,10 +147,11 @@ export async function POST(
 
       case "singleAssetLp":
         if (!singleWithdrawCurrency || !lpTokenValue) {
-          return NextResponse.json<APIErrorResponse>(
+          return NextResponse.json<APIResponse<never>>(
             {
               message:
                 "Missing singleWithdrawCurrency or lpTokenValue for singleAssetLp mode",
+              success: false,
             },
             { status: 400 },
           );
@@ -163,8 +165,8 @@ export async function POST(
         break;
 
       default:
-        return NextResponse.json<APIErrorResponse>(
-          { message: "Invalid mode provided" },
+        return NextResponse.json<APIResponse<never>>(
+          { success: false, message: "Invalid mode provided"},
           { status: 400 },
         );
     }
@@ -194,24 +196,25 @@ export async function POST(
         poolDeleted = false;
       }
     } else {
-      return NextResponse.json<APIErrorResponse>(
-        { message: result.error?.message },
+      return NextResponse.json<APIResponse<never>>(
+          { success: false, message: result.error?.message},
         { status: 500 },
       );
     }
 
-    return NextResponse.json<WithdrawLiquidityAPIResponse>(
+    return NextResponse.json<APIResponse<{ poolDeleted: boolean }>>(
       {
+        success: true,
         message: result.message,
-        poolDeleted: poolDeleted,
+        data: { poolDeleted: poolDeleted }, 
       },
       { status: 200 },
     );
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error occurred";
-    return NextResponse.json<APIErrorResponse>(
-      { message: `Withdrawal failed: ${errorMessage}` },
+    return NextResponse.json<APIResponse<never>>(
+      { success: false, message: `Withdrawal failed: ${errorMessage}`},
       { status: 500 },
     );
   }

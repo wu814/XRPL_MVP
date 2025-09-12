@@ -1,5 +1,5 @@
-import { APIErrorResponse } from "@/types/api/errorAPITypes";
-import { GetTreasuryWalletAPIResponse } from "@/types/api/walletAPITypes";
+import { APIResponse } from "@/types/apiTypes";
+import { YONAWallet } from "@/types/appTypes";
 import { Currency } from "xrpl";
 
 // Types
@@ -44,11 +44,11 @@ export async function fetchUSDPrices(): Promise<PriceInfo[]> {
     // Step 1: Get treasury wallet (oracle account)
     const treasuryResponse = await fetch("/api/wallet/getTreasuryWallet");
     if (!treasuryResponse.ok) {
-      const errorData: APIErrorResponse = await treasuryResponse.json();
+      const errorData: APIResponse<never> = await treasuryResponse.json();
       console.error("Error fetching treasury wallet:", errorData.message);
       return [];
     }
-    const treasuryResult: GetTreasuryWalletAPIResponse = await treasuryResponse.json();
+    const treasuryResult: APIResponse<YONAWallet> = await treasuryResponse.json();
 
     if (!treasuryResult.data) {
       console.error("No treasury wallet found");

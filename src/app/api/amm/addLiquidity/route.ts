@@ -7,25 +7,24 @@ import {
   addLiquidityTwoAssetLPToken,
 } from "@/utils/xrpl/amm/addLiquidity";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
-import { AddLiquidityAPIRequest, AddLiquidityAPIResponse } from "@/types/api/ammAPITypes";
-import { APIErrorResponse } from "@/types/api/errorAPITypes";
 import { AddLiquidityResult } from "@/types/xrpl/ammXRPLTypes";
+import { APIResponse, AddLiquidityAPIRequest } from "@/types/apiTypes";
 
-export async function POST(req: NextRequest): Promise<NextResponse<AddLiquidityAPIResponse | APIErrorResponse>>  {
+export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<never>>>  {
   try {
     const { depositType, wallet, ammInfo, addValue1, addValue2, lpTokenValue, selectedCurrency }: AddLiquidityAPIRequest =
       await req.json();
 
     if (!depositType) {
-      return NextResponse.json<APIErrorResponse>({ message: "Missing deposit type" }, { status: 400 });
+      return NextResponse.json<APIResponse<never>>({ success: false, message: "Missing deposit type" }, { status: 400 });
     }
 
     if (!wallet) {
-      return NextResponse.json<APIErrorResponse>({ message: "Missing adder wallet" }, { status: 400 });
+      return NextResponse.json<APIResponse<never>>({ success: false, message: "Missing adder wallet" }, { status: 400 });
     }
 
     if (!ammInfo) {
-      return NextResponse.json<APIErrorResponse>({ message: "Missing amm info" }, { status: 400 });
+      return NextResponse.json<APIResponse<never>>({ success: false, message: "Missing amm info" }, { status: 400 });
     }
 
     // Get seed from Supabase using classicAddress
@@ -37,7 +36,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<AddLiquidityA
       .single();
 
     if (walletError || !walletData) {
-      return NextResponse.json<APIErrorResponse>({ message: "Wallet not found for the provided classicAddress" }, { status: 404 });
+      return NextResponse.json<APIResponse<never>>({ success: false, message: "Wallet not found for the provided classicAddress" }, { status: 404 });
     }
 
     // Initialize data
@@ -47,7 +46,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<AddLiquidityA
     switch (depositType) {
       case "twoAsset":
         if (!addValue1 || !addValue2){
-          return NextResponse.json<APIErrorResponse>({ message: "Missing asset1 or asset2" }, { status: 400 });
+          return NextResponse.json<APIResponse<never>>({ success: false, message: "Missing asset1 or asset2" }, { status: 400 });
         }
         result = await addLiquidityTwoAsset(
           providerXRPLWallet,
@@ -59,7 +58,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<AddLiquidityA
 
       case "twoAssetLPToken":
         if (!addValue1 || !addValue2 || !lpTokenValue) {
-          return NextResponse.json<APIErrorResponse>({ message: "Missing asset1, asset2, or lpTokenValue" }, { status: 400 });
+          return NextResponse.json<APIResponse<never>>({ success: false, message: "Missing asset1, asset2, or lpTokenValue" }, { status: 400 });
         }
         result = await addLiquidityTwoAssetLPToken(
           providerXRPLWallet,
@@ -72,7 +71,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<AddLiquidityA
 
       case "oneAsset":
         if (!addValue1 || !selectedCurrency) {
-          return NextResponse.json<APIErrorResponse>({ message: "Missing asset or selectedCurrency" }, { status: 400 });
+          return NextResponse.json<APIResponse<never>>({ success: false, message: "Missing asset or selectedCurrency" }, { status: 400 });
         }
         result = await addLiquiditySingleAsset(
           providerXRPLWallet,
@@ -84,7 +83,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<AddLiquidityA
 
       case "oneAssetLPToken":
         if (!addValue1 || !lpTokenValue || !selectedCurrency) {
-          return NextResponse.json<APIErrorResponse>({ message: "Missing asset, selectedCurrency, or lpTokenValue" }, { status: 400 });
+          return NextResponse.json<APIResponse<never>>({ success: false, message: "Missing asset, selectedCurrency, or lpTokenValue" }, { status: 400 });
         }
         result = await addLiquidityOneAssetLPToken(
           providerXRPLWallet,
@@ -96,22 +95,25 @@ export async function POST(req: NextRequest): Promise<NextResponse<AddLiquidityA
         break;
 
       default:
-        return NextResponse.json<APIErrorResponse>({ message: "Invalid depositType specified." }, { status: 400 });
+        return NextResponse.json<APIResponse<never>>({ success: false, message: "Invalid depositType specified." }, { status: 400 });
     }
 
     if (!result.success) {
-      return NextResponse.json<APIErrorResponse>({ 
+      return NextResponse.json<APIResponse<never>>({ 
+        success: false,
         message: result.error?.message || "Liquidity addition failed" 
       }, { status: 400 });
     }
 
-    return NextResponse.json<AddLiquidityAPIResponse>({ 
+      return NextResponse.json<APIResponse<never>>({ 
+      success: true,
       message: result.message || "Liquidity added successfully" 
     }, { status: 200 });
 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    return NextResponse.json<APIErrorResponse>({ 
+    return NextResponse.json<APIResponse<never>>({ 
+      success: false,
       message: errorMessage || "Unexpected error occurred." 
     }, { status: 500 });
   }

@@ -5,27 +5,25 @@ import { authOptions } from "@/utils/auth/authOptions";
 import { setTrustline } from "@/utils/xrpl/trustline/setTrustline";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
 import { Wallet } from "xrpl";
-import { SetWalletTrustlineAPIRequest, SetWalletTrustlineAPIResponse } from "@/types/api/trustlineAPITypes";
-import { APIErrorResponse } from "@/types/api/errorAPITypes";
+import { APIResponse, SetWalletTrustlineAPIRequest } from "@/types/apiTypes";
 
-
-export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<never>>> {
   const session = await getServerSession(authOptions);
   if (!session?.user?.user_id) {
-    return NextResponse.json<APIErrorResponse>({ message: "Unauthorized" }, { status: 401 });
+    return NextResponse.json<APIResponse<never>>({ success: false, message: "Unauthorized" }, { status: 401 });
   }
 
   try {
     const { setterWallet, issuerWallets, currency }: SetWalletTrustlineAPIRequest = await req.json();
 
     if (!setterWallet) {
-      return NextResponse.json<APIErrorResponse>({ message: "Missing setterWallet" }, { status: 400 });
+      return NextResponse.json<APIResponse<never>>({ success: false, message: "Missing setterWallet" }, { status: 400 });
     }
     if (!issuerWallets?.[0]?.classicAddress) {
-      return NextResponse.json<APIErrorResponse>({ message: "Missing issuerWallets" }, { status: 400 });
+      return NextResponse.json<APIResponse<never>>({ success: false, message: "Missing issuerWallets" }, { status: 400 });
     }
     if (!currency) {
-      return NextResponse.json<APIErrorResponse>({ message: "Missing currency" }, { status: 400 });
+      return NextResponse.json<APIResponse<never>>({ success: false, message: "Missing currency" }, { status: 400 });
     }
 
     // Get seed from Supabase using classicAddress
@@ -37,8 +35,8 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (walletError || !walletData) {
-      return NextResponse.json<APIErrorResponse>(
-        { message: "Wallet not found for the provided classicAddress" },
+      return NextResponse.json<APIResponse<never>>(
+        { success: false, message: "Wallet not found for the provided classicAddress" },
         { status: 404 },
       );
     }
@@ -53,17 +51,17 @@ export async function POST(req: NextRequest) {
     );
 
     if (!result.success) {
-      return NextResponse.json<APIErrorResponse>(
-        { message: result.message },
+      return NextResponse.json<APIResponse<never>>(
+        { success: false, message: result.message },
         { status: 500 },
       );
     }
 
-    return NextResponse.json<SetWalletTrustlineAPIResponse>({ message: result.message }, { status: 200 });
+    return NextResponse.json<APIResponse<never>>({ success: true, message: result.message }, { status: 200 });
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
-    return NextResponse.json<APIErrorResponse>(
-      { message: `Trustline setup failed: ${errorMessage}` },
+    return NextResponse.json<APIResponse<never>>(
+      { success: false, message: `Trustline setup failed: ${errorMessage}` },
       { status: 500 },
     );
   }

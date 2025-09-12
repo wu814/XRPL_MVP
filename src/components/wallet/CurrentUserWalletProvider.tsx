@@ -39,20 +39,15 @@ export default function CurrentUserWalletProvider({ children }: CurrentUserWalle
         headers: { "Content-Type": "application/json" },
       });
 
-      const data = await response.json();
+      const walletResult = await response.json();
       
-      if (data.data) {
-        const wallets: YONAWallet[] = data.data.map((wallet) => ({
-          classicAddress: wallet.classic_address,
-          walletType: wallet.wallet_type,
-        }));
+      if (walletResult.data) {
+        const wallets = walletResult.data;
         setCurrentUserWallets(wallets);
       } else {
-        console.log("No wallet data found");
         setCurrentUserWallets([]);
       }
     } catch (error) {
-      console.error("Error fetching current user wallets:", error);
       setErrorMessage("Failed to fetch wallets");
       setCurrentUserWallets([]);
     } finally {

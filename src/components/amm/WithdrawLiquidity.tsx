@@ -8,8 +8,7 @@ import SuccessMdl from "../SuccessMdl";
 import { useRouter } from "next/navigation";
 import { useCurrentUserWallet } from "../wallet/CurrentUserWalletProvider";
 import { FormattedAMMInfo } from "@/types/xrpl/ammXRPLTypes";
-import { WithdrawLiquidityAPIResponse } from "@/types/api/ammAPITypes";
-import { APIErrorResponse } from "@/types/api/errorAPITypes";
+import { APIResponse } from "@/types/apiTypes";
 
 interface WithdrawLiquidityProps {
   ammInfo: FormattedAMMInfo;
@@ -136,14 +135,14 @@ export default function WithdrawLiquidity({
       });
 
       if (!response.ok) {
-        const error: APIErrorResponse = await response.json();
+        const error: APIResponse<never> = await response.json();
         setErrorMessage(error.message || "Transaction failed");
         return;
       }
-      const result: WithdrawLiquidityAPIResponse = await response.json();
+      const result: APIResponse<{ poolDeleted: boolean }> = await response.json();
       setSuccessMessage(result.message || "Liquidity withdrawn successfully!");
 
-      if (result.poolDeleted) {
+      if (result.data?.poolDeleted) {
         // ⏳ Show initial message for 5 seconds
         setTimeout(() => {
           // 📝 Then update message

@@ -5,29 +5,26 @@ import { authOptions } from "@/utils/auth/authOptions";
 import authorizeDeposit from "@/utils/xrpl/wallet/authorizeDeposit";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
 import { Wallet } from "xrpl";
+import { AuthorizeDepositRequest } from "@/types/apiTypes";
+import { APIResponse } from "@/types/apiTypes";
 
-interface AuthorizeDepositRequest {
-  walletWithDepositAuth: {
-    classicAddress: string;
-  };
-  authorizedAddress: string;
-}
 
-export async function POST(req: NextRequest) {
+
+export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<never>>> {
   const session = await getServerSession(authOptions);
   if (!session?.user?.user_id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json<APIResponse<never>>({ success: false, message: "Unauthorized" }, { status: 401 });
   }
 
   try {
     const { walletWithDepositAuth, authorizedAddress }: AuthorizeDepositRequest = await req.json();
 
     if (!walletWithDepositAuth) {
-      return NextResponse.json({ error: "Missing walletWithDepositAuth" }, { status: 400 });
+      return NextResponse.json<APIResponse<never>>({ success: false, message: "Missing walletWithDepositAuth" }, { status: 400 });
     }
 
     if (!authorizedAddress) {
-      return NextResponse.json({ error: "Missing authorizedAddress" }, { status: 400 });
+      return NextResponse.json<APIResponse<never>>({ success: false, message: "Missing authorizedAddress" }, { status: 400 });
     }
 
     // Get seed from Supabase using classicAddress
@@ -40,7 +37,7 @@ export async function POST(req: NextRequest) {
 
     if (walletError || !walletData) {
       return NextResponse.json(
-        { error: "Wallet not found for the provided classicAddress" },
+        { success: false, message: "Wallet not found for the provided classicAddress" },
         { status: 404 },
       );
     }
@@ -49,11 +46,11 @@ export async function POST(req: NextRequest) {
 
     const result = await authorizeDeposit(walletWithDepositAuthXRPLWallet, authorizedAddress);
 
-    return NextResponse.json({ message: result.message });
+    return NextResponse.json<APIResponse<never>>({ success: true, message: result.message }, { status: 200 });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    return NextResponse.json(
-      { error: `Failed to authorize deposit: ${errorMessage}` },
+    return NextResponse.json<APIResponse<never>>(
+      { success: false, message: `Failed to authorize deposit: ${errorMessage}` },
       { status: 500 },
     );
   }

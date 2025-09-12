@@ -5,11 +5,7 @@ import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
 import PasswordConfirmMdl from "../PasswordConfirmMdl";
 import { Trash2 } from "lucide-react";
-
-interface DeleteWalletResponse {
-  message?: string;
-  error?: string;
-}
+import { APIResponse } from "@/types/apiTypes";
 
 interface DeleteWalletBtnProps {
   classicAddress: string;
@@ -36,10 +32,13 @@ export default function DeleteWalletBtn({ classicAddress, onWalletDeleted }: Del
         body: JSON.stringify({ classicAddress, enteredPassword }),
       });
 
-      const result: DeleteWalletResponse = await res.json();
       if (!res.ok) {
-        throw new Error(result.error || "Failed to delete wallet");
+        const errorData: APIResponse<never> = await res.json();
+        setErrorMessage(errorData.message);
+        setLoading(false);
+        return;
       }
+      const result: APIResponse<never> = await res.json();
       setSuccessMessage(result.message || "Wallet deleted successfully");
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : "Unknown error");

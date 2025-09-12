@@ -11,9 +11,8 @@ import { useCurrentUserWallet } from "../wallet/CurrentUserWalletProvider";
 import { Settings, Loader2 } from "lucide-react";
 import { FormattedAMMInfo } from "@/types/xrpl/ammXRPLTypes";
 import { EstimateDepositAmountsResult } from "@/types/helperTypes";
-import { AddLiquidityAPIResponse } from "@/types/api/ammAPITypes";
-import { APIErrorResponse } from "@/types/api/errorAPITypes";
-import { CheckTrustlineAPIResponse, SetLPTrustlineAPIResponse } from "@/types/api/trustlineAPITypes";
+import { APIResponse } from "@/types/apiTypes";
+
 
 
 
@@ -152,12 +151,13 @@ export default function AddLiquidity({ ammInfo, onAdded }: AddLiquidityProps) {
         }),
       });
       if (!checkResponse.ok) {
-        const errorData: APIErrorResponse = await checkResponse.json();
+        const errorData: APIResponse<never> = await checkResponse.json();
         setErrorMessage(errorData.message);
         return;
       }
 
-      const { hasTrustline }: CheckTrustlineAPIResponse = await checkResponse.json();
+      const checkData: APIResponse<{ hasTrustline: boolean }> = await checkResponse.json();
+      const hasTrustline = checkData.data?.hasTrustline;
 
       if (!hasTrustline) {
         setLoadingMessage("Setting up LP trustline...");
@@ -171,9 +171,9 @@ export default function AddLiquidity({ ammInfo, onAdded }: AddLiquidityProps) {
           }),
         });
 
-        const trustlineResult: SetLPTrustlineAPIResponse = await setTrustlineResponse.json();
+        const trustlineResult: APIResponse<never> = await setTrustlineResponse.json();
         if (!setTrustlineResponse.ok) {
-          const errorData: APIErrorResponse = await setTrustlineResponse.json();
+          const errorData: APIResponse<never> = await setTrustlineResponse.json();
           setErrorMessage(errorData.message);
           return;
         }
@@ -190,11 +190,11 @@ export default function AddLiquidity({ ammInfo, onAdded }: AddLiquidityProps) {
       });
 
       if (!addLiquidityResponse.ok) {
-        const errorData: APIErrorResponse = await addLiquidityResponse.json();
+        const errorData: APIResponse<never> = await addLiquidityResponse.json();
         setErrorMessage(errorData.message);
         return;
       }
-      const addLiquidityResult: AddLiquidityAPIResponse = await addLiquidityResponse.json();
+      const addLiquidityResult: APIResponse<never> = await addLiquidityResponse.json();
       setSuccessMessage(addLiquidityResult.message || "Liquidity added successfully!");
 
       onAdded();

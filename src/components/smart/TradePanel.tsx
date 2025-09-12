@@ -15,27 +15,16 @@ import { availableCurrencies, formatCurrencyValue, YONACurrency } from "@/utils/
 import { useSession } from "next-auth/react";
 import { calculateExactAMMInput, calculateEstimateOutput } from "@/utils/xrpl/amm/calculations";
 import { YONAWallet } from "@/types/appTypes";
-import { GetAccountInfoAPIResponse } from "@/types/api/walletAPITypes";
-import { GetAccountLinesAPIResponse } from "@/types/api/walletAPITypes";
-import { GetFormattedAMMInfoByCurrenciesAPIResponse } from "@/types/api/ammAPITypes";
 import { FormattedAMMInfo } from "@/types/xrpl/ammXRPLTypes";
-import { SmartTradeAPIResponse } from "@/types/api/smartAPITypes";
-import { APIErrorResponse } from "@/types/api/errorAPITypes";
+import { APIResponse } from "@/types/apiTypes";
+import { AccountInfo } from "@/types/xrpl/walletXRPLTypes";
+import { AccountLinesTrustline } from "xrpl";
 
 
 interface WalletBalance {
   [currency: string]: number;
 }
 
-interface SmartTradeResponse {
-  message?: string;
-  error?: string;
-}
-
-interface RecentRecipient {
-  address: string;
-  lastSent: string;
-}
 
 type ActiveTab = "Convert" | "Send";
 type ActiveInput = "sell" | "buy";
@@ -172,12 +161,12 @@ export default function TradePanel() {
       });
 
       if (!response.ok) {
-        const errorData: APIErrorResponse = await response.json();
+        const errorData: APIResponse = await response.json();
         setAMMDataError(errorData.message);
         return;
       }
 
-      const result: GetFormattedAMMInfoByCurrenciesAPIResponse = await response.json();
+      const result: APIResponse<FormattedAMMInfo> = await response.json();
         
       setAMMData(result.data);
     } catch (error: any) {
@@ -408,12 +397,12 @@ export default function TradePanel() {
       });
 
       if (!response.ok) {
-        const errorData: APIErrorResponse = await response.json();
+        const errorData: APIResponse<never> = await response.json();
         setErrorMessage(errorData.message);
         return;
       }
 
-      const result: SmartTradeAPIResponse | APIErrorResponse = await response.json();
+      const result: APIResponse<never> = await response.json();
       setSuccessMessage(
         result.message || "Smart trade completed successfully!",
       );
@@ -516,10 +505,10 @@ export default function TradePanel() {
     }
   };
 
-  const recents: RecentRecipient[] = [
-    { address: "rwnYLU...nqf63J", lastSent: "2 months ago" },
-    { address: "0xf839...0369e4", lastSent: "11 months ago" },
-    { address: "rUy72X...zNDTD2", lastSent: "1 year ago" },
+  const recentsUsernames: string[] = [
+    "recentUsername1",
+    "recentUsername2",
+    "recentUsername3",
   ];
 
   const handleMax = (): void => {
@@ -539,12 +528,11 @@ export default function TradePanel() {
     );
   };
 
-  const handleRecipientClick = (recipient: RecentRecipient | string): void => {
-    const recipientValue = typeof recipient === 'string' ? recipient : recipient.address;
+  const handleRecipientClick = (recipientUsername: string): void => {
     if (useUsername) {
-      setRecipientUsername(recipientValue);
+      setRecipientUsername(recipientUsername);
     } else {
-      setRecipientAddress(recipientValue);
+      setRecipientAddress(recipientUsername);
     }
   };
 
@@ -577,8 +565,8 @@ export default function TradePanel() {
         }),
       ]);
 
-      const accountInfo: GetAccountInfoAPIResponse = await accountInfoResponse.json();
-      const accountLines: GetAccountLinesAPIResponse = await accountLinesResponse.json();
+      const accountInfo: APIResponse<AccountInfo> = await accountInfoResponse.json();
+      const accountLines: APIResponse<AccountLinesTrustline[]> = await accountLinesResponse.json();
 
       const balances: WalletBalance = {};
 
@@ -1118,25 +1106,25 @@ export default function TradePanel() {
               <FavoritesList onRecipientClick={handleRecipientClick} />
 
               {/* Recents Section */}
-              {recents.length > 0 && (
+              {recentsUsernames.length > 0 && (
                 <div className="mt-8">
                   <div className="mb-4 flex items-center justify-between">
                     <h3 className="text-lg font-medium">Recents</h3>
                     <button className="text-sm text-blue-400">See all</button>
                   </div>
-                  {recents.map((recent, index) => (
+                  {recentsUsernames.map((recentUsername, index) => (
                     <div
                       key={index}
                       className="flex cursor-pointer items-center space-x-4 rounded-lg p-3 hover:bg-color3"
-                      onClick={() => handleRecipientClick(recent)}
+                      onClick={() => handleRecipientClick(recentUsername)}
                     >
                       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-600">
                         <Building2 className="h-5 w-5" />
                       </div>
                       <div className="flex-1">
-                        <div className="font-medium">{recent.address}</div>
+                        <div className="font-medium">{recentUsername}</div>
                         <div className="text-xs text-gray-400">
-                          Sent to {recent.lastSent}
+                          Sent to {recentUsername}
                         </div>
                       </div>
                     </div>

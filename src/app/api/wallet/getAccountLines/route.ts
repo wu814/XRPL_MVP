@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAccountLines } from "@/utils/xrpl/wallet/getWalletInfo";
-import { GetAccountLinesAPIRequest, GetAccountLinesAPIResponse } from "@/types/api/walletAPITypes";
-import { APIErrorResponse } from "@/types/api/errorAPITypes";
+import { APIResponse, GetAccountLinesAPIRequest } from "@/types/apiTypes";
+import { AccountLinesTrustline } from "xrpl";
 
 
-export async function POST(req: NextRequest): Promise<NextResponse<GetAccountLinesAPIResponse | APIErrorResponse>> {
+export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<AccountLinesTrustline[]>>> {
   try {
     const { wallet }: GetAccountLinesAPIRequest = await req.json();
     
@@ -12,15 +12,15 @@ export async function POST(req: NextRequest): Promise<NextResponse<GetAccountLin
     const targetAddress = wallet?.classicAddress;
     
     if (!targetAddress) {
-      return NextResponse.json<APIErrorResponse>({ message: "Missing address or wallet" }, { status: 400 });
+      return NextResponse.json<APIResponse<never>>({ success: false, message: "Missing address or wallet" }, { status: 400 });
     }
 
     const lines = await getAccountLines(targetAddress);
-    return NextResponse.json<GetAccountLinesAPIResponse>({ message: "Account lines fetched successfully", data: lines }, { status: 200 });
+    return NextResponse.json<APIResponse<AccountLinesTrustline[]>>({ success: true, message: "Account lines fetched successfully", data: lines }, { status: 200 });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    return NextResponse.json<APIErrorResponse>(
-      { message: `getAccountLines failed: ${errorMessage}` },
+    return NextResponse.json<APIResponse<never>>(
+      { success: false, message: `getAccountLines failed: ${errorMessage}` },
       { status: 500 },
     );
   }

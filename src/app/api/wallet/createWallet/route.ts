@@ -5,14 +5,14 @@ import { authOptions } from "@/utils/auth/authOptions";
 
 import createWallet from "@/utils/xrpl/wallet/createWallet";
 import { CreateWalletResult } from "@/types/xrpl/walletXRPLTypes";
-import { APIErrorResponse } from "@/types/api/errorAPITypes";
-import { CreateWalletAPIRequest, CreateWalletAPIResponse } from "@/types/api/walletAPITypes";
+import { APIResponse, CreateWalletAPIRequest } from "@/types/apiTypes";
+import { YONAWallet } from "@/types/appTypes";
 
 
-export async function POST(req: NextRequest): Promise<NextResponse<CreateWalletAPIResponse | APIErrorResponse>> {
+export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<YONAWallet>>> {
   const session = await getServerSession(authOptions);
   if (!session?.user?.user_id) {
-    return NextResponse.json<APIErrorResponse>({ message: "Unauthorized" }, { status: 401 });
+    return NextResponse.json<APIResponse<never>>({ success: false, message: "Unauthorized" }, { status: 401 });
   }
   
   const user_id = session.user.user_id;
@@ -23,8 +23,8 @@ export async function POST(req: NextRequest): Promise<NextResponse<CreateWalletA
     const walletResult: CreateWalletResult = await createWallet(walletType);
     
     if (!walletResult.success) {
-      return NextResponse.json<APIErrorResponse>(
-        { message: walletResult.error?.message || "Failed to create wallet" },
+      return NextResponse.json<APIResponse<never>>(
+        { success: false, message: walletResult.error?.message || "Failed to create wallet" },
         { status: 500 }
       );
     }
@@ -42,8 +42,9 @@ export async function POST(req: NextRequest): Promise<NextResponse<CreateWalletA
 
     if (error) throw error;
 
-    return NextResponse.json<CreateWalletAPIResponse>(
+    return NextResponse.json<APIResponse<YONAWallet>>(
       {
+        success: true,
         message: walletResult.message,
         data: {
           classicAddress: walletResult.data.wallet.address,
@@ -56,8 +57,8 @@ export async function POST(req: NextRequest): Promise<NextResponse<CreateWalletA
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error occurred";
 
-    return NextResponse.json<APIErrorResponse>(
-      { message: `Error creating wallet: ${errorMessage}` },
+    return NextResponse.json<APIResponse<never>>(
+      { success: false, message: `Error creating wallet: ${errorMessage}` },
       { status: 500 }
     );
   }

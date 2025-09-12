@@ -7,8 +7,7 @@ import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
 import { useCurrentUserWallet } from "../wallet/CurrentUserWalletProvider";
 import { useIssuerWallet } from "../wallet/IssuerWalletProvider";
-import { MintAndListNFTAPIResponse } from "@/types/api/nftAPITypes";
-import { APIErrorResponse } from "@/types/api/errorAPITypes";
+import { APIResponse } from "@/types/apiTypes";
 
 export default function MintAndListNFT() {
   const [uri, setUri] = useState<string>("");
@@ -77,12 +76,12 @@ export default function MintAndListNFT() {
       });
 
       if (!response.ok) {
-        const errorData: APIErrorResponse = await response.json();
+        const errorData: APIResponse<never> = await response.json();
         setErrorMessage(errorData.message);
         return;
       }
 
-      const result: MintAndListNFTAPIResponse = await response.json();
+      const result: APIResponse<never> = await response.json();
 
       if (result.message) {
         setSuccessMessage(result.message);

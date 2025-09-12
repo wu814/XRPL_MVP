@@ -8,9 +8,8 @@ import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
 import { useIssuerWallet } from "@/components/wallet/IssuerWalletProvider";
 import { YONAWallet } from "@/types/appTypes";
-import { APIErrorResponse } from "@/types/api/errorAPITypes";
-import { GetTreasuryWalletAPIResponse } from "@/types/api/walletAPITypes";
-import { CreateAMMAPIResponse } from "@/types/api/ammAPITypes";
+import { APIResponse } from "@/types/apiTypes";
+import { CreateAMMResult } from "@/types/xrpl/ammXRPLTypes";
 
 interface CreateAMMBtnProps {
   onAMMCreated?: (data: any) => void;
@@ -35,9 +34,9 @@ export default function CreateAMMBtn({ onAMMCreated }: CreateAMMBtnProps) {
   const fetchTreasuryWallet = async () => {
     try {
       const response = await fetch("/api/wallet/getTreasuryWallet");
-      const result: GetTreasuryWalletAPIResponse = await response.json();
+      const result: APIResponse<YONAWallet> = await response.json();
       if (!response.ok) {
-        const errorData: APIErrorResponse = await response.json();
+        const errorData: APIResponse<never> = await response.json();
         setErrorMessage(errorData.message);
         return;
       }
@@ -72,12 +71,12 @@ export default function CreateAMMBtn({ onAMMCreated }: CreateAMMBtnProps) {
         }),
       });
       if (!response.ok) {
-        const errorData: APIErrorResponse = await response.json();
+        const errorData: APIResponse<never> = await response.json();
         setErrorMessage(errorData.message);
         setLoading(false);
         return;
       }
-      const result: CreateAMMAPIResponse = await response.json();
+      const result: APIResponse<CreateAMMResult> = await response.json();
       onAMMCreated(result.data);
       setSuccessMessage(result.message || "AMM created successfully");
     } catch (err) {

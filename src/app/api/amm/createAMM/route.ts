@@ -5,14 +5,15 @@ import { authOptions } from "@/utils/auth/authOptions";
 
 import createAMM from "@/utils/xrpl/amm/createAMM";
 import { Wallet } from "xrpl";
-import { CreateAMMAPIRequest, CreateAMMAPIResponse } from "@/types/api/ammAPITypes";
-import { APIErrorResponse } from "@/types/api/errorAPITypes";
+import { APIResponse, CreateAMMAPIRequest } from "@/types/apiTypes";
+import { CreateAMMResult } from "@/types/xrpl/ammXRPLTypes";
 
-export async function POST(req: NextRequest): Promise<NextResponse<CreateAMMAPIResponse | APIErrorResponse>> {
+
+export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<CreateAMMResult>>> {
   const session = await getServerSession(authOptions);
   if (!session?.user?.role || session.user.role !== "ADMIN") {
-    return NextResponse.json<APIErrorResponse>(
-      { message: "Must be an Admin to create AMMs" },
+    return NextResponse.json<APIResponse<never>>(
+      { success: false, message: "Must be an Admin to create AMMs" },
       { status: 401 },
     );
   }
@@ -36,8 +37,8 @@ export async function POST(req: NextRequest): Promise<NextResponse<CreateAMMAPIR
       .single();
 
     if (walletError || !walletData) {
-      return NextResponse.json<APIErrorResponse>(
-        { message: "Wallet not found for the provided classicAddress" },
+      return NextResponse.json<APIResponse<never>>(
+        { success: false, message: "Wallet not found for the provided classicAddress" },
         { status: 404 },
       );
     }
@@ -56,8 +57,8 @@ export async function POST(req: NextRequest): Promise<NextResponse<CreateAMMAPIR
     );
 
     if (!ammData.success) {
-      return NextResponse.json<APIErrorResponse>(
-        { message: ammData.error?.message || "AMM creation failed" },
+      return NextResponse.json<APIResponse<never>>(
+        { success: false, message: ammData.error?.message || "AMM creation failed" },
         { status: 400 },
       );
     }
@@ -79,8 +80,9 @@ export async function POST(req: NextRequest): Promise<NextResponse<CreateAMMAPIR
     // Create a readable pair string for the message
     const pairString = `${ammData.currency1}/${ammData.currency2}`;
     
-    return NextResponse.json<CreateAMMAPIResponse>(
+    return NextResponse.json<APIResponse<CreateAMMResult>>(
       {
+        success: true,
         message: `${pairString} AMM created! Address: ${ammData.account}`,
         data: ammData,
       },
@@ -88,8 +90,8 @@ export async function POST(req: NextRequest): Promise<NextResponse<CreateAMMAPIR
     );
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    return NextResponse.json<APIErrorResponse>(
-      { message: `Error creating AMM: ${errorMessage} [createAMM/route.ts]` },
+    return NextResponse.json<APIResponse<never>>(
+      { success: false, message: `Error creating AMM: ${errorMessage} [createAMM/route.ts]` },
       { status: 500 },
     );
   }
