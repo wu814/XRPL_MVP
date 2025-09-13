@@ -48,7 +48,7 @@ export function formatAmountForXRPL(amount: IssuedCurrencyAmount): Amount {
   return {
     currency: amount.currency,
     issuer: amount.issuer,
-    value: amount.value.toString(),
+    value: parseFloat(amount.value.toString()).toFixed(15)
   };
 }
 
