@@ -1,20 +1,16 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/utils/auth/authOptions";
-
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
+import { APIResponse } from "@/types/apiTypes";
+import { PendingFriendRequest } from "@/types/appTypes";
 
-interface PendingFriendRequest {
-  id: string;
-  sender: string;
-  sent_at: string;
-}
 
-export async function GET() {
+export async function GET(): Promise<NextResponse<APIResponse<PendingFriendRequest[]>>> {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json<APIResponse<never>>({ success: false, message: "Unauthorized" }, { status: 401 });
     }
 
     const receiverName = session.user.username;
@@ -27,14 +23,17 @@ export async function GET() {
       .eq("status", "pending")
       .order("sent_at", { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      return NextResponse.json<APIResponse<never>>({ success: false, message: error.message }, { status: 500 });
+    }
 
-    return NextResponse.json({ data: data ?? [] }, { status: 200 });
+    return NextResponse.json<APIResponse<PendingFriendRequest[]>>({ success: true, message: "Pending friend requests fetched", data: data.map((request) => ({
+      id: request.id,
+      sender: request.sender,
+      sent_at: request.sent_at,
+    })) }, { status: 200 });
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
-    return NextResponse.json(
-      { error: `Internal Server Error: ${errorMessage}` },
-      { status: 500 },
-    );
+    return NextResponse.json<APIResponse<never>>({ success: false, message: `Internal Server Error: ${errorMessage}` }, { status: 500 });
   }
 }

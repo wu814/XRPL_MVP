@@ -1,24 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/utils/auth/authOptions";
-
+import { RemoveFromFavoriteAPIRequest, APIResponse } from "@/types/apiTypes";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
 
-interface RemoveFromFavoriteRequest {
-  friendUsername: string;
-}
 
-export async function DELETE(req: NextRequest) {
+export async function DELETE(req: NextRequest): Promise<NextResponse<APIResponse<never>>> {
   const session = await getServerSession(authOptions);
   if (!session?.user?.username) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json<APIResponse<never>>({ success: false, message: "Unauthorized" }, { status: 401 });
   }
 
-  const { friendUsername }: RemoveFromFavoriteRequest = await req.json();
+  const { friendUsername }: RemoveFromFavoriteAPIRequest = await req.json();
   const userUsername = session.user.username;
 
   if (!friendUsername) {
-    return NextResponse.json({ error: "Missing friend username" }, { status: 400 });
+    return NextResponse.json<APIResponse<never>>({ success: false, message: "Missing friend username" }, { status: 400 });
   }
 
   const supabase = await createSupabaseAnonClient();
@@ -31,15 +28,12 @@ export async function DELETE(req: NextRequest) {
       .eq("friend_username", friendUsername);
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json<APIResponse<never>>({ success: false, message: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ message: "Friend removed from favorites" }, { status: 200 });
+    return NextResponse.json<APIResponse<never>>({ success: true, message: "Friend removed from favorites" }, { status: 200 });
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
-    return NextResponse.json(
-      { error: `Failed to remove favorite: ${errorMessage}` },
-      { status: 500 }
-    );
+      return NextResponse.json<APIResponse<never>>({ success: false, message: `Failed to remove favorite: ${errorMessage}` }, { status: 500 });
   }
 }

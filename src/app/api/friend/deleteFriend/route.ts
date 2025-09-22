@@ -1,33 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/utils/auth/authOptions";
-
+import { DeleteFriendAPIRequest, APIResponse } from "@/types/apiTypes";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
 
-interface DeleteFriendRequest {
-  id: string;
-}
-
-interface FriendRequest {
-  id: string;
-  sender: string;
-  receiver: string;
-}
-
-export async function DELETE(req: NextRequest) {
+export async function DELETE(req: NextRequest): Promise<NextResponse<APIResponse<never>>> {
   const session = await getServerSession(authOptions);
   if (!session?.user?.username) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json<APIResponse<never>>({ success: false, message: "Unauthorized" }, { status: 401 });
   }
 
-  const { id }: DeleteFriendRequest = await req.json();
+  const { id }: DeleteFriendAPIRequest = await req.json();
   const currentUsername = session.user.username;
 
   if (!id) {
-    return NextResponse.json(
-      { error: "Missing friend request ID" },
-      { status: 400 },
-    );
+    return NextResponse.json<APIResponse<never>>({ success: false, message: "Missing friend request ID" }, { status: 400 });  
   }
 
   const supabase = await createSupabaseAnonClient();
@@ -40,17 +27,14 @@ export async function DELETE(req: NextRequest) {
     .single();
 
   if (fetchError || !request) {
-    return NextResponse.json(
-      { error: "Friendship not found" },
-      { status: 404 },
-    );
+    return NextResponse.json<APIResponse<never>>({ success: false, message: "Friendship not found" }, { status: 404 });
   }
 
   if (
     request.sender !== currentUsername &&
     request.receiver !== currentUsername
   ) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json<APIResponse<never>>({ success: false, message: "Forbidden" }, { status: 403 });
   }
 
   const { error: deleteError } = await supabase
@@ -59,8 +43,8 @@ export async function DELETE(req: NextRequest) {
     .eq("id", id);
 
   if (deleteError) {
-    return NextResponse.json({ error: deleteError.message }, { status: 500 });
+    return NextResponse.json<APIResponse<never>>({ success: false, message: deleteError.message }, { status: 500 });
   }
 
-  return NextResponse.json({ message: "Friendship deleted" }, { status: 200 });
+  return NextResponse.json<APIResponse<never>>({ success: true, message: "Friend removed" }, { status: 200 });
 }

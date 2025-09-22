@@ -3,11 +3,7 @@
 import { useState, useEffect } from "react";
 import { Star, Loader2 } from "lucide-react";
 import ErrorMdl from "../ErrorMdl";
-
-interface FavoriteResponse {
-  isFavorited: boolean;
-  error?: string;
-}
+import { APIResponse } from "@/types/apiTypes";
 
 interface FavoriteBtnProps {
   friendUsername: string;
@@ -25,13 +21,21 @@ export default function FavoriteBtn({ friendUsername, onFavoriteChange }: Favori
     setCheckingStatus(true);
     try {
       const res = await fetch(`/api/friend/checkFavorite?friendUsername=${friendUsername}`);
-      const result: FavoriteResponse = await res.json();
-      
-      if (res.ok) {
-        setIsFavorited(result.isFavorited);
+      if (!res.ok) {
+        const errorData: APIResponse<never> = await res.json();
+        setErrorMessage(errorData.message);
+        return;
+      }
+      const result: APIResponse<{isFavorited: boolean}> = await res.json();
+      if (!result.success) {
+        setErrorMessage(result.message);
+        return;
+      }
+      else {
+        setIsFavorited(result.data.isFavorited);
       }
     } catch (err) {
-      console.error("Error checking favorite status:", err);
+      setErrorMessage(err instanceof Error ? err.message : "Unknown error");
     } finally {
       setCheckingStatus(false);
     }
@@ -53,12 +57,21 @@ export default function FavoriteBtn({ friendUsername, onFavoriteChange }: Favori
         body: JSON.stringify({ friendUsername }),
       });
 
-      const result: FavoriteResponse = await res.json();
+      if (!res.ok) {
+        const errorData: APIResponse<never> = await res.json();
+        setErrorMessage(errorData.message);
+        return;
+      }
+      const result: APIResponse<never> = await res.json();
+      if (!result.success) {
+        setErrorMessage(result.message);
+        return;
+      }
+      else {
+        setIsFavorited(!isFavorited);
+        if (onFavoriteChange) onFavoriteChange(!isFavorited);
+      }
 
-      if (!res.ok) throw new Error(result.error || "Failed to update favorite status");
-
-      setIsFavorited(!isFavorited);
-      if (onFavoriteChange) onFavoriteChange(!isFavorited);
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : "Unknown error");
     } finally {

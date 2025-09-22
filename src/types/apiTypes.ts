@@ -211,3 +211,26 @@ export type DeleteWalletRequest = {
 export type GetWalletAddressByUsernameRequest = {
   username: string;
 }
+
+
+// Friend API Types
+export type AddToFavoriteAPIRequest = {
+  friendUsername: string;
+}
+
+export type DeleteFriendAPIRequest = {
+  id: string;
+}
+
+export type RemoveFromFavoriteAPIRequest = {
+  friendUsername: string;
+}
+
+export type RespondFriendRequestAPIRequest = {
+  requestId: string;
+  action: "accept" | "reject";
+}
+
+export type SendFriendRequestAPIRequest = {
+  receiver: string;
+}

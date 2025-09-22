@@ -1,24 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/utils/auth/authOptions";
-
+import { SendFriendRequestAPIRequest, APIResponse } from "@/types/apiTypes";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
 
-interface SendRequestRequest {
-  receiver: string;
-}
-
-export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<never>>> {
   const session = await getServerSession(authOptions);
   if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json<APIResponse<never>>({ success: false, message: "Unauthorized" }, { status: 401 });
   }
 
-  const { receiver }: SendRequestRequest = await req.json();
+  const { receiver }: SendFriendRequestAPIRequest = await req.json();
   const sender = session.user.username;
 
   if (!receiver || receiver === sender) {
-    return NextResponse.json({ error: "Invalid receiver" }, { status: 400 });
+    return NextResponse.json<APIResponse<never>>({ success: false, message: "Invalid receiver" }, { status: 400 });
   }
 
   const supabase = await createSupabaseAnonClient();
@@ -35,20 +31,14 @@ export async function POST(req: NextRequest) {
     .maybeSingle();
 
   if (queryError) {
-    return NextResponse.json({ error: queryError.message }, { status: 500 });
+    return NextResponse.json<APIResponse<never>>({ success: false, message: queryError.message }, { status: 500 });
   }
 
   if (existing) {
     if (existing.status === "accepted") {
-      return NextResponse.json(
-        { error: "You are already friends." },
-        { status: 409 },
-      );
+      return NextResponse.json<APIResponse<never>>({ success: false, message: "You are already friends." }, { status: 409 });
     }
-    return NextResponse.json(
-      { error: `Friend request already exists (${existing.status})` },
-      { status: 409 },
-    );
+    return NextResponse.json<APIResponse<never>>({ success: false, message: `Friend request already exists (${existing.status})` }, { status: 409 });
   }
 
   // Create the friend request
@@ -60,11 +50,8 @@ export async function POST(req: NextRequest) {
   });
 
   if (insertError) {
-    return NextResponse.json({ error: insertError.message }, { status: 500 });
+    return NextResponse.json<APIResponse<never>>({ success: false, message: insertError.message }, { status: 500 });
   }
 
-  return NextResponse.json(
-    { message: "Friend request sent!" },
-    { status: 200 },
-  );
+  return NextResponse.json<APIResponse<never>>({ success: true, message: "Friend request sent!" }, { status: 200 });
 }

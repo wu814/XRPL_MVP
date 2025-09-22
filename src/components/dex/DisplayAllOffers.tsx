@@ -98,11 +98,17 @@ export default function DisplayAllOffers({ baseCurrency, quoteCurrency }: Displa
         setErrorMessage(errorData.message);
         return;
       }
-      const data: APIResponse<{ sellOffers: Offer[], buyOffers: Offer[] }> = await res.json();
-      setSellOffers(data.data?.sellOffers || []);
-      setBuyOffers(data.data?.buyOffers || []);
+      const result: APIResponse<{ sellOffers: Offer[], buyOffers: Offer[] }> = await res.json();
+      if (!result.success) {
+        setErrorMessage(result.message);
+        return;
+      }
+      else {  
+        setSellOffers(result.data?.sellOffers || []);
+        setBuyOffers(result.data?.buyOffers || []);
+      }
     } catch (err) {
-      console.error("Fetch error:", err);
+      setErrorMessage(err instanceof Error ? err.message : "Unknown error");
       setSellOffers([]);
       setBuyOffers([]);
     } finally {
