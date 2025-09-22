@@ -619,7 +619,7 @@ export default function TradePanel() {
 
   return (
     <>
-      <div className="fixed bottom-0 right-0 top-24 mt-2 w-[30rem] overflow-y-auto rounded-lg bg-color2">
+      <div className="fixed bottom-0 right-0 top-24 mt-2 w-[30rem] overflow-y-auto scrollbar-hide rounded-lg bg-color2">
         {/* Smart Trade Header */}
         <div className="border-b border-gray-600 p-6">
           <div className="relative flex flex-row items-center justify-between">

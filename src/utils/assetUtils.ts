@@ -1,6 +1,6 @@
 import { getUSDValue, fetchUSDPrices, PriceInfo } from "@/utils/currencyUtils";
 import { YONAWallet } from "@/types/appTypes";
-import { Amount, IssuedCurrencyAmount, xrpToDrops, dropsToXrp, AccountLinesTrustline } from "xrpl";
+import { Amount, IssuedCurrencyAmount, xrpToDrops, dropsToXrp, AccountLinesTrustline, MPTAmount } from "xrpl";
 import { AMMData } from "@/types/xrpl/ammXRPLTypes";
 import { APIResponse } from "@/types/apiTypes";
 import { AccountInfo } from "@/types/xrpl/walletXRPLTypes";

@@ -357,7 +357,7 @@ export default function TransactionHistory() {
       </div>
 
       {/* Content */}
-      <div className="h-screen overflow-y-auto">
+      <div className="h-screen overflow-y-auto scrollbar-hide">
         {loading && transactions.length === 0 ? (
           <div className="p-6 text-center">
             <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />

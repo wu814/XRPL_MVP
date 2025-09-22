@@ -19,6 +19,8 @@ export async function GET(): Promise<NextResponse<APIResponse<YONAWallet[]>>> {
       .select("classic_address, wallet_type")
       .eq("user_id", session.user.user_id);
 
+    console.log("data", data);
+
     if (error) {
       return NextResponse.json<APIResponse<never>>({ success: false, message: `Error fetching wallets: ${error.message}` }, { status: 500 });
     }
