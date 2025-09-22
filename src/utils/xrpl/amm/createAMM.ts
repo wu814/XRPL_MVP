@@ -1,6 +1,6 @@
 import { client, connectXRPLClient } from "../testnet";
 import { AMMCreate, Wallet, TxResponse, Amount, TransactionMetadataBase } from "xrpl";
-import { formatAmountForXRPL } from "@/utils/assetUtils";
+import { formatXRPLAmount } from "@/utils/assetUtils";
 import { isTypedTransactionSuccessful, handleTransactionError } from "../errorHandler";
 import { YONAWallet } from "@/types/appTypes";
 import { CreateAMMResult } from "@/types/xrpl/ammXRPLTypes";
@@ -53,8 +53,8 @@ export default async function createAMM(
   }
 
   // Prepare assets for transaction
-  const amount1: Amount = formatAmountForXRPL({currency: currencies[0], issuer: issuerWallet.classicAddress, value: amount1Value.toString()});
-  const amount2: Amount = formatAmountForXRPL({currency: currencies[1], issuer: issuerWallet.classicAddress, value: amount2Value.toString()});
+  const amount1: Amount = formatXRPLAmount({currency: currencies[0], issuer: issuerWallet.classicAddress, value: amount1Value.toString()});
+  const amount2: Amount = formatXRPLAmount({currency: currencies[1], issuer: issuerWallet.classicAddress, value: amount2Value.toString()});
 
   // change the fee (in drops) to create AMM
   const tx: AMMCreate = {

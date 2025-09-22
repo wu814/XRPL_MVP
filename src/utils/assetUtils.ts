@@ -41,7 +41,7 @@ export interface UseWalletAssetsReturn {
 type WalletType = "ISSUER" | "TREASURY" | "PATHFIND" | "USER" | "BUSINESS";
 
 // Format amount for XRPL transaction
-export function formatAmountForXRPL(amount: IssuedCurrencyAmount): Amount {
+export function formatXRPLAmount(amount: IssuedCurrencyAmount): Amount {
   if (amount.currency === "XRP") {
     return xrpToDrops(amount.value);
   }

@@ -51,13 +51,42 @@ export interface WithdrawLiquidityAPIRequest {
 
 
 // DEX API Types
-export type GetUserOffersAPIRequest = {
-  sourceWallet: YONAWallet;
+export type CancelOfferAPIRequest = {
+  userWallet: YONAWallet;
+  offerSequence: number;
+  enteredPassword: string;
+}
+
+export interface CreateOfferAPIRequest {
+  offerType: "FillOrKill" | "ImmediateOrCancel" | "Passive" | "Sell" | "Standard";
+  orderType: "buy" | "sell";
+  baseCurrency: string;
+  quoteCurrency: string;
+  limitPrice: number;
+  quantity: number;
+  issuerAddress: string;
+  offerCreatorWallet: {
+    classicAddress: string;
+  };
+}
+
+export type GetAllOffersAPIRequest = {
+  baseCurrency: string;
+  baseIssuerAddress?: string;
+  quoteCurrency: string;
+  quoteIssuerAddress?: string;
 }
 
 export type GetCompletedOffersAPIRequest = {
   sourceWallet: YONAWallet;
 }
+
+export type GetUserOffersAPIRequest = {
+  sourceWallet: YONAWallet;
+}
+
+
+
 
 
 // NFT API Types

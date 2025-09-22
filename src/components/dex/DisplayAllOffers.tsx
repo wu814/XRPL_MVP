@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { RefreshCw } from "lucide-react";
 import { useIssuerWallet } from "../wallet/IssuerWalletProvider";
+import { APIResponse } from "@/types/apiTypes";
 
 interface ParsedAsset {
   currency: string;
@@ -12,12 +13,6 @@ interface ParsedAsset {
 interface Offer {
   TakerPays: string | { currency: string; value: string };
   TakerGets: string | { currency: string; value: string };
-}
-
-interface OffersResponse {
-  sellOffers?: Offer[];
-  buyOffers?: Offer[];
-  error?: string;
 }
 
 interface OfferRowProps {
@@ -73,6 +68,7 @@ export default function DisplayAllOffers({ baseCurrency, quoteCurrency }: Displa
   const [buyOffers, setBuyOffers] = useState<Offer[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [searched, setSearched] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const fetchOffers = async () => {
     if (
@@ -97,16 +93,14 @@ export default function DisplayAllOffers({ baseCurrency, quoteCurrency }: Displa
           quoteIssuerAddress: issuerWallets[0].classicAddress,
         }),
       });
-
-      const data: OffersResponse = await res.json();
-      if (res.ok) {
-        setSellOffers(data.sellOffers || []);
-        setBuyOffers(data.buyOffers || []);
-      } else {
-        console.error("API error:", data.error);
-        setSellOffers([]);
-        setBuyOffers([]);
+      if (!res.ok) {
+        const errorData: APIResponse<never> = await res.json();
+        setErrorMessage(errorData.message);
+        return;
       }
+      const data: APIResponse<{ sellOffers: Offer[], buyOffers: Offer[] }> = await res.json();
+      setSellOffers(data.data?.sellOffers || []);
+      setBuyOffers(data.data?.buyOffers || []);
     } catch (err) {
       console.error("Fetch error:", err);
       setSellOffers([]);
@@ -149,8 +143,16 @@ export default function DisplayAllOffers({ baseCurrency, quoteCurrency }: Displa
       <div className="my-2 border-b border-border"></div>
       <div className="mt-6">
         {loading && <p className="text-mutedText">Loading offers...</p>}
+        
+        {/* Show error message first, if present */}
+        {!loading && errorMessage && (
+          <p className="text-red-500">{errorMessage}</p>
+        )}
+        
+        {/* Show "no offers found" only if there's no error */}
         {!loading &&
           searched &&
+          !errorMessage &&
           sellOffers.length === 0 &&
           buyOffers.length === 0 && (
             <p className="text-mutedText">No offers found for this pair.</p>

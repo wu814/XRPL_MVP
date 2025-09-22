@@ -1,6 +1,6 @@
 import { APIResponse } from "@/types/apiTypes";
 import { YONAWallet } from "@/types/appTypes";
-import { Currency } from "xrpl";
+import { BookOfferCurrency, Currency } from "xrpl";
 
 // Types
 export interface YONACurrency {
@@ -146,7 +146,7 @@ export function getCurrencyIcon(currency: string): string | null {
  * @param value - The amount value (defaults to "0" if not specified)
  * @returns Currency object - For XRP: {currency, value}, For others: {currency, issuer, value}
  */
-export function formatCurrencyForXRPL(
+export function formatXRPLCurrency(
   currency: string, 
   issuerAddress: string, 
 ): Currency {  
@@ -161,3 +161,12 @@ export function formatCurrencyForXRPL(
   };
 }
 
+export function formatBookOfferCurrency(
+  currency: string,
+  issuerAddress: string,
+): BookOfferCurrency {
+  if (currency === "XRP") {
+    return { currency: "XRP" };
+  }
+  return { currency, issuer: issuerAddress };
+}

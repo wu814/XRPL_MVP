@@ -6,21 +6,9 @@ import createPassiveOffer from "@/utils/xrpl/dex/createPassiveOffer";
 import createSellOffer from "@/utils/xrpl/dex/createSellOffer";
 import { Wallet, xrpToDrops } from "xrpl";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
+import { CreateOfferAPIRequest, APIResponse } from "@/types/apiTypes"; 
 
-interface CreateOfferRequest {
-  offerType: "FillOrKill" | "ImmediateOrCancel" | "Passive" | "Sell" | "Standard";
-  orderType: "buy" | "sell";
-  baseCurrency: string;
-  quoteCurrency: string;
-  limitPrice: number;
-  quantity: number;
-  issuerAddress: string;
-  offerCreatorWallet: {
-    classicAddress: string;
-  };
-}
-
-export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<never>>> {
   try {
     const {
       offerType,
@@ -31,62 +19,62 @@ export async function POST(req: NextRequest) {
       quantity,
       issuerAddress,
       offerCreatorWallet,
-    }: CreateOfferRequest = await req.json();
+    }: CreateOfferAPIRequest = await req.json();
 
     // Validate required fields
     if (!offerType) {
-      return NextResponse.json(
-        { error: "Missing offer type" },
+      return NextResponse.json<APIResponse<never>>(
+        { success: false, message: "Missing offer type" },
         { status: 400 },
       );
     }
 
     if (!orderType) {
-      return NextResponse.json(
-        { error: "Missing order type" },
+      return NextResponse.json<APIResponse<never>>(
+        { success: false, message: "Missing order type" },
         { status: 400 },
       );
     }
 
     if (!baseCurrency) {
-      return NextResponse.json(
-        { error: "Missing base currency" },
+      return NextResponse.json<APIResponse<never>>(
+        { success: false, message: "Missing base currency" },
         { status: 400 },
       );
     }
 
     if (!quoteCurrency) {
-      return NextResponse.json(
-        { error: "Missing quote currency" },
+      return NextResponse.json<APIResponse<never>>(
+        { success: false, message: "Missing quote currency" },
         { status: 400 },
       );
     }
 
     if (!limitPrice) {
-      return NextResponse.json(
-        { error: "Missing limit price" },
+      return NextResponse.json<APIResponse<never>>(
+        { success: false, message: "Missing limit price" },
         { status: 400 },
       );
     }
 
     if (!quantity) {
-      return NextResponse.json(
-        { error: "Missing quantity" },
+      return NextResponse.json<APIResponse<never>>(
+        { success: false, message: "Missing quantity" },
         { status: 400 },
       );
     }
 
     if (!issuerAddress) {
-      return NextResponse.json(
-        { error: "Missing issuer address" },
+      return NextResponse.json<APIResponse<never>>(
+        { success: false, message: "Missing issuer address" },
         { status: 400 },
       );
     }
 
     // Validate wallet exists
     if (!offerCreatorWallet) {
-      return NextResponse.json(
-        { error: "No valid wallet found for creating offer." },
+      return NextResponse.json<APIResponse<never>>(
+        { success: false, message: "No valid wallet found for creating offer." },
         { status: 400 },
       );
     }
@@ -98,8 +86,8 @@ export async function POST(req: NextRequest) {
       limitPrice <= 0 ||
       quantity <= 0
     ) {
-      return NextResponse.json(
-        { error: "Limit price and quantity must be positive numbers." },
+      return NextResponse.json<APIResponse<never>>(
+        { success: false, message: "Limit price and quantity must be positive numbers." },
         { status: 400 },
       );
     }
@@ -153,8 +141,8 @@ export async function POST(req: NextRequest) {
               value: quantity.toString(),
             };
     } else {
-      return NextResponse.json(
-        { error: "Invalid order type. Must be 'buy' or 'sell'." },
+      return NextResponse.json<APIResponse<never>>(
+        { success: false, message: "Invalid order type. Must be 'buy' or 'sell'." },
         { status: 400 },
       );
     }
@@ -168,8 +156,8 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (walletError || !walletData) {
-      return NextResponse.json(
-        { error: "Wallet not found for the provided classicAddress" },
+      return NextResponse.json<APIResponse<never>>(
+        { success: false, message: "Wallet not found for the provided classicAddress" },
         { status: 404 },
       );
     }
@@ -201,27 +189,18 @@ export async function POST(req: NextRequest) {
         break;
     }
 
-    return NextResponse.json(
+    return NextResponse.json<APIResponse<never>>(
       {
         success: result.success,
-        sequence: result.sequence,
         message: result.message,
-        orderDetails: {
-          orderType,
-          baseCurrency,
-          quoteCurrency,
-          limitPrice,
-          quantity,
-          totalValue,
-        },
       },
       { status: 200 },
     );
   } catch (error) {
     console.error("Error creating offer:", error);
     const errorMessage = error instanceof Error ? error.message : 'Internal server error';
-    return NextResponse.json(
-      { error: errorMessage },
+    return NextResponse.json<APIResponse<never>>(
+      { success: false, message: errorMessage },
       { status: 500 },
     );
   }

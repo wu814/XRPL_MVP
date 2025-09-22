@@ -7,6 +7,7 @@ import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
 import { useCurrentUserWallet } from "../wallet/CurrentUserWalletProvider";
 import { useIssuerWallet } from "../wallet/IssuerWalletProvider";
+import { APIResponse } from "@/types/apiTypes";
 
 type OfferType = "Regular" | "FillOrKill" | "ImmediateOrCancel" | "Passive" | "Sell";
 type OrderType = "buy" | "sell";
@@ -18,12 +19,6 @@ const OFFER_TYPES: OfferType[] = [
   "Passive",
   "Sell",
 ];
-
-interface CreateOfferResponse {
-  success?: boolean;
-  message?: string;
-  error?: string;
-}
 
 interface CreateOfferProps {
   baseCurrency: string;
@@ -79,10 +74,14 @@ export default function CreateOffer({ baseCurrency, quoteCurrency }: CreateOffer
         body: JSON.stringify(payload),
       });
 
-      const result: CreateOfferResponse = await res.json();
+      if (!res.ok) {
+        const errorData: APIResponse<never> = await res.json();
+        setErrorMessage(errorData.message);
+        setLoading(false);
+        return;
+      }
 
-      if (!res.ok) throw new Error(result.error || "Offer creation failed");
-
+      const result: APIResponse<never> = await res.json();
       // If the offer is not filled, (tecKill of other)
       if (!result.success) {
         setErrorMessage(result.message || "Transaction failed");

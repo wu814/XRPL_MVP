@@ -10,8 +10,8 @@ import {
 import BigNumber from "bignumber.js";
 import { handleTransactionError, isTypedTransactionSuccessful } from '../errorHandler';
 import { AddLiquidityResult, FormattedAMMInfo } from "@/types/xrpl/ammXRPLTypes";
-import { formatAmountForXRPL, formatAmountForDisplay } from "@/utils/assetUtils";
-import { formatCurrencyForXRPL } from "@/utils/currencyUtils";
+import { formatXRPLAmount, formatAmountForDisplay } from "@/utils/assetUtils";
+import { formatXRPLCurrency } from "@/utils/currencyUtils";
 
 const BASE_RESERVE_XRP = 1; // Base reserve for an account in XRP
 const OWNER_RESERVE_XRP = 0.2; // Owner reserve for each object in XRP
@@ -471,10 +471,10 @@ export async function addLiquidityTwoAsset(
 
   // ========== BUILD TRANSACTION ==========
 
-  const amount1 = formatAmountForXRPL(displayFormattedAmount1);
-  const amount2 = formatAmountForXRPL(displayFormattedAmount2);
-  const asset1 = formatCurrencyForXRPL(displayFormattedAmount1.currency, displayFormattedAmount1.issuer);
-  const asset2 = formatCurrencyForXRPL(displayFormattedAmount2.currency, displayFormattedAmount2.issuer);
+  const amount1 = formatXRPLAmount(displayFormattedAmount1);
+  const amount2 = formatXRPLAmount(displayFormattedAmount2);
+  const asset1 = formatXRPLCurrency(displayFormattedAmount1.currency, displayFormattedAmount1.issuer);
+  const asset2 = formatXRPLCurrency(displayFormattedAmount2.currency, displayFormattedAmount2.issuer);
 
   const tx: AMMDeposit = {
     TransactionType: "AMMDeposit",
@@ -581,10 +581,10 @@ export async function addLiquidityTwoAssetLPToken(
   }
 
   // ========== BUILD TRANSACTION ==========
-  const amount1 = formatAmountForXRPL(displayFormattedAmount1);
-  const amount2 = formatAmountForXRPL(displayFormattedAmount2);
-  const asset1 = formatCurrencyForXRPL(displayFormattedAmount1.currency, displayFormattedAmount1.issuer);
-  const asset2 = formatCurrencyForXRPL(displayFormattedAmount2.currency, displayFormattedAmount2.issuer);
+  const amount1 = formatXRPLAmount(displayFormattedAmount1);
+  const amount2 = formatXRPLAmount(displayFormattedAmount2);
+  const asset1 = formatXRPLCurrency(displayFormattedAmount1.currency, displayFormattedAmount1.issuer);
+  const asset2 = formatXRPLCurrency(displayFormattedAmount2.currency, displayFormattedAmount2.issuer);
 
   const tx: AMMDeposit = {
     TransactionType: "AMMDeposit",
@@ -689,9 +689,9 @@ export async function addLiquiditySingleAsset(
     TransactionType: "AMMDeposit",
     Account: providerXRPLWallet.classicAddress,
     Flags: 0x00080000, // tfSingleAsset
-    Asset: formatCurrencyForXRPL(depositAsset.currency, depositAsset.issuer),
-    Asset2: formatCurrencyForXRPL(otherAsset.currency, otherAsset.issuer),
-    Amount: formatAmountForXRPL(formattedAmount),
+    Asset: formatXRPLCurrency(depositAsset.currency, depositAsset.issuer),
+    Asset2: formatXRPLCurrency(otherAsset.currency, otherAsset.issuer),
+    Amount: formatXRPLAmount(formattedAmount),
   };
 
   console.log("🔄 Preparing transaction...");
@@ -804,9 +804,9 @@ export async function addLiquidityOneAssetLPToken(
     TransactionType: "AMMDeposit",
     Account: providerXRPLWallet.classicAddress,
     Flags: 0x00200000, // tfOneAssetLPToken
-    Asset: formatCurrencyForXRPL(depositAsset.currency, depositAsset.issuer),
-    Asset2: formatCurrencyForXRPL(otherAsset.currency, otherAsset.issuer),
-    Amount: formatAmountForXRPL(formattedAmount),
+    Asset: formatXRPLCurrency(depositAsset.currency, depositAsset.issuer),
+    Asset2: formatXRPLCurrency(otherAsset.currency, otherAsset.issuer),
+    Amount: formatXRPLAmount(formattedAmount),
     LPTokenOut: {
       currency: ammInfo.lpToken.currency,
       issuer: ammInfo.lpToken.issuer,

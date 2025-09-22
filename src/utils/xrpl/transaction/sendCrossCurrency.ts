@@ -6,7 +6,7 @@ import { calculateExactAMMInput, calculateEstimateOutput } from "../amm/calculat
 import { getFormattedAMMInfoByCurrencies } from "../amm/ammUtils";
 import { FormattedAMMInfo } from "@/types/xrpl/ammXRPLTypes";
 import BigNumber from 'bignumber.js';
-import { formatAmountForXRPL } from "@/utils/assetUtils";
+import { formatXRPLAmount } from "@/utils/assetUtils";
 import { isTypedTransactionSuccessful, handleTransactionError } from "../errorHandler";
 import { Payment, TxResponse, Wallet, dropsToXrp, Amount, OfferCreate, AccountLinesResponse, AccountInfoResponse } from "xrpl";
 import { SendCrossCurrencyResult } from "@/types/xrpl/transactionXRPLTypes";
@@ -192,8 +192,8 @@ const createCounterOffer = async (
   const counterOfferTx: OfferCreate = {
     TransactionType: "OfferCreate",
     Account: senderWallet.address,
-    TakerGets: formatAmountForXRPL({currency: receiveCurrency, issuer: issuerAddress, value: targetAmount.toString()}),
-    TakerPays: formatAmountForXRPL({currency: sendCurrency, issuer: issuerAddress, value: requiredInput.toString()}),
+    TakerGets: formatXRPLAmount({currency: receiveCurrency, issuer: issuerAddress, value: targetAmount.toString()}),
+    TakerPays: formatXRPLAmount({currency: sendCurrency, issuer: issuerAddress, value: requiredInput.toString()}),
     Flags: 0x00040000 // tfImmediateOrCancel
   };
   
@@ -456,8 +456,8 @@ export async function sendCrossCurrency(
     if (paymentType === "exact_output") {
       // Case 2: Receiver gets exactly the specified amount
       // Amount = exact output, SendMax = calculated input (with slippage buffer)
-      destinationAmount = formatAmountForXRPL({currency: receiveCurrency, issuer: issuerAddress, value: exactOutputAmount!.toString()});
-      sendMaxAmount = formatAmountForXRPL({currency: sendCurrency, issuer: issuerAddress, value: preciseInputNeeded.toString()});
+      destinationAmount = formatXRPLAmount({currency: receiveCurrency, issuer: issuerAddress, value: exactOutputAmount!.toString()});
+      sendMaxAmount = formatXRPLAmount({currency: sendCurrency, issuer: issuerAddress, value: preciseInputNeeded.toString()});
       transactionFlags = 0x00000000; // No tfPartialPayment needed
       
       console.log(`🎯 Exact Output Mode: Receiver gets exactly ${exactOutputAmount} ${receiveCurrency}`);
@@ -467,8 +467,8 @@ export async function sendCrossCurrency(
       // Case 1: Sender spends exactly the specified amount
       // Amount = high placeholder (cap), SendMax = exact input, Enable tfPartialPayment
       const highPlaceholderAmount = "1000000000"; // Arbitrarily high cap
-      destinationAmount = formatAmountForXRPL({currency: receiveCurrency, issuer: issuerAddress, value: highPlaceholderAmount});
-      sendMaxAmount = formatAmountForXRPL({currency: sendCurrency, issuer: issuerAddress, value: sendAmount.toString()});
+      destinationAmount = formatXRPLAmount({currency: receiveCurrency, issuer: issuerAddress, value: highPlaceholderAmount});
+      sendMaxAmount = formatXRPLAmount({currency: sendCurrency, issuer: issuerAddress, value: sendAmount.toString()});
       transactionFlags = 0x00020000; // tfPartialPayment flag
       
       console.log(`🎯 Exact Input Mode: Sender spends exactly ${sendAmount} ${sendCurrency}`);
@@ -485,8 +485,8 @@ export async function sendCrossCurrency(
       } else {
         preciseOutput = parseFloat(recommendation.estimatedOutput);
       }
-      destinationAmount = formatAmountForXRPL({currency: receiveCurrency, issuer: issuerAddress, value: preciseOutput.toString()});
-      sendMaxAmount = formatAmountForXRPL({currency: sendCurrency, issuer: issuerAddress, value: preciseInputNeeded.toString()});
+      destinationAmount = formatXRPLAmount({currency: receiveCurrency, issuer: issuerAddress, value: preciseOutput.toString()});
+      sendMaxAmount = formatXRPLAmount({currency: sendCurrency, issuer: issuerAddress, value: preciseInputNeeded.toString()});
       transactionFlags = 0x00000000;
     }
 
