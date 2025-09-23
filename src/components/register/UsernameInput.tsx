@@ -1,17 +1,13 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { APIResponse } from "@/types/apiTypes";
 
 interface UsernameInputProps {
   value: string;
   onChange: (value: string) => void;
   error?: string;
   setError: (error: string | null) => void;
-}
-
-interface CheckUsernameResponse {
-  available: boolean;
-  error?: string;
 }
 
 export default function UsernameInput({ value, onChange, error, setError }: UsernameInputProps) {
@@ -43,15 +39,14 @@ export default function UsernameInput({ value, onChange, error, setError }: User
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ username: value })
         });
-
-        const data: CheckUsernameResponse = await response.json();
-
         if (!response.ok) {
-          setError(data.error || "Error checking username");
+          const errorData: APIResponse<never> = await response.json();
+          setError(errorData.message);
           setIsAvailable(null);
         } else {
-          setIsAvailable(data.available);
-          if (!data.available) {
+          const result: APIResponse<{ available: boolean }> = await response.json();
+          setIsAvailable(result.data?.available);
+          if (!result.data?.available) {
             setError("This username is already taken.");
           }
         }

@@ -10,6 +10,8 @@ export interface WalletBalance {
   availableBalance: number;
 }
 
+// Friend types
+
 export type Favorite = {
   id: string | number;
   friend_username: string;
@@ -32,4 +34,16 @@ export type PendingFriendRequest = {
   id: number;
   sender: string;
   sent_at: string;
+}
+
+
+// User types
+
+export type AccountType = "USER" | "BUSINESS";
+
+export type AccountTypeOption = {
+  value: "USER" | "BUSINESS";
+  title: string;
+  description: string;
+  icon: string;
 }

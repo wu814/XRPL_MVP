@@ -1,17 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
+import { CheckUsernameAPIRequest, APIResponse } from "@/types/apiTypes";
 
-interface CheckUsernameRequest {
-  username: string;
-}
 
 export async function POST(req: NextRequest) {
   try {
-    const { username }: CheckUsernameRequest = await req.json();
-    
+    const { username }: CheckUsernameAPIRequest = await req.json();
+
     if (typeof username !== "string" || username.trim() === "" || /\s/.test(username)) {
-      return NextResponse.json(
-        { error: "Username must be non-empty and contain no spaces." },
+      return NextResponse.json<APIResponse<never>>(
+        { success: false, message: "Username must be non-empty and contain no spaces." },
         { status: 400 }
       );
     }
@@ -25,16 +23,19 @@ export async function POST(req: NextRequest) {
       .maybeSingle();
 
     if (error) {
-      throw error;
+      return NextResponse.json<APIResponse<never>>(
+        { success: false, message: "Failed to check username" },
+        { status: 500 }
+      );
     }
 
     const isAvailable = !data;
     
-    return NextResponse.json({ available: isAvailable }, { status: 200 });
+    return NextResponse.json<APIResponse<{ available: boolean }>>({ success: true, message: "Username checked successfully", data: { available: isAvailable } }, { status: 200 });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    return NextResponse.json(
-      { error: `Error checking username: ${errorMessage}` },
+    return NextResponse.json<APIResponse<never>>(
+      { success: false, message: `Error checking username: ${errorMessage}` },
       { status: 500 }
     );
   }

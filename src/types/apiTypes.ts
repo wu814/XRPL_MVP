@@ -234,3 +234,21 @@ export type RespondFriendRequestAPIRequest = {
 export type SendFriendRequestAPIRequest = {
   receiver: string;
 }
+
+
+// User API Types
+export type ChangePasswordAPIRequest = {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export type CheckUsernameAPIRequest = {
+  username: string;
+}
+
+export type CreateUserAPIRequest = {
+  username: string;
+  password: string;
+  email: string;
+  role: "USER" | "BUSINESS";
+}

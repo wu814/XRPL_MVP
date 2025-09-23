@@ -3,21 +3,15 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Search, Loader2 } from "lucide-react";
-
-interface User {
-  username: string;
-}
-
-interface ApiResponse {
-  data: User[];
-}
+import { APIResponse } from "@/types/apiTypes";
 
 export default function Searchbar() {
   const [searchText, setSearchText] = useState<string>("");
-  const [allUsers, setAllUsers] = useState<User[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+  const [allUsers, setAllUsers] = useState<string[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<string[]>([]);
   const [fetched, setFetched] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Fetch users only once when input is focused
   const handleFocus = async () => {
@@ -25,12 +19,16 @@ export default function Searchbar() {
     setLoading(true);
     try {
       const res = await fetch("/api/user/getAllUsernames");
-      if (!res.ok) throw new Error("Failed to fetch users");
-      const result: ApiResponse = await res.json();
+      if (!res.ok) {
+        const errorData: APIResponse<never> = await res.json();
+        setErrorMessage(errorData.message);
+        return;
+      }
+      const result: APIResponse<string[]> = await res.json();
       setAllUsers(result.data);
       setFetched(true);
     } catch (err) {
-      console.error(err instanceof Error ? err.message : 'Unknown error');
+      setErrorMessage(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setLoading(false);
     }
@@ -43,7 +41,7 @@ export default function Searchbar() {
       return;
     }
     const filtered = allUsers.filter((user) =>
-      user.username.toLowerCase().includes(searchText.toLowerCase()),
+      user.toLowerCase().includes(searchText.toLowerCase()),
     );
     setFilteredUsers(filtered);
   }, [searchText, allUsers]);
@@ -73,17 +71,22 @@ export default function Searchbar() {
       {filteredUsers.length > 0 && (
         <ul className="absolute z-50 mt-1 w-full rounded-lg bg-color4 border border-border shadow-lg">
           {filteredUsers.map((user) => (
-            <li key={user.username}>
+            <li key={user}>
               <Link
-                href={`/user/${user.username}`}
+                href={`/user/${user}`}
                 className="block px-4 py-2 text-lg hover:bg-color5 first:rounded-t-lg last:rounded-b-lg"
                 onClick={() => setSearchText("")}
               >
-                {user.username}
+                {user}
               </Link>
             </li>
           ))}
         </ul>
+      )}
+      {errorMessage && (
+        <div className="absolute z-50 mt-1 w-full rounded-lg bg-color4 border border-border shadow-lg text-red-500">
+          <p className="block px-4 py-2 text-lg">{errorMessage}</p>
+        </div>
       )}
     </div>
   );

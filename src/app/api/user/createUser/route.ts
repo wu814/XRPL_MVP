@@ -1,43 +1,37 @@
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { hashPassword } from "@/utils/supabase/hashPassword";
-
-interface CreateUserRequest {
-  username: string;
-  password: string;
-  email: string;
-  role: "USER" | "BUSINESS";
-}
+import { CreateUserAPIRequest, APIResponse } from "@/types/apiTypes";
 
 export async function POST(req: NextRequest) {
   try {
-    const { username, password, email, role }: CreateUserRequest = await req.json();
+    const { username, password, email, role }: CreateUserAPIRequest = await req.json();
     
     // Validate input
     if (!username || !password || !email || !role) {
-      return NextResponse.json(
-        { error: "All fields are required." },
+      return NextResponse.json<APIResponse<never>>(
+        { success: false, message: "All fields are required." },
         { status: 400 }
       );
     }
     
     if (typeof username !== "string" || username.trim() === "" || /\s/.test(username)) {
-      return NextResponse.json(
-        { error: "Username must be non-empty and contain no spaces." },
+      return NextResponse.json<APIResponse<never>>(
+        { success: false, message: "Username must be non-empty and contain no spaces." },
         { status: 400 }
       );
     }
     
     if (password.length < 5) {
-      return NextResponse.json(
-        { error: "Password must be at least 5 characters long." },
+      return NextResponse.json<APIResponse<never>>(
+        { success: false, message: "Password must be at least 5 characters long." },
         { status: 400 }
       );
     }
     
     if (!["USER", "BUSINESS"].includes(role)) {
-      return NextResponse.json(
-        { error: "Role must be either USER or BUSINESS." },
+      return NextResponse.json<APIResponse<never>>(
+        { success: false, message: "Role must be either USER or BUSINESS." },
         { status: 400 }
       );
     }
@@ -52,12 +46,15 @@ export async function POST(req: NextRequest) {
       .maybeSingle();
       
     if (checkError) {
-      throw checkError;
+      return NextResponse.json<APIResponse<never>>(
+        { success: false, message: "Failed to check username" },
+        { status: 500 }
+      );
     }
     
     if (existingUser) {
-      return NextResponse.json(
-        { error: "This username is already taken." },
+      return NextResponse.json<APIResponse<never>>(
+        { success: false, message: "This username is already taken." },
         { status: 409 }
       );
     }
@@ -70,12 +67,15 @@ export async function POST(req: NextRequest) {
       .maybeSingle();
       
     if (emailError) {
-      throw emailError;
+      return NextResponse.json<APIResponse<never>>(
+        { success: false, message: "Failed to check email" },
+        { status: 500 }
+      );
     }
     
     if (existingEmail) {
-      return NextResponse.json(
-        { error: "User with this email already exists." },
+      return NextResponse.json<APIResponse<never>>(
+        { success: false, message: "User with this email already exists." },
         { status: 409 }
       );
     }
@@ -97,7 +97,10 @@ export async function POST(req: NextRequest) {
       .single();
       
     if (userError) {
-      throw userError;
+      return NextResponse.json<APIResponse<never>>(
+        { success: false, message: "Failed to create user" },
+        { status: 500 }
+      );
     }
     
     // Create password entry
@@ -114,17 +117,20 @@ export async function POST(req: NextRequest) {
         .from("users")
         .delete()
         .eq("user_id", userData.user_id);
-      throw passwordError;
+      return NextResponse.json<APIResponse<never>>(
+        { success: false, message: "Failed to create password" },
+        { status: 500 }
+      );
     }
 
-    return NextResponse.json(
-      { message: "User created successfully!", user_id: userData.user_id },
+    return NextResponse.json<APIResponse<never>>(
+      { success: true, message: "User created successfully!" },
       { status: 201 }
     );
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    return NextResponse.json(
-      { error: `Error creating user: ${errorMessage}` },
+    return NextResponse.json<APIResponse<never>>(
+      { success: false, message: `Error creating user: ${errorMessage}` },
       { status: 500 }
     );
   }
