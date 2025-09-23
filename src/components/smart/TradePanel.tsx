@@ -700,8 +700,8 @@ export default function TradePanel() {
               )}
 
               {/* Sell Section */}
-              <div className="mb-4 rounded-lg border border-transparent bg-color3 p-6 focus-within:!border-primary hover:border-gray-500">
-                <div className="mb-4 flex items-center justify-between rounded-lg">
+              <div className="rounded-lg border border-transparent bg-color3 p-6 focus-within:!border-primary hover:border-gray-500">
+                <div className="flex items-center justify-between rounded-lg">
                   <div className="flex flex-1 flex-col space-y-2">
                     <label className="text-sm font-medium text-gray-400">
                       Sell
@@ -766,10 +766,10 @@ export default function TradePanel() {
               </div>
 
               {/* Swap Icon */}
-              <div className="my-4 flex justify-center">
+              <div className="-my-5 flex justify-center">
                 <button
                   onClick={handleCurrencySwap}
-                  className="rounded-full bg-color3 p-3 transition-colors hover:bg-color4"
+                  className="rounded-2xl bg-color3 border-2 border-color4 p-3 transition-colors hover:bg-color4"
                   disabled={
                     !sellCurrency ||
                     !buyCurrency ||
@@ -777,12 +777,12 @@ export default function TradePanel() {
                     loadingAMMData
                   }
                 >
-                  <ArrowUpDown className="h-6 w-6 text-gray-400" />
+                  <ArrowUpDown className="h-7 w-7 text-gray-300" />
                 </button>
               </div>
 
               {/* Buy Section */}
-              <div className="mb-8 rounded-lg border border-transparent bg-color3 p-6 focus-within:!border-primary hover:border-gray-500">
+              <div className="rounded-lg border border-transparent bg-color3 p-6 focus-within:!border-primary hover:border-gray-500">
                 <div className="flex items-center justify-between">
                   <div className="flex flex-1 flex-col space-y-2">
                     <label className="text-sm font-medium text-gray-400">
@@ -828,7 +828,7 @@ export default function TradePanel() {
                 disabled={
                   !canTrade || loading || calculatingAmounts || loadingAMMData
                 }
-                className="w-full text-lg"
+                className="mt-4 w-full text-lg"
               >
                 {loading ? (
                   <div className="flex items-center justify-center space-x-2">

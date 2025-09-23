@@ -124,7 +124,7 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json<APIResponse<never>>(
-      { success: true, message: "User created successfully!" },
+      { success: true, message: "User created successfully! Refreshing your session... " },
       { status: 201 }
     );
   } catch (error) {
