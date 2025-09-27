@@ -17,6 +17,7 @@ import {
   NFTokenAcceptOffer,
   TransactionMetadata
 } from "xrpl";
+import { ProcessedTransaction, GetAccountTransactionsResult } from "@/types/xrpl/transactionXRPLTypes";
 
 // Helper function to convert Amount to display string
 function formatAmountAsString(amount: Amount): string | null {
@@ -35,35 +36,7 @@ interface AssetAmount {
   value: string;
 }
 
-interface ProcessedTransaction {
-  hash: string;
-  ledger_index: number | null;
-  date: Date | null;
-  type: string;
-  direction: string;
-  counterparty: string | null;
-  amount: string | number | null;
-  currency: string;
-  fee: string | null;
-  validated: boolean;
-  result: string;
-  raw: AccountTxTransaction;
-}
 
-interface GetAccountTransactionsParams {
-  targetAddress?: string;
-  limit?: number;
-  marker?: string;
-}
-
-interface GetAccountTransactionsResponse {
-  transactions: ProcessedTransaction[];
-  marker: string | null;
-  account: string;
-  ledger_index_min?: number;
-  ledger_index_max?: number;
-  message?: string;
-}
 
 // Function to extract NFT Token ID from transaction metadata
 function extractNFTTokenId(txData: AccountTxTransaction): string | null {
@@ -463,11 +436,11 @@ function processClawback(tx: Clawback) {
 }
 
 // Main function to get account transactions
-export async function getAccountTransactions({
-  targetAddress,
-  limit = 50,
-  marker,
-}: GetAccountTransactionsParams): Promise<GetAccountTransactionsResponse> {
+export async function getAccountTransactions(
+  targetAddress: string,
+  limit: number = 50,
+  marker: string | null = null,
+): Promise<GetAccountTransactionsResult> {
   if (!targetAddress) {
     throw new Error("Missing address or wallet");
   }
@@ -485,19 +458,18 @@ export async function getAccountTransactions({
 
   const accountTx: AccountTxResponse = await client.request(requestParams);
   // Add this for better readability
-  console.log("=== TRANSACTION DETAILS (Most Recent 10) ===");
-  accountTx.result?.transactions?.slice(0, 5)
-  .forEach((txData, index) => {
-    console.log(`\n--- Transaction ${index + 1} ---`);
-    console.log("TX:", JSON.stringify(txData.tx || txData, null, 2));
-  });
-  console.log("=== END TRANSACTION DETAILS ===");
+  // console.log("=== TRANSACTION DETAILS (Most Recent 10) ===");
+  // accountTx.result?.transactions?.slice(0, 5)
+  // .forEach((txData, index) => {
+  //   console.log(`\n--- Transaction ${index + 1} ---`);
+  //   console.log("TX:", JSON.stringify(txData.tx || txData, null, 2));
+  // });
+  // console.log("=== END TRANSACTION DETAILS ===");
 
   if (!accountTx.result?.transactions) {
     return {
       transactions: [],
       marker: null,
-      account: targetAddress,
       message: "No transaction data available",
     };
   }
@@ -625,8 +597,5 @@ export async function getAccountTransactions({
   return {
     transactions: processedTransactions,
     marker: (accountTx.result.marker as string) || null,
-    account: targetAddress!,
-    ledger_index_min: accountTx.result.ledger_index_min,
-    ledger_index_max: accountTx.result.ledger_index_max,
   };
 }

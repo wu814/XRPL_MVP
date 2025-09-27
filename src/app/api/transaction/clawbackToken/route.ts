@@ -2,19 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import clawbackTokens from "@/utils/xrpl/transaction/clawbackToken";
 import { Wallet } from "xrpl";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
-
-interface ClawbackTokenRequest {
-  issuerWallet: {
-    classicAddress: string;
-  };
-  targetAccountAddress: string;
-  currency: string;
-  amount: string | number;
-}
+import { ClawbackTokenAPIRequest } from "@/types/apiTypes";
 
 export async function POST(req: NextRequest) {
   try {
-    const { issuerWallet, targetAccountAddress, currency, amount }: ClawbackTokenRequest =
+    const { issuerWallet, targetAccountAddress, currency, amount }: ClawbackTokenAPIRequest =
       await req.json();
 
     if (!issuerWallet || !targetAccountAddress || !currency || !amount) {

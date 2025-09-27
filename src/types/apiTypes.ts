@@ -131,6 +131,20 @@ export interface SmartTradeAPIRequest {
 
 
 // Transaction API Types
+
+export interface ClawbackTokenAPIRequest {
+  issuerWallet: YONAWallet;
+  targetAccountAddress: string;
+  currency: string;
+  amount: string | number;
+}
+
+export interface GetAccountTransactionsAPIRequest {
+  targetAddress: string;
+  limit: number;
+  marker: string | null;
+}
+
 export interface sendCrossCurrencyAPIRequest {
   senderWallet: YONAWallet;
   recipient: string;
