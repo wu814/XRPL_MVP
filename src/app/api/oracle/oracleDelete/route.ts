@@ -2,29 +2,23 @@ import { NextRequest, NextResponse } from "next/server";
 import { oracleDelete } from "@/utils/xrpl/oracle/oracleDelete";
 import { Wallet } from "xrpl";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
+import { OracleDeleteAPIRequest, APIResponse } from "@/types/apiTypes";
 
-interface OracleDeleteRequest {
-  treasuryWallet: {
-    classicAddress: string;
-  };
-  oracleDocumentID: number;
-}
-
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse<APIResponse<never>>> {
   try {
-    const { treasuryWallet, oracleDocumentID }: OracleDeleteRequest = await request.json();
+    const { treasuryWallet, oracleDocumentID }: OracleDeleteAPIRequest = await request.json();
 
     // Validate required fields
     if (!treasuryWallet) {
       return NextResponse.json(
-        { error: "Missing treasury wallet" },
+        { success: false, message: "Missing treasury wallet" },
         { status: 400 },
       );
     }
 
     if (!oracleDocumentID) {
       return NextResponse.json(
-        { error: "Missing oracle document ID" },
+        { success: false, message: "Missing oracle document ID" },
         { status: 400 },
       );
     }
@@ -39,7 +33,7 @@ export async function POST(request: NextRequest) {
 
     if (walletError || !walletData) {
       return NextResponse.json(
-        { error: "Wallet not found for the provided classicAddress" },
+        { success: false, message: "Wallet not found for the provided classicAddress" },
         { status: 404 },
       );
     }
@@ -51,15 +45,16 @@ export async function POST(request: NextRequest) {
     const result = await oracleDelete(wallet, oracleDocumentID);
 
     return NextResponse.json({
+      success: true,
       message: "Oracle deleted successfully!",
       result: result,
     });
 
   } catch (error) {
-    console.error("Error deleting oracle:", error);
+    console.error("Error deleting oracle:", error instanceof Error ? error.message : String(error));
     const errorMessage = error instanceof Error ? error.message : 'Failed to delete oracle';
     return NextResponse.json(
-      { error: errorMessage },
+      { success: false, message: errorMessage },
       { status: 500 }
     );
   }

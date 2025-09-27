@@ -25,7 +25,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
       !receiveCurrency ||
       !issuerAddress
     ) {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: "Missing required parameters" },
         { status: 400 }
       );
@@ -42,7 +42,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
       .single();
 
     if (walletError || !walletData) {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: "Wallet not found for the provided classicAddress" },
         { status: 404 },
       );
@@ -64,20 +64,20 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
     );
 
     if (!result.success) {
-      return NextResponse.json<APIResponse<never>>(  { 
+      return NextResponse.json(  { 
         success: false,
         message: result.message,
       }, { status: 400 });
     }
 
-    return NextResponse.json<APIResponse<never>>({ 
+    return NextResponse.json({ 
       success: true,
       message: result.message,
      }, { status: 200 });
   } catch (error) {
     console.error("Error in /api/smart/smartTrade:", error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    return NextResponse.json<APIResponse<never>>({ 
+    return NextResponse.json({ 
       success: false,
       message: `Smart trade failed: ${errorMessage}`,
     },

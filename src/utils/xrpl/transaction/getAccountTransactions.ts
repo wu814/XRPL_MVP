@@ -4,11 +4,6 @@ import {
   AccountTxResponse,
   AccountTxTransaction,
   dropsToXrp,
-  Node,
-  CreatedNode,
-  ModifiedNode,
-  DeletedNode,
-  LedgerEntry,
   IssuedCurrencyAmount,
   Transaction,
   Amount,
@@ -16,9 +11,6 @@ import {
   TrustSet,
   OfferCreate,
   OfferCancel,
-  AMMCreate,
-  AMMDeposit,
-  AMMWithdraw,
   Clawback,
   NFTokenMint,
   NFTokenCreateOffer,
@@ -37,8 +29,6 @@ function formatAmountAsString(amount: Amount): string | null {
   return null;
 }
 
-type NFTokenPage = LedgerEntry.NFTokenPage;
-type NFTokenOffer = LedgerEntry.NFTokenOffer;
 
 interface AssetAmount {
   currency: string;

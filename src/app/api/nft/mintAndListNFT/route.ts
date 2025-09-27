@@ -12,7 +12,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
     // Check authentication
     const session = await getServerSession(authOptions);
     if (!session) {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
           { success: false, message: "Authentication required" },
         { status: 401 }
       );
@@ -24,14 +24,14 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
 
     // Validate required parameters
     if (!uri || uri.trim() === "") {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: "URI is required" },
         { status: 400 }
       );
     }
 
     if (!priceUSD || isNaN(parseFloat(priceUSD.toString())) || parseFloat(priceUSD.toString()) <= 0) {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: "Valid price in USD is required" },
         { status: 400 }
       );
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
       .single();
 
     if (walletError || !walletData) {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: "Wallet not found for the provided classicAddress" },
         { status: 404 },
       );
@@ -66,12 +66,12 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
 
     if (result.success) {
       console.log(`✅ NFT mint and list successful!`);
-      return NextResponse.json<APIResponse<never>>({
+      return NextResponse.json({
         success: true,
         message: result.message,
       }, { status: 200 });
     } else {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: result.error?.message || "NFT mint and list failed" },
         { status: 400 }
       );
@@ -79,7 +79,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    return NextResponse.json<APIResponse<never>>  (
+    return NextResponse.json(
       { 
         success: false,
         message: `Server error: ${errorMessage}` 

@@ -1,4 +1,4 @@
-import { IssuedCurrencyAmount } from "xrpl";
+import { IssuedCurrencyAmount, LedgerIndex } from "xrpl";
 import { YONAWallet } from "./appTypes";
 import { FormattedAMMInfo } from "./xrpl/ammXRPLTypes";
 
@@ -49,6 +49,16 @@ export interface WithdrawLiquidityAPIRequest {
   lpTokenValue?: string;
 }
 
+export interface SwapLiquidityAPIRequest {
+  senderWallet: YONAWallet;
+  sendCurrency: string;
+  sendAmount?: string;
+  receiveCurrency: string;
+  issuerAddress: string;
+  slippagePercent?: number;
+  paymentType?: "exact_input" | "exact_output";
+  exactOutputAmount?: string;
+} 
 
 // DEX API Types
 export type CancelOfferAPIRequest = {
@@ -251,4 +261,24 @@ export type CreateUserAPIRequest = {
   password: string;
   email: string;
   role: "USER" | "BUSINESS";
+}
+
+// Oracle API Types
+
+export type OracleDeleteAPIRequest = {
+  treasuryWallet: YONAWallet;
+  oracleDocumentID: number;
+}
+
+export type GetLivePricesRequest = {
+  account: string;
+  oracleDocumentId: number;
+  ledgerIndex?: LedgerIndex;
+}
+
+export type OracleSetAPIRequest = {
+  treasuryWallet: YONAWallet;
+  oracleDocumentID: number;
+  coinGeckoIDs: string[];
+  vsCurrency: string;
 }

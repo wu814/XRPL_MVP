@@ -10,11 +10,11 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
     const { setterWallet, lpToken }: SetLPTrustlineAPIRequest = await req.json();
 
     if (!setterWallet) {
-      return NextResponse.json<APIResponse<never>>({ success: false, message: "Missing setterWallet" }, { status: 400 });
+      return NextResponse.json({ success: false, message: "Missing setterWallet" }, { status: 400 });
     }
 
     if (!lpToken) {
-      return NextResponse.json<APIResponse<never>>({ success: false, message: "Missing lpToken" }, { status: 400 });
+      return NextResponse.json({ success: false, message: "Missing lpToken" }, { status: 400 });
     }
 
     // Get seed from Supabase using classicAddress
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
       .single();
 
     if (walletError || !walletData) {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: "Wallet not found for the provided classicAddress" },
         { status: 404 },
       );
@@ -37,19 +37,19 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
     const result = await setLPTrustlineFromAMMData({ setterXRPLWallet, lpToken });
 
     if (!result.success) {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: result.error.message },
         { status: 500 },
       );
     }
 
-    return NextResponse.json<APIResponse<never>>(
+    return NextResponse.json(
       { success: true, message: result.message },
       { status: 200 },
     );
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : 'Unexpected error while setting trustline.';
-    return NextResponse.json<APIResponse<never>>(
+    return NextResponse.json(
       { success: false, message: errorMessage },
       { status: 500 },
     );

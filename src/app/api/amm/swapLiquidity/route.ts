@@ -2,21 +2,9 @@ import { createSupabaseAnonClient } from "@/utils/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { sendCrossCurrency } from "@/utils/xrpl/transaction/sendCrossCurrency";
 import { Wallet } from "xrpl";
+import { SwapLiquidityAPIRequest, APIResponse } from "@/types/apiTypes";
 
-interface SwapLiquidityRequest {
-  senderWallet: {
-    classicAddress: string;
-  };
-  sendCurrency: string;
-  sendAmount?: string;
-  receiveCurrency: string;
-  issuerAddress: string;
-  slippagePercent?: number;
-  paymentType?: "exact_input" | "exact_output";
-  exactOutputAmount?: string;
-}
-
-export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<never>>> {
   try {
     const {
       senderWallet,
@@ -27,7 +15,7 @@ export async function POST(req: NextRequest) {
       slippagePercent,
       paymentType,
       exactOutputAmount,
-    }: SwapLiquidityRequest = await req.json();
+    }: SwapLiquidityAPIRequest = await req.json();
 
     if (
       !senderWallet ||
@@ -37,7 +25,7 @@ export async function POST(req: NextRequest) {
       !issuerAddress
     ) {
       return NextResponse.json(
-        { error: "Missing required parameters" },
+        { success: false, message: "Missing required parameters" },
         { status: 400 }
       );
     }
@@ -54,7 +42,7 @@ export async function POST(req: NextRequest) {
 
     if (walletError || !walletData) {
       return NextResponse.json(
-        { error: "Wallet not found for the provided classicAddress" },
+        { success: false, message: "Wallet not found for the provided classicAddress" },
         { status: 404 },
       );
     }
@@ -76,13 +64,13 @@ export async function POST(req: NextRequest) {
 
     if (!result.success) {
       return NextResponse.json(
-        { error: result.message },
+        { success: false, message: result.message },
         { status: 400 },
       );
     }
 
     return NextResponse.json({ 
-        success: result.success,
+        success: true,
         message: result.message,
       },
       { status: 200 },
@@ -92,7 +80,7 @@ export async function POST(req: NextRequest) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error occurred";
     return NextResponse.json(
-      { error: `swapLiquidity failed: ${errorMessage}` },
+      { success: false, message: `swapLiquidity failed: ${errorMessage}` },
       { status: 500 },
     );
   }

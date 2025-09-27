@@ -23,49 +23,49 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
 
     // Validate required fields
     if (!offerType) {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: "Missing offer type" },
         { status: 400 },
       );
     }
 
     if (!orderType) {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: "Missing order type" },
         { status: 400 },
       );
     }
 
     if (!baseCurrency) {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: "Missing base currency" },
         { status: 400 },
       );
     }
 
     if (!quoteCurrency) {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: "Missing quote currency" },
         { status: 400 },
       );
     }
 
     if (!limitPrice) {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: "Missing limit price" },
         { status: 400 },
       );
     }
 
     if (!quantity) {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: "Missing quantity" },
         { status: 400 },
       );
     }
 
     if (!issuerAddress) {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: "Missing issuer address" },
         { status: 400 },
       );
@@ -73,7 +73,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
 
     // Validate wallet exists
     if (!offerCreatorWallet) {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: "No valid wallet found for creating offer." },
         { status: 400 },
       );
@@ -86,7 +86,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
       limitPrice <= 0 ||
       quantity <= 0
     ) {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: "Limit price and quantity must be positive numbers." },
         { status: 400 },
       );
@@ -141,7 +141,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
               value: quantity.toString(),
             };
     } else {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: "Invalid order type. Must be 'buy' or 'sell'." },
         { status: 400 },
       );
@@ -156,7 +156,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
       .single();
 
     if (walletError || !walletData) {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: "Wallet not found for the provided classicAddress" },
         { status: 404 },
       );
@@ -189,7 +189,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
         break;
     }
 
-    return NextResponse.json<APIResponse<never>>(
+    return NextResponse.json(
       {
         success: result.success,
         message: result.message,
@@ -199,7 +199,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
   } catch (error) {
     console.error("Error creating offer:", error);
     const errorMessage = error instanceof Error ? error.message : 'Internal server error';
-    return NextResponse.json<APIResponse<never>>(
+    return NextResponse.json(
       { success: false, message: errorMessage },
       { status: 500 },
     );

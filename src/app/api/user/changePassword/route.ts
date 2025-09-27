@@ -6,25 +6,25 @@ import { ChangePasswordAPIRequest, APIResponse } from "@/types/apiTypes";
 import { hashPassword, verifyPassword } from "@/utils/supabase/hashPassword";
 
 
-export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<never>>> {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
-      return NextResponse.json<APIResponse<never>>({ success: false, message: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
     }
 
     const { currentPassword, newPassword }: ChangePasswordAPIRequest = await req.json();
 
     // Validate input
     if (!currentPassword || !newPassword) {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: "Current password and new password are required" },
         { status: 400 }
       );
     }
 
     if (newPassword.length < 5) {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: "New password must be at least 5 characters long" },
         { status: 400 }
       );
@@ -42,14 +42,14 @@ export async function POST(req: NextRequest) {
 
     if (fetchError) {
       console.error("Error fetching password:", fetchError);
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: "Failed to fetch current password" },
         { status: 500 }
       );
     }
 
     if (!passwordData) {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: "No password found for user" },
         { status: 404 }
       );
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
     );
 
     if (!isCurrentPasswordValid) {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: "Current password is incorrect" },
         { status: 400 }
       );
@@ -79,20 +79,20 @@ export async function POST(req: NextRequest) {
 
     if (updateError) {
       console.error("Error updating password:", updateError);
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: "Failed to update password" },
         { status: 500 }
       );
     }
 
-    return NextResponse.json<APIResponse<never>>(
-      { success: true, message: "Password changed successfully" },
+    return NextResponse.json(
+    { success: true, message: "Password changed successfully" },
       { status: 200 }
     );
   } catch (error) {
     console.error("Error in changePassword:", error);
     const errorMessage = error instanceof Error ? error.message : 'Internal server error';
-    return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
       { success: false, message: errorMessage },
       { status: 500 }
     );

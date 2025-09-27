@@ -1,17 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getOracleData } from "@/utils/xrpl/oracle/orcaleData";
 import { fetchCoinGeckoPrices } from "@/utils/xrpl/oracle/orcaleSet";
+import { CoinGeckoPrice, AssetPair } from "@/types/appTypes";
+import { GetLivePricesRequest } from "@/types/apiTypes";
 
-interface GetLivePricesRequest {
-  account: string;
-  oracleDocumentId: number;
-  ledgerIndex?: string;
-}
 
-interface AssetPair {
-  baseAsset: string;
-  quoteAsset: string;
-}
 
 interface LivePriceData {
   baseAsset: string;
@@ -23,11 +16,6 @@ interface LivePriceData {
   source: string;
 }
 
-interface CoinGeckoPrice {
-  symbol: string;
-  price: number;
-  lastUpdated: number;
-}
 
 // Import the types from the oracle data file
 interface PriceDataSeries {

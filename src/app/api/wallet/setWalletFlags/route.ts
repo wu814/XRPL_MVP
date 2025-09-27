@@ -15,7 +15,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
     const { wallet }: SetWalletFlagsAPIRequest = await req.json();
 
     if (!wallet) {
-      return NextResponse.json<APIResponse<never>>({ success: false, message: "Missing wallet" }, { status: 400 });
+      return NextResponse.json({ success: false, message: "Missing wallet" }, { status: 400 });
     }
 
     // Get seed from Supabase using classicAddress
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
       .single();
 
     if (walletError || !walletData) {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: "Wallet not found for the provided classicAddress" },
         { status: 404 },
       );
@@ -47,26 +47,26 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
         result = await setPathfindWalletFlags(xrplWallet);
         break;
       default:
-        return NextResponse.json<APIResponse<never>>(
+        return NextResponse.json(
           { success: false, message: `Unsupported walletType: ${wallet.walletType}` },
           { status: 400 },
         );
     }
 
     if (!result.success) {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: `❌ Error setting wallet flags: ${result.error.message}` },
         { status: 500 },
       );
     }
 
-    return NextResponse.json<APIResponse<never>>(
+    return NextResponse.json(
       { success: true, message: `✅ Flags successfully set for ${wallet.walletType} wallet.` },
       { status: 200 },
     );
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    return NextResponse.json<APIResponse<never>>(
+    return NextResponse.json(
       { success: false, message: `❌ Error setting wallet flags: ${errorMessage}` },
       { status: 500 },
     );

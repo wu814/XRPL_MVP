@@ -11,11 +11,11 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
       await req.json();
 
     if (!senderWallet) {
-      return NextResponse.json<APIResponse<never>>( { success: false, message: "Missing sender wallet" }, { status: 400 });
+      return NextResponse.json( { success: false, message: "Missing sender wallet" }, { status: 400 });
     }
 
     if (!amount) {
-      return NextResponse.json<APIResponse<never>>( { success: false, message: "Missing amount" }, { status: 400 });
+      return NextResponse.json( { success: false, message: "Missing amount" }, { status: 400 });
     }
 
     let recipientAddressFinal: string;
@@ -25,7 +25,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
       // Username-based transfer
       const username = recipientUsername || recipient;
       if (!username) {
-        return NextResponse.json<APIResponse<never>>( { success: false, message: "Missing recipient username" }, { status: 400 });
+        return NextResponse.json( { success: false, message: "Missing recipient username" }, { status: 400 });
       }
 
       // fetching recipient's wallet address by username
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
       // Direct address transfer
       recipientAddressFinal = recipientAddress || recipient;
       if (!recipientAddressFinal) {
-        return NextResponse.json<APIResponse<never>>( { success: false, message: "Missing recipient address" }, { status: 400 });
+        return NextResponse.json( { success: false, message: "Missing recipient address" }, { status: 400 });
       }
     }
 
@@ -68,7 +68,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
       .single();
 
     if (walletError || !walletData) {
-      return NextResponse.json<APIResponse<never>>( { success: false, message: "Wallet not found for the provided classicAddress" }, { status: 404 });
+      return NextResponse.json( { success: false, message: "Wallet not found for the provided classicAddress" }, { status: 404 });
     }
 
     const senderXRPLWallet = Wallet.fromSeed(walletData.seed);
@@ -80,13 +80,13 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
       destinationTag,
     );
     if (!result.success) {
-      return NextResponse.json<APIResponse<never>>( { success: false, message: result.message }, { status: 400 });
+      return NextResponse.json( { success: false, message: result.message }, { status: 400 });
     }
 
-    return NextResponse.json<APIResponse<never>>( { success: true, message: result.message }, { status: 200 });
+    return NextResponse.json( { success: true, message: result.message }, { status: 200 });
   } catch (error) {
     console.error("❌ XRP transfer error:", error instanceof Error ? error.message : 'Unknown error');
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    return NextResponse.json<APIResponse<never>>( { success: false, message: `sendXRP failed: ${errorMessage}` }, { status: 500 });
+    return NextResponse.json( { success: false, message: `sendXRP failed: ${errorMessage}` }, { status: 500 });
   }
 }

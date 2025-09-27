@@ -7,14 +7,14 @@ import { AddToFavoriteAPIRequest, APIResponse} from "@/types/apiTypes";
 export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<never>>> {
   const session = await getServerSession(authOptions);
   if (!session?.user?.username) {
-    return NextResponse.json<APIResponse<never>>({ success: false, message: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
   }
 
   const { friendUsername }: AddToFavoriteAPIRequest = await req.json();
   const userUsername = session.user.username;
 
   if (!friendUsername || friendUsername === userUsername) {
-    return NextResponse.json<APIResponse<never>>({ success: false, message: "Invalid friend username" }, { status: 400 });
+    return NextResponse.json({ success: false, message: "Invalid friend username" }, { status: 400 });
   }
 
   const supabase = await createSupabaseAnonClient();
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
       .single();
 
     if (friendshipError || !friendship) {
-      return NextResponse.json<APIResponse<never>>({ success: false, message: "You are not friends with this user" }, { status: 404 });
+      return NextResponse.json({ success: false, message: "You are not friends with this user" }, { status: 404 });
     }
 
     // Check if already favorited
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
       .single();
 
     if (existing) {
-      return NextResponse.json<APIResponse<never>>({ success: false, message: "Friend is already favorited" }, { status: 409 });
+      return NextResponse.json({ success: false, message: "Friend is already favorited" }, { status: 409 });
     }
 
     // Add to favorites
@@ -53,10 +53,10 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
       });
 
     if (insertError) {
-      return NextResponse.json<APIResponse<never>>({ success: false, message: insertError.message }, { status: 500 });
+      return NextResponse.json({ success: false, message: insertError.message }, { status: 500 });
     }
 
-    return NextResponse.json<APIResponse<never>>({ success: true, message: "Friend added to favorites" }, { status: 200 });
+    return NextResponse.json({ success: true, message: "Friend added to favorites" }, { status: 200 });
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
     return NextResponse.json(

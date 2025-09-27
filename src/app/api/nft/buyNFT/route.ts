@@ -12,7 +12,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
     // Check authentication
     const session = await getServerSession(authOptions);
     if (!session) {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: "Authentication required" },
         { status: 401 }
       );
@@ -23,28 +23,28 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
 
     // Validate required parameters
     if (!offerID) {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: "Offer ID is required" },
         { status: 400 }
       );
     }
 
     if (!paymentCurrency) {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: "Payment currency is required" },
         { status: 400 }
       );
     }
 
     if (!issuerWalletAddress) {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: "Issuer wallet address is required" },
         { status: 400 }
       );
     }
 
     if (!userWallet) {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: "User wallet is required" },
         { status: 400 }
       );
@@ -59,7 +59,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
       .single();
 
     if (walletError || !walletData) {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: "Wallet not found for the provided classicAddress" },
         { status: 404 }
       );
@@ -77,7 +77,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
 
     if (result.success) {
       console.log(`✅ NFT purchase successful!`);
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         {
           success: true,
           message: result.message,
@@ -86,7 +86,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
       );
     } else {
       console.log(`❌ NFT purchase failed: ${result.error}`);
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         {
           success: false,
           message: result.message,
@@ -97,7 +97,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
   } catch (error) {
     console.error(`❌ API Error in buyNFT:`, error instanceof Error ? error.message : "Unknown error");
     const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
-    return NextResponse.json<APIResponse<never>>(
+    return NextResponse.json(
       {
         success: false,
         message: `Server error: ${errorMessage}`,

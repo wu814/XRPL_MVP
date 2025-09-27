@@ -13,18 +13,18 @@ import { APIResponse } from "@/types/apiTypes";
 export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<never>>> {
   const session = await getServerSession(authOptions);
   if (!session?.user?.user_id) {
-    return NextResponse.json<APIResponse<never>>({ success: false, message: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
   }
 
   try {
     const { walletWithDepositAuth, authorizedAddress }: AuthorizeDepositRequest = await req.json();
 
     if (!walletWithDepositAuth) {
-      return NextResponse.json<APIResponse<never>>({ success: false, message: "Missing walletWithDepositAuth" }, { status: 400 });
+      return NextResponse.json({ success: false, message: "Missing walletWithDepositAuth" }, { status: 400 });
     }
 
     if (!authorizedAddress) {
-      return NextResponse.json<APIResponse<never>>({ success: false, message: "Missing authorizedAddress" }, { status: 400 });
+      return NextResponse.json({ success: false, message: "Missing authorizedAddress" }, { status: 400 });
     }
 
     // Get seed from Supabase using classicAddress
@@ -46,10 +46,10 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
 
     const result = await authorizeDeposit(walletWithDepositAuthXRPLWallet, authorizedAddress);
 
-    return NextResponse.json<APIResponse<never>>({ success: true, message: result.message }, { status: 200 });
+    return NextResponse.json({ success: true, message: result.message }, { status: 200 });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    return NextResponse.json<APIResponse<never>>(
+    return NextResponse.json(
       { success: false, message: `Failed to authorize deposit: ${errorMessage}` },
       { status: 500 },
     );

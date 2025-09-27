@@ -12,28 +12,28 @@ import { CancelOfferAPIRequest, APIResponse } from "@/types/apiTypes";
 export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<never>>> {
   const session = await getServerSession(authOptions);
   if (!session?.user?.user_id) {
-    return NextResponse.json<APIResponse<never>>({ success: false, message: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
   }
 
   try {
     const { userWallet, offerSequence, enteredPassword }: CancelOfferAPIRequest = await req.json();
 
     if (!userWallet) {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: "Missing user wallet" },
         { status: 400 },
       );
     }
 
     if (!offerSequence) {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: "Missing offer sequence" },
         { status: 400 },
       );
     }
 
     if (!enteredPassword) {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: "Missing entered password" },
         { status: 400 },
       );
@@ -69,7 +69,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
       .single();
 
     if (walletError || !walletData) {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: "Wallet not found for the provided classicAddress" },
         { status: 404 },
       );
@@ -79,7 +79,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
 
     const result = await cancelOffer(cancelerWallet, offerSequence);
 
-    return NextResponse.json<APIResponse<never>>(
+    return NextResponse.json(
       {
         success: result.success,
         message: result.message,
@@ -89,7 +89,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
   } catch (err) {
     console.error("CancelOffer API error:", err);
     const errorMessage = err instanceof Error ? err.message : 'Unexpected error.';
-    return NextResponse.json<APIResponse<never>>(
+    return NextResponse.json(
       { success: false, message: errorMessage },
       { status: 500 },
     );

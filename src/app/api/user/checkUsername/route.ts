@@ -3,7 +3,7 @@ import { createSupabaseAnonClient } from "@/utils/supabase/server";
 import { CheckUsernameAPIRequest, APIResponse } from "@/types/apiTypes";
 
 
-export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<{available: boolean}>>> {
   try {
     const { username }: CheckUsernameAPIRequest = await req.json();
 

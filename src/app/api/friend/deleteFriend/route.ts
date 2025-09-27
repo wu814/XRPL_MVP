@@ -7,14 +7,14 @@ import { createSupabaseAnonClient } from "@/utils/supabase/server";
 export async function DELETE(req: NextRequest): Promise<NextResponse<APIResponse<never>>> {
   const session = await getServerSession(authOptions);
   if (!session?.user?.username) {
-    return NextResponse.json<APIResponse<never>>({ success: false, message: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
   }
 
   const { id }: DeleteFriendAPIRequest = await req.json();
   const currentUsername = session.user.username;
 
   if (!id) {
-    return NextResponse.json<APIResponse<never>>({ success: false, message: "Missing friend request ID" }, { status: 400 });  
+    return NextResponse.json({ success: false, message: "Missing friend request ID" }, { status: 400 });  
   }
 
   const supabase = await createSupabaseAnonClient();
@@ -27,14 +27,14 @@ export async function DELETE(req: NextRequest): Promise<NextResponse<APIResponse
     .single();
 
   if (fetchError || !request) {
-    return NextResponse.json<APIResponse<never>>({ success: false, message: "Friendship not found" }, { status: 404 });
+    return NextResponse.json({ success: false, message: "Friendship not found" }, { status: 404 });
   }
 
   if (
     request.sender !== currentUsername &&
     request.receiver !== currentUsername
   ) {
-    return NextResponse.json<APIResponse<never>>({ success: false, message: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 });
   }
 
   const { error: deleteError } = await supabase
@@ -43,8 +43,8 @@ export async function DELETE(req: NextRequest): Promise<NextResponse<APIResponse
     .eq("id", id);
 
   if (deleteError) {
-    return NextResponse.json<APIResponse<never>>({ success: false, message: deleteError.message }, { status: 500 });
+    return NextResponse.json({ success: false, message: deleteError.message }, { status: 500 });
   }
 
-  return NextResponse.json<APIResponse<never>>({ success: true, message: "Friend removed" }, { status: 200 });
+  return NextResponse.json({ success: true, message: "Friend removed" }, { status: 200 });
 }

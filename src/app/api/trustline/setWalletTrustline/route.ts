@@ -10,20 +10,20 @@ import { APIResponse, SetWalletTrustlineAPIRequest } from "@/types/apiTypes";
 export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<never>>> {
   const session = await getServerSession(authOptions);
   if (!session?.user?.user_id) {
-    return NextResponse.json<APIResponse<never>>({ success: false, message: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
   }
 
   try {
     const { setterWallet, issuerWallets, currency }: SetWalletTrustlineAPIRequest = await req.json();
 
     if (!setterWallet) {
-      return NextResponse.json<APIResponse<never>>({ success: false, message: "Missing setterWallet" }, { status: 400 });
+      return NextResponse.json({ success: false, message: "Missing setterWallet" }, { status: 400 });
     }
     if (!issuerWallets?.[0]?.classicAddress) {
-      return NextResponse.json<APIResponse<never>>({ success: false, message: "Missing issuerWallets" }, { status: 400 });
+      return NextResponse.json({ success: false, message: "Missing issuerWallets" }, { status: 400 });
     }
     if (!currency) {
-      return NextResponse.json<APIResponse<never>>({ success: false, message: "Missing currency" }, { status: 400 });
+      return NextResponse.json({ success: false, message: "Missing currency" }, { status: 400 });
     }
 
     // Get seed from Supabase using classicAddress
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
       .single();
 
     if (walletError || !walletData) {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: "Wallet not found for the provided classicAddress" },
         { status: 404 },
       );
@@ -51,16 +51,16 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
     );
 
     if (!result.success) {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: result.message },
         { status: 500 },
       );
     }
 
-    return NextResponse.json<APIResponse<never>>({ success: true, message: result.message }, { status: 200 });
+    return NextResponse.json({ success: true, message: result.message }, { status: 200 });
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
-    return NextResponse.json<APIResponse<never>>(
+    return NextResponse.json(
       { success: false, message: `Trustline setup failed: ${errorMessage}` },
       { status: 500 },
     );

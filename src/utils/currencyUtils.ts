@@ -21,10 +21,6 @@ export interface PricesResponse {
   error?: string;
 }
 
-export interface UseLivePricesReturn {
-  livePrices: PriceInfo[];
-  loading: boolean;
-}
 
 export const availableCurrencies: YONACurrency[] = [
   { id: "USD", name: "USD", avatar: "/icons/USD.png" },

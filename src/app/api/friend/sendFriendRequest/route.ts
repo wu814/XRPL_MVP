@@ -7,14 +7,14 @@ import { createSupabaseAnonClient } from "@/utils/supabase/server";
 export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<never>>> {
   const session = await getServerSession(authOptions);
   if (!session) {
-    return NextResponse.json<APIResponse<never>>({ success: false, message: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
   }
 
   const { receiver }: SendFriendRequestAPIRequest = await req.json();
   const sender = session.user.username;
 
   if (!receiver || receiver === sender) {
-    return NextResponse.json<APIResponse<never>>({ success: false, message: "Invalid receiver" }, { status: 400 });
+    return NextResponse.json({ success: false, message: "Invalid receiver" }, { status: 400 });
   }
 
   const supabase = await createSupabaseAnonClient();
@@ -31,14 +31,14 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
     .maybeSingle();
 
   if (queryError) {
-    return NextResponse.json<APIResponse<never>>({ success: false, message: queryError.message }, { status: 500 });
+    return NextResponse.json({ success: false, message: queryError.message }, { status: 500 });
   }
 
   if (existing) {
     if (existing.status === "accepted") {
-      return NextResponse.json<APIResponse<never>>({ success: false, message: "You are already friends." }, { status: 409 });
+      return NextResponse.json({ success: false, message: "You are already friends." }, { status: 409 });
     }
-    return NextResponse.json<APIResponse<never>>({ success: false, message: `Friend request already exists (${existing.status})` }, { status: 409 });
+    return NextResponse.json({ success: false, message: `Friend request already exists (${existing.status})` }, { status: 409 });
   }
 
   // Create the friend request
@@ -50,8 +50,8 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
   });
 
   if (insertError) {
-    return NextResponse.json<APIResponse<never>>({ success: false, message: insertError.message }, { status: 500 });
+    return NextResponse.json({ success: false, message: insertError.message }, { status: 500 });
   }
 
-  return NextResponse.json<APIResponse<never>>({ success: true, message: "Friend request sent!" }, { status: 200 });
+  return NextResponse.json({ success: true, message: "Friend request sent!" }, { status: 200 });
 }

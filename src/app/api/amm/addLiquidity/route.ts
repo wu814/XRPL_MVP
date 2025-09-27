@@ -16,15 +16,15 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
       await req.json();
 
     if (!depositType) {
-      return NextResponse.json<APIResponse<never>>({ success: false, message: "Missing deposit type" }, { status: 400 });
+      return NextResponse.json({ success: false, message: "Missing deposit type" }, { status: 400 });
     }
 
     if (!wallet) {
-      return NextResponse.json<APIResponse<never>>({ success: false, message: "Missing adder wallet" }, { status: 400 });
+      return NextResponse.json({ success: false, message: "Missing adder wallet" }, { status: 400 });
     }
 
     if (!ammInfo) {
-      return NextResponse.json<APIResponse<never>>({ success: false, message: "Missing amm info" }, { status: 400 });
+      return NextResponse.json({ success: false, message: "Missing amm info" }, { status: 400 });
     }
 
     // Get seed from Supabase using classicAddress
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
       .single();
 
     if (walletError || !walletData) {
-      return NextResponse.json<APIResponse<never>>({ success: false, message: "Wallet not found for the provided classicAddress" }, { status: 404 });
+      return NextResponse.json({ success: false, message: "Wallet not found for the provided classicAddress" }, { status: 404 });
     }
 
     // Initialize data
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
     switch (depositType) {
       case "twoAsset":
         if (!addValue1 || !addValue2){
-          return NextResponse.json<APIResponse<never>>({ success: false, message: "Missing asset1 or asset2" }, { status: 400 });
+          return NextResponse.json({ success: false, message: "Missing asset1 or asset2" }, { status: 400 });
         }
         result = await addLiquidityTwoAsset(
           providerXRPLWallet,
@@ -58,7 +58,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
 
       case "twoAssetLPToken":
         if (!addValue1 || !addValue2 || !lpTokenValue) {
-          return NextResponse.json<APIResponse<never>>({ success: false, message: "Missing asset1, asset2, or lpTokenValue" }, { status: 400 });
+          return NextResponse.json({ success: false, message: "Missing asset1, asset2, or lpTokenValue" }, { status: 400 });
         }
         result = await addLiquidityTwoAssetLPToken(
           providerXRPLWallet,
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
 
       case "oneAsset":
         if (!addValue1 || !selectedCurrency) {
-          return NextResponse.json<APIResponse<never>>({ success: false, message: "Missing asset or selectedCurrency" }, { status: 400 });
+          return NextResponse.json({ success: false, message: "Missing asset or selectedCurrency" }, { status: 400 });
         }
         result = await addLiquiditySingleAsset(
           providerXRPLWallet,
@@ -83,7 +83,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
 
       case "oneAssetLPToken":
         if (!addValue1 || !lpTokenValue || !selectedCurrency) {
-          return NextResponse.json<APIResponse<never>>({ success: false, message: "Missing asset, selectedCurrency, or lpTokenValue" }, { status: 400 });
+          return NextResponse.json({ success: false, message: "Missing asset, selectedCurrency, or lpTokenValue" }, { status: 400 });
         }
         result = await addLiquidityOneAssetLPToken(
           providerXRPLWallet,
@@ -95,24 +95,24 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
         break;
 
       default:
-        return NextResponse.json<APIResponse<never>>({ success: false, message: "Invalid depositType specified." }, { status: 400 });
+        return NextResponse.json({ success: false, message: "Invalid depositType specified." }, { status: 400 });
     }
 
     if (!result.success) {
-      return NextResponse.json<APIResponse<never>>({ 
+      return NextResponse.json({ 
         success: false,
         message: result.error?.message || "Liquidity addition failed" 
       }, { status: 400 });
     }
 
-      return NextResponse.json<APIResponse<never>>({ 
+      return NextResponse.json({ 
       success: true,
       message: result.message || "Liquidity added successfully" 
     }, { status: 200 });
 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    return NextResponse.json<APIResponse<never>>({ 
+    return NextResponse.json({ 
       success: false,
       message: errorMessage || "Unexpected error occurred." 
     }, { status: 500 });

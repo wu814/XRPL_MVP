@@ -47,3 +47,17 @@ export type AccountTypeOption = {
   description: string;
   icon: string;
 }
+
+
+// Oracle types
+export type CoinGeckoPrice = {
+  symbol: string;
+  price: number;
+  quoteAsset: string;
+  lastUpdated: number;
+}
+
+export type AssetPair = {
+  baseAsset: string;
+  quoteAsset: string;
+}

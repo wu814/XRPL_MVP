@@ -3,34 +3,34 @@ import { NextRequest, NextResponse } from "next/server";
 import { hashPassword } from "@/utils/supabase/hashPassword";
 import { CreateUserAPIRequest, APIResponse } from "@/types/apiTypes";
 
-export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<never>>> {
   try {
     const { username, password, email, role }: CreateUserAPIRequest = await req.json();
     
     // Validate input
     if (!username || !password || !email || !role) {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: "All fields are required." },
         { status: 400 }
       );
     }
     
     if (typeof username !== "string" || username.trim() === "" || /\s/.test(username)) {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: "Username must be non-empty and contain no spaces." },
         { status: 400 }
       );
     }
     
     if (password.length < 5) {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: "Password must be at least 5 characters long." },
         { status: 400 }
       );
     }
     
     if (!["USER", "BUSINESS"].includes(role)) {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: "Role must be either USER or BUSINESS." },
         { status: 400 }
       );
@@ -46,14 +46,14 @@ export async function POST(req: NextRequest) {
       .maybeSingle();
       
     if (checkError) {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: "Failed to check username" },
         { status: 500 }
       );
     }
     
     if (existingUser) {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: "This username is already taken." },
         { status: 409 }
       );
@@ -67,14 +67,14 @@ export async function POST(req: NextRequest) {
       .maybeSingle();
       
     if (emailError) {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: "Failed to check email" },
         { status: 500 }
       );
     }
     
     if (existingEmail) {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: "User with this email already exists." },
         { status: 409 }
       );
@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
       .single();
       
     if (userError) {
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: "Failed to create user" },
         { status: 500 }
       );
@@ -117,19 +117,19 @@ export async function POST(req: NextRequest) {
         .from("users")
         .delete()
         .eq("user_id", userData.user_id);
-      return NextResponse.json<APIResponse<never>>(
+      return NextResponse.json(
         { success: false, message: "Failed to create password" },
         { status: 500 }
       );
     }
 
-    return NextResponse.json<APIResponse<never>>(
+    return NextResponse.json(
       { success: true, message: "User created successfully! Refreshing your session... " },
       { status: 201 }
     );
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    return NextResponse.json<APIResponse<never>>(
+    return NextResponse.json(
       { success: false, message: `Error creating user: ${errorMessage}` },
       { status: 500 }
     );
