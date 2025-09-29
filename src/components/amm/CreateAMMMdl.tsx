@@ -61,7 +61,7 @@ export default function CreateAMMMdl({
             <label className="mb-1 block text-mutedText text-sm">Amount A</label>
             <input
               type="number"
-              step="0.000001"
+              step="0.01"
               className="bg-color4 w-full rounded-lg border border-transparent p-2 hover:border-gray-500 focus:border-primary focus:outline-none"
               value={value1 ?? ""}
               placeholder="0.00"
@@ -82,7 +82,7 @@ export default function CreateAMMMdl({
             <label className="mb-1 block text-mutedText text-sm">Amount B</label>
             <input
               type="number"
-              step="0.000001"
+              step="0.01"
               className="bg-color4 w-full rounded-lg border border-transparent p-2 hover:border-gray-500 focus:border-primary focus:outline-none"
               value={value2 ?? ""}
               placeholder="0.00"
@@ -94,7 +94,7 @@ export default function CreateAMMMdl({
             <label className="mb-1 block text-mutedText text-sm">Fee (0-1000, 1000 = 1%)</label>
             <input
               type="number"
-              step="0.000001"
+              step="0.01"
               className="bg-color4 w-full rounded-lg border border-transparent p-2 hover:border-gray-500 focus:border-primary focus:outline-none"
               value={tradingFee ?? ""}
               placeholder="0"

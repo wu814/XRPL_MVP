@@ -65,10 +65,8 @@ export async function setIssuerWalletFlags(wallet: Wallet): Promise<SetWalletFla
         const errorInfo = handleTransactionError(txResult, "setIssuerWalletFlags");
         return {
           success: false,
-          error: {
-            code: errorInfo.code,
-            message: errorInfo.message,
-          }
+          errorCode: errorInfo.code,
+          message: errorInfo.message,
         };
       }
 
@@ -137,10 +135,8 @@ export async function setTreasuryWalletFlags(wallet: Wallet): Promise<SetWalletF
         const errorInfo = handleTransactionError(txResult, "setTreasuryWalletFlags");
         return {
           success: false,
-          error: {
-            code: errorInfo.code,
-            message: errorInfo.message,
-          }
+          errorCode: errorInfo.code,
+          message: errorInfo.message,
         };
       }
 
@@ -213,10 +209,8 @@ export async function setPathfindWalletFlags(wallet: Wallet): Promise<SetWalletF
         const errorInfo = handleTransactionError(txResult, "setPathfindWalletFlags");
         return {
           success: false,
-          error: {
-            code: errorInfo.code,
-            message: errorInfo.message,
-          }
+          errorCode: errorInfo.code,
+          message: errorInfo.message,
         };
       }
 

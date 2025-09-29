@@ -101,7 +101,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
     if (!result.success) {
       return NextResponse.json({ 
         success: false,
-        message: result.error?.message || "Liquidity addition failed" 
+        message: result.message || "Liquidity addition failed" 
       }, { status: 400 });
     }
 

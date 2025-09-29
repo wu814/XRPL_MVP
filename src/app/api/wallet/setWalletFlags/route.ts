@@ -55,7 +55,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
 
     if (!result.success) {
       return NextResponse.json(
-        { success: false, message: `❌ Error setting wallet flags: ${result.error.message}` },
+        { success: false, message: `❌ Error setting wallet flags: ${result.message}` },
         { status: 500 },
       );
     }

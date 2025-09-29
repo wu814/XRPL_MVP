@@ -102,7 +102,7 @@ export default function ClawbackTokenBtn({ issuerWallet }: ClawbackTokenBtnProps
               </label>
               <input
                 type="number"
-                step="0.000001"
+                step="0.01"
                 min="0"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}

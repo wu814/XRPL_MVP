@@ -72,7 +72,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
       }, { status: 200 });
     } else {
       return NextResponse.json(
-        { success: false, message: result.error?.message || "NFT mint and list failed" },
+        { success: false, message: result.message || "NFT mint and list failed" },
         { status: 400 }
       );
     }

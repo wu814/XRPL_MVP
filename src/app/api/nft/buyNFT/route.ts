@@ -85,7 +85,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
         { status: 200 },
       );
     } else {
-      console.log(`❌ NFT purchase failed: ${result.error}`);
+      console.log(`❌ NFT purchase failed: ${result.message}`);
       return NextResponse.json(
         {
           success: false,

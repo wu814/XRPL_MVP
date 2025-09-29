@@ -136,7 +136,7 @@ export interface ClawbackTokenAPIRequest {
   issuerWallet: YONAWallet;
   targetAccountAddress: string;
   currency: string;
-  amount: string | number;
+  amount: string;
 }
 
 export interface GetAccountTransactionsAPIRequest {

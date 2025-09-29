@@ -189,7 +189,7 @@ export default function WithdrawLiquidity({
           <>
             <input
               type="number"
-              step="0.000001"
+              step="0.01"
               value={withdrawValue1 ?? ""}
               onChange={(e) =>
                 setWithdrawValue1(
@@ -201,7 +201,7 @@ export default function WithdrawLiquidity({
             />
             <input
               type="number"
-              step="0.000001"
+              step="0.01"
               value={withdrawValue2 ?? ""}
               onChange={(e) =>
                 setWithdrawValue2(
@@ -227,7 +227,7 @@ export default function WithdrawLiquidity({
             {mode !== "singleAssetAll" && mode !== "singleAssetLp" && (
               <input
                 type="number"
-                step="0.000001"
+                step="0.01"
                 value={singleWithdrawValue ?? ""}
                 onChange={(e) =>
                   setSingleWithdrawValue(
@@ -244,7 +244,7 @@ export default function WithdrawLiquidity({
         {(mode === "lpToken" || mode === "singleAssetLp") && (
           <input
             type="number"
-            step="0.000001"
+            step="0.01"
             value={lpTokenValue ?? ""}
             onChange={(e) =>
               setLPTokenValue(

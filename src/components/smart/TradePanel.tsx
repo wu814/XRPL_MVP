@@ -727,7 +727,7 @@ export default function TradePanel() {
                     <div className="relative">
                       <input
                         type="number"
-                        step="0.000001"
+                        step="0.01"
                         value={sellAmount ?? ""}
                         onChange={handleSellAmountChange}
                         placeholder="0.00"
@@ -800,7 +800,7 @@ export default function TradePanel() {
                   <div className="relative">
                     <input
                       type="number"
-                      step="0.000001"
+                      step="0.01"
                       value={buyAmount ?? ""}
                       onChange={handleBuyAmountChange}
                       placeholder="0.00"
@@ -1005,7 +1005,7 @@ export default function TradePanel() {
                         </label>
                         <input
                           type="number"
-                          step="0.000001"
+                          step="0.01"
                           min="0"
                           value={sendAmount ?? ""}
                           onChange={handleSendAmountChangeForPayment}
@@ -1020,7 +1020,7 @@ export default function TradePanel() {
                         </label>
                         <input
                           type="number"
-                          step="0.000001"
+                          step="0.01"
                           min="0"
                           value={receiveAmount ?? ""}
                           onChange={handleReceiveAmountChangeForPayment}
@@ -1053,7 +1053,7 @@ export default function TradePanel() {
                       </label>
                       <input
                         type="number"
-                        step="0.000001"
+                        step="0.01"
                         min="0"
                         value={amount ?? ""}
                         onChange={(e) => setAmount(e.target.value === "" ? null : Number(e.target.value))}

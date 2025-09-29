@@ -450,10 +450,7 @@ export async function addLiquidityTwoAsset(
   if (!asset1BalanceSufficient) {
     return {
       success: false,
-      error: {
-        code: "INSUFFICIENT_BALANCE",
-        message: `Insufficient ${displayFormattedAmount1.currency} balance.`,
-      }
+      message: `Insufficient ${displayFormattedAmount1.currency} balance.`,
     };
   }
 
@@ -462,10 +459,7 @@ export async function addLiquidityTwoAsset(
   if (!asset2BalanceSufficient) {
     return {
       success: false,
-      error: {
-        code: "INSUFFICIENT_BALANCE",
-        message: `Insufficient ${displayFormattedAmount2.currency} balance.`,
-      }
+      message: `Insufficient ${displayFormattedAmount2.currency} balance.`,
     };
   }
 
@@ -497,10 +491,8 @@ export async function addLiquidityTwoAsset(
     const errorInfo = handleTransactionError(result, "addLiquidityTwoAsset");
     return {
       success: false,
-      error: {
-        code: errorInfo.code,
-        message: errorInfo.message,
-      }
+      message: errorInfo.message,
+      errorCode: errorInfo.code,
     };
   }
 
@@ -511,20 +503,14 @@ export async function addLiquidityTwoAsset(
   if (!lpTokensReceived) {
     return {
       success: false,
-      error: {
-        code: "LP_TOKEN_EXTRACTION_FAILED",
-        message: "Could not determine LP tokens received from transaction"
-      }
+      message: "Could not determine LP tokens received from transaction"
     };
   }
   const assetsDeposited = extractActualAssetsDeposited(result);
   if (assetsDeposited.length === 0) {
     return {
       success: false,
-      error: {
-        code: "ASSETS_EXTRACTION_FAILED",
-        message: "Could not determine assets deposited from transaction"
-      }
+      message: "Could not determine assets deposited from transaction"
     };
   }
   const output = displayTransactionDetails(result, lpTokensReceived, assetsDeposited);
@@ -561,10 +547,7 @@ export async function addLiquidityTwoAssetLPToken(
   if (!assetABalanceSufficient) {
     return {
       success: false,
-      error: {
-        code: "INSUFFICIENT_BALANCE",
-        message: `Insufficient ${displayFormattedAmount1.currency} balance.`
-      }
+      message: `Insufficient ${displayFormattedAmount1.currency} balance.`
     };
   }
 
@@ -573,10 +556,7 @@ export async function addLiquidityTwoAssetLPToken(
   if (!assetBBalanceSufficient) {
     return {
       success: false,
-      error: {
-        code: "INSUFFICIENT_BALANCE",
-        message: `Insufficient ${displayFormattedAmount2.currency} balance.`
-      }
+      message: `Insufficient ${displayFormattedAmount2.currency} balance.`
     };
   }
 
@@ -606,10 +586,8 @@ export async function addLiquidityTwoAssetLPToken(
     const errorInfo = handleTransactionError(result, "addLiquidityTwoAssetLPToken");
     return {
       success: false,
-      error: {
-        code: errorInfo.code,
-        message: errorInfo.message,
-      }
+      message: errorInfo.message,
+      errorCode: errorInfo.code,
     };
   }
 
@@ -618,10 +596,7 @@ export async function addLiquidityTwoAssetLPToken(
   if (!lpTokensReceived) {
     return {
       success: false,
-      error: {
-        code: "LP_TOKENS_EXTRACTION_FAILED",
-        message: "Could not determine LP tokens received from transaction"
-      }
+      message: "Could not determine LP tokens received from transaction"
     };
   }
 
@@ -629,10 +604,7 @@ export async function addLiquidityTwoAssetLPToken(
   if (assetsDeposited.length === 0) {
     return {
       success: false,
-      error: {
-        code: "ASSETS_EXTRACTION_FAILED",
-        message: "Could not determine assets deposited from transaction"
-      }
+      message: "Could not determine assets deposited from transaction"
     };
   }
 
@@ -660,10 +632,7 @@ export async function addLiquiditySingleAsset(
   if (!assetBalanceSufficient) {
     return {
       success: false,
-      error: {
-        code: "INSUFFICIENT_BALANCE",
-        message: `Insufficient ${formattedAmount.currency} balance.`
-      }
+      message: `Insufficient ${formattedAmount.currency} balance.`
     };
   }
 
@@ -674,10 +643,7 @@ export async function addLiquiditySingleAsset(
   if (!isAsset1 && !isAsset2) {
     return {
       success: false,
-      error: {
-        code: "INVALID_CURRENCY",
-        message: `Currency ${selectedCurrency} not found in AMM pool`,
-      }
+      message: `Currency ${selectedCurrency} not found in AMM pool`,
     };
   }
 
@@ -705,10 +671,8 @@ export async function addLiquiditySingleAsset(
     const errorInfo = handleTransactionError(result, "addLiquiditySingleAsset");
     return {
       success: false,
-      error: {
-        code: errorInfo.code,
-        message: errorInfo.message,
-      }
+      message: errorInfo.message,
+      errorCode: errorInfo.code,
     };
   }
 
@@ -717,10 +681,7 @@ export async function addLiquiditySingleAsset(
   if (!lpTokensReceived) {
     return {
       success: false,
-      error: {
-        code: "LP_TOKENS_EXTRACTION_FAILED",
-        message: "Could not determine LP tokens received from transaction"
-      }
+      message: "Could not determine LP tokens received from transaction"
     };
   }
 
@@ -728,10 +689,7 @@ export async function addLiquiditySingleAsset(
   if (assetsDeposited.length === 0) {
     return {
       success: false,
-      error: {
-        code: "ASSETS_EXTRACTION_FAILED",
-        message: "Could not determine assets deposited from transaction"
-      }
+      message: "Could not determine assets deposited from transaction"
     };
   }
 
@@ -762,11 +720,8 @@ export async function addLiquidityOneAssetLPToken(
   // Validate that the amount has a non-zero value
   if (parseFloat(addValue1) <= 0) {
     return {
-      success: false,
-      error: {
-        code: "INVALID_AMOUNTS",
+        success: false,
         message: "Amount must have a non-zero value"
-      }
     };
   }
 
@@ -775,10 +730,7 @@ export async function addLiquidityOneAssetLPToken(
   if (!assetBalanceSufficient) {
     return {
       success: false,
-      error: {
-        code: "INSUFFICIENT_BALANCE",
-        message: `Insufficient ${formattedAmount.currency} balance.`
-      }
+      message: `Insufficient ${formattedAmount.currency} balance.`
     };
   }
 
@@ -789,10 +741,7 @@ export async function addLiquidityOneAssetLPToken(
   if (!isAsset1 && !isAsset2) {
     return {
       success: false,
-      error: {
-        code: "INVALID_CURRENCY",
-        message: `Currency ${selectedCurrency} not found in AMM pool`,
-      }
+      message: `Currency ${selectedCurrency} not found in AMM pool`
     };
   }
 
@@ -825,10 +774,8 @@ export async function addLiquidityOneAssetLPToken(
     const errorInfo = handleTransactionError(result, "addLiquidityOneAssetLPToken");
     return {
       success: false,
-      error: {
-        code: errorInfo.code,
-        message: errorInfo.message,
-      }
+      errorCode: errorInfo.code,
+      message: errorInfo.message,
     };
   }
 
@@ -837,10 +784,7 @@ export async function addLiquidityOneAssetLPToken(
   if (!lpTokensReceived) {
     return {
       success: false,
-      error: {
-        code: "LP_TOKENS_EXTRACTION_FAILED",
-        message: "Could not determine LP tokens received from transaction"
-      }
+      message: "Could not determine LP tokens received from transaction"
     };
   }
 
@@ -848,10 +792,7 @@ export async function addLiquidityOneAssetLPToken(
   if (assetsDeposited.length === 0) {
     return {
       success: false,
-      error: {
-        code: "ASSETS_EXTRACTION_FAILED",
-        message: "Could not determine assets deposited from transaction"
-      }
+      message: "Could not determine assets deposited from transaction"
     };
   }
 

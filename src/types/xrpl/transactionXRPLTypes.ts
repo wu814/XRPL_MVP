@@ -1,22 +1,27 @@
-import { ErrorInfo } from "@/types/xrpl/errorXRPLTypes";
 import { AccountTxTransaction } from "xrpl";
+
+export type ClawbackResult = {
+  success: boolean;
+  message?: string;
+  errorCode?: string;
+}
 
 export type SendCrossCurrencyResult = {
   success: boolean;
   message?: string;
-  error?: ErrorInfo;
+  errorCode?: string;
 }
 
 export type SendIOUResult = {
   success: boolean;
   message?: string;
-  error?: ErrorInfo;
+  errorCode?: string;
 }
 
 export type SendXRPResult = {
   success: boolean;
   message?: string;
-  error?: ErrorInfo;
+  errorCode?: string;
 }
 
 export interface ProcessedTransaction {

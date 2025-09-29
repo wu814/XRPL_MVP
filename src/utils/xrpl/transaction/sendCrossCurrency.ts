@@ -415,10 +415,6 @@ export async function sendCrossCurrency(
       return {
         success: false,
         message: `Insufficient ${sendCurrency} balance for this transaction.`,
-        error: {
-          code: "INSUFFICIENT_BALANCE",
-          message: `Insufficient ${sendCurrency} balance.`
-        }
       };
     }
     console.log(`✅ Balance check passed!`);
@@ -519,15 +515,9 @@ export async function sendCrossCurrency(
       console.log(`🔗 Using explicit path: ${recommendation.path.path}`);
     }
     
-    console.log("🚀 Submitting payment transaction...");
-    console.log(`📋 Payment Details:`);
-    console.log(`   Amount Sent: ${sendAmount} ${sendCurrency}`);
-    console.log(`   SendMax: ${JSON.stringify(paymentTx.SendMax)}`);
-    console.log(`   Amount (destination): ${JSON.stringify(paymentTx.Amount)}`);
-    console.log(`   Payment Type: ${paymentType}`);
-    
     const preparedTx = await client.autofill(paymentTx);    
     const signedTx = senderXRPLWallet.sign(preparedTx);
+    console.log("🚀 Submitting payment transaction...");
     const response = await client.submitAndWait<Payment>(signedTx.tx_blob)
         
     // Use the integrated error handling functions
@@ -535,8 +525,8 @@ export async function sendCrossCurrency(
       const errorInfo = handleTransactionError(response, "sendCrossCurrency");
       return {
         success: false,
-        message: `Payment failed: ${errorInfo.code} - ${errorInfo.message}`,
-        error: errorInfo
+        message: errorInfo.message,
+        errorCode: errorInfo.code
       };
     }
     

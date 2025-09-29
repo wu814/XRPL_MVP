@@ -143,10 +143,8 @@ export async function withdrawLiquidityTwoAsset(
     const errorInfo = handleTransactionError(result, "withdrawLiquidityTwoAsset");
     return {
       success: false,
-      error: {
-        code: errorInfo.code,
-        message: errorInfo.message,
-      }
+      errorCode: errorInfo.code,
+      message: errorInfo.message,
     };
   }
   
@@ -230,10 +228,8 @@ export async function withdrawLiquidityWithLPToken(
     const errorInfo = handleTransactionError(result, "withdrawLiquidityWithLPToken");
     return {
       success: false,
-      error: {
-        code: errorInfo.code,
-        message: errorInfo.message,
-      }
+      errorCode: errorInfo.code,
+      message: errorInfo.message,
     };
   }
   
@@ -308,10 +304,8 @@ export async function withdrawAllLiquidity(
     const errorInfo = handleTransactionError(result, "withdrawAllLiquidity");
     return {
       success: false,
-      error: {
-        code: errorInfo.code,
-        message: errorInfo.message,
-      }
+      errorCode: errorInfo.code,
+      message: errorInfo.message,
     };
   }
   
@@ -372,10 +366,7 @@ export async function withdrawSingleAsset(
   if (!isAsset1 && !isAsset2) {
     return {
       success: false,
-      error: {
-        code: "INVALID_CURRENCY",
-        message: `Currency ${withdrawCurrency} not found in AMM pool`,
-      }
+      message: `Currency ${withdrawCurrency} not found in AMM pool`,
     };
   }
 
@@ -413,10 +404,8 @@ export async function withdrawSingleAsset(
     const errorInfo = handleTransactionError(result, "withdrawSingleAsset");
     return {
       success: false,
-      error: {
-        code: errorInfo.code,
-        message: errorInfo.message,
-      }
+      errorCode: errorInfo.code,
+      message: errorInfo.message,
     };
   }
   
@@ -473,10 +462,7 @@ export async function withdrawAllSingleAsset(
   if (!isAsset1 && !isAsset2) {
     return {
       success: false,
-      error: {
-        code: "INVALID_CURRENCY",
-        message: `Currency ${withdrawCurrency} not found in AMM pool`,
-      }
+      message: `Currency ${withdrawCurrency} not found in AMM pool`,
     };
   }
 
@@ -512,10 +498,8 @@ export async function withdrawAllSingleAsset(
     const errorInfo = handleTransactionError(result, "withdrawAllSingleAsset");
     return {
       success: false,
-      error: {
-        code: errorInfo.code,
-        message: errorInfo.message,
-      }
+      errorCode: errorInfo.code,
+      message: errorInfo.message,
     };
   }
   
@@ -574,10 +558,7 @@ export async function withdrawSingleAssetWithLPToken(
   if (!isAsset1 && !isAsset2) {
     return {
       success: false,
-      error: {
-        code: "INVALID_CURRENCY",
-        message: `Currency ${withdrawCurrency} not found in AMM pool`,
-      }
+      message: `Currency ${withdrawCurrency} not found in AMM pool`,
     };
   }
 
@@ -619,10 +600,8 @@ export async function withdrawSingleAssetWithLPToken(
     const errorInfo = handleTransactionError(result, "withdrawSingleAssetWithLPToken");
     return {
       success: false,
-      error: {
-        code: errorInfo.code,
-        message: errorInfo.message,
-      }
+      errorCode: errorInfo.code,
+      message: errorInfo.message,
     };
   }
   

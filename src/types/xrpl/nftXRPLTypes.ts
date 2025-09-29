@@ -1,28 +1,29 @@
-import { ErrorInfo } from "./errorXRPLTypes";
 
 export interface NFTMintResult {
   success: boolean;
+  message?: string;
   nftTokenID?: string;
   transactionHash?: string;
   uri?: string;
   minterWallet?: string;
-  error?: ErrorInfo;
+  errorCode?: string;
 }
 
 export interface NFTSellOfferResult {
   success: boolean;
   offerID?: string;
-  error?: ErrorInfo;
+  message?: string;
+  errorCode?: string;
 }
 
 export interface NFTMintAndListResult {
   success: boolean;
   message: string;
-  error?: ErrorInfo;
+  errorCode?: string;
 }
 
 export interface NFTPurchaseResult {
   success: boolean;
   message: string;
-  error?: ErrorInfo;
+  errorCode?: string;
 }

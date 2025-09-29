@@ -482,7 +482,7 @@ export default function TransferBtn({
                     </label>
                     <input
                       type="number"
-                      step="0.000001"
+                      step="0.01"
                       min="0"
                       value={sendAmount ?? ""}
                       onChange={handleSendAmountChange}
@@ -499,7 +499,7 @@ export default function TransferBtn({
                     </label>
                     <input
                       type="number"
-                      step="0.000001"
+                      step="0.01"
                       min="0"
                       value={receiveAmount ?? ""}
                       onChange={handleReceiveAmountChange}
@@ -528,7 +528,7 @@ export default function TransferBtn({
                   <label className="block text-sm text-mutedText">Amount</label>
                   <input
                     type="number"
-                    step="0.000001"
+                    step="0.01"
                     min="0"
                     value={amount ?? ""}
                     onChange={(e) => setAmount(e.target.value === "" ? null : Number(e.target.value))}

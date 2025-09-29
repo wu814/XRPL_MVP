@@ -197,7 +197,7 @@ export async function POST(
       }
     } else {
       return NextResponse.json<APIResponse<never>>(
-          { success: false, message: result.error?.message},
+          { success: false, message: result.message},
         { status: 500 },
       );
     }

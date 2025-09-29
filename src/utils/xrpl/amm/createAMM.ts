@@ -81,10 +81,8 @@ export default async function createAMM(
     const errorInfo = handleTransactionError(submission, "Creating AMM");
     return {
       success: false,
-      error: {
-        code: errorInfo.code,
-        message: `AMM creation failed: ${errorInfo.message}`
-      },
+      message: errorInfo.message || "AMM creation failed",
+      errorCode: errorInfo.code,
       account: "",
       currency1: currencies[0],
       currency2: currencies[1],
@@ -117,10 +115,7 @@ export default async function createAMM(
   if (!ammAccount) {
     return {
       success: false,
-      error: {
-        code: "AMM_ACCOUNT_NOT_FOUND",
-        message: "Could not find AMM account after creation."
-      },
+      message: "Could not find AMM account after creation.",
       account: "",
       currency1: currencies[0],
       currency2: currencies[1],
@@ -130,6 +125,7 @@ export default async function createAMM(
   // Return the actual AMM account ID
   return {
     success: true,
+    message: "AMM created successfully",
     account: ammAccount as string,
     currency1: currencies[0],
     currency2: currencies[1],

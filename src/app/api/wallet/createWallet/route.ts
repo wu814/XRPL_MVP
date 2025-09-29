@@ -24,7 +24,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<Y
     
     if (!walletResult.success) {
       return NextResponse.json<APIResponse<never>>(
-        { success: false, message: walletResult.error?.message || "Failed to create wallet" },
+        { success: false, message: walletResult.message || "Failed to create wallet" },
         { status: 500 }
       );
     }

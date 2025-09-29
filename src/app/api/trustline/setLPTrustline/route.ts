@@ -38,7 +38,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
 
     if (!result.success) {
       return NextResponse.json(
-        { success: false, message: result.error.message },
+        { success: false, message: result.message },
         { status: 500 },
       );
     }

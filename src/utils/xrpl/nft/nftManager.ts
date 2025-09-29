@@ -139,10 +139,8 @@ const mintReceiptNFT = async (
     const errorInfo = handleTransactionError(result, "mintReceiptNFT");
     return {
       success: false,
-      error: {
-        code: errorInfo.code,
-        message: errorInfo.message,
-      },
+      message: errorInfo.message,
+      errorCode: errorInfo.code,
     };
   }
 
@@ -164,10 +162,7 @@ const mintReceiptNFT = async (
   } else {
     return {
       success: false,
-      error: {
-        code: "NFTokenID_NOT_FOUND",
-        message: "NFTokenID not found in transaction metadata",
-      },
+      message: "NFTokenID not found in transaction metadata",
     };
   }
 };
@@ -272,10 +267,8 @@ export async function createNFTSellOfferUSD(
     const errorInfo = handleTransactionError(result, "createNFTSellOfferUSD");
     return {
       success: false,
-      error: {
-        code: errorInfo.code,
-        message: errorInfo.message,
-      },
+      errorCode: errorInfo.code,
+      message: errorInfo.message,
     };
   }
   // Extract offer ID from transaction metadata
@@ -313,8 +306,7 @@ export async function mintAndListNFTUSD(
   if (!mintResult.success) {
     return {
       success: false,
-      message: `NFT minting failed: ${mintResult.error?.message}`,
-      error: mintResult.error,
+      message: `NFT minting failed: ${mintResult.message}`,
     };
   }
 
@@ -335,11 +327,11 @@ export async function mintAndListNFTUSD(
   );
 
   if (!sellResult.success) {
-    console.log(`⚠️ NFT minted but sell offer failed: ${sellResult.error}`);
+    console.log(`⚠️ NFT minted but sell offer failed: ${sellResult.message}`);
     return {
       success: false,
-      message: "NFT minted successfully but DEX listing failed",
-      error: sellResult.error,
+      message: sellResult.message,
+      errorCode: sellResult.errorCode,
     };
   }
 
@@ -448,8 +440,8 @@ export async function purchaseNFTWithSmartTrade(
       );
       return {
         success: false,
-        message: `NFT purchase failed: ${errorInfo.message}`,
-        error: errorInfo,
+        message: errorInfo.message,
+        errorCode: errorInfo.code,
       };
     }
 
@@ -486,8 +478,8 @@ export async function purchaseNFTWithSmartTrade(
   if (!conversionResult.success) {
     return {
       success: false,
-      message: `Currency conversion failed: ${conversionResult.error?.message}`,
-      error: conversionResult.error,
+      message: conversionResult.message,
+      errorCode: conversionResult.errorCode,
     };
   }
 
@@ -520,8 +512,8 @@ export async function purchaseNFTWithSmartTrade(
     );
     return {
       success: false,
-      message: `NFT purchase failed: ${errorInfo.message}`,
-      error: errorInfo,
+      message: errorInfo.message,
+      errorCode: errorInfo.code,
     };
   }
 

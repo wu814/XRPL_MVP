@@ -58,7 +58,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<C
 
     if (!ammData.success) {
       return NextResponse.json<APIResponse<never>>(
-        { success: false, message: ammData.error?.message || "AMM creation failed" },
+        { success: false, message: ammData.message || "AMM creation failed" },
         { status: 400 },
       );
     }
