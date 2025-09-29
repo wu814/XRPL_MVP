@@ -1,20 +1,7 @@
 import { client, connectXRPLClient } from "../testnet";
-import { OfferCreate, TxResponse, Amount } from "xrpl";
-import * as xrpl from "xrpl";
-
-interface Wallet {
-  classicAddress: string;
-  sign: (tx: any) => any;
-}
-
-interface CreateImmediateOrCancelOfferResult {
-  success: boolean;
-  sequence?: number;
-  response?: TxResponse;
-  message: string;
-  error?: string;
-}
-
+import { OfferCreate, TxResponse, Amount, OfferCreateFlags, dropsToXrp, Wallet } from "xrpl";
+import { CreateOfferResult } from "@/types/xrpl/dexXRPLTypes";
+import { handleTransactionError, isTypedTransactionSuccessful } from "../errorHandler";
 /**
  * Create an Immediate-Or-Cancel offer (with tfImmediateOrCancel flag set).
  * This type of offer is either filled immediately (fully or partially) or cancelled.
@@ -27,7 +14,7 @@ export default async function createImmediateOrCancelOffer(
   wallet: Wallet,
   takerPays: Amount,
   takerGets: Amount,
-): Promise<CreateImmediateOrCancelOfferResult> {
+): Promise<CreateOfferResult> {
   try {
     await connectXRPLClient();
 
@@ -36,7 +23,7 @@ export default async function createImmediateOrCancelOffer(
       Account: wallet.classicAddress,
       TakerPays: takerPays,
       TakerGets: takerGets,
-      Flags: xrpl.OfferCreateFlags.tfImmediateOrCancel,
+      Flags: OfferCreateFlags.tfImmediateOrCancel,
     };
 
     console.log(
@@ -53,10 +40,10 @@ export default async function createImmediateOrCancelOffer(
 
     const signedTx = wallet.sign(preparedTx);
     console.log("🚀 Submitting ImmediateOrCancel OfferCreate transaction...");
-    const response: TxResponse = await client.submitAndWait(signedTx.tx_blob);
+    const response: TxResponse<OfferCreate> = await client.submitAndWait<OfferCreate>(signedTx.tx_blob);
 
     // Check transaction result
-    if ((response.result.meta as any).TransactionResult === "tesSUCCESS") {
+    if (isTypedTransactionSuccessful(response)) {
       console.log("✅ ImmediateOrCancel offer processed successfully!");
 
     // Build comprehensive message
@@ -65,12 +52,12 @@ export default async function createImmediateOrCancelOffer(
     message += `💱 Requested to Pay: ${
       typeof takerGets === "object"
         ? `${parseFloat(takerGets.value).toFixed(6)} ${takerGets.currency}`
-        : `${xrpl.dropsToXrp(takerGets).toFixed(6)} XRP`
+        : `${dropsToXrp(takerGets).toFixed(6)} XRP`
     }\n`;
     message += `💱 Requested to Get: ${
       typeof takerPays === "object"
         ? `${parseFloat(takerPays.value).toFixed(6)} ${takerPays.currency}`
-        : `${xrpl.dropsToXrp(takerPays).toFixed(6)} XRP`
+        : `${dropsToXrp(takerPays).toFixed(6)} XRP`
     }\n`;
     message += `📋 Transaction Hash: ${response.result.hash}\n`;
     message += `📋 Ledger Index: ${response.result.ledger_index}\n`;
@@ -113,21 +100,23 @@ export default async function createImmediateOrCancelOffer(
 
     return {
       success: true,
-      response: response,
-      message,
+      message: message,
     };
     } else {
-      throw new Error(
-        `ImmediateOrCancel offer failed: ${(response.result.meta as any).TransactionResult}`,
-      );
+      const errorInfo = handleTransactionError(response, "createImmediateOrCancelOffer");
+      return {
+        success: false,
+        message: errorInfo.message,
+        errorCode: errorInfo.code,
+      };
     }
 
   } catch (error: any) {
     console.error("❌ Error creating immediate-or-cancel offer:", error.message);
     return {
       success: false,
-      error: `Immediate-or-cancel offer failed: ${error.message}`,
-      message: "",
+      message: `Immediate-or-cancel offer failed: ${error.message}`,
+      errorCode: "UNKNOWN_ERROR",
     };
   }
 }

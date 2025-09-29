@@ -1,19 +1,10 @@
 import { client, connectXRPLClient } from "../testnet";
-import { OfferCreate, TxResponse, Amount } from "xrpl";
-import * as xrpl from "xrpl";
+import { OfferCreate, TxResponse, Amount, Wallet, OfferCreateFlags, dropsToXrp } from "xrpl";
+import { CreateOfferResult } from "@/types/xrpl/dexXRPLTypes";
+import { handleTransactionError, isTypedTransactionSuccessful } from "../errorHandler";
 
-interface Wallet {
-  classicAddress: string;
-  sign: (tx: any) => any;
-}
 
-interface CreateSellOfferResult {
-  success: boolean;
-  sequence?: number;
-  response?: TxResponse;
-  message: string;
-  error?: string;
-}
+ 
 
 /**
  * Create a Sell offer (with tfSell flag set).
@@ -27,7 +18,7 @@ export default async function createSellOffer(
   wallet: Wallet,
   takerPays: Amount,
   takerGets: Amount,
-): Promise<CreateSellOfferResult> {
+): Promise<CreateOfferResult> {
   try {
     await connectXRPLClient();
 
@@ -36,7 +27,7 @@ export default async function createSellOffer(
       Account: wallet.classicAddress,
       TakerPays: takerPays,
       TakerGets: takerGets,
-      Flags: xrpl.OfferCreateFlags.tfSell,
+      Flags: OfferCreateFlags.tfSell,
     };
 
     console.log(
@@ -53,10 +44,10 @@ export default async function createSellOffer(
 
     const signedTx = wallet.sign(preparedTx);
     console.log("🚀 Submitting Sell OfferCreate transaction...");
-    const response: TxResponse = await client.submitAndWait(signedTx.tx_blob);
+    const response: TxResponse<OfferCreate> = await client.submitAndWait<OfferCreate>(signedTx.tx_blob);
 
     // Check transaction result
-    if ((response.result.meta as any).TransactionResult === "tesSUCCESS") {
+    if (isTypedTransactionSuccessful(response)) {
       console.log("✅ Sell offer created successfully!");
 
     // Build message (similar structure to createPassiveOffer)
@@ -65,12 +56,12 @@ export default async function createSellOffer(
     message += `💱 Paying: ${
       typeof takerGets === "object"
         ? `${parseFloat(takerGets.value).toFixed(6)} ${takerGets.currency}`
-        : `${xrpl.dropsToXrp(takerGets).toFixed(6)} XRP`
+        : `${dropsToXrp(takerGets).toFixed(6)} XRP`
     }\n`;
     message += `💱 Getting: ${
       typeof takerPays === "object"
         ? `${parseFloat(takerPays.value).toFixed(6)} ${takerPays.currency}`
-        : `${xrpl.dropsToXrp(takerPays).toFixed(6)} XRP`
+        : `${dropsToXrp(takerPays).toFixed(6)} XRP`
     }\n`;
     message += `📋 Transaction Hash: ${response.result.hash}\n`;
     message += `📋 Ledger Index: ${response.result.ledger_index}`;
@@ -93,22 +84,23 @@ export default async function createSellOffer(
 
     return {
       success: true,
-      sequence: offerSequence,
-      response: response,
-      message,
+      message: message,
     };
     } else {
-      throw new Error(
-        `Sell offer failed: ${(response.result.meta as any).TransactionResult}`,
-      );
+      const errorInfo = handleTransactionError(response, "createSellOffer");
+      return {
+        success: false,
+        message: errorInfo.message,
+        errorCode: errorInfo.code,
+      };
     }
 
   } catch (error: any) {
     console.error("❌ Error creating sell offer:", error.message);
     return {
       success: false,
-      error: `Sell offer creation failed: ${error.message}`,
-      message: "",
+      message: `Sell offer creation failed: ${error.message}`,
+      errorCode: "UNKNOWN_ERROR",
     };
   }
 }

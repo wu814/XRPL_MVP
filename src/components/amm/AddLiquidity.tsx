@@ -199,7 +199,7 @@ export default function AddLiquidity({ ammInfo, onAdded }: AddLiquidityProps) {
 
       onAdded();
     } catch (err: any) {
-      setErrorMessage(err.message);
+      setErrorMessage(err instanceof Error ? err.message : 'Unknown error occurred');
     } finally {
       setLoading(false);
       setLoadingMessage(null);

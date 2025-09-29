@@ -79,6 +79,13 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
 
     const result = await cancelOffer(cancelerWallet, offerSequence);
 
+    if (!result.success) {
+      return NextResponse.json(
+        { success: false, message: result.message, errorCode: result.errorCode || "UNKNOWN_ERROR" },
+        { status: 400 },
+      );
+    }
+
     return NextResponse.json(
       {
         success: result.success,

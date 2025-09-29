@@ -1,18 +1,7 @@
 import { connectXRPLClient, client } from "../testnet";
-import { OfferCancel, TxResponse } from "xrpl";
-
-interface Wallet {
-  classicAddress: string;
-  sign: (tx: any) => any;
-}
-
-interface CancelOfferResult {
-  success: boolean;
-  sequence?: number;
-  response?: TxResponse;
-  message?: string;
-  error?: string;
-}
+import { OfferCancel, TxResponse, Wallet } from "xrpl";
+import { isTypedTransactionSuccessful, handleTransactionError } from "../errorHandler";
+import { CancelOfferResult } from "@/types/xrpl/dexXRPLTypes";
 
 export default async function cancelOffer(
   wallet: Wallet, 
@@ -55,11 +44,19 @@ export default async function cancelOffer(
 
     const signedTx = wallet.sign(preparedTx);
     console.log("🚀 Submitting OfferCancel transaction...");
-    const response: TxResponse = await client.submitAndWait(signedTx.tx_blob);
+    const response: TxResponse<OfferCancel> = await client.submitAndWait<OfferCancel>(signedTx.tx_blob);
 
     // Check transaction result
-    if ((response.result.meta as any).TransactionResult === "tesSUCCESS") {
-      console.log("✅ Offer cancelled successfully!");
+    if (!isTypedTransactionSuccessful(response)) {
+      const errorInfo = handleTransactionError(response, "cancelOffer");
+      return {
+        success: false,
+        message: errorInfo.message,
+        errorCode: errorInfo.code,
+      };
+    }
+
+    console.log("✅ Offer cancelled successfully!");
 
     let message = "\n📊 Offer Cancellation Details:\n";
     message += `👛 Wallet Address: ${wallet.classicAddress}\n`;
@@ -69,21 +66,14 @@ export default async function cancelOffer(
 
     return {
       success: true,
-      sequence: sequenceNumber,
-      response: response,
       message: message,
     };
-    } else {
-      throw new Error(
-        `Offer cancellation failed: ${(response.result.meta as any).TransactionResult}`,
-      );
-    }
 
   } catch (error: any) {
     console.error("❌ Error cancelling offer:", error.message);
     return {
       success: false,
-      error: `Offer cancellation failed: ${error.message}`,
+      message: `Offer cancellation failed: ${error.message}`,
     };
   }
 }

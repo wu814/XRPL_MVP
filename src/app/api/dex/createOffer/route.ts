@@ -188,6 +188,12 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
         result = await createOffer(wallet, takerPays, takerGets);
         break;
     }
+    if (!result.success) {
+      return NextResponse.json(
+        { success: false, message: result.message },
+        { status: 500 },
+      );
+    }
 
     return NextResponse.json(
       {
