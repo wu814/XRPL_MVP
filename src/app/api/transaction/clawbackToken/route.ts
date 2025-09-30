@@ -2,24 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import clawbackTokens from "@/utils/xrpl/transaction/clawbackToken";
 import { Wallet } from "xrpl";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
+import { ClawbackTokenAPIRequest, APIResponse } from "@/types/apiTypes";
 
-interface ClawbackTokenRequest {
-  issuerWallet: {
-    classicAddress: string;
-  };
-  targetAccountAddress: string;
-  currency: string;
-  amount: string | number;
-}
-
-export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<never>>> {
   try {
-    const { issuerWallet, targetAccountAddress, currency, amount }: ClawbackTokenRequest =
+    const { issuerWallet, targetAccountAddress, currency, amount }: ClawbackTokenAPIRequest =
       await req.json();
 
     if (!issuerWallet || !targetAccountAddress || !currency || !amount) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { success: false, message: "Missing required fields" },
         { status: 400 },
       );
     }
@@ -34,7 +26,7 @@ export async function POST(req: NextRequest) {
 
     if (walletError || !walletData) {
       return NextResponse.json(
-        { error: "Wallet not found for the provided classicAddress" },
+        { success: false, message: "Wallet not found for the provided classicAddress" },
         { status: 404 },
       );
     }
@@ -47,10 +39,18 @@ export async function POST(req: NextRequest) {
       currency,
       amount,
     );
-    return NextResponse.json(result, { status: 200 });
+
+    if (!result.success) {
+      return NextResponse.json(
+        { success: false, message: result.message },
+        { status: 400 },
+      );
+    }
+
+    return NextResponse.json({ success: true, message: result.message }, { status: 200 });
   } catch (error) {
     console.error("Clawback API error:", error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    return NextResponse.json({ success: false, message: errorMessage }, { status: 500 });
   }
 }

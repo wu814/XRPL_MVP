@@ -44,7 +44,7 @@ const sendXRP = async (
     return {
       success: false,
       message: errorInfo.message,
-      error: errorInfo,
+      errorCode: errorInfo.code,
     };
   }
 

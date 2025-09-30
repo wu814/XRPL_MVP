@@ -7,10 +7,11 @@ import {
   fetchUSDPrices,
   getUSDValue,
   formatCurrencyValue,
-  PriceInfo,
 } from "@/utils/currencyUtils";
-import { GetAccountInfoAPIResponse, GetAccountLinesAPIResponse } from "@/types/api/walletAPITypes";
 
+import { APIResponse } from "@/types/apiTypes";
+import { AccountInfo } from "@/types/xrpl/walletXRPLTypes";
+import { AccountLinesTrustline } from "xrpl";
 
 interface DashboardHeaderProps {
   totalBalance?: number;
@@ -57,8 +58,8 @@ export default function DashboardHeader({ totalBalance }: DashboardHeaderProps) 
         }),
       ]);
 
-      const accountInfo: GetAccountInfoAPIResponse = await accountInfoResponse.json();
-      const accountLines: GetAccountLinesAPIResponse = await accountLinesResponse.json();
+      const accountInfo: APIResponse<AccountInfo> = await accountInfoResponse.json();
+      const accountLines: APIResponse<AccountLinesTrustline[]> = await accountLinesResponse.json();
 
       // Step 3: Calculate total USD value using utility function
       let totalUsdValue = 0;

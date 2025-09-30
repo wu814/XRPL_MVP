@@ -8,8 +8,7 @@ import SuccessMdl from "../SuccessMdl";
 import { useRouter } from "next/navigation";
 import { useCurrentUserWallet } from "../wallet/CurrentUserWalletProvider";
 import { FormattedAMMInfo } from "@/types/xrpl/ammXRPLTypes";
-import { WithdrawLiquidityAPIResponse } from "@/types/api/ammAPITypes";
-import { APIErrorResponse } from "@/types/api/errorAPITypes";
+import { APIResponse } from "@/types/apiTypes";
 
 interface WithdrawLiquidityProps {
   ammInfo: FormattedAMMInfo;
@@ -136,14 +135,14 @@ export default function WithdrawLiquidity({
       });
 
       if (!response.ok) {
-        const error: APIErrorResponse = await response.json();
+        const error: APIResponse<never> = await response.json();
         setErrorMessage(error.message || "Transaction failed");
         return;
       }
-      const result: WithdrawLiquidityAPIResponse = await response.json();
+      const result: APIResponse<{ poolDeleted: boolean }> = await response.json();
       setSuccessMessage(result.message || "Liquidity withdrawn successfully!");
 
-      if (result.poolDeleted) {
+      if (result.data?.poolDeleted) {
         // ⏳ Show initial message for 5 seconds
         setTimeout(() => {
           // 📝 Then update message
@@ -190,7 +189,7 @@ export default function WithdrawLiquidity({
           <>
             <input
               type="number"
-              step="0.000001"
+              step="0.01"
               value={withdrawValue1 ?? ""}
               onChange={(e) =>
                 setWithdrawValue1(
@@ -202,7 +201,7 @@ export default function WithdrawLiquidity({
             />
             <input
               type="number"
-              step="0.000001"
+              step="0.01"
               value={withdrawValue2 ?? ""}
               onChange={(e) =>
                 setWithdrawValue2(
@@ -228,7 +227,7 @@ export default function WithdrawLiquidity({
             {mode !== "singleAssetAll" && mode !== "singleAssetLp" && (
               <input
                 type="number"
-                step="0.000001"
+                step="0.01"
                 value={singleWithdrawValue ?? ""}
                 onChange={(e) =>
                   setSingleWithdrawValue(
@@ -245,7 +244,7 @@ export default function WithdrawLiquidity({
         {(mode === "lpToken" || mode === "singleAssetLp") && (
           <input
             type="number"
-            step="0.000001"
+            step="0.01"
             value={lpTokenValue ?? ""}
             onChange={(e) =>
               setLPTokenValue(

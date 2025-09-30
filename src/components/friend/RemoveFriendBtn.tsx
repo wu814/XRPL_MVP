@@ -3,14 +3,12 @@
 import { useState } from "react";
 import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
-
-interface RemoveFriendResponse {
-  error?: string;
-}
+import { APIResponse } from "@/types/apiTypes";
+import SuccessMdl from "../SuccessMdl";
 
 interface RemoveFriendBtnProps {
   friendId: string | number;
-  onRemoved?: () => void;
+  onRemoved?: (message: string) => void;
 }
 
 export default function RemoveFriendBtn({ friendId, onRemoved }: RemoveFriendBtnProps) {
@@ -28,11 +26,18 @@ export default function RemoveFriendBtn({ friendId, onRemoved }: RemoveFriendBtn
         body: JSON.stringify({ id: friendId }),
       });
 
-      const result: RemoveFriendResponse = await res.json();
+      if (!res.ok) {
+        const errorData: APIResponse<never> = await res.json();
+        setErrorMessage(errorData.message);
+        return;
+      }
+      const result: APIResponse<never> = await res.json();
+      if (!result.success) {
+        setErrorMessage(result.message);
+        return;
+      }
 
-      if (!res.ok) throw new Error(result.error || "Failed to remove friend");
-
-      if (onRemoved) onRemoved();
+      if (onRemoved) onRemoved(result.message);
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : "Unknown error");
     } finally {

@@ -57,7 +57,7 @@ export default function CurrencyDropDown({
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <ListboxOptions className="absolute z-30 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-border bg-color2">
+          <ListboxOptions className="absolute z-30 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-border bg-color2 scrollbar-hide">
             {availableCurrencies.map((c) => {
               const isDisabled = disabledOptions.includes(c.id);
               return (

@@ -14,24 +14,8 @@ import {
   ChevronDown 
 } from "lucide-react";
 import Button from "../Button";
-
-interface Transaction {
-  hash: string;
-  type: string;
-  direction: string;
-  amount: string;
-  currency: string;
-  counterparty?: string;
-  date?: string;
-  result?: string;
-  fee?: string;
-}
-
-interface TransactionResponse {
-  transactions?: Transaction[];
-  marker?: string;
-  error?: string;
-}
+import { APIResponse, GetAccountTransactionsAPIRequest } from "@/types/apiTypes";
+import { ProcessedTransaction } from "@/types/xrpl/transactionXRPLTypes";
 
 
 type TransactionDirection = 
@@ -161,9 +145,9 @@ const formatAmount = (amount: string, currency: string): string => {
 
 export default function TransactionHistory() {
   const { currentUserWallets } = useCurrentUserWallet();
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [transactions, setTransactions] = useState<ProcessedTransaction[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [marker, setMarker] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState<boolean>(true);
   const [selectedWallet, setSelectedWallet] = useState<YONAWallet | null>(null);
@@ -215,12 +199,13 @@ export default function TransactionHistory() {
     console.log("Primary wallet details:", primaryWallet);
 
     setLoading(true);
-    setError(null);
+    setErrorMessage(null);
 
     try {
-      const requestBody: any = {
+      const requestBody: GetAccountTransactionsAPIRequest = {
         targetAddress: primaryWallet.classicAddress,
         limit: 50,
+        marker: null,
       };
 
       if (isLoadMore && marker) {
@@ -233,14 +218,16 @@ export default function TransactionHistory() {
         body: JSON.stringify(requestBody),
       });
 
-      const data: TransactionResponse = await response.json();
-
       if (!response.ok) {
-        throw new Error(data.error || "Failed to fetch transactions");
+        const errorData: APIResponse<never> = await response.json();
+        setErrorMessage(errorData?.message || "Failed to fetch transactions");
+        return;
       }
 
-      if (!data.transactions) {
-        console.warn("No transactions in response:", data);
+      const result: APIResponse<{transactions: ProcessedTransaction[], marker: string | null}> = await response.json();
+
+      if (!result.data?.transactions) {
+        console.warn("No transactions in response:", result.data);
         setTransactions([]);
         setMarker(null);
         setHasMore(false);
@@ -248,15 +235,15 @@ export default function TransactionHistory() {
       }
 
       if (isLoadMore) {
-        setTransactions(prev => [...prev, ...data.transactions!]);
+        setTransactions(prev => [...prev, ...result.data.transactions]);
       } else {
-        setTransactions(data.transactions);
+        setTransactions(result.data.transactions);
       }
 
-      setMarker(data.marker || null);
-      setHasMore(!!data.marker);
+      setMarker(result.data.marker || null);
+      setHasMore(!!result.data.marker);
     } catch (err: any) {
-      setError(err.message);
+      setErrorMessage(err.message);
       console.error("Error fetching transactions:", err);
     } finally {
       setLoading(false);
@@ -357,16 +344,16 @@ export default function TransactionHistory() {
       </div>
 
       {/* Content */}
-      <div className="h-screen overflow-y-auto">
+      <div className="h-screen overflow-y-auto scrollbar-hide">
         {loading && transactions.length === 0 ? (
           <div className="p-6 text-center">
             <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
             <p className="text-gray-400">Loading transactions...</p>
           </div>
-        ) : error ? (
+        ) : errorMessage ? (
           <div className="p-6 text-center">
             <XCircle className="w-12 h-12 mx-auto mb-4 text-red-400" />
-            <p className="text-red-400">Error: {error}</p>
+            <p className="text-red-400">Error: {errorMessage }</p>
             <button
               onClick={() => fetchTransactions()}
               className="mt-4 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
@@ -425,7 +412,7 @@ export default function TransactionHistory() {
                     <div className="flex items-center space-x-4 text-right">
                       <div>
                         <div className={`font-medium ${getTransactionColor(tx.direction)}`}>
-                          {formatAmount(tx.amount, tx.currency)}
+                          {formatAmount(tx.amount as string, tx.currency)}
                         </div>
                         {tx.fee && (
                           <div className="text-xs text-gray-500">

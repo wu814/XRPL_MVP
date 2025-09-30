@@ -1,13 +1,6 @@
 "use client";
+import { AccountType, AccountTypeOption } from "@/types/appTypes";
 
-export type AccountType = "USER" | "BUSINESS";
-
-interface AccountTypeOption {
-  value: AccountType;
-  title: string;
-  description: string;
-  icon: string;
-}
 
 interface AccountTypeSelectorProps {
   value: AccountType;

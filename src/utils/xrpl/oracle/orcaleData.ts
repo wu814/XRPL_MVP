@@ -1,5 +1,5 @@
 import { client, connectXRPLClient } from "../testnet";
-
+import { LedgerEntryRequest, LedgerEntryResponse, LedgerIndex } from "xrpl";
 /**
  * Oracle Data Controller - Fetch Price Oracle data from XRPL
  * Based on XRPL Commons documentation: https://docs.xrpl-commons.org/xrpl-basics/price-oracles
@@ -67,7 +67,7 @@ function hexToString(hex: string): string {
 export async function getOracleData(
   account: string,
   oracleDocumentId: number,
-  ledgerIndex: string | number = "validated"
+  ledgerIndex: LedgerIndex = "validated"
 ): Promise<OracleDataResult> {
   try {
     await connectXRPLClient();
@@ -75,9 +75,8 @@ export async function getOracleData(
     console.log(`🔍 Retrieving Price Oracle data...`);
     console.log(`   👤 Account: ${account}`);
     console.log(`   🆔 Oracle ID: ${oracleDocumentId}`);
-    console.log(`   📚 Ledger: ${ledgerIndex}`);
 
-    const ledgerEntryRequest = {
+    const ledgerEntryRequest: LedgerEntryRequest = {
       command: "ledger_entry" as const,
       oracle: {
         account: account,
@@ -86,10 +85,11 @@ export async function getOracleData(
       ledger_index: ledgerIndex,
     };
 
-    const ledgerEntryResponse = await client.request(ledgerEntryRequest as any);
+    const ledgerEntryResponse: LedgerEntryResponse = await client.request(ledgerEntryRequest);
+    console.log("ledgerEntryResponse", ledgerEntryResponse);
 
-    if (ledgerEntryResponse.result && (ledgerEntryResponse.result as any).node) {
-      const oracleNode: OracleNode = (ledgerEntryResponse.result as any).node;
+    if (ledgerEntryResponse.result && ledgerEntryResponse.result.node) {
+      const oracleNode = ledgerEntryResponse.result.node as OracleNode;
 
       // Decode hex fields for better readability
       const decodedOracle: DecodedOracle = {

@@ -2,8 +2,13 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { useSession } from "next-auth/react";
-import { WalletApiResponse, IssuerWalletContextType } from "@/types/wallet";
 import { YONAWallet } from "@/types/appTypes";
+
+interface IssuerWalletContextType {
+  issuerWallets: YONAWallet[];
+  errorMessage: string | null;
+  fetchIssuerWallets: () => Promise<void>;
+}
 
 const IssuerWalletContext = createContext<IssuerWalletContextType | undefined>(undefined);
 
@@ -23,13 +28,9 @@ export default function IssuerWalletProvider({ children }: IssuerWalletProviderP
         headers: { "Content-Type": "application/json" },
       });
 
-      const data: WalletApiResponse = await response.json();
-      if (data.data) {
-        const wallets: YONAWallet[] = data.data.map((wallet) => ({
-          classicAddress: wallet.classic_address,
-          walletType: wallet.wallet_type,
-        }));
-        setIssuerWallets(wallets);
+      const walletResult = await response.json();
+      if (walletResult.data) {
+        setIssuerWallets(walletResult.data);
       } else {
         setIssuerWallets([]);
       }

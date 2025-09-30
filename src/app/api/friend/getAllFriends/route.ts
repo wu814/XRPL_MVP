@@ -1,26 +1,16 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/utils/auth/authOptions";
+import { APIResponse } from "@/types/apiTypes";
+import { Friend, FriendRequest } from "@/types/appTypes";
 
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
 
-interface FriendRequest {
-  id: string;
-  sender: string;
-  receiver: string;
-  responded_at: string;
-}
 
-interface Friend {
-  id: string;
-  username: string;
-  responded_at: string;
-}
-
-export async function GET() {
+export async function GET(): Promise<NextResponse<APIResponse<Friend[]>>> {
   const session = await getServerSession(authOptions);
   if (!session?.user?.username) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json<APIResponse<never>>({ success: false, message: "Unauthorized" }, { status: 401 });
   }
 
   const username = session.user.username;
@@ -34,7 +24,9 @@ export async function GET() {
       .or(`sender.eq.${username},receiver.eq.${username}`)
       .eq("status", "accepted");
 
-    if (error) throw error;
+    if (error) {
+      return NextResponse.json<APIResponse<never>>({ success: false, message: error.message }, { status: 500 });
+    }
 
     // Filter and normalize to always return the other user's info
     const friends: Friend[] = data.map((req: FriendRequest) => {
@@ -46,12 +38,9 @@ export async function GET() {
       };
     });
 
-    return NextResponse.json({ data: friends }, { status: 200 });
+    return NextResponse.json<APIResponse<Friend[]>>({ success: true, message: "Friends fetched", data: friends }, { status: 200 });
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
-    return NextResponse.json(
-      { error: `Failed to fetch friends: ${errorMessage}` },
-      { status: 500 },
-    );
+    return NextResponse.json<APIResponse<never>>({ success: false, message: `Failed to fetch friends: ${errorMessage}` }, { status: 500 });
   }
 }

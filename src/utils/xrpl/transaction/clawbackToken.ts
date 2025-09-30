@@ -1,48 +1,8 @@
 import { client, connectXRPLClient } from "../testnet";
-import * as xrpl from "xrpl";
-import { Clawback } from "xrpl";
+import { Clawback, Wallet, AccountInfoResponse, AccountLinesResponse, AccountLinesTrustline, TxResponse } from "xrpl";
+import { ClawbackResult } from "@/types/xrpl/transactionXRPLTypes";
+import { handleTransactionError, isTypedTransactionSuccessful } from "../errorHandler";
 
-// Type definitions
-interface AccountInfoResponse {
-  result: {
-    account_data: {
-      Flags: number;
-      [key: string]: any;
-    };
-  };
-}
-
-interface AccountLinesResponse {
-  result: {
-    lines: Array<{
-      currency: string;
-      balance: string;
-      [key: string]: any;
-    }>;
-  };
-}
-
-interface Trustline {
-  currency: string;
-  balance: string;
-  [key: string]: any;
-}
-
-interface LedgerResponse {
-  result: {
-    ledger_current_index: number;
-  };
-}
-
-interface ClawbackResponse {
-  result: {
-    meta: {
-      TransactionResult: string;
-      [key: string]: any;
-    };
-    [key: string]: any;
-  };
-}
 
 /**
  * Executes a clawback operation to reclaim tokens from a specified account
@@ -56,11 +16,11 @@ interface ClawbackResponse {
  * @returns Promise<ClawbackResponse> - Transaction response
  */
 export default async function clawbackTokens(
-  issuerWallet: xrpl.Wallet,
+  issuerWallet: Wallet,
   account: string,
   currency: string,
-  amount: string | number,
-): Promise<ClawbackResponse> {
+  amount: string,
+): Promise<ClawbackResult> {
   try {
     await connectXRPLClient();
 
@@ -75,30 +35,11 @@ export default async function clawbackTokens(
       ledger_index: "validated",
     });
 
-    // Debug log the full account data to check flags
-    console.log(
-      "📊 Issuer account info:",
-      JSON.stringify(accountInfo.result.account_data, null, 2),
-    );
-
     // lsfAllowTrustLineClawback is 0x00010000 (hexadecimal) = 65536 (decimal)
     const flags = Number(accountInfo.result.account_data.Flags);
-    console.log(`🔍 Account flags (decimal): ${flags}`);
-    console.log(`🔍 Account flags (hex): 0x${flags.toString(16)}`);
-
-    // Convert to binary to check bits individually
-    const flagsBinary = flags.toString(2).padStart(32, "0");
-    console.log(`🔍 Account flags (binary): ${flagsBinary}`);
-
-    // The bit for lsfAllowTrustLineClawback is at position 16 (0-indexed from right)
-    // In binary, bit positions are counted from right to left, starting from 0
-    const relevantBit = flagsBinary.charAt(flagsBinary.length - 17);
-    console.log(
-      `🔍 lsfAllowTrustLineClawback bit (position 16): ${relevantBit}`,
-    );
 
     // Alternate check method using bitwise operations
-    const hasClawbackFlag = (flags & 0x00010000) !== 0;
+    const hasClawbackFlag = (flags & 0x00080000) !== 0;
     console.log(`🔍 Has clawback flag (bitwise check): ${hasClawbackFlag}`);
 
     if (!hasClawbackFlag) {
@@ -107,7 +48,7 @@ export default async function clawbackTokens(
         "⚠️ Warning: AllowTrustLineClawback flag check failed, but proceeding with clawback attempt anyway.",
       );
       console.log(
-        "⚠️ If the transaction fails, please ensure you've set flag 16 (asfAllowTrustLineClawback) on your account.",
+        "⚠️ If the transaction fails, please ensure you've set flag lsfAllowTrustLineClawback on your account.",
       );
     } else {
       console.log("✅ AllowTrustLineClawback flag is enabled on the account.");
@@ -124,28 +65,25 @@ export default async function clawbackTokens(
       ledger_index: "validated",
     });
 
-    console.log(
-      `📊 Trustline info:`,
-      JSON.stringify(accountLines.result, null, 2),
-    );
-
     // Find the specific trustline for the currency
-    const trustline: Trustline | undefined = accountLines.result.lines.find(
+    const trustline: AccountLinesTrustline = accountLines.result.lines.find(
       (line) => line.currency === currency,
     );
 
     if (!trustline) {
-      throw new Error(
-        `No trustline found for ${currency} between ${account} and ${issuerWallet.classicAddress}`,
-      );
+      return {
+        success: false,
+        message: `No trustline found for ${currency} between ${account} and ${issuerWallet.classicAddress}`,
+      };
     }
 
     console.log(`✅ Found trustline with balance: ${trustline.balance}`);
 
     if (parseFloat(trustline.balance) <= 0) {
-      throw new Error(
-        `Account has no ${currency} balance to claw back (current balance: ${trustline.balance})`,
-      );
+      return {
+        success: false,
+        message: `Account has no ${currency} balance to claw back (current balance: ${trustline.balance})`,
+      };
     }
 
     // Create the Clawback transaction - structure according to documentation:
@@ -162,39 +100,33 @@ export default async function clawbackTokens(
     };
 
     console.log("📜 Preparing Clawback transaction...");
-    console.log(JSON.stringify(clawbackTx, null, 2));
 
     const preparedTx = await client.autofill(clawbackTx);
-
-    // Set LastLedgerSequence to ensure transaction doesn't hang
-    const ledgerResponse: LedgerResponse = await client.request({ command: "ledger_current" });
-    const currentLedger = ledgerResponse.result.ledger_current_index;
-    (preparedTx as any).LastLedgerSequence = currentLedger + 10;
-
-    console.log(
-      "📜 Prepared transaction:",
-      JSON.stringify(preparedTx, null, 2),
-    );
-
     const signedTx = issuerWallet.sign(preparedTx);
     console.log("🚀 Submitting Clawback transaction...");
-    const response = await client.submitAndWait(signedTx.tx_blob);
+    const response: TxResponse<Clawback> = await client.submitAndWait<Clawback>(signedTx.tx_blob);
 
-    // Debug log the full response for troubleshooting
-    console.log("📊 Full response:", JSON.stringify(response, null, 2));
-
-    if ((response.result.meta as any).TransactionResult === "tesSUCCESS") {
-      console.log(
-        `✅ Successfully clawed back ${amount} ${currency} from ${account}`,
-      );
-      return response as any;
-    } else {
-      throw new Error(
-        `Clawback failed: ${(response.result.meta as any).TransactionResult}`,
-      );
+    if (!isTypedTransactionSuccessful(response)) {
+      const errorInfo = handleTransactionError(response, "clawbackTokens");
+      return {
+        success: false,
+        message: errorInfo.message,
+        errorCode: errorInfo.code,
+      };
     }
+
+    console.log(
+      `✅ Successfully clawed back ${amount} ${currency} from ${account}`,
+    );
+    return {
+      success: true,
+      message: `Successfully clawed back ${amount} ${currency} from ${account}`,
+    };
   } catch (error) {
     console.error("❌ Error in clawback operation:", error instanceof Error ? error.message : String(error));
-    throw error;
+    return {
+      success: false,
+      message: `Error in clawback operation: ${error instanceof Error ? error.message : String(error)}`,
+    };
   }
 }

@@ -3,15 +3,8 @@
 import { useState, useEffect } from "react";
 import { Star, Loader2 } from "lucide-react";
 import { useSession } from "next-auth/react";
-
-interface Favorite {
-  id: string | number;
-  friend_username: string;
-}
-
-interface FavoritesResponse {
-  data: Favorite[];
-}
+import { APIResponse } from "@/types/apiTypes";
+import { Favorite } from "@/types/appTypes";
 
 interface FavoritesListProps {
   onRecipientClick: (username: string) => void;
@@ -19,21 +12,27 @@ interface FavoritesListProps {
 
 export default function FavoritesList({ onRecipientClick }: FavoritesListProps) {
   const { data: sessionData } = useSession();
-  const [favorites, setFavorites] = useState<Favorite[]>([]);
+  const [favorites, setFavorites] = useState<Favorite[] >([]);
   const [loadingFavorites, setLoadingFavorites] = useState<boolean>(false);
   const [showAll, setShowAll] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Fetch favorites function
   const fetchFavorites = async () => {
     setLoadingFavorites(true);
     try {
       const res = await fetch("/api/friend/getAllFavorites");
-      if (!res.ok) throw new Error("Failed to fetch favorites");
-      const result: FavoritesResponse = await res.json();
+      if (!res.ok) {
+        const errorData: APIResponse = await res.json();
+        setErrorMessage(errorData.message);
+        return;
+      }
+      const result: APIResponse<Favorite[]> = await res.json();
       setFavorites(result.data || []);
     } catch (err) {
       console.error("Error fetching favorites:", err);
       setFavorites([]);
+      setErrorMessage("Error fetching favorites");
     } finally {
       setLoadingFavorites(false);
     }
@@ -47,7 +46,7 @@ export default function FavoritesList({ onRecipientClick }: FavoritesListProps) 
   }, [sessionData?.user?.username]);
 
   // Don't render if no favorites
-  if (favorites.length === 0 && !loadingFavorites) {
+  if (favorites.length === 0 && !loadingFavorites && !errorMessage) {
     return null;
   }
 
@@ -86,6 +85,11 @@ export default function FavoritesList({ onRecipientClick }: FavoritesListProps) 
             <div className="font-medium">{fav.friend_username}</div>
           </div>
         ))
+      )}
+      {errorMessage && (
+        <div className="mt-4 text-sm text-red-500">
+          {errorMessage}
+        </div>
       )}
     </div>
   );

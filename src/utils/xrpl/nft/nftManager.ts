@@ -4,6 +4,9 @@ import {
   NFTokenMint,
   NFTokenCreateOffer,
   NFTokenAcceptOffer,
+  LedgerEntryRequest,
+  LedgerEntryResponse,
+  LedgerEntry,
 } from "xrpl";
 import { Wallet } from "xrpl";
 import {
@@ -34,24 +37,6 @@ const NFT_FLAGS = {
   tfTransferable: 0x00000008, // NFT is transferable
 };
 
-interface NFTokenOffer {
-  NFTokenID: string;
-  Amount:
-    | {
-        currency: string;
-        value: string;
-        issuer: string;
-      }
-    | string;
-  LedgerEntryType: string;
-}
-
-interface LedgerEntryResponse {
-  result: {
-    node?: NFTokenOffer;
-    ledger_index?: number;
-  };
-}
 
 /**
  * Helper function to extract NFTokenID from transaction metadata
@@ -108,7 +93,10 @@ const mintReceiptNFT = async (
 
   // Validate URI
   if (!uri || uri.length === 0) {
-    throw new Error("URI is required for NFT minting");
+    return {
+      success: false,
+      message: "URI is required for NFT minting",
+    };
   }
 
   // Convert URI to hex encoding
@@ -139,10 +127,8 @@ const mintReceiptNFT = async (
     const errorInfo = handleTransactionError(result, "mintReceiptNFT");
     return {
       success: false,
-      error: {
-        code: errorInfo.code,
-        message: errorInfo.message,
-      },
+      message: errorInfo.message,
+      errorCode: errorInfo.code,
     };
   }
 
@@ -164,10 +150,7 @@ const mintReceiptNFT = async (
   } else {
     return {
       success: false,
-      error: {
-        code: "NFTokenID_NOT_FOUND",
-        message: "NFTokenID not found in transaction metadata",
-      },
+      message: "NFTokenID not found in transaction metadata",
     };
   }
 };
@@ -224,7 +207,10 @@ export async function createNFTSellOfferUSD(
 
   const parsedPrice = parseFloat(validPriceUSD.toString());
   if (parsedPrice <= 0) {
-    throw new Error("Price must be greater than $0 USD");
+    return {
+      success: false,
+      message: "Price must be greater than $0 USD",
+    };
   }
 
   console.log(`💰 Creating NFT sell offer on DEX (USD)...`);
@@ -272,10 +258,8 @@ export async function createNFTSellOfferUSD(
     const errorInfo = handleTransactionError(result, "createNFTSellOfferUSD");
     return {
       success: false,
-      error: {
-        code: errorInfo.code,
-        message: errorInfo.message,
-      },
+      errorCode: errorInfo.code,
+      message: errorInfo.message,
     };
   }
   // Extract offer ID from transaction metadata
@@ -313,8 +297,7 @@ export async function mintAndListNFTUSD(
   if (!mintResult.success) {
     return {
       success: false,
-      message: `NFT minting failed: ${mintResult.error?.message}`,
-      error: mintResult.error,
+      message: `NFT minting failed: ${mintResult.message}`,
     };
   }
 
@@ -335,11 +318,11 @@ export async function mintAndListNFTUSD(
   );
 
   if (!sellResult.success) {
-    console.log(`⚠️ NFT minted but sell offer failed: ${sellResult.error}`);
+    console.log(`⚠️ NFT minted but sell offer failed: ${sellResult.message}`);
     return {
       success: false,
-      message: "NFT minted successfully but DEX listing failed",
-      error: sellResult.error,
+      message: sellResult.message,
+      errorCode: sellResult.errorCode,
     };
   }
 
@@ -381,17 +364,36 @@ export async function purchaseNFTWithSmartTrade(
   let nftTokenID: string | null = null;
 
   console.log(`🔍 Querying NFT sell offer details for ${offerID}...`);
-
-  // Method 1: Query the offer directly by its ledger index
-  const offerResponse = (await client.request({
+  const request: LedgerEntryRequest = {
     command: "ledger_entry" as const,
     index: offerID,
     ledger_index: "validated",
-  })) as LedgerEntryResponse;
+  };
+
+  // Method 1: Query the offer directly by its ledger index
+  let offerResponse: LedgerEntryResponse<LedgerEntry.NFTokenOffer>;
+  
+  try {
+    offerResponse = await client.request(request);
+  } catch (error: any) {
+    // Handle the case where the offer doesn't exist
+    if (error.data?.error === "entryNotFound") {
+      return {
+        success: false,
+        message: "NFT offer not found. It may have been already purchased, cancelled, or the offer ID is invalid.",
+      };
+    }
+    // Handle other unexpected errors
+    return {
+      success: false,
+      message: `Failed to query NFT offer: ${error.message || "Unknown error"}`,
+    };
+  }
+
 
   if (
     offerResponse.result.node &&
-    (offerResponse.result.node as any).LedgerEntryType === "NFTokenOffer"
+    offerResponse.result.node.LedgerEntryType === "NFTokenOffer"
   ) {
     const offer = offerResponse.result.node as any;
     nftTokenID = offer.NFTokenID;
@@ -415,10 +417,16 @@ export async function purchaseNFTWithSmartTrade(
       console.log(`   🎫 NFT ID: ${nftTokenID}`);
       console.log(`   🆔 Offer ID: ${offerID}`);
     } else {
-      throw new Error("NFT offer has invalid amount format");
+      return{
+        success: false,
+        message: "NFT offer has invalid amount format",
+      };
     }
   } else {
-    throw new Error("NFT offer not found or invalid");
+    return {
+      success: false,
+      message: "NFT offer not found or invalid",
+    };
   }
 
   // Step 2: Handle direct payment (no conversion needed)
@@ -448,8 +456,8 @@ export async function purchaseNFTWithSmartTrade(
       );
       return {
         success: false,
-        message: `NFT purchase failed: ${errorInfo.message}`,
-        error: errorInfo,
+        message: errorInfo.message,
+        errorCode: errorInfo.code,
       };
     }
 
@@ -486,8 +494,8 @@ export async function purchaseNFTWithSmartTrade(
   if (!conversionResult.success) {
     return {
       success: false,
-      message: `Currency conversion failed: ${conversionResult.error?.message}`,
-      error: conversionResult.error,
+      message: conversionResult.message,
+      errorCode: conversionResult.errorCode,
     };
   }
 
@@ -520,8 +528,8 @@ export async function purchaseNFTWithSmartTrade(
     );
     return {
       success: false,
-      message: `NFT purchase failed: ${errorInfo.message}`,
-      error: errorInfo,
+      message: errorInfo.message,
+      errorCode: errorInfo.code,
     };
   }
 

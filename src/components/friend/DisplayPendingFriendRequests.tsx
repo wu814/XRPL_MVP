@@ -4,23 +4,11 @@ import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import Button from "@/components/Button";
 import ErrorMdl from "@/components/ErrorMdl";
-
-interface PendingRequest {
-  id: string;
-  sender: string;
-  sent_at: string;
-}
-
-interface PendingRequestsResponse {
-  data: PendingRequest[];
-}
-
-interface RespondResponse {
-  error?: string;
-}
+import { PendingFriendRequest } from "@/types/appTypes";
+import { APIResponse } from "@/types/apiTypes";
 
 export default function DisplayPendingFriendRequests() {
-  const [pendingRequests, setPendingRequests] = useState<PendingRequest[]>([]);
+  const [pendingRequests, setPendingRequests] = useState<PendingFriendRequest[]>([]);
   const [showErrorMdl, setShowErrorMdl] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -29,8 +17,12 @@ export default function DisplayPendingFriendRequests() {
     try {
       setIsLoading(true);
       const res = await fetch("/api/friend/getPendingFriendRequests");
-      if (!res.ok) throw new Error("Failed to fetch pending requests");
-      const result: PendingRequestsResponse = await res.json();
+      if (!res.ok) {
+        const errorData: APIResponse<never> = await res.json();
+        setErrorMessage(errorData.message);
+        return;
+      }
+      const result: APIResponse<PendingFriendRequest[]> = await res.json();
       setPendingRequests(result.data);
     } catch (error: any) {
       setShowErrorMdl(true);
@@ -40,19 +32,24 @@ export default function DisplayPendingFriendRequests() {
     }
   };
 
-  const handleResponse = async (request_id: string, action: "accept" | "reject") => {
+  const handleResponse = async (requestId: number, action: "accept" | "reject") => {
     try {
-      const res = await fetch("/api/friend/respondRequest", {
+      const res = await fetch("/api/friend/respondFriendRequest", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ request_id, action }),
+        body: JSON.stringify({ requestId, action }),
       });
-
-      const result: RespondResponse = await res.json();
-      if (!res.ok)
-        throw new Error(result.error || "Failed to respond to request");
-
-      setPendingRequests((prev) => prev.filter((req) => req.id !== request_id));
+      if (!res.ok) {
+        const errorData: APIResponse<never> = await res.json();
+        setErrorMessage(errorData.message);
+        return;
+      }
+      const result: APIResponse<never> = await res.json();
+      if (!result.success) {
+        setErrorMessage(result.message);
+        return;
+      }
+      setPendingRequests((prev) => prev.filter((req) => req.id !== requestId));
     } catch (err: any) {
       setErrorMessage(err.message);
       setShowErrorMdl(true);

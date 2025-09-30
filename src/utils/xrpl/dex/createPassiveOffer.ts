@@ -1,20 +1,7 @@
 import { client, connectXRPLClient } from "../testnet";
-import { OfferCreate, TxResponse, Amount, OfferCreateFlagsInterface } from "xrpl";
-import * as xrpl from "xrpl";
-
-interface Wallet {
-  classicAddress: string;
-  sign: (tx: any) => any;
-}
-
-interface CreatePassiveOfferResult {
-  success: boolean;
-  sequence?: number;
-  response?: TxResponse;
-  message: string;
-  error?: string;
-}
-
+import { OfferCreate, TxResponse, Amount, OfferCreateFlags, dropsToXrp, Wallet } from "xrpl";
+import { CreateOfferResult } from "@/types/xrpl/dexXRPLTypes";
+import { handleTransactionError, isTypedTransactionSuccessful } from "../errorHandler";
 /**
  * Create a passive offer (with tfPassive flag set).
  * This type of offer doesn't consume offers that exactly match it.
@@ -27,7 +14,7 @@ export default async function createPassiveOffer(
   wallet: Wallet,
   takerPays: Amount,
   takerGets: Amount,
-): Promise<CreatePassiveOfferResult> {
+): Promise<CreateOfferResult> {
   try {
     await connectXRPLClient();
 
@@ -36,7 +23,7 @@ export default async function createPassiveOffer(
       Account: wallet.classicAddress,
       TakerPays: takerPays,
       TakerGets: takerGets,
-      Flags: xrpl.OfferCreateFlags.tfPassive,
+      Flags: OfferCreateFlags.tfPassive,
     };
 
     console.log(
@@ -53,10 +40,10 @@ export default async function createPassiveOffer(
 
     const signedTx = wallet.sign(preparedTx);
     console.log("🚀 Submitting Passive OfferCreate transaction...");
-    const response: TxResponse = await client.submitAndWait(signedTx.tx_blob);
+    const response: TxResponse<OfferCreate> = await client.submitAndWait<OfferCreate>(signedTx.tx_blob);
 
     // Check transaction result
-    if ((response.result.meta as any).TransactionResult === "tesSUCCESS") {
+    if (isTypedTransactionSuccessful(response)) {
       console.log("✅ Passive offer created successfully!");
 
     // Try to get transaction details and ledger timestamp
@@ -86,12 +73,12 @@ export default async function createPassiveOffer(
     message += `💱 Paying: ${
       typeof takerGets === "object"
         ? `${parseFloat(takerGets.value).toFixed(6)} ${takerGets.currency}`
-        : `${xrpl.dropsToXrp(takerGets).toFixed(6)} XRP`
+        : `${dropsToXrp(takerGets).toFixed(6)} XRP`
     }\n`;
     message += `💱 Getting: ${
       typeof takerPays === "object"
         ? `${parseFloat(takerPays.value).toFixed(6)} ${takerPays.currency}`
-        : `${xrpl.dropsToXrp(takerPays).toFixed(6)} XRP`
+        : `${dropsToXrp(takerPays).toFixed(6)} XRP`
     }\n`;
     message += `📋 Transaction Hash: ${response.result.hash}\n`;
     message += `📋 Ledger Index: ${response.result.ledger_index}`;
@@ -114,22 +101,23 @@ export default async function createPassiveOffer(
 
     return {
       success: true,
-      sequence: offerSequence,
-      response: response,
-      message,
+      message: message,
     };
     } else {
-      throw new Error(
-        `Passive offer failed: ${(response.result.meta as any).TransactionResult}`,
-      );
+      const errorInfo = handleTransactionError(response, "createPassiveOffer");
+      return {
+        success: false,
+        message: errorInfo.message,
+        errorCode: errorInfo.code,
+      };
     }
 
   } catch (error: any) {
     console.error("❌ Error creating passive offer:", error.message);
     return {
       success: false,
-      error: `Passive offer creation failed: ${error.message}`,
-      message: "",
+      message: `Passive offer creation failed: ${error.message}`,
+      errorCode: "UNKNOWN_ERROR",
     };
   }
 }

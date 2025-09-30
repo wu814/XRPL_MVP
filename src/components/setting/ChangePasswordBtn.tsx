@@ -4,10 +4,7 @@ import { useState, FormEvent } from "react";
 import { useSession } from "next-auth/react";
 import { Eye, EyeOff } from "lucide-react";
 import Button from "../Button";
-
-interface ChangePasswordResponse {
-  error?: string;
-}
+import { APIResponse } from "@/types/apiTypes";
 
 export default function ChangePasswordBtn() {
   const { data: session } = useSession();
@@ -16,8 +13,8 @@ export default function ChangePasswordBtn() {
   const [newPassword, setNewPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string>("");
-  const [success, setSuccess] = useState<string>("");
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [successMessage, setSuccessMessage] = useState<string>("");
 
   // Password visibility states
   const [showCurrentPassword, setShowCurrentPassword] = useState<boolean>(false);
@@ -26,27 +23,27 @@ export default function ChangePasswordBtn() {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError("");
-    setSuccess("");
+    setErrorMessage("");
+    setSuccessMessage("");
 
     // Validation
     if (!currentPassword || !newPassword || !confirmPassword) {
-      setError("All fields are required");
+      setErrorMessage("All fields are required");
       return;
     }
 
     if (newPassword.length < 5) {
-      setError("New password must be at least 5 characters long");
+      setErrorMessage("New password must be at least 5 characters long");
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError("New passwords do not match");
+      setErrorMessage("New passwords do not match");
       return;
     }
 
     if (currentPassword === newPassword) {
-      setError("New password must be different from current password");
+      setErrorMessage("New password must be different from current password");
       return;
     }
 
@@ -63,23 +60,24 @@ export default function ChangePasswordBtn() {
           newPassword,
         }),
       });
+      if (!response.ok) {
+        const errorData: APIResponse<never> = await response.json();
+        setErrorMessage(errorData.message);
+        return;
+      }
 
-      const data: ChangePasswordResponse = await response.json();
+      const result: APIResponse<never> = await response.json();
 
-      if (response.ok) {
-        setSuccess("Password changed successfully!");
+      if (result.success) {
+        setSuccessMessage("Password changed successfully!");
         setCurrentPassword("");
         setNewPassword("");
         setConfirmPassword("");
-        setTimeout(() => {
-          setIsOpen(false);
-          setSuccess("");
-        }, 2000);
       } else {
-        setError(data.error || "Failed to change password");
+        setErrorMessage(result.message || "Failed to change password");
       }
     } catch (error) {
-      setError("Network error. Please try again.");
+      setErrorMessage(error instanceof Error ? error.message : 'Unknown error occurred');
     } finally {
       setIsLoading(false);
     }
@@ -90,8 +88,8 @@ export default function ChangePasswordBtn() {
     setCurrentPassword("");
     setNewPassword("");
     setConfirmPassword("");
-    setError("");
-    setSuccess("");
+    setErrorMessage("");
+    setSuccessMessage("");
     // Reset visibility states
     setShowCurrentPassword(false);
     setShowNewPassword(false);
@@ -198,15 +196,15 @@ export default function ChangePasswordBtn() {
                 </div>
               </div>
 
-              {error && (
+              {errorMessage && (
                 <div className="text-red-500 text-lg font-bold">
-                  {error}
+                  {errorMessage}
                 </div>
               )}
 
-              {success && (
+              {successMessage && (
                 <div className="text-green-500 text-lg ">
-                  {success}
+                  {successMessage}
                 </div>
               )}
 

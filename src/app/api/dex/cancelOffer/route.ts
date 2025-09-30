@@ -6,41 +6,35 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/utils/auth/authOptions";
 
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
+import { CancelOfferAPIRequest, APIResponse } from "@/types/apiTypes";
 
-interface CancelOfferRequest {
-  userWallet: {
-    classicAddress: string;
-  };
-  offerSequence: number;
-  enteredPassword: string;
-}
 
-export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<never>>> {
   const session = await getServerSession(authOptions);
   if (!session?.user?.user_id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    const { userWallet, offerSequence, enteredPassword }: CancelOfferRequest = await req.json();
+    const { userWallet, offerSequence, enteredPassword }: CancelOfferAPIRequest = await req.json();
 
     if (!userWallet) {
       return NextResponse.json(
-        { error: "Missing user wallet" },
+        { success: false, message: "Missing user wallet" },
         { status: 400 },
       );
     }
 
     if (!offerSequence) {
       return NextResponse.json(
-        { error: "Missing offer sequence" },
+        { success: false, message: "Missing offer sequence" },
         { status: 400 },
       );
     }
 
     if (!enteredPassword) {
       return NextResponse.json(
-        { error: "Missing entered password" },
+        { success: false, message: "Missing entered password" },
         { status: 400 },
       );
     }
@@ -64,7 +58,7 @@ export async function POST(req: NextRequest) {
     );
 
     if (!isMatch) {
-      return NextResponse.json({ error: "Invalid password." }, { status: 403 });
+      return NextResponse.json<APIResponse<never>>({ success: false, message: "Invalid password." }, { status: 403 });
     }
 
     // Get seed from Supabase using classicAddress
@@ -76,7 +70,7 @@ export async function POST(req: NextRequest) {
 
     if (walletError || !walletData) {
       return NextResponse.json(
-        { error: "Wallet not found for the provided classicAddress" },
+        { success: false, message: "Wallet not found for the provided classicAddress" },
         { status: 404 },
       );
     }
@@ -84,6 +78,13 @@ export async function POST(req: NextRequest) {
     const cancelerWallet = Wallet.fromSeed(walletData.seed);
 
     const result = await cancelOffer(cancelerWallet, offerSequence);
+
+    if (!result.success) {
+      return NextResponse.json(
+        { success: false, message: result.message, errorCode: result.errorCode || "UNKNOWN_ERROR" },
+        { status: 400 },
+      );
+    }
 
     return NextResponse.json(
       {
@@ -96,7 +97,7 @@ export async function POST(req: NextRequest) {
     console.error("CancelOffer API error:", err);
     const errorMessage = err instanceof Error ? err.message : 'Unexpected error.';
     return NextResponse.json(
-      { error: errorMessage },
+      { success: false, message: errorMessage },
       { status: 500 },
     );
   }

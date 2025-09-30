@@ -19,10 +19,10 @@ export default function ClientLayoutContent({ children }: ClientLayoutContentPro
   const showSmartTradePanel = session && pathname !== "/" && pathname !== "/register" && !pathname.startsWith("/trade/amm") && !pathname.startsWith("/user") && pathname !== "/trade/dex" && pathname !== "/settings";
   
   return (
-    <div className="min-h-screen bg-color1 text-white">
+    <div className="h-screen bg-color1 text-white overflow-hidden">
       {showNavigation && <Topbar />}
       {showNavigation && <Sidebar />}
-      <div className={`${showNavigation ? "mt-24 ml-56" : ""} ${showSmartTradePanel ? "mr-[30rem]" : ""}`}>
+      <div className={`${showNavigation ? "mt-24 ml-56" : ""} ${showSmartTradePanel ? "mr-[30rem]" : ""} h-full overflow-y-auto scrollbar-hide`}>
         {children}
       </div>
       {showSmartTradePanel && <TradePanel />}

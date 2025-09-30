@@ -1,5 +1,17 @@
 import { AccountOffer, Amount } from "xrpl";
 
+
+export type CancelOfferResult =  {
+  success: boolean;
+  message: string;
+  errorCode?: string;
+}
+
+export type CreateOfferResult =  {
+  success: boolean;
+  message: string;
+  errorCode?: string;
+}
 // Create a type alias for the enhanced offer
 export interface EnhancedOffer extends AccountOffer {
   dateTime?: string;

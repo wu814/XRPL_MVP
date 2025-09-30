@@ -5,8 +5,8 @@ import { Loader2 } from "lucide-react";
 import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
-import { APIErrorResponse } from "@/types/api/errorAPITypes";
-import { CreateWalletAPIResponse } from "@/types/api/walletAPITypes";
+import { APIResponse } from "@/types/apiTypes";
+import { YONAWallet } from "@/types/appTypes";
 
 
 interface CreateAdminWalletBtnProps {
@@ -32,12 +32,12 @@ export default function CreateAdminWalletBtn({ onWalletCreated }: CreateAdminWal
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ walletType }),
       });
-      const result: CreateWalletAPIResponse = await response.json();
       if (!response.ok) {
-        const errorData: APIErrorResponse = await response.json();
+        const errorData: APIResponse<never> = await response.json();
         setErrorMessage(errorData.message);
         return;
       }
+      const result: APIResponse<YONAWallet> = await response.json();
 
       setSuccessMessage(result.message || "Wallet created successfully");
 
@@ -50,7 +50,7 @@ export default function CreateAdminWalletBtn({ onWalletCreated }: CreateAdminWal
             body: JSON.stringify({ wallet: result.data }),
           });
           if (!flagResponse.ok) {
-            const errorData: APIErrorResponse = await flagResponse.json();
+            const errorData: APIResponse<never> = await flagResponse.json();
             setErrorMessage(errorData.message);
             return;
           }

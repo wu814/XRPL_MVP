@@ -6,12 +6,8 @@ import SuccessMdl from "../SuccessMdl";
 import PasswordConfirmMdl from "../PasswordConfirmMdl";
 import { Trash2 } from "lucide-react";
 import { YONAWallet } from "@/types/appTypes";
+import { APIResponse } from "@/types/apiTypes";
 
-interface CancelOfferResponse {
-  success: boolean;
-  message?: string;
-  error?: string;
-}
 
 interface CancelOfferBtnProps {
   wallet: YONAWallet;
@@ -44,11 +40,18 @@ export default function CancelOfferBtn({
         }),
       });
 
-      const result: CancelOfferResponse = await res.json();
-      if (res.ok && result.success) {
+      if (!res.ok) {
+        const errorData: APIResponse<never> = await res.json();
+        setErrorMessage(errorData.message);
+        setLoading(false);
+        return;
+      }
+
+      const result: APIResponse<never> = await res.json();
+      if (result.success) {
         setSuccessMessage(result.message || "Offer canceled successfully.");
       } else {
-        setErrorMessage(`Failed to cancel offer: ${result.error}`);
+        setErrorMessage(`Failed to cancel offer: ${result.message}`);
       }
     } catch (error) {
       setErrorMessage(`Error canceling offer: ${error instanceof Error ? error.message : 'Unknown error'}`);

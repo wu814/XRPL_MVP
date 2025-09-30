@@ -1,21 +1,8 @@
 import { client, connectXRPLClient } from "../testnet";
-import { OfferCreate, TxResponse, Amount } from "xrpl"; // Import XRPL's Amount type
-import * as xrpl from "xrpl";
+import { OfferCreate, TxResponse, Amount, Wallet, dropsToXrp } from "xrpl"; // Import XRPL's Amount type
+import { CreateOfferResult } from "@/types/xrpl/dexXRPLTypes";
+import { handleTransactionError, isTypedTransactionSuccessful } from "../errorHandler";
 
-interface Wallet {
-  classicAddress: string;
-  sign: (tx: any) => any;
-}
-
-  
-
-interface CreateOfferResult {
-  success: boolean;
-  sequence?: number;
-  response?: TxResponse;
-  message: string; // Match original - always include message
-  error?: string;
-}
 
 export default async function createOffer(
   wallet: Wallet,
@@ -47,10 +34,10 @@ export default async function createOffer(
     console.log("🚀 Submitting OfferCreate transaction...");
     console.log("******TakerPays******", takerPays, typeof takerPays);
     console.log("******TakerGets******", takerGets, typeof takerGets);
-    const response: TxResponse = await client.submitAndWait(signedTx.tx_blob);
+    const response: TxResponse<OfferCreate> = await client.submitAndWait<OfferCreate>(signedTx.tx_blob);
 
     // Check transaction result
-    if ((response.result.meta as any).TransactionResult === "tesSUCCESS") {
+    if (isTypedTransactionSuccessful(response)) {
       console.log("✅ Offer created successfully!");
 
     // Try to get transaction details and ledger timestamp (matching original)
@@ -87,13 +74,13 @@ export default async function createOffer(
     message += `💱 Paying: ${
       typeof takerGets === "object"
         ? `${parseFloat(takerGets.value).toFixed(6)} ${takerGets.currency}`
-        : `${xrpl.dropsToXrp(takerGets).toFixed(6)} XRP`
+        : `${dropsToXrp(takerGets).toFixed(6)} XRP`
     }\n`;
 
     message += `💱 Getting: ${
       typeof takerPays === "object"
         ? `${parseFloat(takerPays.value).toFixed(6)} ${takerPays.currency}`
-        : `${xrpl.dropsToXrp(takerPays).toFixed(6)} XRP`
+        : `${dropsToXrp(takerPays).toFixed(6)} XRP`
     }\n`;
 
     message += `📋 Transaction Hash: ${response.result.hash}\n`;
@@ -117,22 +104,23 @@ export default async function createOffer(
 
     return {
       success: true,
-      sequence: offerSequence,
-      response: response,
-      message, // Include all logs as a string (like original)
+      message: message,
     };
     } else {
-      throw new Error(
-        `OfferCreate failed: ${(response.result.meta as any).TransactionResult}`,
-      );
+      const errorInfo = handleTransactionError(response, "createOffer");
+      return {
+        success: false,
+        message: errorInfo.message,
+        errorCode: errorInfo.code,
+      };
     }
 
   } catch (error: any) {
     console.error("❌ Error creating offer:", error.message);
     return {
       success: false,
-      error: `Offer creation failed: ${error.message}`,
-      message: "", // Add empty message for consistency
+      message: `Offer creation failed: ${error.message}`,
+      errorCode: "UNKNOWN_ERROR",
     };
   }
 }

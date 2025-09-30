@@ -1,9 +1,9 @@
 import { getUSDValue, fetchUSDPrices, PriceInfo } from "@/utils/currencyUtils";
 import { YONAWallet } from "@/types/appTypes";
-import { Amount, IssuedCurrencyAmount, xrpToDrops, dropsToXrp } from "xrpl";
-import { GetAccountInfoAPIResponse, GetAccountLinesAPIResponse } from "@/types/api/walletAPITypes";
-import { GetAllAMMDataAPIResponse } from "@/types/api/ammAPITypes";
+import { Amount, IssuedCurrencyAmount, xrpToDrops, dropsToXrp, AccountLinesTrustline, MPTAmount } from "xrpl";
 import { AMMData } from "@/types/xrpl/ammXRPLTypes";
+import { APIResponse } from "@/types/apiTypes";
+import { AccountInfo } from "@/types/xrpl/walletXRPLTypes";
 
 // Type definitions
 export interface Asset {
@@ -41,7 +41,7 @@ export interface UseWalletAssetsReturn {
 type WalletType = "ISSUER" | "TREASURY" | "PATHFIND" | "USER" | "BUSINESS";
 
 // Format amount for XRPL transaction
-export function formatAmountForXRPL(amount: IssuedCurrencyAmount): Amount {
+export function formatXRPLAmount(amount: IssuedCurrencyAmount): Amount {
   if (amount.currency === "XRP") {
     return xrpToDrops(amount.value);
   }
@@ -99,8 +99,8 @@ export async function fetchWalletAssets(
       }),
     ]);
 
-    const accountInfo: GetAccountInfoAPIResponse = await accountInfoResponse.json();
-    const accountLines: GetAccountLinesAPIResponse = await accountLinesResponse.json();
+    const accountInfo: APIResponse<AccountInfo> = await accountInfoResponse.json();
+    const accountLines: APIResponse<AccountLinesTrustline[]> = await accountLinesResponse.json();
 
     const assets: Asset[] = [];
 
@@ -201,7 +201,7 @@ export async function getLpTokenCurrencyPair(ammAccount: string): Promise<Curren
   try {
     // Get AMM registry data
     const response = await fetch("/api/amm/getAllAMMData");
-    const ammData: GetAllAMMDataAPIResponse = await response.json();
+    const ammData: APIResponse<AMMData[]> = await response.json();
     
     if (!ammData.data) {
       return null;

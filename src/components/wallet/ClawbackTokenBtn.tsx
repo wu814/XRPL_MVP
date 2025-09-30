@@ -7,11 +7,7 @@ import Button from "../Button";
 import SuccessMdl from "../SuccessMdl";
 import ErrorMdl from "../ErrorMdl";
 import { YONAWallet } from "@/types/appTypes";
-
-interface ClawbackResponse {
-  message?: string;
-  error?: string;
-}
+import { APIResponse } from "@/types/apiTypes";
 
 interface ClawbackTokenBtnProps {
   issuerWallet: YONAWallet;
@@ -42,18 +38,25 @@ export default function ClawbackTokenBtn({ issuerWallet }: ClawbackTokenBtnProps
         }),
       });
 
-      const result: ClawbackResponse = await res.json();
-      if (!res.ok) throw new Error(result.error || "Unknown error");
+      if (!res.ok) {
+        const errorData: APIResponse<never> = await res.json();
+        setErrorMessage(errorData.message);
+        return;
+      }
 
-      setSuccessMessage(
-        `Successfully clawed back ${amount} ${selectedCurrency}`,
-      );
+      const result: APIResponse<never> = await res.json();
+      if (!result.success) {
+        setErrorMessage(result.message);
+        return;
+      }
+
+      setSuccessMessage(result.message);
       setShowModal(false);
       setTargetAccountAddress("");
       setSelectedCurrency(null);
       setAmount("");
     } catch (error: any) {
-      setErrorMessage(`Failed to clawback: ${error.message}`);
+      setErrorMessage(error instanceof Error ? error.message : 'Unknown error occurred');
     } finally {
       setLoading(false);
     }
@@ -102,7 +105,7 @@ export default function ClawbackTokenBtn({ issuerWallet }: ClawbackTokenBtnProps
               </label>
               <input
                 type="number"
-                step="0.000001"
+                step="0.01"
                 min="0"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}

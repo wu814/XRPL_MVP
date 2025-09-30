@@ -3,8 +3,8 @@ import BigNumber from "bignumber.js";
 import { getFormattedAMMInfo } from "./ammUtils";
 import { client, connectXRPLClient } from "../testnet";
 import { FormattedAMMInfo, WithdrawLiquidityResult } from "@/types/xrpl/ammXRPLTypes";
-import { formatCurrencyForXRPL } from "@/utils/currencyUtils";
-import { formatAmountForXRPL } from "@/utils/assetUtils";
+import { formatXRPLCurrency } from "@/utils/currencyUtils";
+import { formatXRPLAmount } from "@/utils/assetUtils";
 import { handleTransactionError, isTypedTransactionSuccessful } from "../errorHandler";
 
 // Helper function to extract actual withdrawn amounts from transaction metadata
@@ -116,11 +116,11 @@ export async function withdrawLiquidityTwoAsset(
 ): Promise<WithdrawLiquidityResult> {
   await connectXRPLClient();
 
-  const asset1 = formatCurrencyForXRPL(ammInfo.formattedAmount1.currency, ammInfo.formattedAmount1.issuer);
-  const asset2 = formatCurrencyForXRPL(ammInfo.formattedAmount2.currency, ammInfo.formattedAmount2.issuer);
+  const asset1 = formatXRPLCurrency(ammInfo.formattedAmount1.currency, ammInfo.formattedAmount1.issuer);
+  const asset2 = formatXRPLCurrency(ammInfo.formattedAmount2.currency, ammInfo.formattedAmount2.issuer);
 
-  const amount1 = formatAmountForXRPL({currency: ammInfo.formattedAmount1.currency, issuer: ammInfo.formattedAmount1.issuer, value: withdrawValue1});
-  const amount2 = formatAmountForXRPL({currency: ammInfo.formattedAmount2.currency, issuer: ammInfo.formattedAmount2.issuer, value: withdrawValue2});
+  const amount1 = formatXRPLAmount({currency: ammInfo.formattedAmount1.currency, issuer: ammInfo.formattedAmount1.issuer, value: withdrawValue1});
+  const amount2 = formatXRPLAmount({currency: ammInfo.formattedAmount2.currency, issuer: ammInfo.formattedAmount2.issuer, value: withdrawValue2});
 
   const tx: AMMWithdraw = {
     TransactionType: "AMMWithdraw",
@@ -143,10 +143,8 @@ export async function withdrawLiquidityTwoAsset(
     const errorInfo = handleTransactionError(result, "withdrawLiquidityTwoAsset");
     return {
       success: false,
-      error: {
-        code: errorInfo.code,
-        message: errorInfo.message,
-      }
+      errorCode: errorInfo.code,
+      message: errorInfo.message,
     };
   }
   
@@ -203,8 +201,8 @@ export async function withdrawLiquidityWithLPToken(
   await connectXRPLClient();
 
   // Format assets for XRPL
-  const asset1 = formatCurrencyForXRPL(ammInfo.formattedAmount1.currency, ammInfo.formattedAmount1.issuer);
-  const asset2 = formatCurrencyForXRPL(ammInfo.formattedAmount2.currency, ammInfo.formattedAmount2.issuer);
+  const asset1 = formatXRPLCurrency(ammInfo.formattedAmount1.currency, ammInfo.formattedAmount1.issuer);
+  const asset2 = formatXRPLCurrency(ammInfo.formattedAmount2.currency, ammInfo.formattedAmount2.issuer);
 
   const tx: AMMWithdraw = {
     TransactionType: "AMMWithdraw",
@@ -230,10 +228,8 @@ export async function withdrawLiquidityWithLPToken(
     const errorInfo = handleTransactionError(result, "withdrawLiquidityWithLPToken");
     return {
       success: false,
-      error: {
-        code: errorInfo.code,
-        message: errorInfo.message,
-      }
+      errorCode: errorInfo.code,
+      message: errorInfo.message,
     };
   }
   
@@ -286,8 +282,8 @@ export async function withdrawAllLiquidity(
   await connectXRPLClient();
 
   // Format assets for XRPL
-  const asset1 = formatCurrencyForXRPL(ammInfo.formattedAmount1.currency, ammInfo.formattedAmount1.issuer);
-  const asset2 = formatCurrencyForXRPL(ammInfo.formattedAmount2.currency, ammInfo.formattedAmount2.issuer);
+  const asset1 = formatXRPLCurrency(ammInfo.formattedAmount1.currency, ammInfo.formattedAmount1.issuer);
+  const asset2 = formatXRPLCurrency(ammInfo.formattedAmount2.currency, ammInfo.formattedAmount2.issuer);
 
   const tx: AMMWithdraw = {
     TransactionType: "AMMWithdraw",
@@ -308,10 +304,8 @@ export async function withdrawAllLiquidity(
     const errorInfo = handleTransactionError(result, "withdrawAllLiquidity");
     return {
       success: false,
-      error: {
-        code: errorInfo.code,
-        message: errorInfo.message,
-      }
+      errorCode: errorInfo.code,
+      message: errorInfo.message,
     };
   }
   
@@ -372,10 +366,7 @@ export async function withdrawSingleAsset(
   if (!isAsset1 && !isAsset2) {
     return {
       success: false,
-      error: {
-        code: "INVALID_CURRENCY",
-        message: `Currency ${withdrawCurrency} not found in AMM pool`,
-      }
+      message: `Currency ${withdrawCurrency} not found in AMM pool`,
     };
   }
 
@@ -383,11 +374,11 @@ export async function withdrawSingleAsset(
   const otherAsset = isAsset1 ? ammInfo.formattedAmount2 : ammInfo.formattedAmount1;
 
   // Format assets for XRPL
-  const asset1 = formatCurrencyForXRPL(withdrawAsset.currency, withdrawAsset.issuer);
-  const asset2 = formatCurrencyForXRPL(otherAsset.currency, otherAsset.issuer);
+  const asset1 = formatXRPLCurrency(withdrawAsset.currency, withdrawAsset.issuer);
+  const asset2 = formatXRPLCurrency(otherAsset.currency, otherAsset.issuer);
 
   // Format amount for XRPL
-  const amount = formatAmountForXRPL({
+  const amount = formatXRPLAmount({
     currency: withdrawAsset.currency, 
     issuer: withdrawAsset.issuer, 
     value: withdrawValue
@@ -413,10 +404,8 @@ export async function withdrawSingleAsset(
     const errorInfo = handleTransactionError(result, "withdrawSingleAsset");
     return {
       success: false,
-      error: {
-        code: errorInfo.code,
-        message: errorInfo.message,
-      }
+      errorCode: errorInfo.code,
+      message: errorInfo.message,
     };
   }
   
@@ -473,10 +462,7 @@ export async function withdrawAllSingleAsset(
   if (!isAsset1 && !isAsset2) {
     return {
       success: false,
-      error: {
-        code: "INVALID_CURRENCY",
-        message: `Currency ${withdrawCurrency} not found in AMM pool`,
-      }
+      message: `Currency ${withdrawCurrency} not found in AMM pool`,
     };
   }
 
@@ -484,8 +470,8 @@ export async function withdrawAllSingleAsset(
   const otherAsset = isAsset1 ? ammInfo.formattedAmount2 : ammInfo.formattedAmount1;
 
   // Format assets for XRPL
-  const asset1 = formatCurrencyForXRPL(withdrawAsset.currency, withdrawAsset.issuer);
-  const asset2 = formatCurrencyForXRPL(otherAsset.currency, otherAsset.issuer);
+  const asset1 = formatXRPLCurrency(withdrawAsset.currency, withdrawAsset.issuer);
+  const asset2 = formatXRPLCurrency(otherAsset.currency, otherAsset.issuer);
 
   // For withdraw all single asset, we set Amount to "0" to indicate withdraw all
   const amount = withdrawAsset.currency === "XRP" 
@@ -512,10 +498,8 @@ export async function withdrawAllSingleAsset(
     const errorInfo = handleTransactionError(result, "withdrawAllSingleAsset");
     return {
       success: false,
-      error: {
-        code: errorInfo.code,
-        message: errorInfo.message,
-      }
+      errorCode: errorInfo.code,
+      message: errorInfo.message,
     };
   }
   
@@ -574,10 +558,7 @@ export async function withdrawSingleAssetWithLPToken(
   if (!isAsset1 && !isAsset2) {
     return {
       success: false,
-      error: {
-        code: "INVALID_CURRENCY",
-        message: `Currency ${withdrawCurrency} not found in AMM pool`,
-      }
+      message: `Currency ${withdrawCurrency} not found in AMM pool`,
     };
   }
 
@@ -585,8 +566,8 @@ export async function withdrawSingleAssetWithLPToken(
   const otherAsset = isAsset1 ? ammInfo.formattedAmount2 : ammInfo.formattedAmount1;
 
   // Format assets for XRPL
-  const asset1 = formatCurrencyForXRPL(withdrawAsset.currency, withdrawAsset.issuer);
-  const asset2 = formatCurrencyForXRPL(otherAsset.currency, otherAsset.issuer);
+  const asset1 = formatXRPLCurrency(withdrawAsset.currency, withdrawAsset.issuer);
+  const asset2 = formatXRPLCurrency(otherAsset.currency, otherAsset.issuer);
 
   // For single asset withdrawal with LP token, you need both Amount and LPTokenIn
   const amount = withdrawAsset.currency === "XRP" 
@@ -619,10 +600,8 @@ export async function withdrawSingleAssetWithLPToken(
     const errorInfo = handleTransactionError(result, "withdrawSingleAssetWithLPToken");
     return {
       success: false,
-      error: {
-        code: errorInfo.code,
-        message: errorInfo.message,
-      }
+      errorCode: errorInfo.code,
+      message: errorInfo.message,
     };
   }
   

@@ -2,46 +2,38 @@ import { NextRequest, NextResponse } from "next/server";
 import { createLiveCryptoOracle } from "@/utils/xrpl/oracle/orcaleSet";
 import { Wallet } from "xrpl";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
+import { OracleSetAPIRequest, APIResponse } from "@/types/apiTypes";
 
-interface OracleSetRequest {
-  treasuryWallet: {
-    classicAddress: string;
-  };
-  oracleDocumentID: number;
-  coinGeckoIDs: string[];
-  vsCurrency: string;
-}
-
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse<APIResponse<never>>> {
   try {
-    const { treasuryWallet, oracleDocumentID, coinGeckoIDs, vsCurrency }: OracleSetRequest =
+    const { treasuryWallet, oracleDocumentID, coinGeckoIDs, vsCurrency }: OracleSetAPIRequest =
       await request.json();
 
     // Validate required fields
     if (!treasuryWallet) {
       return NextResponse.json(
-        { error: "Missing treasury wallet" },
+        { success: false, message: "Missing treasury wallet" },
         { status: 400 },
       );
     }
 
     if (!oracleDocumentID) {
       return NextResponse.json(
-        { error: "Missing oracle document ID" },
+        { success: false, message: "Missing oracle document ID" },
         { status: 400 },
       );
     }
 
     if (!vsCurrency) {
       return NextResponse.json(
-        { error: "Missing vsCurrency" },
+        { success: false, message: "Missing vsCurrency" },
         { status: 400 },
       );
     }
 
     if (!coinGeckoIDs) {
       return NextResponse.json(
-        { error: "Missing coinGeckoIDs" },
+        { success: false, message: "Missing coinGeckoIDs" },
         { status: 400 },
       );
     }
@@ -56,7 +48,7 @@ export async function POST(request: NextRequest) {
 
     if (walletError || !walletData) {
       return NextResponse.json(
-        { error: "Wallet not found for the provided classicAddress" },
+        { success: false, message: "Wallet not found for the provided classicAddress" },
         { status: 404 },
       );
     }
@@ -73,13 +65,14 @@ export async function POST(request: NextRequest) {
     );
 
     return NextResponse.json({
+      success: true,
       message: "Oracle set successfully!",
       result: result,
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Failed to set oracle';
     return NextResponse.json(
-      { error: errorMessage },
+      { success: false, message: errorMessage },
       { status: 500 },
     );
   }

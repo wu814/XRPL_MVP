@@ -8,22 +8,15 @@ import TransferBtn from "@/components/wallet/TransferBtn";
 import FavoriteBtn from "./FavoriteBtn";
 import { useCurrentUserWallet } from "../wallet/CurrentUserWalletProvider";
 import { useIssuerWallet } from "../wallet/IssuerWalletProvider";
-
-interface Friend {
-  id: string;
-  username: string;
-  responded_at: string;
-}
-
-interface FriendsResponse {
-  data?: Friend[];
-}
+import { Friend } from "@/types/appTypes";
+import { APIResponse } from "@/types/apiTypes";
+import SuccessMdl from "../SuccessMdl";
 
 export default function DisplayFriends() {
   const [friends, setFriends] = useState<Friend[]>([]);
-  const [showErrorMdl, setShowErrorMdl] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // ✅ Pull from WalletContext instead of fetching manually
   const { currentUserWallets } = useCurrentUserWallet();
@@ -35,10 +28,9 @@ export default function DisplayFriends() {
       setIsLoading(true);
       const res = await fetch("/api/friend/getAllFriends");
       if (!res.ok) throw new Error("Failed to fetch friends");
-      const result: FriendsResponse = await res.json();
+      const result: APIResponse<Friend[]> = await res.json();
       setFriends(result.data || []);
     } catch (error: any) {
-      setShowErrorMdl(true);
       setErrorMessage(error.message);
     } finally {
       setIsLoading(false);
@@ -93,17 +85,26 @@ export default function DisplayFriends() {
                 )}
                 <RemoveFriendBtn
                   friendId={friend.id}
-                  onRemoved={fetchFriends}
+                  onRemoved={(message) => {
+                    setSuccessMessage(message);
+                    fetchFriends();
+                  }}
                 />
               </div>
             </li>
           ))}
         </ul>
       )}
-      {showErrorMdl && (
+      {errorMessage && (
         <ErrorMdl
           errorMessage={errorMessage}
-          onClose={() => setShowErrorMdl(false)}
+          onClose={() => setErrorMessage("")}
+        />
+      )}
+      {successMessage && (
+        <SuccessMdl
+          successMessage={successMessage}
+          onClose={() => setSuccessMessage(null)}
         />
       )}
     </div>

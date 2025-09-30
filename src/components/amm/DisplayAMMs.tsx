@@ -8,8 +8,7 @@ import CurrencyIcon from "../currency/CurrencyIcon";
 import CreateAMMBtn from "./CreateAMMBtn";
 import { fetchUSDPrices, getUSDValue, formatCurrencyValue, PriceInfo } from "@/utils/currencyUtils";
 import { AMMData, CreateAMMResult, FormattedAMMInfo } from "@/types/xrpl/ammXRPLTypes";
-import { APIErrorResponse } from "@/types/api/errorAPITypes";
-import { GetAllAMMDataAPIResponse, GetFormattedAMMInfoAPIResponse } from "@/types/api/ammAPITypes";
+import { APIResponse } from "@/types/apiTypes";
 
 
 export default function DisplayAMMs() {
@@ -50,11 +49,11 @@ export default function DisplayAMMs() {
       });
 
       if (!response.ok) {
-        const errorData: APIErrorResponse = await response.json();
+        const errorData: APIResponse<never> = await response.json();
         setErrorMessage(errorData.message);
         return;
       }
-      const result: GetFormattedAMMInfoAPIResponse = await response.json();
+      const result: APIResponse<FormattedAMMInfo> = await response.json();
 
       if (result.data) {
         setAMMDetails((prev) => ({
@@ -96,11 +95,11 @@ export default function DisplayAMMs() {
       const response = await fetch("/api/amm/getAllAMMData");
 
       if (!response.ok) {
-        const errorData: APIErrorResponse = await response.json();
+        const errorData: APIResponse<never> = await response.json();
         setErrorMessage(errorData.message);
         return;
       }
-      const result: GetAllAMMDataAPIResponse = await response.json();
+      const result: APIResponse<AMMData[]> = await response.json();
 
       if (result.data && result.data.length > 0) {
         const ammsData: AMMData[] = result.data.sort((a, b) => {

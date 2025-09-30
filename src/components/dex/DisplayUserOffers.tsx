@@ -5,8 +5,7 @@ import { RefreshCw, CheckCircle, XCircle, ExternalLink } from "lucide-react";
 import { useCurrentUserWallet } from "@/components/wallet/CurrentUserWalletProvider";
 import CancelOfferBtn from "./CancelOfferBtn";
 import { EnhancedOffer, EnhancedCompletedOffer } from "@/types/xrpl/dexXRPLTypes";
-import { APIErrorResponse } from "@/types/api/errorAPITypes";
-import { GetUserOffersAPIResponse, GetCompletedOffersAPIResponse } from "@/types/api/dexAPITypes";
+import { APIResponse } from "@/types/apiTypes";
 
 // Helper: Convert XRP drops or IOU object to unified format
 function parseAsset(asset: any) {
@@ -51,11 +50,11 @@ export default function DisplayUserOffers() {
       });
 
       if (!response.ok) {
-        const errorData: APIErrorResponse = await response.json();
+        const errorData: APIResponse<never> = await response.json();
         setErrorMessage(errorData.message);
         return;
       }
-      const result: GetUserOffersAPIResponse = await response.json();
+      const result: APIResponse<EnhancedOffer[]> = await response.json();
       setOffers(result.data);
     } catch (err: any) {
       setErrorMessage(err.message); 
@@ -78,12 +77,12 @@ export default function DisplayUserOffers() {
       });
 
       if (!response.ok) {
-        const errorData: APIErrorResponse = await response.json();
+        const errorData: APIResponse<never> = await response.json();
         setErrorMessage(errorData.message);
         return;
       }
 
-      const result: GetCompletedOffersAPIResponse = await response.json();
+      const result: APIResponse<EnhancedCompletedOffer[]> = await response.json();
       setCompletedOffers(result.data);
     } catch (err: any) {
       setErrorMessage(err.message);

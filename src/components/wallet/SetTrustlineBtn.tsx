@@ -7,8 +7,7 @@ import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
 import CurrencyDropDown from "../currency/CurrencyDropDown";
 import { YONAWallet } from "@/types/appTypes";
-import { SetWalletTrustlineAPIResponse } from "@/types/api/trustlineAPITypes";
-import { APIErrorResponse } from "@/types/api/errorAPITypes";
+import { APIResponse } from "@/types/apiTypes";
 
 interface SetTrustlineBtnProps {
   setterWallet: YONAWallet;
@@ -41,11 +40,11 @@ export default function SetTrustlineBtn({ setterWallet, issuerWallets, onSuccess
       });
 
       if (!response.ok) {
-        const errorData: APIErrorResponse = await response.json();
+        const errorData: APIResponse<never> = await response.json();
         setErrorMessage(errorData.message);
         return;
       }
-      const result: SetWalletTrustlineAPIResponse = await response.json();
+      const result: APIResponse<never> = await response.json();
       
       setSuccessMessage(result.message || "Trustline set successfully");
       

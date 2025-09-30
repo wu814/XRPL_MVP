@@ -1,5 +1,5 @@
 import { client, connectXRPLClient } from "../testnet";
-import { dropsToXrp, AccountLinesTrustline, AccountObject } from "xrpl";
+import { dropsToXrp, AccountLinesTrustline, AccountObject, AccountInfoResponse, AccountLinesResponse, AccountObjectsResponse } from "xrpl";
 import { AccountInfo } from "@/types/xrpl/walletXRPLTypes";
 
 
@@ -11,13 +11,15 @@ import { AccountInfo } from "@/types/xrpl/walletXRPLTypes";
 export async function getAccountInfo(address: string): Promise<AccountInfo> {
   await connectXRPLClient();
   
-  const response = await client.request({
+  const response: AccountInfoResponse = await client.request({
     command: "account_info",
     account: address,
     ledger_index: "validated",
   });
 
-  const accountData: AccountInfo = response.result.account_data;
+
+
+  const accountData = response.result.account_data;
   
   // Convert balance from drops to XRP
   if (accountData.Balance) {
@@ -35,13 +37,13 @@ export async function getAccountInfo(address: string): Promise<AccountInfo> {
 export async function getAccountLines(address: string): Promise<AccountLinesTrustline[]> {
   await connectXRPLClient();
   
-  const response = await client.request({
+  const response: AccountLinesResponse = await client.request({
     command: "account_lines",
     account: address,
     ledger_index: "validated",
   });
 
-  return response.result.lines as AccountLinesTrustline[];
+  return response.result.lines;
 }
 
 /**
@@ -52,11 +54,11 @@ export async function getAccountLines(address: string): Promise<AccountLinesTrus
 export async function getAccountObjects(address: string): Promise<AccountObject[]> {
   await connectXRPLClient();
   
-  const response = await client.request({
+  const response: AccountObjectsResponse = await client.request({
     command: "account_objects",
     account: address,
     ledger_index: "validated",
   });
 
-  return response.result.account_objects as AccountObject[];
+  return response.result.account_objects;
 }

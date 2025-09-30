@@ -60,10 +60,8 @@ export async function setTrustline(
       const errorInfo = handleTransactionError(result, "setTrustline");
       return {
         success: false,
-        error: {
-          code: errorInfo.code,
-          message: errorInfo.message,
-        },
+        errorCode: errorInfo.code,
+        message: errorInfo.message,
       };
     }
 
@@ -203,10 +201,8 @@ export async function setLPTrustlineFromAMMData(
   if (!result?.success) {
     return {
       success: false,
-      error: {
-        code: result.error.code,
-        message: result.error.message,
-      },
+      message: result.message,
+      errorCode: result.errorCode,
     }
   }
 

@@ -23,7 +23,6 @@ const checkSenderBalance = async (
     return {
       success: false,
       message: `Sender has no trust line with ${issuerAddress} for ${currency}`,
-      error: { code: "NO_TRUSTLINE", message: `Sender has no trust line with ${issuerAddress} for ${currency}` },
     };
 
   const available = new BigNumber(accountLines.result.lines.find(
@@ -33,14 +32,12 @@ const checkSenderBalance = async (
     return {
       success: false,
       message: `Insufficient balance: ${available.toString()} ${currency}, required: ${amountString}`,
-      error: { code: "INSUFFICIENT_BALANCE", message: `Insufficient balance: ${available.toString()} ${currency}, required: ${amountString}` },
     };
   }
 
   return {
     success: true,
     message: `Sender has sufficient balance for IOU payment`,
-    error: undefined,
   };
 };
 
@@ -54,13 +51,11 @@ const checkDestinationTrustline = async (
     return {
       success: false,
       message: `Destination ${destination} lacks trustline for ${currency}`,
-      error: { code: "NO_TRUSTLINE", message: `Destination ${destination} lacks trustline for ${currency}` },
     };
 
   return {
     success: true,
     message: `Destination ${destination} has trustline for ${currency}`,
-    error: undefined,
   };
 };
 
@@ -158,7 +153,7 @@ const sendIOU = async (
     return {
       success: false,
       message: errorInfo.message,
-      error: errorInfo,
+      errorCode: errorInfo.code,
     };
   }
 

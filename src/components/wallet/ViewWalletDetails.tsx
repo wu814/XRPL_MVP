@@ -1,10 +1,16 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Landmark } from "lucide-react";
-import { ReserveItem } from "@/types/wallet";
 import { YONAWallet } from "@/types/appTypes";
-import { GetAccountObjectsAPIResponse } from "@/types/api/walletAPITypes";
-
+import { APIResponse } from "@/types/apiTypes";
+import { AccountObject } from "xrpl";
+interface ReserveItem {
+  type: string;
+  description: string;
+  xrpAmount: number;
+  count: number;
+  items?: string[];
+}
 
 interface ViewWalletDetailsProps {
   wallet: YONAWallet;
@@ -29,7 +35,7 @@ export default function ViewWalletDetails({ wallet, onBack }: ViewWalletDetailsP
         body: JSON.stringify({ wallet }),
       });
 
-      const accountObjects: GetAccountObjectsAPIResponse = await accountObjectsResponse.json();
+      const accountObjects: APIResponse<AccountObject[]> = await accountObjectsResponse.json();
       console.log(accountObjects);
 
       // Process reserve breakdown

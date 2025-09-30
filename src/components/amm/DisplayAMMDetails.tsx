@@ -14,8 +14,7 @@ import {
   PriceInfo,
 } from "@/utils/currencyUtils";
 import { FormattedAMMInfo } from "@/types/xrpl/ammXRPLTypes";
-import { APIErrorResponse } from "@/types/api/errorAPITypes";
-import { GetFormattedAMMInfoAPIResponse } from "@/types/api/ammAPITypes";
+import { APIResponse } from "@/types/apiTypes";
 
 
 interface DisplayAMMDetailsProps {
@@ -44,11 +43,11 @@ export default function DisplayAMMDetails({
       });
 
       if (!response.ok) {
-        const errorData: APIErrorResponse = await response.json();
+        const errorData: APIResponse<never> = await response.json();
         setErrorMessage(errorData.message);
         return;
       }
-      const result: GetFormattedAMMInfoAPIResponse = await response.json();
+      const result: APIResponse<FormattedAMMInfo> = await response.json();
       console.log("🔹 AMM Info:", result.data);
 
       if (result.data) {

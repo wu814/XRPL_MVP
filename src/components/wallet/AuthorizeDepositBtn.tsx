@@ -5,19 +5,11 @@ import { Loader2 } from "lucide-react";
 import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
-
-interface TreasuryWallet {
-  classicAddress: string;
-  walletType?: string;
-}
-
-interface AuthorizeDepositResponse {
-  message?: string;
-  error?: string;
-}
+import { APIResponse } from "@/types/apiTypes";
+import { YONAWallet } from "@/types/appTypes";
 
 interface AuthorizeDepositBtnProps {
-  treasuryWallet: TreasuryWallet;
+  treasuryWallet: YONAWallet;
   onSuccess?: () => void;
 }
 
@@ -38,9 +30,13 @@ export default function AuthorizeDepositBtn({ treasuryWallet, onSuccess }: Autho
         body: JSON.stringify({ walletWithDepositAuth: treasuryWallet, authorizedAddress }),
       });
 
-      const result: AuthorizeDepositResponse = await res.json();
-      if (!res.ok)
-        throw new Error(result.error || "Failed to authorize deposit");
+      if (!res.ok) {
+        const errorData: APIResponse<never> = await res.json();
+        setErrorMessage(errorData.message);
+        setLoading(false);
+        return;
+      }
+      const result: APIResponse<never> = await res.json();
 
       setSuccessMessage(result.message || "Deposit authorized successfully");
       

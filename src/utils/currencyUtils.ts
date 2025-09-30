@@ -1,6 +1,6 @@
-import { APIErrorResponse } from "@/types/api/errorAPITypes";
-import { GetTreasuryWalletAPIResponse } from "@/types/api/walletAPITypes";
-import { Currency } from "xrpl";
+import { APIResponse } from "@/types/apiTypes";
+import { YONAWallet } from "@/types/appTypes";
+import { BookOfferCurrency, Currency } from "xrpl";
 
 // Types
 export interface YONACurrency {
@@ -21,10 +21,6 @@ export interface PricesResponse {
   error?: string;
 }
 
-export interface UseLivePricesReturn {
-  livePrices: PriceInfo[];
-  loading: boolean;
-}
 
 export const availableCurrencies: YONACurrency[] = [
   { id: "USD", name: "USD", avatar: "/icons/USD.png" },
@@ -44,11 +40,11 @@ export async function fetchUSDPrices(): Promise<PriceInfo[]> {
     // Step 1: Get treasury wallet (oracle account)
     const treasuryResponse = await fetch("/api/wallet/getTreasuryWallet");
     if (!treasuryResponse.ok) {
-      const errorData: APIErrorResponse = await treasuryResponse.json();
+      const errorData: APIResponse<never> = await treasuryResponse.json();
       console.error("Error fetching treasury wallet:", errorData.message);
       return [];
     }
-    const treasuryResult: GetTreasuryWalletAPIResponse = await treasuryResponse.json();
+    const treasuryResult: APIResponse<YONAWallet> = await treasuryResponse.json();
 
     if (!treasuryResult.data) {
       console.error("No treasury wallet found");
@@ -146,7 +142,7 @@ export function getCurrencyIcon(currency: string): string | null {
  * @param value - The amount value (defaults to "0" if not specified)
  * @returns Currency object - For XRP: {currency, value}, For others: {currency, issuer, value}
  */
-export function formatCurrencyForXRPL(
+export function formatXRPLCurrency(
   currency: string, 
   issuerAddress: string, 
 ): Currency {  
@@ -161,3 +157,12 @@ export function formatCurrencyForXRPL(
   };
 }
 
+export function formatBookOfferCurrency(
+  currency: string,
+  issuerAddress: string,
+): BookOfferCurrency {
+  if (currency === "XRP") {
+    return { currency: "XRP" };
+  }
+  return { currency, issuer: issuerAddress };
+}

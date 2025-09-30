@@ -6,11 +6,7 @@ import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
 import { YONAWallet } from "@/types/appTypes";
-
-interface OracleResponse {
-  message?: string;
-  error?: string;
-}
+import { APIResponse } from "@/types/apiTypes";
 
 interface ManageOracleBtnProps {
   treasuryWallet: YONAWallet;
@@ -46,11 +42,19 @@ export default function ManageOracleBtn({ treasuryWallet, onSuccess }: ManageOra
         }),
       });
 
-      const result: OracleResponse = await res.json();
-      if (!res.ok)
-        throw new Error(result.error || "Failed to set oracle");
-
-      setSuccessMessage(result.message || "Oracle set successfully!");
+      if (!res.ok) {
+        const errorData: APIResponse<never> = await res.json();
+        setErrorMessage(errorData.message);
+        return;
+      }
+      const result: APIResponse<never> = await res.json();
+      if (!result.success) {
+        setErrorMessage(result.message);
+        return;
+      } else {
+        setSuccessMessage(result.message || "Oracle set successfully!");
+      }
+    
       
       // Call the onSuccess callback if provided
       if (onSuccess) {
@@ -78,11 +82,18 @@ export default function ManageOracleBtn({ treasuryWallet, onSuccess }: ManageOra
         }),
       });
 
-      const result: OracleResponse = await res.json();
-      if (!res.ok)
-        throw new Error(result.error || "Failed to delete oracle");
-
-      setSuccessMessage(result.message || "Oracle deleted successfully!");
+      if (!res.ok) {
+        const errorData: APIResponse<never> = await res.json();
+        setErrorMessage(errorData.message);
+        return;
+      }
+      const result: APIResponse<never> = await res.json();
+      if (!result.success) {
+        setErrorMessage(result.message);
+        return;
+      } else {
+        setSuccessMessage(result.message || "Oracle deleted successfully!");
+      }
       
       // Call the onSuccess callback if provided
       if (onSuccess) {

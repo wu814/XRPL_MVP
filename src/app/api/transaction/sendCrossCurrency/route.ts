@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
 import { sendCrossCurrency } from "@/utils/xrpl/transaction/sendCrossCurrency";
 import { Wallet } from "xrpl";
-import { sendCrossCurrencyAPIRequest, sendCrossCurrencyAPIResponse } from "@/types/api/transactionAPITypes";
-import { APIErrorResponse } from "@/types/api/errorAPITypes";
+import { APIResponse, sendCrossCurrencyAPIRequest } from "@/types/apiTypes";
 
-export async function POST(req: NextRequest): Promise<NextResponse<sendCrossCurrencyAPIResponse | APIErrorResponse>> {
+
+export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<never>>> {
   try {
     const {
       senderWallet,
@@ -29,14 +29,15 @@ export async function POST(req: NextRequest): Promise<NextResponse<sendCrossCurr
       !receiveCurrency ||
       !issuerAddress
     ) {
-      return NextResponse.json<APIErrorResponse>(
-        { message: "Missing required parameters" },
+      return NextResponse.json(
+        { success: false, message: "Missing required parameters" },
         { status: 400 }
       );
     }
 
     let recipientAddress = recipient;
 
+    // Grab recipient's wallet address by username
     if (useUsername) {
       const supabase = await createSupabaseAnonClient();
       const { data: userData, error: userError } = await supabase
@@ -71,8 +72,8 @@ export async function POST(req: NextRequest): Promise<NextResponse<sendCrossCurr
       .single();
 
     if (walletError || !walletData) {
-      return NextResponse.json<APIErrorResponse>(
-        { message: "Wallet not found for the provided classicAddress" },
+      return NextResponse.json(
+        { success: false, message: "Wallet not found for the provided classicAddress" },
         { status: 404 },
       );
     }
@@ -93,20 +94,21 @@ export async function POST(req: NextRequest): Promise<NextResponse<sendCrossCurr
     );
 
     if (!result.success) {
-      return NextResponse.json<APIErrorResponse>(
-        { message: result.message },
+      return NextResponse.json(
+        { success: false, message: result.message },
         { status: 400 },
       );
     }
 
-    return NextResponse.json<sendCrossCurrencyAPIResponse>({ 
+    return NextResponse.json({ 
+      success: true,
       message: result.message,
      }, { status: 200 });
   } catch (error) {
     console.error("Error in /api/transaction/sendCrossCurrency:", error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    return NextResponse.json<APIErrorResponse>(
-      { message: `sendCrossCurrency failed: ${errorMessage}` },
+    return NextResponse.json(
+      { success: false, message: `sendCrossCurrency failed: ${errorMessage}` },
       { status: 500 }
     );
   }

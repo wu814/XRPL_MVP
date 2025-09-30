@@ -4,11 +4,7 @@ import { useState } from "react";
 import Button from "@/components/Button";
 import SuccessMdl from "../SuccessMdl";
 import ErrorMdl from "../ErrorMdl";
-
-interface AddFriendResponse {
-  message?: string;
-  error?: string;
-}
+import { APIResponse } from "@/types/apiTypes";
 
 interface AddFriendBtnProps {
   receiver: string;
@@ -24,17 +20,19 @@ export default function AddFriendBtn({ receiver }: AddFriendBtnProps) {
     setErrorMessage("");
 
     try {
-      const res = await fetch("/api/friend/sendRequest", {
+      const res = await fetch("/api/friend/sendFriendRequest", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ receiver }),
       });
 
-      const result: AddFriendResponse = await res.json();
-
       if (!res.ok) {
-        throw new Error(result.error || "Failed to send request");
+        const errorData: APIResponse<never> = await res.json();
+        setErrorMessage(errorData.message);
+        return;
       }
+
+      const result: APIResponse<never> = await res.json();
       setSuccessMessage(result.message || "Friend request sent successfully");
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : "Unknown error");

@@ -91,9 +91,9 @@ export default function CurrencyPairSelection({ onPairUpdate }: CurrencyPairSele
 
               <button
                 onClick={handleSwap}
-                className="mt-6 rounded-full bg-color3 p-2 transition-colors duration-200 hover:bg-color4"
+                className="mt-6 rounded-xl bg-color3 p-2 transition-colors duration-200 hover:bg-color4"
               >
-                <ArrowLeftRight className="h-5 w-5 text-gray-400" />
+                <ArrowLeftRight className="h-5 w-5 text-gray-300" />
               </button>
 
               <div>

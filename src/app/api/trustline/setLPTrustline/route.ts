@@ -2,20 +2,19 @@ import { NextRequest, NextResponse } from "next/server";
 import { Wallet } from "xrpl";
 import { setLPTrustlineFromAMMData } from "@/utils/xrpl/trustline/setTrustline";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
-import { SetLPTrustlineAPIRequest, SetLPTrustlineAPIResponse } from "@/types/api/trustlineAPITypes";
-import { APIErrorResponse } from "@/types/api/errorAPITypes";
+import { APIResponse, SetLPTrustlineAPIRequest } from "@/types/apiTypes";
 
 
-export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<never>>> {
   try {
     const { setterWallet, lpToken }: SetLPTrustlineAPIRequest = await req.json();
 
     if (!setterWallet) {
-      return NextResponse.json<APIErrorResponse>({ message: "Missing setterWallet" }, { status: 400 });
+      return NextResponse.json({ success: false, message: "Missing setterWallet" }, { status: 400 });
     }
 
     if (!lpToken) {
-      return NextResponse.json<APIErrorResponse>({ message: "Missing lpToken" }, { status: 400 });
+      return NextResponse.json({ success: false, message: "Missing lpToken" }, { status: 400 });
     }
 
     // Get seed from Supabase using classicAddress
@@ -27,8 +26,8 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (walletError || !walletData) {
-      return NextResponse.json<APIErrorResponse>(
-        { message: "Wallet not found for the provided classicAddress" },
+      return NextResponse.json(
+        { success: false, message: "Wallet not found for the provided classicAddress" },
         { status: 404 },
       );
     }
@@ -38,20 +37,20 @@ export async function POST(req: NextRequest) {
     const result = await setLPTrustlineFromAMMData({ setterXRPLWallet, lpToken });
 
     if (!result.success) {
-      return NextResponse.json<APIErrorResponse>(
-        { message: result.error.message },
+      return NextResponse.json(
+        { success: false, message: result.message },
         { status: 500 },
       );
     }
 
-    return NextResponse.json<SetLPTrustlineAPIResponse>(
-      { message: result.message },
+    return NextResponse.json(
+      { success: true, message: result.message },
       { status: 200 },
     );
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : 'Unexpected error while setting trustline.';
-    return NextResponse.json<APIErrorResponse>(
-      { message: errorMessage },
+    return NextResponse.json(
+      { success: false, message: errorMessage },
       { status: 500 },
     );
   }

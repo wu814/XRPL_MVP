@@ -1,13 +1,8 @@
 import { client, connectXRPLClient } from "../testnet";
 import { Wallet } from "xrpl";
 import axios from "axios";
+import { CoinGeckoPrice } from "@/types/appTypes";
 
-interface CoinGeckoPrice {
-  symbol: string;
-  price: number;
-  quoteAsset: string;
-  lastUpdated: number;
-}
 
 interface PriceData {
   baseAsset: string;
@@ -62,7 +57,7 @@ export async function fetchCoinGeckoPrices(
     const response = await axios.get(url, { params });
     const priceData = response.data;
     
-    console.log(`✅ Successfully fetched prices from CoinGecko`);
+    console.log(`✅ Successfully fetched prices from CoinGecko`, priceData);
     
     // Convert CoinGecko response to our format
     const prices: CoinGeckoPrice[] = [];

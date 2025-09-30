@@ -255,7 +255,7 @@ export default function SwapLiquidity({ ammInfo, onSwapped }: SwapLiquidityProps
     ammInfo;
 
   return (
-    <div className="space-y-4">
+    <div>
       <div className="relative flex items-center justify-end">
         <button onClick={() => setShowSlippagePanel((prev) => !prev)} className="p-2 hover:bg-color3 rounded-lg transition-colors hover:text-white text-gray-400">
           <Settings className="w-5 h-5" />
@@ -287,7 +287,7 @@ export default function SwapLiquidity({ ammInfo, onSwapped }: SwapLiquidityProps
           </div>
           <input
             type="number"
-            step="0.000001"
+            step="0.01"
             value={sellAmount}
             onChange={handleSellAmountChange}
             placeholder="0.00"
@@ -301,13 +301,13 @@ export default function SwapLiquidity({ ammInfo, onSwapped }: SwapLiquidityProps
       </div>
 
       {/* Up/Down Arrow between inputs */}
-      <div className="flex justify-center">
+      <div className="-my-5 flex justify-center">
         <button
           onClick={handleCurrencySwap}
-          className="hover:bg-color4 p-3 bg-color3 rounded-full transition-colors"
+          className="rounded-2xl bg-color3 border-2 border-color4 p-3 transition-colors hover:bg-color4"
           disabled={!sellCurrency || !buyCurrency || calculatingAmounts}
         >
-          <ArrowUpDown className="h-6 w-6 text-gray-400" />
+          <ArrowUpDown className="h-6 w-6 text-gray-300" />
         </button>
       </div>
 
@@ -320,7 +320,7 @@ export default function SwapLiquidity({ ammInfo, onSwapped }: SwapLiquidityProps
         </div>
         <input
           type="number"
-          step="0.000001"
+          step="0.01"
           value={buyAmount}
           onChange={handleBuyAmountChange}
           placeholder="0.00"
@@ -336,7 +336,7 @@ export default function SwapLiquidity({ ammInfo, onSwapped }: SwapLiquidityProps
       <Button
         onClick={handleSwap}
         disabled={!canSwap || loading || calculatingAmounts}
-        className="w-full"
+        className="mt-4 w-full"
       >
         {loading ? (
           <div className="flex items-center justify-center space-x-2">

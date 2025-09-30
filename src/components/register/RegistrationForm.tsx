@@ -8,7 +8,9 @@ import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
 import UsernameInput from "./UsernameInput";
 import PasswordInput from "./PasswordInput";
-import AccountTypeSelector, { AccountType } from "./AccountTypeSelector";
+import { APIResponse } from "@/types/apiTypes";
+import { AccountType } from "@/types/appTypes";
+import AccountTypeSelector from "./AccountTypeSelector";
 
 interface FormData {
   username: string;
@@ -20,11 +22,6 @@ interface FormData {
 interface Errors {
   [key: string]: string;
 }
-
-interface CreateUserResponse {
-  error?: string;
-}
-
 
 export default function RegistrationForm() {
   const { data: session } = useSession();
@@ -147,16 +144,22 @@ export default function RegistrationForm() {
         })
       });
 
-      const data: CreateUserResponse = await response.json();
-
       if (!response.ok) {
-        throw new Error(data.error || "Failed to create account");
+        const errorData: APIResponse<never> = await response.json();
+        setErrorMessage(errorData.message);
+        return;
+      }
+      const result: APIResponse<never> = await response.json();
+      if (!result.success) {
+        setErrorMessage(result.message);
+        return;
+      } else {
+        setSuccessMessage(result.message || "Account created successfully! Refreshing your session...");
       }
 
       // Mark form as submitted to allow navigation
       setIsFormSubmitted(true);
       
-      setSuccessMessage("Account created successfully! Refreshing your session...");
       
       // Force session refresh by signing in again
       await signIn("google", { 
