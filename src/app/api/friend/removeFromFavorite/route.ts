@@ -5,6 +5,7 @@ import { RemoveFromFavoriteAPIRequest, APIResponse } from "@/types/apiTypes";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
 
 
+
 export async function DELETE(req: NextRequest): Promise<NextResponse<APIResponse<never>>> {
   const session = await getServerSession(authOptions);
   if (!session?.user?.username) {
