@@ -8,37 +8,40 @@ import SuccessMdl from "../SuccessMdl";
 import { APIResponse } from "@/types/apiTypes";
 import { YONAWallet } from "@/types/appTypes";
 
-interface AuthorizeDepositBtnProps {
-  authorizerWallet: YONAWallet;
+interface DeepFreezeBtnProps {
+  issuerWallet: YONAWallet;
   onSuccess?: () => void;
 }
 
-export default function AuthorizeDepositBtn({ authorizerWallet, onSuccess }: AuthorizeDepositBtnProps) {
+export default function DeepFreezeBtn({ issuerWallet, onSuccess }: DeepFreezeBtnProps) {
   const [showMdl, setShowMdl] = useState<boolean>(false);
-  const [authorizedAddress, setAuthorizedAddress] = useState<string>("");
+  const [targetAddress, setTargetAddress] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const handleAuthorize = async () => {
+  const handleDeepFreeze = async () => {
     setLoading(true);
     setErrorMessage(null);
     try {
-      const res = await fetch("/api/wallet/authorizeDeposit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ walletWithDepositAuth: authorizerWallet, authorizedAddress }),
-      });
+      // TODO: Implement API call to /api/wallet/deepFreeze
+      // const res = await fetch("/api/wallet/deepFreeze", {
+      //   method: "POST",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify({ issuerWallet, targetAddress }),
+      // });
 
-      if (!res.ok) {
-        const errorData: APIResponse<never> = await res.json();
-        setErrorMessage(errorData.message);
-        setLoading(false);
-        return;
-      }
-      const result: APIResponse<never> = await res.json();
+      // if (!res.ok) {
+      //   const errorData: APIResponse<never> = await res.json();
+      //   setErrorMessage(errorData.message);
+      //   setLoading(false);
+      //   return;
+      // }
+      // const result: APIResponse<never> = await res.json();
 
-      setSuccessMessage(result.message || "Deposit authorized successfully");
+      // Placeholder success message
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+      setSuccessMessage("Deep freeze will be implemented soon");
       
       // Call the onSuccess callback if provided
       if (onSuccess) {
@@ -55,24 +58,24 @@ export default function AuthorizeDepositBtn({ authorizerWallet, onSuccess }: Aut
   return (
     <div>
       <Button variant="primary" onClick={() => setShowMdl(true)}>
-        Authorize Deposit
+        Deep Freeze
       </Button>
 
       {showMdl && (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/40">
           <div className="w-96 rounded-lg bg-color3 p-6">
             <h2 className="mb-4 text-2xl font-semibold">
-              Authorize Deposit
+              Deep Freeze Account
             </h2>
             <label className="text-sm text-mutedText">
-              Wallet Address
+              Target Wallet Address
             </label>
             <input
               type="text"
-              value={authorizedAddress}
-              onChange={(e) => setAuthorizedAddress(e.target.value)}
+              value={targetAddress}
+              onChange={(e) => setTargetAddress(e.target.value)}
               className="bg-color4 mt-1 w-full rounded-lg border border-transparent p-2 hover:border-gray-500 focus:border-primary focus:outline-none"
-              placeholder="Enter wallet address to authorize"
+              placeholder="Enter wallet address to deep freeze"
             />
             <div className="mt-4 flex space-x-2">
               <Button
@@ -85,17 +88,17 @@ export default function AuthorizeDepositBtn({ authorizerWallet, onSuccess }: Aut
               </Button>
               <Button
                 variant="primary"
-                onClick={handleAuthorize}
-                disabled={loading || !authorizedAddress}
+                onClick={handleDeepFreeze}
+                disabled={loading || !targetAddress}
                 className="flex-1"
               >
                 {loading ? (
                   <div className="flex items-center justify-center space-x-2">
                     <Loader2 className="h-5 w-5 animate-spin" />
-                    <span>Authorizing...</span>
+                    <span>Processing...</span>
                   </div>
                 ) : (
-                  "Authorize"
+                  "Deep Freeze"
                 )}
               </Button>
             </div>
