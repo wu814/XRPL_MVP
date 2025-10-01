@@ -225,6 +225,7 @@ export type AuthorizeDepositRequest = {
   authorizedAddress: string;
 }
 
+
 export type DeleteWalletRequest = {
   classicAddress: string;
   enteredPassword: string;

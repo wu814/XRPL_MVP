@@ -5,6 +5,7 @@ import { Loader2 } from "lucide-react";
 import Button from "../Button";
 import ErrorMdl from "../ErrorMdl";
 import SuccessMdl from "../SuccessMdl";
+import CurrencyDropDown from "../currency/CurrencyDropDown";
 import { APIResponse } from "@/types/apiTypes";
 import { YONAWallet } from "@/types/appTypes";
 
@@ -16,6 +17,7 @@ interface DeepFreezeBtnProps {
 export default function DeepFreezeBtn({ issuerWallet, onSuccess }: DeepFreezeBtnProps) {
   const [showMdl, setShowMdl] = useState<boolean>(false);
   const [targetAddress, setTargetAddress] = useState<string>("");
+  const [currency, setCurrency] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -28,7 +30,7 @@ export default function DeepFreezeBtn({ issuerWallet, onSuccess }: DeepFreezeBtn
       // const res = await fetch("/api/wallet/deepFreeze", {
       //   method: "POST",
       //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({ issuerWallet, targetAddress }),
+      //   body: JSON.stringify({ issuerWallet, targetAddress, currency }),
       // });
 
       // if (!res.ok) {
@@ -67,6 +69,16 @@ export default function DeepFreezeBtn({ issuerWallet, onSuccess }: DeepFreezeBtn
             <h2 className="mb-4 text-2xl font-semibold">
               Deep Freeze Account
             </h2>
+            
+            <label className="text-sm text-mutedText">
+              Currency
+            </label>
+            <CurrencyDropDown
+              value={currency}
+              onChange={setCurrency}
+              className="mb-4"
+            />
+            
             <label className="text-sm text-mutedText">
               Target Wallet Address
             </label>
@@ -89,7 +101,7 @@ export default function DeepFreezeBtn({ issuerWallet, onSuccess }: DeepFreezeBtn
               <Button
                 variant="primary"
                 onClick={handleDeepFreeze}
-                disabled={loading || !targetAddress}
+                disabled={loading || !targetAddress || !currency}
                 className="flex-1"
               >
                 {loading ? (
