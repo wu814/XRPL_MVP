@@ -9,6 +9,8 @@ import AuthorizeDepositBtn from "@/components/wallet/AuthorizeDepositBtn";
 import ClawbackTokenBtn from "@/components/wallet/ClawbackTokenBtn";
 import TransferBtn from "@/components/wallet/TransferBtn";
 import CreateAdminWalletBtn from "@/components/wallet/CreateAdminWalletBtn";
+import AuthorizeTrustlineBtn from "@/components/wallet/AuthorizeTrustlineBtn";
+import DeepFreezeBtn from "@/components/wallet/DeepFreezeBtn";
 import Button from "@/components/Button";
 import ManageOracleBtn from "@/components/wallet/ManageOracleBtn";
 import ViewWalletDetails from "@/components/wallet/ViewWalletDetails";
@@ -180,7 +182,7 @@ export default function DisplayAdminWallets() {
                     {wallet.walletType === "TREASURY" && (
                       <>
                         <AuthorizeDepositBtn
-                          treasuryWallet={wallet}
+                          authorizerWallet={wallet}
                           onSuccess={fetchWalletBalances}
                         />
                         <ManageOracleBtn
@@ -202,7 +204,12 @@ export default function DisplayAdminWallets() {
 
                     {/* Issuer-specific options */}
                     {wallet.walletType === "ISSUER" && (
-                      <ClawbackTokenBtn issuerWallet={wallet} />
+                      <>
+                        <AuthorizeDepositBtn authorizerWallet={wallet} />
+                        <AuthorizeTrustlineBtn issuerWallet={wallet} />
+                        <ClawbackTokenBtn issuerWallet={wallet} />
+                        <DeepFreezeBtn issuerWallet={wallet} />
+                      </>
                     )}
                   </div>
                   <div>

@@ -21,6 +21,7 @@ export default function ClawbackTokenBtn({ issuerWallet }: ClawbackTokenBtnProps
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [successMessage, setSuccessMessage] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
+  const [clawbackMode, setClawbackMode] = useState<"regular" | "amm">("regular");
 
   const handleClawback = async () => {
     setLoading(true);
@@ -71,79 +72,117 @@ export default function ClawbackTokenBtn({ issuerWallet }: ClawbackTokenBtnProps
       {showModal && (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/40">
           <div className="w-96 space-y-4 rounded-lg bg-color3 p-6">
-            <h2 className="text-2xl font-semibold">
-              Clawback Token
-            </h2>
-
-            <div>
-              <label className="block text-sm font-medium text-mutedText">
-                Target Account Address
-              </label>
-              <input
-                type="text"
-                value={targetAccountAddress}
-                onChange={(e) => setTargetAccountAddress(e.target.value)}
-                className="bg-color4 mt-1 w-full rounded-lg border border-transparent p-2 hover:border-gray-500 focus:border-primary focus:outline-none"
-                placeholder="Enter target wallet address..."
-              />
+            {/* Header with Toggle */}
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-semibold">
+                Clawback Token
+              </h2>
+              
+              {/* Toggle between Regular and AMM */}
+              <div className="flex space-x-1 rounded-full bg-color4 p-1">
+                <button
+                  className={`rounded-full px-3 py-1 text-xs transition-colors ${
+                    clawbackMode === "regular"
+                      ? "bg-primary/20 text-primary border border-primary"
+                      : "text-mutedText hover:text-white"
+                  }`}
+                  onClick={() => setClawbackMode("regular")}
+                >
+                  Regular
+                </button>
+                <button
+                  className={`rounded-full px-3 py-1 text-xs transition-colors ${
+                    clawbackMode === "amm"
+                      ? "bg-primary/20 text-primary border border-primary"
+                      : "text-mutedText hover:text-white"
+                  }`}
+                  onClick={() => setClawbackMode("amm")}
+                >
+                  AMM
+                </button>
+              </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-mutedText">
-                Currency
-              </label>
-              <CurrencyDropDown
-                value={selectedCurrency || ""}
-                onChange={setSelectedCurrency}
-                disabledOptions={[]}
-              />
-            </div>
+            {/* Conditional Content Based on Toggle */}
+            {clawbackMode === "regular" ? (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-mutedText">
+                    Target Account Address
+                  </label>
+                  <input
+                    type="text"
+                    value={targetAccountAddress}
+                    onChange={(e) => setTargetAccountAddress(e.target.value)}
+                    className="bg-color4 mt-1 w-full rounded-lg border border-transparent p-2 hover:border-gray-500 focus:border-primary focus:outline-none"
+                    placeholder="Enter target wallet address..."
+                  />
+                </div>
 
-            <div>
-              <label className="block text-sm font-medium text-mutedText">
-                Amount
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                className="bg-color4 mt-1 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
-                placeholder="Enter amount to claw back..."
-              />
-            </div>
+                <div>
+                  <label className="block text-sm font-medium text-mutedText">
+                    Currency
+                  </label>
+                  <CurrencyDropDown
+                    value={selectedCurrency || ""}
+                    onChange={setSelectedCurrency}
+                    disabledOptions={[]}
+                  />
+                </div>
 
-            <div className="flex space-x-2">
-              <Button
-                variant="cancel"
-                onClick={() => setShowModal(false)}
-                disabled={loading}
-                className="flex-1"
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="primary"
-                onClick={handleClawback}
-                disabled={
-                  !targetAccountAddress ||
-                  !selectedCurrency ||
-                  !amount ||
-                  loading
-                }
-                className="flex-1"
-              >
-                {loading ? (
-                  <div className="flex items-center justify-center">
-                    <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                    Processing...
-                  </div>
-                ) : (
-                  "Clawback"
-                )}
-              </Button>
-            </div>
+                <div>
+                  <label className="block text-sm font-medium text-mutedText">
+                    Amount
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    className="bg-color4 mt-1 w-full rounded-lg border border-transparent p-2 hover:border-primary focus:border-primary focus:outline-none"
+                    placeholder="Enter amount to claw back..."
+                  />
+                </div>
+
+                <div className="flex space-x-2">
+                  <Button
+                    variant="cancel"
+                    onClick={() => setShowModal(false)}
+                    disabled={loading}
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="primary"
+                    onClick={handleClawback}
+                    disabled={
+                      !targetAccountAddress ||
+                      !selectedCurrency ||
+                      !amount ||
+                      loading
+                    }
+                    className="flex-1"
+                  >
+                    {loading ? (
+                      <div className="flex items-center justify-center">
+                        <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                        Processing...
+                      </div>
+                    ) : (
+                      "Clawback"
+                    )}
+                  </Button>
+                </div>
+              </>
+            ) : (
+              // AMM Mode - Blank for now
+              <div className="py-8 text-center text-mutedText">
+                {/* AMM clawback content will go here */}
+                <p>AMM clawback content will go here</p>
+              </div>
+            )}
           </div>
         </div>
       )}

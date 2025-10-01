@@ -8,37 +8,40 @@ import SuccessMdl from "../SuccessMdl";
 import { APIResponse } from "@/types/apiTypes";
 import { YONAWallet } from "@/types/appTypes";
 
-interface AuthorizeDepositBtnProps {
-  authorizerWallet: YONAWallet;
+interface AuthorizeTrustlineBtnProps {
+  issuerWallet: YONAWallet;
   onSuccess?: () => void;
 }
 
-export default function AuthorizeDepositBtn({ authorizerWallet, onSuccess }: AuthorizeDepositBtnProps) {
+export default function AuthorizeTrustlineBtn({ issuerWallet, onSuccess }: AuthorizeTrustlineBtnProps) {
   const [showMdl, setShowMdl] = useState<boolean>(false);
-  const [authorizedAddress, setAuthorizedAddress] = useState<string>("");
+  const [trustlineAddress, setTrustlineAddress] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const handleAuthorize = async () => {
+  const handleAuthorizeTrustline = async () => {
     setLoading(true);
     setErrorMessage(null);
     try {
-      const res = await fetch("/api/wallet/authorizeDeposit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ walletWithDepositAuth: authorizerWallet, authorizedAddress }),
-      });
+      // TODO: Implement API call to /api/wallet/authorizeTrustline
+      // const res = await fetch("/api/wallet/authorizeTrustline", {
+      //   method: "POST",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify({ issuerWallet, trustlineAddress }),
+      // });
 
-      if (!res.ok) {
-        const errorData: APIResponse<never> = await res.json();
-        setErrorMessage(errorData.message);
-        setLoading(false);
-        return;
-      }
-      const result: APIResponse<never> = await res.json();
+      // if (!res.ok) {
+      //   const errorData: APIResponse<never> = await res.json();
+      //   setErrorMessage(errorData.message);
+      //   setLoading(false);
+      //   return;
+      // }
+      // const result: APIResponse<never> = await res.json();
 
-      setSuccessMessage(result.message || "Deposit authorized successfully");
+      // Placeholder success message
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+      setSuccessMessage("Authorize trustline will be implemented soon");
       
       // Call the onSuccess callback if provided
       if (onSuccess) {
@@ -55,22 +58,22 @@ export default function AuthorizeDepositBtn({ authorizerWallet, onSuccess }: Aut
   return (
     <div>
       <Button variant="primary" onClick={() => setShowMdl(true)}>
-        Authorize Deposit
+        Authorize Trustline
       </Button>
 
       {showMdl && (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/40">
           <div className="w-96 rounded-lg bg-color3 p-6">
             <h2 className="mb-4 text-2xl font-semibold">
-              Authorize Deposit
+              Authorize Trustline
             </h2>
             <label className="text-sm text-mutedText">
               Wallet Address
             </label>
             <input
               type="text"
-              value={authorizedAddress}
-              onChange={(e) => setAuthorizedAddress(e.target.value)}
+              value={trustlineAddress}
+              onChange={(e) => setTrustlineAddress(e.target.value)}
               className="bg-color4 mt-1 w-full rounded-lg border border-transparent p-2 hover:border-gray-500 focus:border-primary focus:outline-none"
               placeholder="Enter wallet address to authorize"
             />
@@ -85,8 +88,8 @@ export default function AuthorizeDepositBtn({ authorizerWallet, onSuccess }: Aut
               </Button>
               <Button
                 variant="primary"
-                onClick={handleAuthorize}
-                disabled={loading || !authorizedAddress}
+                onClick={handleAuthorizeTrustline}
+                disabled={loading || !trustlineAddress}
                 className="flex-1"
               >
                 {loading ? (
@@ -119,3 +122,4 @@ export default function AuthorizeDepositBtn({ authorizerWallet, onSuccess }: Aut
     </div>
   );
 };
+

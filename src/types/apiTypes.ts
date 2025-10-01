@@ -221,9 +221,7 @@ export type GetAccountObjectsAPIRequest = {
 }
 
 export type AuthorizeDepositRequest = {
-  walletWithDepositAuth: {
-    classicAddress: string;
-  };
+  walletWithDepositAuth: YONAWallet;
   authorizedAddress: string;
 }
 
