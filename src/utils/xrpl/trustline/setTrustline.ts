@@ -1,17 +1,8 @@
 // Change this file when there are more than 1 issuer wallet
 import { client, connectXRPLClient } from "../testnet";
-import { YONAWallet } from "@/types/appTypes";
 import { Wallet, AccountLinesResponse, TrustSet } from "xrpl";
-import sendIOU from "../transaction/sendIOU";
-import { createSupabaseAnonClient } from "@/utils/supabase/server";
 import { SetLPTrustlineParams, SetTrustlineResult } from "@/types/xrpl/trustlineXRPLTypes";
 import { isTypedTransactionSuccessful, handleTransactionError } from "../errorHandler";
-
-
-
-interface WelcomeBonusAmounts {
-  [key: string]: string;
-}
 
 
 
@@ -19,7 +10,6 @@ export async function setTrustline(
   setterXRPLWallet: Wallet,
   issuerWalletAddress: string,
   currency: string,
-  issuerWallets: YONAWallet[] | null = null,
 ): Promise<SetTrustlineResult> {
   try {
     await connectXRPLClient();
@@ -71,72 +61,9 @@ to
 ${issuerWalletAddress} 
 for ${currency}.`;
 
-    // ***********************************************************
-    // ONLY FOR DEMO PURPOSES
-    // Send welcome IOU tokens based on fixed amounts table
-    let bonusMsg = "";
-    if (currency.length < 10) { // Only send welcome IOU tokens expect LP tokens
-      const supabase = await createSupabaseAnonClient();
-      const { data: walletData, error: walletError } = await supabase
-        .from("wallets")
-        .select("seed")
-        .eq("classic_address", issuerWalletAddress)
-        .single();
-
-      if (walletError || !walletData?.seed) {
-        throw new Error(`Failed to get issuer wallet seed: ${walletError?.message || 'No seed found'}`);
-      }
-
-      const issuerXRPLWallet = Wallet.fromSeed(walletData.seed);
-
-      console.log(
-        "✅ Trustline set successfully, now sending welcome IOU tokens...",
-      );
-
-      // Fixed amounts to send for each currency
-      const WELCOME_BONUS_AMOUNTS: WelcomeBonusAmounts = {
-        USD: "10000",
-        ETH: "4",
-        EUR: "8500",
-        SOL: "65",
-        BTC: "0.1",
-      };
-
-      
-      try {
-        if (issuerWallets && issuerWallets.length > 0) {
-          // Get the fixed amount for this currency
-          const welcomeAmount = WELCOME_BONUS_AMOUNTS[currency.toUpperCase()];
-
-          if (welcomeAmount) {
-            // Send IOU tokens based on fixed amount
-            const iouResult = await sendIOU(
-              issuerXRPLWallet, // issuer wallet is the sender
-              setterXRPLWallet.classicAddress, // setter wallet is the recipient
-              welcomeAmount,
-              currency,
-              issuerWallets,
-              null, // no destination tag
-            );
-
-            console.log("✅ Welcome IOU tokens sent successfully!");
-
-            bonusMsg = `\n\n🎉 Welcome bonus: ${welcomeAmount} ${currency} has been sent to your wallet!`;
-          } else {
-            console.log(`⚠️ No welcome bonus amount configured for ${currency}`);
-            bonusMsg = `\n\n⚠️ Note: No welcome bonus configured for ${currency}`;
-          }
-        } else {
-          console.log("⚠️ No issuer wallets provided, skipping welcome bonus");
-        }
-      } catch (iouError) {
-        bonusMsg = `\n\n⚠️ Note: Trustline was set successfully, but welcome bonus could not be sent: ${iouError instanceof Error ? iouError.message : String(iouError)}`;
-      }
-      // ***********************************************************
-    }
     return {
       success: true,
-      message: trustlineMsg + bonusMsg,
+      message: trustlineMsg,
     };
 
   } catch (error) {
@@ -156,6 +83,7 @@ export async function checkTrustline(
     `🔍 Checking trustline for ${walletAddress} to ${destination} for ${currency}...`,
   );
 
+  // Check if the wallet has a trustline to the destination (issuer)
   const trustlineResponse: AccountLinesResponse = await client.request({
     command: "account_lines",
     account: walletAddress,
@@ -166,14 +94,68 @@ export async function checkTrustline(
     (line) => line.currency === currency,
   );
 
-  if (hasTrustline) {
+  if (!hasTrustline) {
     console.log(
-      `✅ Trustline exists between ${walletAddress} and ${destination} for ${currency}.`,
+      `ℹ️ No trustline found from ${walletAddress} to ${destination} for ${currency}.`,
+    );
+    return false;
+  }
+
+  console.log(
+    `✅ Trustline found from ${walletAddress} to ${destination} for ${currency}.`,
+  );
+
+  // Check if the issuer (destination) has RequireAuth flag set
+  const issuerAccountInfo = await client.request({
+    command: "account_info",
+    account: destination,
+    ledger_index: "validated",
+  });
+
+  const issuerFlags = Number(issuerAccountInfo.result.account_data.Flags);
+  // asfRequireAuth flag is 0x00040000 (bit 2) = 262144 in decimal
+  const hasRequireAuth = (issuerFlags & 0x00040000) !== 0;
+
+  if (!hasRequireAuth) {
+    // If issuer doesn't have RequireAuth, just having the trustline is enough
+    console.log(
+      `✅ Issuer does not require authorization. Trustline is ready to use.`,
+    );
+    return true;
+  }
+
+  console.log(
+    `🔍 Issuer requires authorization. Checking if issuer has authorized the trustline...`,
+  );
+
+  // Check if the issuer has authorized the trustline (by setting a reciprocal trustline)
+  const issuerTrustlineResponse: AccountLinesResponse = await client.request({
+    command: "account_lines",
+    account: destination,
+    peer: walletAddress,
+  });
+
+  const issuerHasAuthorized = issuerTrustlineResponse.result.lines.some(
+    (line) => line.currency === currency,
+  );
+
+  if (issuerHasAuthorized) {
+    console.log(
+      `✅ Trustline is fully authorized. Both sides exist between ${walletAddress} and ${destination} for ${currency}.`,
     );
     return true;
   } else {
     console.log(
-      `ℹ️ No existing trustline found for ${currency}. Will need to set one up.`,
+      `⚠️ Trustline exists but is NOT authorized by issuer.`,
+    );
+    console.log(
+      `   User (${walletAddress}) has set trustline to issuer (${destination})`,
+    );
+    console.log(
+      `   BUT issuer has NOT authorized it yet for ${currency}.`,
+    );
+    console.log(
+      `   The issuer must use "Authorize Trustline" to complete the setup.`,
     );
     return false;
   }

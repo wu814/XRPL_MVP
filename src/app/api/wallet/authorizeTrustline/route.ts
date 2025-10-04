@@ -2,10 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/utils/auth/authOptions";
 
-import { setTrustline } from "@/utils/xrpl/trustline/setTrustline";
+import authorizeTrustline from "@/utils/xrpl/trustline/authorizeTrustline";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
 import { Wallet } from "xrpl";
-import { APIResponse, SetWalletTrustlineAPIRequest } from "@/types/apiTypes";
+import { AuthorizeTrustlineRequest } from "@/types/apiTypes";
+import { APIResponse } from "@/types/apiTypes";
+
+
 
 export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<never>>> {
   const session = await getServerSession(authOptions);
@@ -14,14 +17,16 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
   }
 
   try {
-    const { setterWallet, issuerWallets, currency }: SetWalletTrustlineAPIRequest = await req.json();
+    const { issuerWallet, trustlineAddress, currency }: AuthorizeTrustlineRequest = await req.json();
 
-    if (!setterWallet) {
-      return NextResponse.json({ success: false, message: "Missing setterWallet" }, { status: 400 });
+    if (!issuerWallet) {
+      return NextResponse.json({ success: false, message: "Missing issuerWallet" }, { status: 400 });
     }
-    if (!issuerWallets?.[0]?.classicAddress) {
-      return NextResponse.json({ success: false, message: "Missing issuerWallets" }, { status: 400 });
+
+    if (!trustlineAddress) {
+      return NextResponse.json({ success: false, message: "Missing trustlineAddress" }, { status: 400 });
     }
+
     if (!currency) {
       return NextResponse.json({ success: false, message: "Missing currency" }, { status: 400 });
     }
@@ -31,7 +36,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
     const { data: walletData, error: walletError } = await supabase
       .from("wallets")
       .select("seed")
-      .eq("classic_address", setterWallet.classicAddress)
+      .eq("classic_address", issuerWallet.classicAddress)
       .single();
 
     if (walletError || !walletData) {
@@ -41,27 +46,24 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
       );
     }
 
-    const setterXRPLWallet = Wallet.fromSeed(walletData.seed);
+    const issuerXRPLWallet = Wallet.fromSeed(walletData.seed);
 
-    const result = await setTrustline(
-      setterXRPLWallet,
-      issuerWallets[0].classicAddress,
-      currency,
-    );
+    const result = await authorizeTrustline(issuerXRPLWallet, trustlineAddress, currency);
 
     if (!result.success) {
       return NextResponse.json(
         { success: false, message: result.message },
-        { status: 500 },
+        { status: 400 },
       );
     }
 
     return NextResponse.json({ success: true, message: result.message }, { status: 200 });
-  } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     return NextResponse.json(
-      { success: false, message: `Trustline setup failed: ${errorMessage}` },
+      { success: false, message: `Failed to authorize trustline: ${errorMessage}` },
       { status: 500 },
     );
   }
 }
+

@@ -21,22 +21,92 @@ export default function ViewWalletDetails({ wallet, onBack }: ViewWalletDetailsP
   const [loading, setLoading] = useState<boolean>(false);
   const [reserveBreakdown, setReserveBreakdown] = useState<ReserveItem[]>([]);
   const [expandedReserveItems, setExpandedReserveItems] = useState<Set<number>>(new Set());
+  const [accountFlags, setAccountFlags] = useState<string[]>([]);
 
   // Constants for reserve calculation
   const BASE_RESERVE_XRP = 1; // Base reserve for an account in XRP
   const OWNER_RESERVE_XRP = 0.2; // Owner reserve for each object in XRP
 
+  // XRPL Account Flags mapping
+  const ACCOUNT_FLAGS = {
+    0x00010000: "lsfPasswordSpent",
+    0x00020000: "lsfRequireDestTag",
+    0x00040000: "lsfRequireAuth",
+    0x00080000: "lsfDisallowXRP",
+    0x00100000: "lsfDisableMaster",
+    0x00200000: "lsfNoFreeze",
+    0x00400000: "lsfGlobalFreeze",
+    0x00800000: "lsfDefaultRipple",
+    0x01000000: "lsfDepositAuth",
+    0x02000000: "lsfDisallowIncomingXRP",
+    0x04000000: "lsfDisallowIncomingCheck",
+    0x08000000: "lsfDisallowIncomingPayChan",
+    0x10000000: "lsfDisallowIncomingTrustline",
+    0x20000000: "lsfDisallowIncomingNFTokenOffer",
+    0x80000000: "lsfAllowTrustLineClawback",
+  };
+
+  const FLAG_DESCRIPTIONS: Record<string, string> = {
+    lsfPasswordSpent: "Password Spent",
+    lsfRequireDestTag: "Require Destination Tag",
+    lsfRequireAuth: "Require Authorization for Trustlines",
+    lsfDisallowXRP: "Disallow Incoming XRP",
+    lsfDisableMaster: "Master Key Disabled",
+    lsfNoFreeze: "No Freeze (cannot freeze trustlines)",
+    lsfGlobalFreeze: "Global Freeze (all trustlines frozen)",
+    lsfDefaultRipple: "Default Ripple (issuer setting)",
+    lsfDepositAuth: "Deposit Authorization Required",
+    lsfDisallowIncomingXRP: "Disallow Incoming XRP",
+    lsfDisallowIncomingCheck: "Disallow Incoming Checks",
+    lsfDisallowIncomingPayChan: "Disallow Incoming Payment Channels",
+    lsfDisallowIncomingTrustline: "Disallow Incoming Trustlines",
+    lsfDisallowIncomingNFTokenOffer: "Disallow Incoming NFT Offers",
+    lsfAllowTrustLineClawback: "Allow Trustline Clawback",
+  };
+
   const fetchReserveBreakdown = async (wallet: YONAWallet) => {
     setLoading(true);
     try {
-      const accountObjectsResponse = await fetch("/api/wallet/getAccountObjects", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ wallet }),
-      });
+      const [accountObjectsResponse, accountLinesResponse, accountInfoResponse] = await Promise.all([
+        fetch("/api/wallet/getAccountObjects", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ wallet }),
+        }),
+        fetch("/api/wallet/getAccountLines", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ wallet }),
+        }),
+        fetch("/api/wallet/getAccountInfo", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ wallet }),
+        }),
+      ]);
 
       const accountObjects: APIResponse<AccountObject[]> = await accountObjectsResponse.json();
+      const accountLines: APIResponse<any[]> = await accountLinesResponse.json();
+      const accountInfo: APIResponse<any> = await accountInfoResponse.json();
       console.log(accountObjects);
+      console.log(accountLines);
+      console.log(accountInfo);
+
+      // Parse account flags
+      if (accountInfo.data?.Flags) {
+        const flags = Number(accountInfo.data.Flags);
+        const activeFlags: string[] = [];
+        
+        Object.entries(ACCOUNT_FLAGS).forEach(([flagValue, flagName]) => {
+          if ((flags & Number(flagValue)) !== 0) {
+            activeFlags.push(flagName);
+          }
+        });
+        
+        setAccountFlags(activeFlags);
+      } else {
+        setAccountFlags([]);
+      }
 
       // Process reserve breakdown
       const reserves: ReserveItem[] = [];
@@ -128,6 +198,27 @@ export default function ViewWalletDetails({ wallet, onBack }: ViewWalletDetailsP
         });
       }
 
+      // For issuer wallets, add authorized trustlines reserve
+      if (wallet.walletType === "ISSUER" && accountLines.data && accountLines.data.length > 0) {
+        const authorizedTrustlines = accountLines.data;
+        const trustlineDetails = authorizedTrustlines.map((line: any) => {
+          const currency = line.currency || "Unknown";
+          // Get the counterparty address (the account that has the trustline TO the issuer)
+          const counterparty = line.account || "Unknown";
+          return `${currency} with ${counterparty}`;
+        });
+
+        if (authorizedTrustlines.length > 0) {
+          reserves.push({
+            type: "Authorized Trustlines",
+            description: `${authorizedTrustlines.length} authorized trustline${authorizedTrustlines.length > 1 ? "s" : ""} requiring reserve`,
+            xrpAmount: OWNER_RESERVE_XRP * authorizedTrustlines.length,
+            count: authorizedTrustlines.length,
+            items: trustlineDetails,
+          });
+        }
+      }
+
       setReserveBreakdown(reserves);
     } catch (error) {
       console.error("Error fetching reserve breakdown:", error);
@@ -177,6 +268,29 @@ export default function ViewWalletDetails({ wallet, onBack }: ViewWalletDetailsP
         </h2>
         <p className="text-gray-400">Type: {wallet.walletType}</p>
       </div>
+
+      {/* Account Flags Section - Only show if flags exist */}
+      {accountFlags.length > 0 && (
+        <div className="rounded-lg bg-color2 p-6">
+          <h3 className="mb-4 text-lg font-semibold">Account Flags</h3>
+          <div className="space-y-2">
+            {accountFlags.map((flag, index) => (
+              <div 
+                key={index} 
+                className="flex items-start space-x-3 rounded-lg bg-color3 p-3"
+              >
+                <div className="mt-0.5 h-2 w-2 rounded-full bg-green-500"></div>
+                <div>
+                  <div className="font-medium text-sm">{flag}</div>
+                  <div className="text-xs text-gray-400">
+                    {FLAG_DESCRIPTIONS[flag] || flag}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Reserved XRP Breakdown */}
       <div className="rounded-lg bg-color2 p-6">

@@ -43,6 +43,8 @@ export async function setIssuerWalletFlags(wallet: Wallet): Promise<SetWalletFla
       { name: "asfDisallowXRP", flag: 3, offset: 20 },
       { name: "asfDefaultRipple", flag: 8, offset: 40 },
       { name: "asfAllowTrustLineClawback", flag: 16, offset: 60 },
+      { name: "asfDepositAuth", flag: 9, offset: 80 },
+      { name: "asfRequireAuth", flag: 2, offset: 100 },
     ];
 
     for (let i = 0; i < flags.length; i++) {

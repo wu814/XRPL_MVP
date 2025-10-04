@@ -225,6 +225,20 @@ export type AuthorizeDepositRequest = {
   authorizedAddress: string;
 }
 
+export type AuthorizeTrustlineRequest = {
+  issuerWallet: YONAWallet;
+  trustlineAddress: string;
+  currency: string;
+}
+
+export type DeepFreezeTrustlineRequest = {
+  issuerWallet: YONAWallet;
+  trustlineAddress: string;
+  currency: string;
+  action: "freeze" | "unfreeze";
+  includeDeepFreeze?: boolean;
+}
+
 export type DeleteWalletRequest = {
   classicAddress: string;
   enteredPassword: string;
