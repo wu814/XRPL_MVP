@@ -16,6 +16,7 @@ interface AuthorizeTrustlineBtnProps {
 export default function AuthorizeTrustlineBtn({ issuerWallet, onSuccess }: AuthorizeTrustlineBtnProps) {
   const [showMdl, setShowMdl] = useState<boolean>(false);
   const [trustlineAddress, setTrustlineAddress] = useState<string>("");
+  const [currency, setCurrency] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -24,24 +25,21 @@ export default function AuthorizeTrustlineBtn({ issuerWallet, onSuccess }: Autho
     setLoading(true);
     setErrorMessage(null);
     try {
-      // TODO: Implement API call to /api/wallet/authorizeTrustline
-      // const res = await fetch("/api/wallet/authorizeTrustline", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({ issuerWallet, trustlineAddress }),
-      // });
+      const res = await fetch("/api/wallet/authorizeTrustline", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ issuerWallet, trustlineAddress, currency }),
+      });
 
-      // if (!res.ok) {
-      //   const errorData: APIResponse<never> = await res.json();
-      //   setErrorMessage(errorData.message);
-      //   setLoading(false);
-      //   return;
-      // }
-      // const result: APIResponse<never> = await res.json();
+      if (!res.ok) {
+        const errorData: APIResponse<never> = await res.json();
+        setErrorMessage(errorData.message);
+        setLoading(false);
+        return;
+      }
+      const result: APIResponse<never> = await res.json();
 
-      // Placeholder success message
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-      setSuccessMessage("Authorize trustline will be implemented soon");
+      setSuccessMessage(result.message || "Trustline authorized successfully");
       
       // Call the onSuccess callback if provided
       if (onSuccess) {
@@ -77,6 +75,17 @@ export default function AuthorizeTrustlineBtn({ issuerWallet, onSuccess }: Autho
               className="bg-color4 mt-1 w-full rounded-lg border border-transparent p-2 hover:border-gray-500 focus:border-primary focus:outline-none"
               placeholder="Enter wallet address to authorize"
             />
+            <label className="mt-4 block text-sm text-mutedText">
+              Currency Code
+            </label>
+            <input
+              type="text"
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value.toUpperCase())}
+              className="bg-color4 mt-1 w-full rounded-lg border border-transparent p-2 hover:border-gray-500 focus:border-primary focus:outline-none"
+              placeholder="Enter currency code (e.g., USD, EUR)"
+              maxLength={3}
+            />
             <div className="mt-4 flex space-x-2">
               <Button
                 variant="cancel"
@@ -89,7 +98,7 @@ export default function AuthorizeTrustlineBtn({ issuerWallet, onSuccess }: Autho
               <Button
                 variant="primary"
                 onClick={handleAuthorizeTrustline}
-                disabled={loading || !trustlineAddress}
+                disabled={loading || !trustlineAddress || !currency}
                 className="flex-1"
               >
                 {loading ? (

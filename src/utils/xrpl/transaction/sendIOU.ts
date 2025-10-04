@@ -97,11 +97,30 @@ const sendIOU = async (
   let payment: Payment;
 
   if (senderIsIssuer) {
-    // Case 1: Issuer sending IOU
-    const destinationTrustlineResult = await checkDestinationTrustline(destination, issuerAddress, currency); 
-    if (!destinationTrustlineResult.success) {
-      return destinationTrustlineResult;
+    // Case 1: Issuer sending IOU - issuer creates new tokens
+    // When issuer sends, we only need to check if destination has a trustline
+    // We DON'T need to check authorization because the issuer is the one sending
+    // (issuer authorizes by sending tokens directly)
+    
+    const accountLines: AccountLinesResponse = await client.request({
+      command: "account_lines",
+      account: destination,
+      peer: issuerAddress,
+      ledger_index: "validated",
+    });
+
+    const destinationHasTrustline = accountLines.result.lines.some(
+      (line) => line.currency === currency
+    );
+
+    if (!destinationHasTrustline) {
+      return {
+        success: false,
+        message: `Destination ${destination} has no trustline to issuer ${issuerAddress} for ${currency}`,
+      };
     }
+
+    console.log(`✅ Destination has trustline. Issuer ${issuerAddress} can send ${currency} to ${destination}`);
 
     payment = {
       TransactionType: "Payment",
