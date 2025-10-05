@@ -139,6 +139,21 @@ export interface ClawbackTokenAPIRequest {
   amount: string;
 }
 
+export interface AMMClawbackAPIRequest {
+  issuerWallet: YONAWallet;
+  holder: string;
+  asset: {
+    currency: string;
+    issuer: string;
+  };
+  asset2: {
+    currency: string;
+    issuer: string;
+  };
+  amount?: string;
+  clawTwoAssets?: boolean;
+}
+
 export interface GetAccountTransactionsAPIRequest {
   targetAddress: string;
   limit: number;
