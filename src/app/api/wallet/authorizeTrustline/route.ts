@@ -5,7 +5,7 @@ import { authOptions } from "@/utils/auth/authOptions";
 import authorizeTrustline from "@/utils/xrpl/trustline/authorizeTrustline";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
 import { Wallet } from "xrpl";
-import { AuthorizeTrustlineRequest } from "@/types/apiTypes";
+import { AuthorizeTrustlineAPIRequest } from "@/types/apiTypes";
 import { APIResponse } from "@/types/apiTypes";
 
 
@@ -17,7 +17,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
   }
 
   try {
-    const { issuerWallet, trustlineAddress, currency }: AuthorizeTrustlineRequest = await req.json();
+    const { issuerWallet, trustlineAddress, currency }: AuthorizeTrustlineAPIRequest = await req.json();
 
     if (!issuerWallet) {
       return NextResponse.json({ success: false, message: "Missing issuerWallet" }, { status: 400 });

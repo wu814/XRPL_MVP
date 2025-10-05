@@ -5,7 +5,7 @@ import { authOptions } from "@/utils/auth/authOptions";
 import authorizeDeposit from "@/utils/xrpl/wallet/authorizeDeposit";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
 import { Wallet } from "xrpl";
-import { AuthorizeDepositRequest } from "@/types/apiTypes";
+import { AuthorizeDepositAPIRequest } from "@/types/apiTypes";
 import { APIResponse } from "@/types/apiTypes";
 
 
@@ -17,7 +17,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
   }
 
   try {
-    const { walletWithDepositAuth, authorizedAddress }: AuthorizeDepositRequest = await req.json();
+    const { walletWithDepositAuth, authorizedAddress }: AuthorizeDepositAPIRequest = await req.json();
 
     if (!walletWithDepositAuth) {
       return NextResponse.json({ success: false, message: "Missing walletWithDepositAuth" }, { status: 400 });

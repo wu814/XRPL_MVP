@@ -27,7 +27,7 @@ export default function Button({
     cancel:
       "border border-cancel bg-cancel/20 text-cancel hover:text-black hover:bg-cancel/90 hover:border-transparent",
     login:
-      "border border-primary text-primary bg-transparent hover:text-black hover:bg-primary/90 hover:border-transparent",
+      "border border-primary text-primary bg-transparent hover:text-black hover:bg-primary/90 hover:border-transparent hover:scale-110 hover:shadow-[0_0_40px_rgba(142,223,226,0.6)] transition-all duration-300",
   };
 
   // Styles to apply when the button is disabled
