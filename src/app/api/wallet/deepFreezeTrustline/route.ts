@@ -5,7 +5,7 @@ import { authOptions } from "@/utils/auth/authOptions";
 import { deepFreezeTrustline, clearDeepFreeze } from "@/utils/xrpl/trustline/deepFreezeTrustline";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
 import { Wallet } from "xrpl";
-import { DeepFreezeTrustlineRequest } from "@/types/apiTypes";
+import { DeepFreezeTrustlineAPIRequest } from "@/types/apiTypes";
 import { APIResponse } from "@/types/apiTypes";
 
 
@@ -17,7 +17,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<APIResponse<n
   }
 
   try {
-    const { issuerWallet, trustlineAddress, currency, action, includeDeepFreeze }: DeepFreezeTrustlineRequest = await req.json();
+    const { issuerWallet, trustlineAddress, currency, action, includeDeepFreeze }: DeepFreezeTrustlineAPIRequest = await req.json();
 
     if (!issuerWallet) {
       return NextResponse.json({ success: false, message: "Missing issuerWallet" }, { status: 400 });

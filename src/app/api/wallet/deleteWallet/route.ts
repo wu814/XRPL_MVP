@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/utils/auth/authOptions";
-import { DeleteWalletRequest, APIResponse } from "@/types/apiTypes";
+import { DeleteWalletAPIRequest, APIResponse } from "@/types/apiTypes";
 import bcrypt from "bcryptjs";
 
 
@@ -12,7 +12,7 @@ export async function DELETE(req: NextRequest): Promise<NextResponse<APIResponse
     return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
   }
   try {
-    const { classicAddress, enteredPassword }: DeleteWalletRequest = await req.json();
+    const { classicAddress, enteredPassword }: DeleteWalletAPIRequest = await req.json();
 
     if (!classicAddress) {
       return NextResponse.json(

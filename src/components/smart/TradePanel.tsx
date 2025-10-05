@@ -486,8 +486,17 @@ export default function TradePanel() {
         body: JSON.stringify(requestBody),
       });
 
-      const result = await res.json();
-      if (!res.ok) throw new Error(result.error);
+      if (!res.ok) {
+        const errorData: APIResponse<never> = await res.json();
+        setErrorMessage(errorData.message);
+        return;
+      }
+
+      const result: APIResponse<never> = await res.json();
+      if (!result.success) {
+        setErrorMessage(result.message);
+        return;
+      }
       setSuccessMessage(result.message || "Payment sent!");
       fetchWalletBalances();
 

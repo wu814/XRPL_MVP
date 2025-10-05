@@ -220,18 +220,18 @@ export type GetAccountObjectsAPIRequest = {
   wallet: YONAWallet;
 }
 
-export type AuthorizeDepositRequest = {
+export type AuthorizeDepositAPIRequest = {
   walletWithDepositAuth: YONAWallet;
   authorizedAddress: string;
 }
 
-export type AuthorizeTrustlineRequest = {
+export type AuthorizeTrustlineAPIRequest = {
   issuerWallet: YONAWallet;
   trustlineAddress: string;
   currency: string;
 }
 
-export type DeepFreezeTrustlineRequest = {
+export type DeepFreezeTrustlineAPIRequest = {
   issuerWallet: YONAWallet;
   trustlineAddress: string;
   currency: string;
@@ -239,13 +239,9 @@ export type DeepFreezeTrustlineRequest = {
   includeDeepFreeze?: boolean;
 }
 
-export type DeleteWalletRequest = {
+export type DeleteWalletAPIRequest = {
   classicAddress: string;
   enteredPassword: string;
-}
-
-export type GetWalletAddressByUsernameRequest = {
-  username: string;
 }
 
 

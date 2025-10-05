@@ -16,14 +16,11 @@ import {
 import { FormattedAMMInfo } from "@/types/xrpl/ammXRPLTypes";
 import { APIResponse } from "@/types/apiTypes";
 
-
 interface DisplayAMMDetailsProps {
   account: string;
 }
 
-export default function DisplayAMMDetails({
-  account,
-}: DisplayAMMDetailsProps) {
+export default function DisplayAMMDetails({ account }: DisplayAMMDetailsProps) {
   const router = useRouter();
 
   const [ammInfo, setAMMInfo] = useState<FormattedAMMInfo | null>(null);
@@ -87,19 +84,19 @@ export default function DisplayAMMDetails({
   // Fetch AMM info and prices when the component mounts
   useEffect(() => {
     // Get currencies from localStorage
-    const storedCurrencies = localStorage.getItem('ammCurrencies');
+    const storedCurrencies = localStorage.getItem("ammCurrencies");
     if (storedCurrencies) {
-      const { currency1: storedCurrency1, currency2: storedCurrency2 } = JSON.parse(storedCurrencies);
+      const { currency1: storedCurrency1, currency2: storedCurrency2 } =
+        JSON.parse(storedCurrencies);
       setCurrency1(storedCurrency1);
       setCurrency2(storedCurrency2);
-      
+
       // Clean up localStorage after retrieving
-      localStorage.removeItem('ammCurrencies');
+      localStorage.removeItem("ammCurrencies");
     }
     fetchAMMInfo();
     fetchPrices();
   }, [account]);
-
 
   const renderPriceInfo = () => {
     return (
@@ -110,6 +107,7 @@ export default function DisplayAMMDetails({
             <div className="h-5 w-20 rounded-full bg-pulse" />
           </div>
         ) : (
+          // ... existing code ...
           (() => {
             const a1 = parseFloat(ammInfo?.formattedAmount1?.value);
             const a2 = parseFloat(ammInfo?.formattedAmount2?.value);
@@ -117,10 +115,28 @@ export default function DisplayAMMDetails({
               return <p className="ml-2 text-lg font-medium">Not Available</p>;
             }
 
+            // Calculate USD values for both currencies
+            const usdValue1 = getUSDValue(
+              ammInfo.formattedAmount1.currency,
+              ammInfo.formattedAmount1.value,
+              livePrices,
+            );
+            const usdValue2 = getUSDValue(
+              ammInfo.formattedAmount2.currency,
+              ammInfo.formattedAmount2.value,
+              livePrices,
+            );
+
+            // If we can't get USD values, fall back to raw amounts
+            if (usdValue1 <= 0 || usdValue2 <= 0) {
+              return <p className="ml-2 text-lg font-medium">Not Available</p>;
+            }
+
             const s1 = currency1 || "Asset1";
             const s2 = currency2 || "Asset2";
-            const price1 = (a2 / a1).toFixed(6);
-            const price2 = (a1 / a2).toFixed(6);
+            // Divide USD values instead of raw amounts
+            const price1 = (usdValue1 / usdValue2).toFixed(6);
+            const price2 = (usdValue2 / usdValue1).toFixed(6);
 
             return (
               <div className="ml-2 flex flex-col text-lg font-medium">
@@ -133,6 +149,7 @@ export default function DisplayAMMDetails({
               </div>
             );
           })()
+          // ... existing code ...
         )}
       </div>
     );
