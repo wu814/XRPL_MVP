@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import ErrorMdl from "../ErrorMdl";
+import ErrorMdl from "../app/ErrorMdl";
 import CurrencyIcon from "../currency/CurrencyIcon";
 import AMMCompositionBar from "./AMMCompositionBar";
 import ManageAMMBalance from "./ManageAMMBalance";

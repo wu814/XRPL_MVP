@@ -5,10 +5,10 @@ import { ArrowUpRight, ArrowDownLeft, ArrowUpDown, Building2, Search, Settings, 
 import ConvertCurrencyDropDown from "@/components/currency/ConvertCurrencyDropDown";
 import SendCurrencyDropDown from "@/components/currency/SendCurrencyDropDown";
 import FavoritesList from "@/components/smart/FavoritesList";
-import SlippagePanel from "@/components/SlippagePanel";
-import ErrorMdl from "@/components/ErrorMdl";
-import SuccessMdl from "@/components/SuccessMdl";
-import Button from "../Button";
+import SlippagePanel from "@/components/app/SlippagePanel";
+import ErrorMdl from "@/components/app/ErrorMdl";
+import SuccessMdl from "@/components/app/SuccessMdl";
+import Button from "../app/Button";
 import { useCurrentUserWallet } from "@/components/wallet/CurrentUserWalletProvider";
 import { useIssuerWallet } from "@/components/wallet/IssuerWalletProvider";
 import { availableCurrencies, formatCurrencyValue, YONACurrency } from "@/utils/currencyUtils";

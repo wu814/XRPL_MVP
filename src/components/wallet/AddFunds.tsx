@@ -1,7 +1,7 @@
 import { useState } from "react";
-import Button from "../Button";
-import ErrorMdl from "../ErrorMdl";
-import SuccessMdl from "../SuccessMdl";
+import Button from "../app/Button";
+import ErrorMdl from "../app/ErrorMdl";
+import SuccessMdl from "../app/SuccessMdl";
 
 interface AddFundsProps {
   onFundsAdded?: () => void;

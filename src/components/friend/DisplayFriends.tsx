@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
-import ErrorMdl from "../ErrorMdl";
+import ErrorMdl from "../app/ErrorMdl";
 import RemoveFriendBtn from "./RemoveFriendBtn";
 import TransferBtn from "@/components/wallet/TransferBtn";
 import FavoriteBtn from "./FavoriteBtn";
@@ -10,7 +10,7 @@ import { useCurrentUserWallet } from "../wallet/CurrentUserWalletProvider";
 import { useIssuerWallet } from "../wallet/IssuerWalletProvider";
 import { Friend } from "@/types/appTypes";
 import { APIResponse } from "@/types/apiTypes";
-import SuccessMdl from "../SuccessMdl";
+import SuccessMdl from "../app/SuccessMdl";
 
 export default function DisplayFriends() {
   const [friends, setFriends] = useState<Friend[]>([]);

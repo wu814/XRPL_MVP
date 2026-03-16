@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import Button from "../Button";
+import Button from "../app/Button";
 import CreateAMMMdl from "./CreateAMMMdl";
-import ErrorMdl from "../ErrorMdl";
-import SuccessMdl from "../SuccessMdl";
+import ErrorMdl from "../app/ErrorMdl";
+import SuccessMdl from "../app/SuccessMdl";
 import { useIssuerWallet } from "@/components/wallet/IssuerWalletProvider";
 import { YONAWallet } from "@/types/appTypes";
 import { APIResponse } from "@/types/apiTypes";

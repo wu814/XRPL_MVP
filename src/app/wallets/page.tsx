@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import AuthRedirect from "@/components/AuthRedirect";
+import AuthRedirect from "@/components/app/AuthRedirect";
 import AssetTable, { useLivePrices, useWalletAssets } from "@/components/wallet/AssetTable";
 import { Wallet, Loader2 } from "lucide-react";
 import {

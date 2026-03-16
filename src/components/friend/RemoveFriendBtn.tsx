@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import Button from "../Button";
-import ErrorMdl from "../ErrorMdl";
+import Button from "../app/Button";
+import ErrorMdl from "../app/ErrorMdl";
 import { APIResponse } from "@/types/apiTypes";
-import SuccessMdl from "../SuccessMdl";
+import SuccessMdl from "../app/SuccessMdl";
 
 interface RemoveFriendBtnProps {
   friendId: string | number;

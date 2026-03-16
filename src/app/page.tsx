@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
-import Button from "@/components/Button";
+import Button from "@/components/app/Button";
 import usePageTitle from "@/utils/usePageTitle";
 
 export default function Login() {

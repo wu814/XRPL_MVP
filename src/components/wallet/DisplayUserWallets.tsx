@@ -9,7 +9,7 @@ import { useIssuerWallet } from "@/components/wallet/IssuerWalletProvider";
 import SetTrustlineBtn from "@/components/wallet/SetTrustlineBtn";
 import TransferBtn from "@/components/wallet/TransferBtn";
 import CreateUserWalletBtn from "@/components/wallet/CreateUserWalletBtn";
-import Button from "@/components/Button";
+import Button from "@/components/app/Button";
 import ViewWalletDetails from "@/components/wallet/ViewWalletDetails";
 import AddFundsBtn from "./AddFunds";
 import { APIResponse } from "@/types/apiTypes";

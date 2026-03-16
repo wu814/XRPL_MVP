@@ -11,7 +11,7 @@ import TransferBtn from "@/components/wallet/TransferBtn";
 import CreateAdminWalletBtn from "@/components/wallet/CreateAdminWalletBtn";
 import AuthorizeTrustlineBtn from "@/components/wallet/AuthorizeTrustlineBtn";
 import DeepFreezeBtn from "@/components/wallet/DeepFreezeBtn";
-import Button from "@/components/Button";
+import Button from "@/components/app/Button";
 import ManageOracleBtn from "@/components/wallet/ManageOracleBtn";
 import ViewWalletDetails from "@/components/wallet/ViewWalletDetails";
 import { YONAWallet, WalletBalance } from "@/types/appTypes";

@@ -3,7 +3,7 @@
 import { useState, FormEvent } from "react";
 import { useSession } from "next-auth/react";
 import { Eye, EyeOff } from "lucide-react";
-import Button from "../Button";
+import Button from "../app/Button";
 import { APIResponse } from "@/types/apiTypes";
 
 export default function ChangePasswordBtn() {

@@ -120,7 +120,7 @@ export default function Home() {
   return (
     <div className="min-h-screen w-full bg-color1 p-2">
       {/* Content */}
-      <div className="h-full space-y-4 overflow-y-auto">
+      <div className="h-full space-y-4">
         {/* Dashboard Header with Balance */}
         <div className="w-full">
           <DashboardHeader />

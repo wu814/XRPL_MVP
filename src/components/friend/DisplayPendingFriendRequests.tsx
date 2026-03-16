@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
-import Button from "@/components/Button";
-import ErrorMdl from "@/components/ErrorMdl";
+import Button from "@/components/app/Button";
+import ErrorMdl from "@/components/app/ErrorMdl";
 import { PendingFriendRequest } from "@/types/appTypes";
 import { APIResponse } from "@/types/apiTypes";
 

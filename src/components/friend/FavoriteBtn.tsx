@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Star, Loader2 } from "lucide-react";
-import ErrorMdl from "../ErrorMdl";
+import ErrorMdl from "../app/ErrorMdl";
 import { APIResponse } from "@/types/apiTypes";
 
 interface FavoriteBtnProps {

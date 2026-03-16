@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import ErrorMdl from "../ErrorMdl";
+import ErrorMdl from "../app/ErrorMdl";
 import CurrencyIcon from "../currency/CurrencyIcon";
 import CreateAMMBtn from "./CreateAMMBtn";
 import { fetchUSDPrices, getUSDValue, formatCurrencyValue, PriceInfo } from "@/utils/currencyUtils";

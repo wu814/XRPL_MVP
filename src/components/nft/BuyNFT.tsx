@@ -2,9 +2,9 @@
 
 import { useState, FormEvent } from "react";
 import { Loader2 } from "lucide-react";
-import Button from "../Button";
-import ErrorMdl from "../ErrorMdl";
-import SuccessMdl from "../SuccessMdl";
+import Button from "../app/Button";
+import ErrorMdl from "../app/ErrorMdl";
+import SuccessMdl from "../app/SuccessMdl";
 import CurrencyDropDown from "../currency/CurrencyDropDown";
 import { useCurrentUserWallet } from "../wallet/CurrentUserWalletProvider";
 import { useIssuerWallet } from "../wallet/IssuerWalletProvider";

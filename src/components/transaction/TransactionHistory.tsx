@@ -13,7 +13,7 @@ import {
   XCircle, 
   ChevronDown 
 } from "lucide-react";
-import Button from "../Button";
+import Button from "../app/Button";
 import { APIResponse, GetAccountTransactionsAPIRequest } from "@/types/apiTypes";
 import { ProcessedTransaction } from "@/types/xrpl/transactionXRPLTypes";
 

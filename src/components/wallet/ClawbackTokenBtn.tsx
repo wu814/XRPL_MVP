@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import CurrencyDropDown from "../currency/CurrencyDropDown";
-import Button from "../Button";
-import SuccessMdl from "../SuccessMdl";
-import ErrorMdl from "../ErrorMdl";
+import Button from "../app/Button";
+import SuccessMdl from "../app/SuccessMdl";
+import ErrorMdl from "../app/ErrorMdl";
 import { YONAWallet } from "@/types/appTypes";
 import { APIResponse } from "@/types/apiTypes";
 

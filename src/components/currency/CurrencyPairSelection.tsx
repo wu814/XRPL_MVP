@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import CurrencyDropDown from "./CurrencyDropDown";
-import Button from "../Button";
+import Button from "../app/Button";
 import { ArrowLeftRight } from "lucide-react";
 
 interface CurrencyPairSelectionProps {

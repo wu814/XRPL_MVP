@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import ErrorMdl from "../ErrorMdl";
-import SuccessMdl from "../SuccessMdl";
-import PasswordConfirmMdl from "../PasswordConfirmMdl";
+import ErrorMdl from "../app/ErrorMdl";
+import SuccessMdl from "../app/SuccessMdl";
+import PasswordConfirmMdl from "../app/PasswordConfirmMdl";
 import { Trash2 } from "lucide-react";
 import { APIResponse } from "@/types/apiTypes";
 

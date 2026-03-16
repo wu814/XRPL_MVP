@@ -2,8 +2,8 @@
 import React, { ReactNode } from "react";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import SessionWrapper from "@/components/SessionWrapper";
-import ClientLayoutContent from "@/components/ClientLayoutContent";
+import SessionWrapper from "@/components/app/SessionWrapper";
+import ClientLayoutContent from "@/components/app/ClientLayoutContent";
 import IssuerWalletProvider from "@/components/wallet/IssuerWalletProvider";
 import CurrentUserWalletProvider from "@/components/wallet/CurrentUserWalletProvider";
 import { Metadata } from "next";

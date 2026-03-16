@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Button from "@/components/Button";
-import SuccessMdl from "../SuccessMdl";
-import ErrorMdl from "../ErrorMdl";
+import Button from "@/components/app/Button";
+import SuccessMdl from "../app/SuccessMdl";
+import ErrorMdl from "../app/ErrorMdl";
 import { APIResponse } from "@/types/apiTypes";
 
 interface AddFriendBtnProps {

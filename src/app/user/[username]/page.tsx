@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation";
 import TransferBtn from "@/components/wallet/TransferBtn";
 import AddFriendBtn from "@/components/friend/AddFriendBtn";
-import ErrorMdl from "@/components/ErrorMdl";
+import ErrorMdl from "@/components/app/ErrorMdl";
 import { useCurrentUserWallet } from "@/components/wallet/CurrentUserWalletProvider";
 import { useIssuerWallet } from "@/components/wallet/IssuerWalletProvider";
 import { useState, useEffect } from "react";

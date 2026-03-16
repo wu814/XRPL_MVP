@@ -2,10 +2,10 @@
 
 import { useState, useMemo } from "react";
 import CurrencyIcon from "../currency/CurrencyIcon";
-import Button from "../Button";
-import ErrorMdl from "../ErrorMdl";
-import SuccessMdl from "../SuccessMdl";
-import SlippagePanel from "../SlippagePanel";
+import Button from "../app/Button";
+import ErrorMdl from "../app/ErrorMdl";
+import SuccessMdl from "../app/SuccessMdl";
+import SlippagePanel from "../app/SlippagePanel";
 import estimateDepositAmounts from "@/utils/xrpl/amm/estimateDepositAmount";
 import { useCurrentUserWallet } from "../wallet/CurrentUserWalletProvider";
 import { Settings, Loader2 } from "lucide-react";
