@@ -152,7 +152,7 @@ export default function BuyNFT() {
 
           {/* Info Text */}
           <div className="text-xs text-mutedText text-center">
-            <p>💡 Smart conversion will automatically exchange your chosen currency for the NFT's required currency (USD)</p>
+            <p>💡 Smart conversion will automatically exchange your chosen currency for the NFT&apos;s required currency (USD)</p>
           </div>
         </form>
       </div>

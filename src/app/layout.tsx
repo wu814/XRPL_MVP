@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     icon: "/favicon.ico",
   },
   openGraph: {
-    title: "YONA - Your DeFi Platform",
+    title: "XRPL - Your DeFi Platform",
     description: "Trade, manage assets, and interact with the XRPL network",
     type: "website",
   },

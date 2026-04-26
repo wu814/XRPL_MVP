@@ -91,7 +91,7 @@ export default function Home() {
   const { data: session, status } = useSession();
 
   // Set dynamic page title
-  usePageTitle("Home - YONA");
+  usePageTitle("Home - XRPL");
 
   if (status === "loading") {
     return (

@@ -11,7 +11,7 @@ export default function Login() {
   const router = useRouter();
 
   // Set page title
-  usePageTitle("YONA - Your DeFi Platform");
+  usePageTitle("XRPL - Your DeFi Platform");
 
   useEffect(() => {
     if (session) {
@@ -53,13 +53,13 @@ export default function Login() {
         
         {/* Content - Right side */}
         <div className="relative z-10 mr-20 mt-20 flex flex-col content-end items-center space-y-6">
-          {/* YONA title with glow effect */}
+          {/* XRPL title with glow effect */}
           <h1 
             className={`mb-7 ml-2 text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-primary via-purple-400 to-cancel
               drop-shadow-[0_0_25px_rgba(142,223,226,0.5)]
               transition-all duration-1000`}
           >
-            YONA
+            XRPL
           </h1>
           
           {/* First heading line */}
@@ -125,7 +125,7 @@ export default function Login() {
           
           {/* Subheading */}
           <p className="mb-12 text-xl text-gray-300 animate-fade-in-up animation-delay-200">
-            YONA empowers you with cutting-edge decentralized finance tools on the XRP Ledger
+            Empowers you with cutting-edge decentralized finance tools on the XRP Ledger
           </p>
 
           {/* Feature cards grid */}

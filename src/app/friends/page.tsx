@@ -9,7 +9,7 @@ export default function FriendsPage() {
   const [errorMessage, setErrorMessage] = useState("");
 
   // Set page title
-  usePageTitle("Friends - YONA");
+  usePageTitle("Friends - XRPL");
 
   return (
     <div className="p-2 min-h-screen bg-color1">

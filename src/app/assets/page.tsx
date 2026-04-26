@@ -64,7 +64,7 @@ export default function AssetsPage() {
   const { data: session, status } = useSession();
   
   // Set page title
-  usePageTitle("My Assets - YONA");
+  usePageTitle("My Assets - XRPL");
 
   if (status === "loading") {
     return (
