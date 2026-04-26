@@ -4,7 +4,7 @@ import TransactionHistory from '@/components/transaction/TransactionHistory';
 import usePageTitle from '@/utils/usePageTitle';
 
 export default function TransactionsPage() {
-  usePageTitle("Transactions - YONA");
+  usePageTitle("Transactions - XRPL");
   
   return (
     <div className="min-h-screen bg-color1">

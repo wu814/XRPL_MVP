@@ -9,7 +9,7 @@ export default function Trade() {
   const { data: session, status } = useSession();
 
   // Set dynamic page title
-  usePageTitle("Trade - YONA");
+  usePageTitle("Trade - XRPL");
 
   if (status === "loading") {
     return (

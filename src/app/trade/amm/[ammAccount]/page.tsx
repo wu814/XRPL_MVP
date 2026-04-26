@@ -9,7 +9,7 @@ export default function AMMDetails() {
   const address = params.ammAccount as string; // Get the AMM address from the URL
   
   // Set page title
-  usePageTitle("Pool Details - YONA");
+  usePageTitle("Pool Details - XRPL");
 
   return (
     <div className="p-2 ">

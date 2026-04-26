@@ -10,7 +10,7 @@ export default function AMM() {
   const { data: session, status } = useSession();
   
   // Set page title
-  usePageTitle("Liquidity Pools - YONA");
+  usePageTitle("Liquidity Pools - XRPL");
 
   if (status === "loading") {
     return (

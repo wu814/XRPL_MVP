@@ -11,7 +11,7 @@ export default function RegisterPage() {
   const router = useRouter();
   
   // Set page title
-  usePageTitle("Register - YONA");
+  usePageTitle("Register - XRPL");
 
   useEffect(() => {
     if (status === "loading") return; // Still loading

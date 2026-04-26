@@ -11,7 +11,7 @@ export default function SettingsPage() {
   const [username, setUsername] = useState("");
   
   // Set page title
-  usePageTitle("Settings - YONA");
+  usePageTitle("Settings - XRPL");
 
   useEffect(() => {
     if (status === "authenticated") {

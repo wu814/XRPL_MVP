@@ -21,7 +21,7 @@ export default function UserPage(){
   const [errorMessage, setErrorMessage] = useState<string | null>(loadWalletErrorMessage);
   
   // Set page title with username
-  usePageTitle(`${username} - Profile - YONA`);
+  usePageTitle(`${username} - Profile - XRPL`);
   
   useEffect(() => {
     if (loadWalletErrorMessage) {

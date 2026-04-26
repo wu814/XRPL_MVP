@@ -16,7 +16,7 @@ export default function DEX() {
   const [quoteCurrency, setQuoteCurrency] = useState("USD");
   
   // Set page title
-  usePageTitle("Order Book - YONA");
+  usePageTitle("Order Book - XRPL");
 
   if (status === "loading") {
     return (

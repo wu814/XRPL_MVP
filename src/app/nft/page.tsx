@@ -14,7 +14,7 @@ export default function NFTPage() {
   const router = useRouter();
   
   // Set page title
-  usePageTitle("NFT Marketplace - YONA");
+  usePageTitle("NFT Marketplace - XRPL");
 
   useEffect(() => {
     if (status === "loading") return; // Still loading
