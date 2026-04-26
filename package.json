@@ -24,6 +24,9 @@
     "ws": "^8.18.2",
     "xrpl": "^4.2.0"
   },
+  "overrides": {
+    "jiti": "2.6.1"
+  },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@types/bcryptjs": "^2.4.6",
