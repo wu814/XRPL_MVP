@@ -7,7 +7,44 @@ import ErrorMdl from "../app/ErrorMdl";
 import SuccessMdl from "../app/SuccessMdl";
 import CurrencyDropDown from "../currency/CurrencyDropDown";
 import { YONAWallet } from "@/types/appTypes";
-import { APIResponse } from "@/types/apiTypes";
+import { APIResponse, SetWalletTrustlineAPIData } from "@/types/apiTypes";
+
+const formatAmount = (value: string | number): string =>
+  Number(value).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 6,
+  });
+
+const formatUSD = (value: number): string =>
+  value.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+const buildSuccessMessage = (
+  selectedCurrency: string,
+  data?: SetWalletTrustlineAPIData,
+  fallback?: string,
+): string => {
+  if (data?.trustlineAlreadyExisted) {
+    return `Trustline for ${selectedCurrency} already exists. No welcome gift issued.`;
+  }
+
+  const bonus = data?.welcomeBonus;
+  if (!bonus) {
+    return fallback || `Trustline for ${selectedCurrency} set successfully.`;
+  }
+
+  if (bonus.skipped) {
+    return `Trustline for ${selectedCurrency} set successfully.\n\nWelcome gift could not be issued: ${bonus.skipReason || "unknown reason"}`;
+  }
+
+  return (
+    `Trustline for ${selectedCurrency} set successfully!\n\n` +
+    `Welcome gift: you received ${formatAmount(bonus.amount)} ${bonus.currency} ` +
+    `(≈ $${formatUSD(bonus.usdValue)} USD) at $${formatAmount(bonus.pricePerUnitUSD)}/${bonus.currency}.`
+  );
+};
 
 interface SetTrustlineBtnProps {
   setterWallet: YONAWallet;
@@ -44,11 +81,12 @@ export default function SetTrustlineBtn({ setterWallet, issuerWallets, onSuccess
         setErrorMessage(errorData.message);
         return;
       }
-      const result: APIResponse<never> = await response.json();
-      
-      setSuccessMessage(result.message || "Trustline set successfully");
-      
-      // Call the onSuccess callback if provided
+      const result: APIResponse<SetWalletTrustlineAPIData> = await response.json();
+
+      setSuccessMessage(
+        buildSuccessMessage(selectedCurrency, result.data, result.message),
+      );
+
       if (onSuccess) {
         onSuccess();
       }

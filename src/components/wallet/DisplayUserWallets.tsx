@@ -11,56 +11,10 @@ import TransferBtn from "@/components/wallet/TransferBtn";
 import CreateUserWalletBtn from "@/components/wallet/CreateUserWalletBtn";
 import Button from "@/components/app/Button";
 import ViewWalletDetails from "@/components/wallet/ViewWalletDetails";
-import AddFundsBtn from "./AddFunds";
 import { APIResponse } from "@/types/apiTypes";
 import { AccountInfo } from "@/types/xrpl/walletXRPLTypes";
 
-// Additional Welcome Section Component for users with wallets
-function AdditionalWelcomeSection() {
-  const { data: session } = useSession();
-  const { currentUserWallets } = useCurrentUserWallet();
 
-  // Only show this section if user has wallets
-  if (currentUserWallets.length === 0) {
-    return null;
-  }
-
-  return (
-    <div className="w-full rounded-lg bg-color2 p-6">
-      <h2 className="mb-6 text-2xl font-bold">
-        Welcome, {session?.user?.username}
-      </h2>
-      <div className="grid w-full grid-cols-1 gap-6 md:grid-cols-2">
-        <div className="rounded-lg bg-color3 p-6">
-          <h3 className="mb-4 text-xl font-semibold">
-            Top Earning Pools (24hr)
-          </h3>
-          <div className="space-y-3 text-lg">
-            <div className="flex justify-between">
-              <span>XRP/USD</span>
-              <span className="text-green-400">2.75%</span>
-            </div>
-            <div className="flex justify-between">
-              <span>XRP/BTC</span>
-              <span className="text-green-400">1.58%</span>
-            </div>
-            <div className="flex justify-between">
-              <span>USD/BTC</span>
-              <span className="text-green-400">1.23%</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-lg bg-color3 p-6">
-          <h3 className="mb-4 text-xl font-semibold">Recent Activity</h3>
-          <div className="space-y-3 text-lg text-gray-400">
-            <div>No recent transactions</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // Main DisplayUserWallets Component
 export default function DisplayUserWallets() {
@@ -264,9 +218,6 @@ export default function DisplayUserWallets() {
           })}
         </div>
       </div>
-
-      <AddFundsBtn />
-      <AdditionalWelcomeSection />
     </div>
   );
 }

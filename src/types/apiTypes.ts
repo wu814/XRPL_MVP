@@ -208,6 +208,21 @@ export type SetWalletTrustlineAPIRequest = {
   currency: string;
 }
 
+export type WelcomeBonusInfo = {
+  currency: string;
+  amount: string;
+  usdValue: number;
+  pricePerUnitUSD: number;
+  transactionHash?: string;
+  skipped: boolean;
+  skipReason?: string;
+}
+
+export type SetWalletTrustlineAPIData = {
+  trustlineAlreadyExisted: boolean;
+  welcomeBonus?: WelcomeBonusInfo;
+}
+
 export type SetLPTrustlineAPIRequest = {
   setterWallet: YONAWallet;
   lpToken: IssuedCurrencyAmount;
