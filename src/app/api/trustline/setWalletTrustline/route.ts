@@ -8,7 +8,9 @@ import {
   checkTrustline,
 } from "@/utils/xrpl/trustline/setTrustline";
 import sendIOU from "@/utils/xrpl/transaction/sendIOU";
+import { authorizeTrustline } from "@/utils/xrpl/trustline/authorizeTrustline";
 import { getLivePriceUSD } from "@/utils/xrpl/oracle/getLivePriceUSD";
+import { client, connectXRPLClient } from "@/utils/xrpl/testnet";
 import { createSupabaseAnonClient } from "@/utils/supabase/server";
 import { Wallet } from "xrpl";
 import {
@@ -20,6 +22,18 @@ import {
 import { YONAWallet } from "@/types/appTypes";
 
 const WELCOME_BONUS_USD = 1000;
+
+/** asfRequireAuth on AccountRoot — issuer must authorize holders before receiving issued currency */
+async function issuerAccountRequiresAuth(issuerClassicAddress: string): Promise<boolean> {
+  await connectXRPLClient();
+  const issuerAccountInfo = await client.request({
+    command: "account_info",
+    account: issuerClassicAddress,
+    ledger_index: "validated",
+  });
+  const issuerFlags = Number(issuerAccountInfo.result.account_data.Flags);
+  return (issuerFlags & 0x00040000) !== 0;
+}
 
 export async function POST(
   req: NextRequest,
@@ -172,6 +186,19 @@ async function awardWelcomeBonus(params: {
     }
 
     const issuerXRPLWallet = Wallet.fromSeed(issuerRow.seed);
+
+    if (await issuerAccountRequiresAuth(issuerAddress)) {
+      const authResult = await authorizeTrustline(
+        issuerXRPLWallet,
+        recipientAddress,
+        currency,
+      );
+      if (!authResult.success) {
+        return skipped(
+          `Issuer authorization failed (required before welcome gift): ${authResult.message}`,
+        );
+      }
+    }
 
     const sendResult = await sendIOU(
       issuerXRPLWallet,
