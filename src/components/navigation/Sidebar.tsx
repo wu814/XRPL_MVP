@@ -88,7 +88,7 @@ export default function Sidebar() {
     <div className="fixed left-0 top-0 flex h-full w-56 flex-col border-r border-gray-700 bg-color1 p-4">
       {/* Logo */}  
       <div className="flex content-center justify-center pt-5 pb-10">
-        <h1 className="text-5xl font-extrabold text-primary">YONA</h1>
+        <h1 className="text-5xl font-extrabold text-primary">XRPL</h1>
       </div>
       {/* Navigation */}
       <nav className="flex-1">
