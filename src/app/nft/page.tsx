@@ -41,7 +41,7 @@ export default function NFTPage() {
   return (
     <div className="min-h-screen bg-color1">          
         <div className="max-w-4xl mx-auto pt-10">
-          <div className="flex flex-row gap-4">
+          <div className="flex flex-row gap-4 py-2">
             <MintAndListNFT />
             <BuyNFT />
           </div>
